@@ -61,7 +61,7 @@ This paper makes five contributions:
 \begin{enumerate}[leftmargin=*, nosep]
   \item A \textbf{Token Value Stream} model that maps the end-to-end token production process of an AI coding agent to Lean flow concepts.
   \item Four \textbf{novel flow metrics} (Token Flow Efficiency, Semantic Yield, Context Velocity, and the WIP Ratio) that capture dimensions of production efficiency invisible to waste-only measurement.
-  \item An \textbf{empirical flow analysis} of 25 real Claude Code sessions, showing a large TER--TFE divergence and descriptive differences across visually selected input-growth regimes; Little's Law~\cite{little1961} is used as a WIP--throughput--time accounting relation, not as evidence for a nonlinear threshold.
+  \item An \textbf{empirical flow analysis} of 25 real Claude Code sessions, showing a large TER--TFE divergence and descriptive differences across visually selected input-growth groups; Little's Law~\cite{little1961} is used as a WIP--throughput--time accounting relation, not as evidence for a nonlinear threshold.
   \item \textbf{Prescriptive recommendations} for flow-optimised session architecture, grounded in the empirical findings and Lean's principles of pull production and single-piece flow.
   \item \textbf{TGV}, an open-source Task Gateway and Validator~\cite{griffin2026tgv} that operationalises the flow framework by embedding flow-aware routing, TER-based calibration, and Bayesian outcome learning into the task dispatch layer of AI-assisted development workflows.
 \end{enumerate}
@@ -145,18 +145,18 @@ To that end, this paper proposes four metrics, each capturing a distinct dimensi
 
 \subsubsection{Token Flow Efficiency (TFE)}
 
-Analogous to manufacturing flow efficiency (value-adding time / lead time), TFE measures the proportion of all tokens flowing through the system that constitute value-adding output:
+TFE is inspired by manufacturing flow-efficiency reasoning but is defined here as a token-accounting ratio rather than a temporal measure. It measures the proportion of observed token traffic that constitutes value-adding output:
 
 \begin{equation}
 \text{TFE} = \frac{T_{\text{aligned}}}{T_{\text{input}} + T_{\text{output}} + T_{\text{cache\_create}} + T_{\text{cache\_read}}}
 \label{eq:tfe}
 \end{equation}
 
-\noindent where $T_{\text{aligned}}$ is aligned output tokens, and the denominator captures the total token throughput of the production system, including input, output, cache creation, and cache read tokens. Crucially, TFE differs fundamentally from TER: TER measures output purity ($T_{\text{aligned}} / T_{\text{output}}$), whilst TFE measures system-level yield: that is to say, how efficiently the entire production apparatus converts token throughput into value. A session can achieve TER~$\approx$~1.0 (near-zero output waste) whilst simultaneously exhibiting TFE~$\ll$~0.01, wherein the vast majority of tokens in the system constitute overhead rather than value-adding output.
+\noindent where $T_{\text{aligned}}$ is aligned output tokens. The denominator counts input, output, cache-creation, and cache-read tokens as observed token traffic. Cache reads are reused context rather than newly produced material, so this denominator should be interpreted as a system-traffic accounting choice, not as a unique physical analogue of manufacturing throughput. Crucially, TFE differs from TER: TER measures output purity ($T_{\text{aligned}} / T_{\text{output}}$), whilst TFE measures the aligned-output share of the broader token traffic required by the session. A session can achieve TER~$\approx$~1.0 (near-zero output waste) whilst simultaneously exhibiting TFE~$\ll$~0.01, wherein the vast majority of counted token traffic is context, cache, or other production overhead rather than value-adding output. Alternative denominator definitions are an important robustness target for future replication.
 
 \subsubsection{Semantic Yield (SY)}
 
-Semantic Yield combines the quantity of output with an operational estimate of non-redundant semantic density. Although motivated by the general distinction between signal and redundancy, SY is not a Shannon-information measure and should not be interpreted as entropy, mutual information, or channel capacity:
+Semantic Yield is a redundancy-adjusted output measure that combines the quantity of output with an operational estimate of non-redundant semantic density. Although motivated by the general distinction between signal and redundancy, SY is not a Shannon-information measure and should not be interpreted as entropy, mutual information, or channel capacity:
 
 \begin{equation}
 \text{SY} = \sigma_{\text{sem}} \times T_{\text{output}}
@@ -210,7 +210,7 @@ In Lean manufacturing, \emph{pull} production means that downstream processes si
 
 Current AI coding agents operate predominantly in push mode: the model generates reasoning tokens, invokes tools, and produces output without real-time demand signals from the developer. The developer's intent, expressed at session initiation, constitutes a work order rather than a continuous pull signal. Importantly, a principal downstream pull mechanism is the developer's review at session end, a batch inspection model that Lean theory predicts will be less effective at controlling WIP than continuous pull~\cite{anderson2010}.
 
-This paper argues, accordingly, that introducing pull mechanisms (adaptive token budgets~\cite{selfbudgeter2025, tale2024}, real-time developer feedback loops, and intent-driven reasoning cutoffs) would improve flow by constraining WIP at the point of production rather than inspecting it after accumulation.
+This framework therefore motivates testing pull mechanisms---adaptive token budgets~\cite{selfbudgeter2025, tale2024}, real-time developer feedback loops, and intent-driven reasoning cutoffs---as candidate ways to constrain WIP at the point of production rather than only inspecting it after accumulation. Whether these interventions improve the proposed flow metrics is an empirical question for controlled evaluation.
 
 % ============================================================================
 \section{Empirical Flow Analysis}
@@ -292,9 +292,9 @@ Of note here is the agent subprocess row: with TFE~0.053, the subprocess achieve
 \label{fig:ter_tfe_divergence}
 \end{figure}
 
-\subsection{WIP Analysis and Little's Law}
+\subsection{Exploratory WIP Stratification and Little's Law}
 
-Fig.~\ref{fig:wip_analysis} presents the relationship between input growth rate, a proxy for WIP accumulation, and flow metrics. The 25 sessions partition into three WIP regimes:
+Fig.~\ref{fig:wip_analysis} presents the relationship between input growth rate, a proxy for WIP accumulation, and TFE. For descriptive summarisation only, the 25 sessions are stratified into three visually selected WIP groups:
 
 \begin{figure}[t]
 \centering
@@ -346,15 +346,15 @@ Fig.~\ref{fig:wip_analysis} presents the relationship between input growth rate,
 
 \end{axis}
 \end{tikzpicture}
-\caption{TFE versus input growth rate with three descriptive WIP regimes. The moderate/high boundary at $r_{\text{growth}}=10$ was selected by visual inspection and is shown as a descriptive regime boundary, not an estimated change point. Higher-growth observations exhibit lower TFE in this dataset; any nonlinear interpretation is attributed to saturation/queueing behaviour rather than to Little's Law.}
+\caption{TFE versus input growth rate with three descriptive input-growth groups. The moderate/high boundary at $r_{\text{growth}}=10$ was selected by visual inspection and is shown as a descriptive grouping boundary, not an estimated change point. Higher-growth observations exhibit lower TFE in this dataset; any nonlinear interpretation is attributed to saturation/queueing behaviour rather than to Little's Law.}
 \label{fig:wip_analysis}
 \end{figure}
 
-\textbf{Low WIP} ($r_{\text{growth}} < 3.0$, $n = 12$): All agent subprocesses and three short primary sessions fall within this regime. Mean TFE: 0.031. Mean context velocity: 12,450 tokens per unit growth. No context bloat is detected in any session within this category.
+\textbf{Lower-growth group} ($r_{\text{growth}} < 3.0$, $n = 12$): All agent subprocesses and three short primary sessions fall within this group. Mean TFE: 0.031. Mean context velocity: 12,450 tokens per unit growth. No context bloat is detected in any session within this category.
 
-\textbf{Moderate WIP} ($3.0 \leq r_{\text{growth}} < 10.0$, $n = 8$): Primary sessions with controlled context accumulation, wherein flow efficiency begins to degrade measurably. Mean TFE: 0.0035. Mean context velocity: 7,290. Context bloat in 1 of 8.
+\textbf{Middle-growth group} ($3.0 \leq r_{\text{growth}} < 10.0$, $n = 8$): Primary sessions with controlled context accumulation, wherein flow efficiency begins to degrade measurably. Mean TFE: 0.0035. Mean context velocity: 7,290. Context bloat in 1 of 8.
 
-\textbf{High WIP} ($r_{\text{growth}} \geq 10.0$, $n = 5$): Sessions with aggressive context accumulation, exhibiting the most pronounced flow degradation across all metrics. Mean TFE: 0.0029. Mean context velocity: 3,680. Context bloat in 3 of 5, and superlinear input growth is observed in all 5.
+\textbf{Higher-growth group} ($r_{\text{growth}} \geq 10.0$, $n = 5$): Sessions with aggressive context accumulation, exhibiting the most pronounced flow degradation across all metrics. Mean TFE: 0.0029. Mean context velocity: 3,680. Context bloat in 3 of 5, and superlinear input growth is observed in all 5.
 
 \begin{table}[t]
 \centering
@@ -365,16 +365,16 @@ Fig.~\ref{fig:wip_analysis} presents the relationship between input growth rate,
 \textbf{WIP Regime} & $n$ & \textbf{Mean} & \textbf{Mean} & \textbf{Mean} & \textbf{Bloat} \\
                      &     & \textbf{TFE}  & \textbf{CV}   & \textbf{WIP$_R$} & \textbf{Rate} \\
 \midrule
-Low ($r < 3$)       & 12  & 0.031 & 12,450 & 0.52  & 0\%  \\
-Moderate ($3$--$10$) & 8  & 0.004 & 7,290  & 0.96  & 13\% \\
-High ($r \geq 10$)  & 5   & 0.003 & 3,680  & 0.99  & 60\% \\
+Lower ($r < 3$)       & 12  & 0.031 & 12,450 & 0.52  & 0\%  \\
+Middle ($3$--$10$) & 8  & 0.004 & 7,290  & 0.96  & 13\% \\
+Higher ($r \geq 10$)  & 5   & 0.003 & 3,680  & 0.99  & 60\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Across the descriptive regimes, mean context velocity declines from 12,450 to 7,290 and then 3,680, while context-bloat incidence rises from 0\% to 13\% and then 60\%. These observations are compatible with increasing WIP and with saturation/queueing interpretations~\cite{kleinrock1975}, but the study does not estimate a causal threshold or change point.
+Across the descriptive groups, mean context velocity declines from 12,450 to 7,290 and then 3,680, while context-bloat incidence rises from 0\% to 13\% and then 60\%. These observations are compatible with increasing WIP and with saturation/queueing interpretations~\cite{kleinrock1975}, but the study does not estimate a causal threshold or change point.
 
-The boundaries at $r_{\text{growth}}=3.0$ and $r_{\text{growth}}=10.0$ were selected by visual inspection of Fig.~\ref{fig:wip_analysis}. They are descriptive bins for this dataset, not inferred constants. Moving the first boundary to 2.5 or 3.5 and the second to 8.0 or 12.0 reclassifies one or two sessions in each case without changing the qualitative ordering of the regime summaries. Larger cross-tool and cross-developer datasets are required before any boundary can be treated as an operational threshold.
+The boundaries at $r_{\text{growth}}=3.0$ and $r_{\text{growth}}=10.0$ were selected by visual inspection of Fig.~\ref{fig:wip_analysis}. They are descriptive bins for this dataset, not inferred constants. Moving the first boundary to 2.5 or 3.5 and the second to 8.0 or 12.0 reclassifies one or two sessions in each case without changing the qualitative ordering of the group summaries. Larger cross-tool and cross-developer datasets are required before any boundary can be treated as an operational threshold.
 
 \begin{figure}[t]
 \centering
@@ -486,7 +486,7 @@ Superlinear growth    & 0\%    & 40\%   \\
 
 Table~\ref{tab:flow_comparison} shows large descriptive differences: subprocesses have $10\times$ higher mean TFE, $2.1\times$ higher context velocity, 32\% higher mean semantic density, and a lower WIP ratio. No subprocess in the sample exhibits context bloat or superlinear growth, compared with 27\% and 40\%, respectively, among primary sessions. These directions are consistent with Lean's single-piece-flow expectations~\cite{reinertsen2009, poppendieck2003}, but task scope and session role are confounded with subprocess status; the comparison does not identify a causal effect of decomposition.
 
-The implication is not that all work should be decomposed into subprocesses; some tasks require the sustained context that only a long session provides~\cite{barke2023}. The flow data do suggest, however, that the current default architecture, wherein sessions grow monolithically until completion, is suboptimal from a flow perspective. A hybrid architecture (short, scoped subprocesses for discrete tasks, orchestrated by a lightweight parent session that manages intent and context) would better align with Lean's flow principles, and it is towards such an architecture that the recommendations in the concluding section are directed.
+The implication is not that all work should be decomposed into subprocesses; some tasks require the sustained context that only a long session provides~\cite{barke2023}. The flow data do suggest, however, that monolithic sessions which accumulate multiple tasks and growing context may be flow-inefficient in some settings. A hybrid architecture (short, scoped subprocesses for discrete tasks, orchestrated by a lightweight parent session that manages intent and context) would better align with Lean's flow principles, and it is towards such an architecture that the recommendations in the concluding section are directed.
 
 % ============================================================================
 \section{Discussion}
@@ -494,13 +494,13 @@ The implication is not that all work should be decomposed into subprocesses; som
 
 \subsection{Flow Complements Waste}
 
-The empirical analysis presented in the preceding sections demonstrates that TER and TFE measure fundamentally different properties of the token production system. TER is a \emph{product metric}~\cite{fenton2014}: it measures the quality (purity) of the output. TFE, by contrast, is a \emph{process metric}: it measures how efficiently the production system converts its total resource consumption into value. The 196--720$\times$ divergence between TER and TFE (Table~\ref{tab:tfe_vs_ter}, Fig.~\ref{fig:ter_tfe_divergence}) reveals the magnitude of production overhead that waste-only analysis does not capture, and it is this divergence that constitutes the strongest argument for adopting flow theory as a complementary analytical lens.
+The empirical analysis presented in the preceding sections demonstrates that TER and TFE measure fundamentally different properties of the token production system. TER is a \emph{product metric}~\cite{fenton2014}: it measures the quality (purity) of the output. TFE, by contrast, is a \emph{process metric}: it measures how efficiently the production system converts its total resource consumption into value. The 196--720$\times$ divergence between TER and TFE (Table~\ref{tab:tfe_vs_ter}, Fig.~\ref{fig:ter_tfe_divergence}) quantifies a large difference between output purity and the aligned-output share of counted token traffic. Under the present TFE denominator, this is the strongest empirical motivation for treating flow as a complementary analytical lens; its absolute magnitude should be interpreted together with the denominator choice described in Section~\ref{sec:model}.
 
-The distinction matters considerably in practice. An organisation optimising for TER alone might conclude that its AI coding sessions are highly efficient (mean TER 0.987), whilst flow analysis reveals that less than 0.4\% of total token throughput constitutes value-adding output. The remaining 99.6\% is systemic overhead: context loading, cache management, and input token accumulation. It is worth noting that Lean's contribution, one that transfers directly to this domain, is the recognition that both views are necessary~\cite{womack1996}: product quality and process efficiency are complementary, not substitutable, and an organisation that attends to only one does so at the cost of systematic blindness to the other.
+The distinction matters considerably in practice. An organisation optimising for TER alone might conclude that its AI coding sessions are highly efficient (mean TER 0.987), whilst the present TFE accounting indicates that less than 0.4\% of counted token traffic constitutes value-adding output. The remaining share is dominated by context loading, cache traffic, and input token accumulation under the chosen denominator. It is worth noting that Lean's contribution, one that transfers directly to this domain, is the recognition that both views are necessary~\cite{womack1996}: product quality and process efficiency are complementary, not substitutable, and an organisation that attends to only one does so at the cost of systematic blindness to the other.
 
 \subsection{Towards Pull-Based Token Production}
 
-The Token Value Stream Map (Fig.~\ref{fig:vsm}) exposes a structural asymmetry that warrants closer examination: after the initial developer demand signal, the three central production phases operate predominantly in push mode before downstream review and integration reintroduce pull. Lean theory is unequivocal that pull systems outperform push systems in controlling WIP and stabilising flow~\cite{hopp2004, anderson2010}. The question, then, is how to introduce pull mechanisms into a production process that is, by its architectural nature, largely autonomous, and wherein the developer's demand signal is expressed at session initiation rather than continuously throughout production.
+The Token Value Stream Map (Fig.~\ref{fig:vsm}) exposes a structural asymmetry that warrants closer examination: after the initial developer demand signal, the three central production phases operate predominantly in push mode before downstream review and integration reintroduce pull. Lean theory provides a strong rationale for pull systems as a means of bounding WIP and stabilising flow~\cite{hopp2004, anderson2010}. The question, then, is how to introduce pull mechanisms into a production process that is, by its architectural nature, largely autonomous, and wherein the developer's demand signal is expressed at session initiation rather than continuously throughout production.
 
 To that end, three intervention points emerge from the analysis. First, \emph{reasoning budget controls}, adaptive token budgets~\cite{selfbudgeter2025, tale2024, routetoreason2025} that limit reasoning production based on task complexity, introduce a demand signal into Phase~2. Second, \emph{intent-driven tool selection}, whereby tool invocations are constrained by explicit intent alignment rather than model autonomy, converts Phase~3 from push to pull. Third, \emph{real-time developer feedback}, mechanisms by which the developer can signal ``enough'' mid-session without terminating the session entirely, introduces continuous pull into Phase~4.
 
@@ -514,11 +514,11 @@ Several limitations warrant acknowledgement, and these are organised below withi
 
 \textbf{Construct validity.} The study-specific semantic density computation ($\sigma_{\text{sem}}$) depends on its embedding model and similarity threshold~\cite{reimers2019}; alternative formulations can change absolute Semantic Yield values. It is a redundancy proxy, not a direct information-theoretic quantity, and it differs from TER v3.0.0's production semantic-density scorer. TFE's denominator includes cache-read tokens, which represent reuse rather than new production; alternative denominator formulations may yield different efficiency characterisations. The absence of wall-clock timing prevents direct computation of temporal takt or lead time.
 
-\textbf{Internal validity.} The dataset comprises sessions from one developer using one tool (Claude Code), without controlled assignment of tasks to primary sessions or subprocesses. Session size, task type, task difficulty, subprocess status, and context growth may therefore be confounded. The observed WIP-regime and semantic-density differences are associations, not causal estimates. The regime boundaries were selected visually rather than by a formal change-point procedure. Flow metrics are computed from session-level aggregate data; timestamped per-turn analysis is outside the present dataset.
+\textbf{Internal validity.} The dataset comprises sessions from one developer using one tool (Claude Code), without controlled assignment of tasks to primary sessions or subprocesses. Session size, task type, task difficulty, subprocess status, and context growth may therefore be confounded. The observed input-growth-group and semantic-density differences are associations, not causal estimates. The group boundaries were selected visually rather than by a formal change-point procedure. Flow metrics are computed from session-level aggregate data; timestamped per-turn analysis is outside the present dataset.
 
-\textbf{External validity.} Twenty-five sessions from a single developer and codebase may not generalise across tools, developers, or task types. The WIP regime thresholds ($r_{\text{growth}} < 3$, $\geq 10$) are derived from these 25 observations and should be treated as indicative rather than definitive; cross-developer and cross-tool replication is needed to establish their robustness.
+\textbf{External validity.} Twenty-five sessions from a single developer and codebase may not generalise across tools, developers, or task types. The descriptive WIP-group boundaries ($r_{\text{growth}} < 3$, $\geq 10$) are derived from these 25 observations and should not be treated as thresholds; cross-developer and cross-tool replication is needed to determine whether comparable structure recurs.
 
-Cross-tool and cross-developer replication constitutes the most important avenue for establishing external validity. With respect to the practical requirements of such replication, three conditions must be met: (1)~alternative AI coding tools (Cursor, GitHub Copilot Chat, Windsurf, and similar agents) must expose per-turn token economics with cache breakdowns, data that is not currently available from all tools; (2)~a diverse developer cohort spanning experience levels, task domains, and coding styles must generate a sufficiently large session corpus; and (3)~the same flow metrics must be applied to the resulting data to test whether the WIP regime structure, the TFE--TER divergence, and the subprocess flow advantage replicate. Of note here is that the metrics themselves are tool-agnostic (they depend only on token counts and semantic density, not on tool-specific internals) and are therefore directly applicable to any LLM coding agent that exposes session-level economics data. The primary barrier to replication is not methodological but practical: obtaining the requisite token accounting data from tools that do not currently expose it.
+Cross-tool and cross-developer replication constitutes the most important avenue for establishing external validity. With respect to the practical requirements of such replication, three conditions must be met: (1)~alternative AI coding tools (Cursor, GitHub Copilot Chat, Windsurf, and similar agents) must expose per-turn token economics with cache breakdowns, data that is not currently available from all tools; (2)~a diverse developer cohort spanning experience levels, task domains, and coding styles must generate a sufficiently large session corpus; and (3)~the same flow metrics must be applied to the resulting data to test whether the observed input-growth pattern, the TFE--TER divergence, and the subprocess/primary-session differences replicate. Of note here is that the metrics themselves are tool-agnostic (they depend only on token counts and semantic density, not on tool-specific internals) and are therefore directly applicable to any LLM coding agent that exposes session-level economics data. The primary barrier to replication is not methodological but practical: obtaining the requisite token accounting data from tools that do not currently expose it.
 
 % ============================================================================
 \section{From Measurement to Action: The TGV System}
@@ -536,7 +536,7 @@ With respect to the flow theory developed in this paper, TGV's routing architect
 
 TGV v0.29 integrates with TER-compatible telemetry to calibrate the two local routes, \emph{local\_fast} and \emph{local\_code}~\cite{griffin2026ter, griffin2026tgv}. Once the configured minimum number of sessions is available (default 5), the calibration logic compares each local route's observed waste ratio with a target (default 0.25). It proposes a higher local-routing confidence threshold when waste exceeds the target, holds the threshold when waste lies between half the target and the target, and lowers it when waste is below half the target. These are threshold proposals for local-routing selectivity rather than direct manipulation of context WIP.
 
-From the flow perspective, this calibration loop is a candidate \emph{upstream} control mechanism: it changes which tasks are admitted to local execution based on measured outcomes. The present study does not show that TGV enforces the descriptive $r_{\text{growth}}$ regime boundaries or reduces WIP causally; that relationship is a design interpretation to be evaluated experimentally.
+From the flow perspective, this calibration loop is a candidate \emph{upstream} control mechanism: it changes which tasks are admitted to local execution based on measured outcomes. The present study does not show that TGV enforces the descriptive $r_{\text{growth}}$ grouping boundaries or reduces WIP causally; that relationship is a design interpretation to be evaluated experimentally.
 
 \subsection{Bayesian Outcome Learning}
 
@@ -568,7 +568,7 @@ The framework therefore motivates three testable interventions: explicit context
 
 \section*{Data Availability}
 
-The product implementations referenced in this manuscript are TER v3.0.0, maintained at \url{https://github.com/lgriffin/TER}, and TGV v0.29, maintained at \url{https://github.com/cplegendre/TGV}. The study-specific semantic-density procedure used for Table~\ref{tab:info_throughput} is distinct from TER v3.0.0's production \texttt{SemanticDensityScorer}; reproducing the reported SY values therefore requires the research pipeline described in Section~\ref{sec:model}, together with the derived session-level semantic-density scores. Raw session transcripts are not distributed because they contain proprietary code content. The session-level token economics, derived semantic-density scores, flow-metric scripts, and WIP-boundary sensitivity analysis constitute the manuscript's replication artefacts and should be archived with the paper rather than inferred from the TER product release.
+The product implementations referenced in this manuscript are TER v3.0.0, maintained at \url{https://github.com/lgriffin/TER}, and TGV v0.29, maintained at \url{https://github.com/cplegendre/TGV}. The study-specific semantic-density procedure used for Table~\ref{tab:info_throughput} is distinct from TER v3.0.0's production \texttt{SemanticDensityScorer}; reproducing the reported SY values therefore requires the research pipeline described in Section~\ref{sec:model}, together with the derived session-level semantic-density scores. Raw session transcripts are not distributed because they contain proprietary code content. The session-level token economics, derived semantic-density scores, flow-metric scripts, and WIP-boundary sensitivity analysis constitute the manuscript's replication artefacts. A submission-ready release should archive these artefacts with an immutable version identifier (for example, a tagged repository release or archival DOI) so that the reported tables and figures can be reproduced independently of subsequent TER product changes.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
