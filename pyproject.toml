@@ -32,6 +32,7 @@ dev = [
     "pre-commit>=3,<5",
     "import-linter>=2,<3",
     "types-PyYAML>=6,<7",
+    "hypothesis>=6,<7",
 ]
 
 [project.scripts]
@@ -161,6 +162,7 @@ type = "independence"
 modules = [
     "ter.adapters.driven.claude_code",
     "ter.adapters.driven.embedders",
+    "ter.adapters.driven.event_log",
     "ter.adapters.driven.tokenizers",
     "ter.adapters.driven.in_memory",
     "ter.adapters.driven.pricing",

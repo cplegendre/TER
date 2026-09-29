@@ -8,9 +8,9 @@ rules that enforce it and how it is verified. Rules live in
 `requirements/*.yaml`; `✓` marks a verified rule and `·` a planned one. See
 [requirements.md](requirements.md) for the controls.
 
-**200 points** · ● done **13** · ◐ partial **46** · ○ not started **141**
+**200 points** · ● done **23** · ◐ partial **36** · ○ not started **141**
 
-`███▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░`
+`█████▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░`
 
 Legend: `█` done · `▓` partial · `░` not started
 
@@ -19,7 +19,7 @@ Legend: `█` done · `▓` partial · `░` not started
 | Level | Progress | Done | Partial | Not started | Total |
 |---|---|---:|---:|---:|---:|
 | L0 Measured | `██████████████████▓▓` | 10 | 1 | 0 | 11 |
-| L1 Observed | `▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓` | 0 | 16 | 0 | 16 |
+| L1 Observed | `████████████▓▓▓▓▓▓▓▓` | 10 | 6 | 0 | 16 |
 | L2 Explained | `█▓▓▓▓▓▓▓░░░░░░░░░░░░` | 2 | 19 | 33 | 54 |
 | L3 Grounded | `▓░░░░░░░░░░░░░░░░░░░` | 0 | 3 | 45 | 48 |
 | L4 Advisory | `▓▓░░░░░░░░░░░░░░░░░░` | 0 | 3 | 36 | 39 |
@@ -40,8 +40,8 @@ P021 ◐ ○ ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○
 P041 ● ● ● ● ◐ ◐ ◐ ○ ◐ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○
 P061 ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○
 P081 ○ ◐ ◐ ◐ ● ● ○ ○ ○ ○ ○ ◐ ● ○ ◐ ○ ○ ○ ○ ◐
-P101 ◐ ● ● ● ● ● ◐ ◐ ◐ ◐ ◐ ◐ ◐ ◐ ◐ ◐ ◐ ◐ ◐ ◐
-P121 ◐ ◐ ○ ○ ◐ ○ ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○
+P101 ◐ ● ● ● ● ● ● ● ● ◐ ● ● ● ● ◐ ◐ ◐ ◐ ● ●
+P121 ◐ ● ○ ○ ◐ ○ ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○
 P141 ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ◐ ◐ ○ ○ ○ ○ ○ ○ ○ ○
 P161 ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○
 P181 ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ◐ ◐ ○ ○
@@ -151,28 +151,28 @@ P181 ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ◐ ◐ ○
 | P098 | Compare different context strategies performing equivalent tasks. | L5 | ○ not started | [#42](https://github.com/lgriffin/TER/issues/42) | • A comparison report shows context strategies on the same tasks. | `TER-BEN-002` ·<br>`TER-ANL-031` · | planned: passing tests tagged req for TER-BEN-002, TER-ANL-031<br>planned: real-data verification in issue #42 |
 | P099 | Compare agent sessions with and without TER intervention. | L5 | ○ not started | [#45](https://github.com/lgriffin/TER/issues/45) | • A comparison report shows sessions with and without TER intervention on the same tasks. | `TER-BEN-002` ·<br>`TER-ANL-032` · | planned: passing tests tagged req for TER-BEN-002, TER-ANL-032<br>planned: real-data verification in issue #45 |
 | P100 | Make empirical validation a prerequisite for strong efficiency claims. | L0 | ◐ partial | [#41](https://github.com/lgriffin/TER/issues/41) | • Every behaviour is an EARS requirement traced to tests and gated in CI.<br>• Every efficiency claim in a report links to benchmark evidence. | `TER-BEN-003` ·<br>`TER-ANL-025` ·<br>`TER-REQ-001` ✓<br>`TER-REQ-002` ✓<br>`TER-REQ-003` ✓<br>`TER-REQ-004` ✓<br>`TER-REQ-006` ✓ | ci: Requirements traceability gate (L0)<br>planned: TER-BEN-003 claim-to-benchmark links<br>planned: real-data verification in issue #41 |
-| P101 | Introduce a real-time event stream as a core architectural boundary. | L1 | ◐ partial |  | • An EventIngest port is the only way events enter analysis. | `TER-OBS-001` · | planned: EventIngest port contract tests (lands with the L1 PR, work/l1-observed) |
+| P101 | Introduce a real-time event stream as a core architectural boundary. | L1 | ◐ partial |  | • An EventIngest port is the only way events enter analysis. | `TER-OBS-001` · | test: tests/contract/test_event_ingest.py<br>planned: recorded sessions enter analysis through EventIngest too (TER-OBS-001) |
 | P102 | Convert Claude Code activity into normalised TER events. | L0 | ● done |  | • The Claude Code adapter converts JSONL to ter.event/0.1 events. | `TER-SRC-001` ✓<br>`TER-OBS-001` · | test: tests/unit/test_ter4_adapters.py::TestClaudeCodeJsonlSource::test_tool_results_inherit_their_request_kind |
 | P103 | Design the event model so other coding agents can eventually be supported. | L0 | ● done |  | • The event model uses provider-neutral tool kinds.<br>• A second harness adapter passes the SessionSource contract suite. | `TER-SRC-003` ✓<br>`TER-SRC-010` · | test: tests/unit/test_ter4_adapters.py::TestToolMap::test_every_kind_except_other_has_a_claude_tool<br>planned: second harness adapter in tests/contract |
 | P104 | Avoid coupling the analytical core directly to Claude-specific JSONL structures. | L0 | ● done |  | • The domain, ports and use cases never import the JSONL adapter, enforced by import-linter. | `TER-ARC-001` ✓ | ci: Architecture import contracts |
 | P105 | Create provider adapters around a provider-neutral domain model. | L0 | ● done |  | • Provider adapters implement ports around the neutral domain, enforced by the hexagon contracts. | `TER-ARC-001` ✓ | test: tests/architecture/test_import_contracts.py |
 | P106 | Support post-hoc static analysis from completed sessions. | L0 | ● done |  | • ter analyze scores completed sessions, frozen by golden snapshots. | `TER-ANL-000` ✓ | test: tests/golden/test_ter3_characterisation.py |
-| P107 | Support incremental analysis while a session is active. | L1 | ◐ partial |  | • Analysis runs incrementally, one event at a time, while a session is active. | `TER-ANL-010` · | planned: AnalysisEngine.apply tests (lands with the L1 PR, work/l1-observed) |
-| P108 | Ensure static and live analysis use the same fundamental analytical semantics. | L1 | ◐ partial |  | • Live and batch analysis share one fold over events. | `TER-ANL-010` · | planned: shared fold equivalence tests (lands with the L1 PR, work/l1-observed) |
-| P109 | Avoid separate implementations that produce contradictory offline and live results. | L1 | ◐ partial |  | • An equivalence test proves incremental and batch reports are identical on the corpus. | `TER-ANL-010` · | planned: live = batch equivalence tests (lands with the L1 PR, work/l1-observed) |
-| P110 | Maintain incremental state so live analysis does not repeatedly recompute entire sessions. | L1 | ◐ partial |  | • Applying one event updates state without reprocessing earlier events, shown by an operation-count test. | `TER-ANL-011` · | planned: incremental engine state tests (lands with the L1 PR, work/l1-observed) |
-| P111 | Establish a TER hook subsystem for Claude Code. | L1 | ◐ partial |  | • A claude_hooks adapter is installable into Claude Code settings. | `TER-OBS-002` · | planned: claude_hooks adapter tests (lands with the L1 PR, work/l1-observed) |
-| P112 | Observe appropriate Claude lifecycle and tool events through hooks. | L1 | ◐ partial |  | • A documented table maps each supported Claude hook to the events it emits. | `TER-OBS-002` · | planned: hook to event table tests (lands with the L1 PR, work/l1-observed) |
-| P113 | Capture tool-use events before execution where supported. | L1 | ◐ partial |  | • PreToolUse hooks emit tool.requested events. | `TER-OBS-002` · | planned: PreToolUse tests (lands with the L1 PR, work/l1-observed) |
-| P114 | Capture tool outcomes after execution where supported. | L1 | ◐ partial |  | • PostToolUse hooks emit tool.completed events. | `TER-OBS-002` ·<br>`TER-OBS-003` · | planned: PostToolUse tests (lands with the L1 PR, work/l1-observed) |
+| P107 | Support incremental analysis while a session is active. | L1 | ● done |  | • Analysis runs incrementally, one event at a time, while a session is active. | `TER-ANL-010` ✓ | test: tests/equivalence/test_live_static.py::test_replay_one_by_one_equals_batch |
+| P108 | Ensure static and live analysis use the same fundamental analytical semantics. | L1 | ● done |  | • Live and batch analysis share one fold over events. | `TER-ANL-010` ✓ | test: tests/unit/test_ter4_stream.py::test_batch_is_the_fold_of_apply |
+| P109 | Avoid separate implementations that produce contradictory offline and live results. | L1 | ● done |  | • An equivalence test proves incremental and batch reports are identical on the corpus. | `TER-ANL-010` ✓ | test: tests/equivalence/test_live_static.py<br>test: tests/unit/test_ter4_stream_properties.py::test_incremental_equals_batch<br>test: tests/golden/test_stream_report_snapshot.py |
+| P110 | Maintain incremental state so live analysis does not repeatedly recompute entire sessions. | L1 | ◐ partial |  | • Applying one event updates state without reprocessing earlier events, shown by an operation-count test. | `TER-ANL-011` · | test: tests/unit/test_ter4_stream.py::test_batch_is_the_fold_of_apply<br>planned: operation-count test showing apply does not reprocess earlier events (TER-ANL-011) |
+| P111 | Establish a TER hook subsystem for Claude Code. | L1 | ● done |  | • A claude_hooks adapter is installable into Claude Code settings. | `TER-OBS-002` · | test: tests/unit/test_ter4_claude_hooks.py<br>test: tests/unit/test_ter4_cli.py::test_python_dash_m_ter |
+| P112 | Observe appropriate Claude lifecycle and tool events through hooks. | L1 | ● done |  | • A documented table maps each supported Claude hook to the events it emits. | `TER-OBS-002` · | test: tests/contract/test_hook_payloads.py::test_fixture_translates_to_the_pinned_events<br>test: tests/contract/test_hook_payloads.py::test_every_fixture_has_an_expectation |
+| P113 | Capture tool-use events before execution where supported. | L1 | ● done |  | • PreToolUse hooks emit tool.requested events. | `TER-OBS-002` · | test: tests/contract/test_hook_payloads.py::test_fixture_translates_to_the_pinned_events<br>test: tests/contract/test_hook_payloads.py::test_pre_and_post_tool_use_share_the_request_identity |
+| P114 | Capture tool outcomes after execution where supported. | L1 | ● done |  | • PostToolUse hooks emit tool.completed events. | `TER-OBS-002` ·<br>`TER-OBS-003` ✓ | test: tests/contract/test_hook_payloads.py::test_fixture_translates_to_the_pinned_events<br>test: tests/unit/test_ter4_claude_hooks.py::TestHandleHook::test_records_events_through_the_ingest |
 | P115 | Capture task completion events. | L1 | ◐ partial | [#35](https://github.com/lgriffin/TER/issues/35) | • Stop hooks emit a task completion event. | `TER-OBS-002` ·<br>`TER-OBS-005` · | planned: Stop hook emits a task.completed event (TER-OBS-005)<br>planned: real-data verification in issue #35 |
 | P116 | Capture subagent activity where supported. | L1 | ◐ partial | [#35](https://github.com/lgriffin/TER/issues/35) | • SubagentStop and subagent tool hooks emit events attributed to the subagent. | `TER-OBS-002` ·<br>`TER-OBS-006` · | planned: subagent hook events with subagent attribution<br>planned: real-data verification in issue #35 |
 | P117 | Correlate hook events with persisted session records. | L1 | ◐ partial | [#35](https://github.com/lgriffin/TER/issues/35) | • Every hook event correlates with its JSONL record by event id, including prompts. | `TER-OBS-007` ·<br>`TER-OBS-005` · | planned: prompt correlation test across hook and JSONL<br>planned: real-data verification in issue #35 |
-| P118 | Assign stable identities across static and live observations. | L1 | ◐ partial |  | • Static and live observation of the same record produce the same event id. | `TER-OBS-007` ·<br>`TER-SRC-004` ✓ | planned: same-id static and live tests (lands with the L1 PR, work/l1-observed) |
-| P119 | Ensure duplicate events do not distort analysis. | L1 | ◐ partial |  | • Re-delivered events are discarded without changing analysis state. | `TER-OBS-004` · | planned: re-delivery tests (lands with the L1 PR, work/l1-observed) |
-| P120 | Make hook processing sufficiently lightweight that TER does not become a source of… | L1 | ◐ partial |  | • Hook processing completes within 50 ms at p95 in a benchmark run in CI. | `TER-OBS-003` · | planned: hook latency benchmark (lands with the L1 PR, work/l1-observed) |
+| P118 | Assign stable identities across static and live observations. | L1 | ◐ partial |  | • Static and live observation of the same record produce the same event id. | `TER-OBS-007` ·<br>`TER-SRC-004` ✓ | test: tests/golden/test_event_stream_snapshot.py::test_event_stream_matches_golden_snapshot<br>planned: hook and transcript observation of one record share an event id (TER-OBS-007) |
+| P119 | Ensure duplicate events do not distort analysis. | L1 | ● done |  | • Re-delivered events are discarded without changing analysis state. | `TER-OBS-004` ✓ | test: tests/unit/test_ter4_stream.py::test_redelivered_event_is_discarded_without_changing_state<br>test: tests/contract/test_event_ingest.py::test_redelivery_changes_nothing<br>test: tests/equivalence/test_live_static.py::test_live_with_redelivery_through_the_log_equals_batch |
+| P120 | Make hook processing sufficiently lightweight that TER does not become a source of… | L1 | ● done |  | • Hook processing completes within 50 ms at p95 in a benchmark run in CI. | `TER-OBS-003` ✓ | test: tests/unit/test_ter4_claude_hooks.py::test_post_tool_use_is_appended_within_50ms_at_p95 |
 | P121 | Separate observation from intervention. | L4 | ◐ partial |  | • Observation and intervention live in separate engines with no import from analysis to intervention. | `TER-INT-006` ·<br>`TER-INT-001` · | planned: passing tests tagged req for TER-INT-006, TER-INT-001 |
-| P122 | Make passive observation the safest default operating mode. | L1 | ◐ partial |  | • The default ceiling observes only; the hook returns an empty response. | `TER-INT-001` ·<br>`TER-OBS-008` · | test: tests/unit/test_ter4_domain.py::TestMaturity::test_ceiling_permits_only_levels_at_or_below_it<br>planned: observe-only hook tests (lands with the L1 PR, work/l1-observed) |
+| P122 | Make passive observation the safest default operating mode. | L1 | ● done |  | • The default ceiling observes only; the hook returns an empty response. | `TER-INT-001` ·<br>`TER-OBS-008` ✓ | test: tests/unit/test_ter4_domain.py::TestMaturity::test_ceiling_permits_only_levels_at_or_below_it<br>test: tests/unit/test_ter4_claude_hooks.py::TestRunHook::test_prints_the_neutral_hook_output |
 | P123 | Introduce advisory interventions as the first active-control level. | L4 | ○ not started |  | • At the L4 ceiling TER delivers advice that changes no agent input. | `TER-INT-002` · | planned: passing tests tagged req for TER-INT-002 |
 | P124 | Allow TER to warn when repeated work is detected. | L4 | ○ not started |  | • A policy warns on repetition findings. | `TER-INT-003` · | planned: passing tests tagged req for TER-INT-003 |
 | P125 | Allow TER to warn when context growth appears disproportionate to progress. | L4 | ◐ partial |  | • A policy warns when context growth outpaces progress. | `TER-INT-003` · | planned: passing tests tagged req for TER-INT-003 |

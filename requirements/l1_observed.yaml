@@ -13,7 +13,7 @@ requirements:
     rationale: >-
       Live equals batch: a number shown during a session never changes when
       the session is analysed again afterwards.
-    status: planned
+    status: verified
 
   - id: TER-ANL-011
     pattern: event-driven
@@ -65,7 +65,7 @@ requirements:
     rationale: >-
       Observation must not slow the agent down noticeably; 50 ms at p95
       keeps the hook below human-perceptible latency.
-    status: planned
+    status: verified
 
   - id: TER-OBS-004
     pattern: unwanted
@@ -79,7 +79,7 @@ requirements:
     rationale: >-
       Hooks can fire twice and replays overlap live capture; idempotent
       ingestion keeps counts exact.
-    status: planned
+    status: verified
 
   - id: TER-OBS-005
     pattern: event-driven
@@ -132,7 +132,7 @@ requirements:
     rationale: >-
       Passive observation is the safe default; an observe-only hook cannot
       change agent behaviour.
-    status: planned
+    status: verified
 
   - id: TER-SRC-005
     pattern: ubiquitous

@@ -33,6 +33,7 @@ flowchart LR
         TOK["tokenizers<br/>regex · tiktoken"]
         EMB["embedders<br/>lexical hash"]
         PRICE["pricing<br/>dated price book"]
+        LOG["event_log<br/>JSONL · live mode"]
         MEM["in_memory<br/>fakes · clocks"]
     end
 
@@ -41,6 +42,7 @@ flowchart LR
     TOK -. implements .-> PORTS
     EMB -. implements .-> PORTS
     PRICE -. implements .-> PORTS
+    LOG -. implements .-> PORTS
     MEM -. implements .-> PORTS
     BOOT["bootstrap<br/>composition root"] --> driving
     BOOT --> driven
@@ -48,7 +50,7 @@ flowchart LR
     classDef pure fill:#dff1ee,stroke:#0d7a6f,color:#16212a
     classDef soon stroke-dasharray: 4 3
     class DOMAIN pure
-    class HOOKS,GATE soon
+    class GATE soon
 ```
 
 | Package | Holds | May import |
@@ -56,6 +58,9 @@ flowchart LR
 | `ter.domain` | Event model, maturity levels, TER scoring (`scoring`: phase scores, weighted aggregate, raw ratio, aligned/waste accounting), pricing (`pricing`: `Rates`, dated `PriceSchedule`, cost arithmetic); later the Lean model, detectors, evidence graph, scorecard | stdlib, numpy |
 | `ter.ports` | `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `PriceBook` | `ter.domain` |
 | `ter.application` | Use cases (empty at L0) | ports, domain |
+| `ter.domain` | Event model, maturity levels, the incremental `AnalysisEngine` (L1); later the Lean model, detectors, evidence graph, scorecard | stdlib, numpy |
+| `ter.ports` | Driven: `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `EventLog`. Driving: `EventIngest` | `ter.domain` |
+| `ter.application` | Use cases: `ObserveEvent`, `AnalyseTrace`, `AnalyseEventLog` (L1) | ports, domain |
 | `ter.adapters` | Everything that knows a vendor, format or IO | anything inward, plus `ter_calculator` |
 | `ter.bootstrap` | Wiring, and the maturity ceiling | everything |
 
@@ -111,16 +116,17 @@ reports its coverage.
 
 ```mermaid
 flowchart LR
-    L0["L0 Measured<br/>TER 3 parity"]:::now --> L1["L1 Observed<br/>event stream, live = batch"]
+    L0["L0 Measured<br/>TER 3 parity"]:::done --> L1["L1 Observed<br/>event stream, live = batch"]:::now
     L1 --> L2["L2 Explained<br/>Lean classes, evidence, A3"]
     L2 --> L3["L3 Grounded<br/>repository evidence"]
     L3 --> L4["L4 Advisory<br/>policies, ledger"]
     L4 --> L5["L5 Corrective<br/>routing, opt-in actions"]
     L5 --> L6["L6 Learning<br/>closed loop, 2nd harness"]
-    classDef now fill:#dff1ee,stroke:#0d7a6f,color:#16212a
+    classDef done fill:#dff1ee,stroke:#0d7a6f,color:#16212a
+    classDef now fill:#fff4d6,stroke:#9a6b00,color:#16212a
 ```
 
-`ter.domain.Maturity` models the levels. A level is both a build gate (every
+L0 is complete; L1 is built and its gate is below. `ter.domain.Maturity` models the levels. A level is both a build gate (every
 requirement at that level verified) and a runtime ceiling
 (`Maturity.permits`).
 
@@ -134,6 +140,21 @@ requirement at that level verified) and a runtime ceiling
 | Unmapped records counted | `tests/unit/test_ter4_*` | TER-SRC-002 |
 | Same JSONL, same event stream | `tests/golden/test_event_stream_snapshot.py`, `tests/contract` | TER-SRC-004 |
 | Dependencies point inward | `tests/architecture`, `lint-imports` | TER-ARC-001 |
+
+### L1 gate, as built
+
+The event stream is the core boundary: every analysis is a fold over
+`ter.event` events, live (Claude Code hooks) or batch (transcripts). Details,
+the hook-to-event table and a sequence diagram are in
+[l1-observed.md](l1-observed.md).
+
+| Check | Where | Requirement |
+|---|---|---|
+| Hook PostToolUse appended within 50 ms p95 | `tests/unit/test_ter4_claude_hooks.py` (benchmark) | TER-OBS-003 |
+| Redelivered event ids change nothing | `tests/unit/test_ter4_stream*.py` (incl. hypothesis), `tests/contract/test_event_ingest.py` | TER-OBS-004 |
+| Incremental = batch on every corpus session | `tests/equivalence/test_live_static.py`, `tests/golden/test_stream_report_snapshot.py` | TER-ANL-010 |
+| Hook payload shapes pinned | `tests/contract/test_hook_payloads.py`, `tests/fixtures/hooks/` | TER-OBS-003 |
+| `EventLog` adapters meet one contract | `tests/contract/test_event_log.py` | TER-OBS-004 |
 
 Tests carry `@pytest.mark.req("<id>")`. The EARS requirement catalogue and
 the CI traceability gate that checks these links are described in

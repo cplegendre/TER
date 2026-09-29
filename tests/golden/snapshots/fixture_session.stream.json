@@ -1,0 +1,175 @@
+{
+  "by_class": {
+    "generated": 8,
+    "tool": 3,
+    "user": 1
+  },
+  "by_kind": {
+    "intent.stated": 1,
+    "reasoning": 2,
+    "response": 3,
+    "tool.completed": 3,
+    "tool.requested": 3
+  },
+  "by_tool": {
+    "exec.shell": 1,
+    "fs.write": 2
+  },
+  "duplicate_tool_calls": [],
+  "edits_since_validation": 0,
+  "open_requests": [],
+  "orphan_results": [],
+  "peak_edits_without_validation": 2,
+  "repeated_reads": {},
+  "session_id": "session-test-001",
+  "timeline": [
+    [
+      0,
+      "efbc3fb8debf69d2",
+      "intent.stated",
+      "user",
+      null,
+      null,
+      9,
+      null,
+      []
+    ],
+    [
+      1,
+      "29ac509d3f256cb6",
+      "reasoning",
+      "assistant",
+      null,
+      null,
+      30,
+      85,
+      []
+    ],
+    [
+      2,
+      "5b871efa33b4dc56",
+      "response",
+      "assistant",
+      null,
+      null,
+      23,
+      null,
+      []
+    ],
+    [
+      3,
+      "66675543479d5262",
+      "tool.requested",
+      "assistant",
+      "fs.write",
+      "Write",
+      90,
+      120,
+      []
+    ],
+    [
+      4,
+      "9a6da2c967f21f87",
+      "tool.completed",
+      "tool",
+      "fs.write",
+      "Write",
+      3,
+      null,
+      []
+    ],
+    [
+      5,
+      "6ca218051b06fb6d",
+      "reasoning",
+      "assistant",
+      null,
+      null,
+      51,
+      150,
+      []
+    ],
+    [
+      6,
+      "3ab48e38b9dac2c5",
+      "response",
+      "assistant",
+      null,
+      null,
+      20,
+      null,
+      []
+    ],
+    [
+      7,
+      "0c500468149caeae",
+      "tool.requested",
+      "assistant",
+      "fs.write",
+      "Write",
+      53,
+      80,
+      [
+        "fs.unvalidated_edit"
+      ]
+    ],
+    [
+      8,
+      "8a871331a40d3fb9",
+      "tool.completed",
+      "tool",
+      "fs.write",
+      "Write",
+      3,
+      null,
+      []
+    ],
+    [
+      9,
+      "db87d39fd196b34d",
+      "tool.requested",
+      "assistant",
+      "exec.shell",
+      "Bash",
+      11,
+      30,
+      []
+    ],
+    [
+      10,
+      "e94e5cb630b59fd7",
+      "tool.completed",
+      "tool",
+      "exec.shell",
+      "Bash",
+      48,
+      null,
+      []
+    ],
+    [
+      11,
+      "96610fb80b1bda8a",
+      "response",
+      "assistant",
+      null,
+      null,
+      142,
+      200,
+      []
+    ]
+  ],
+  "tokenizer": "regex-v1",
+  "tokens_by_class": {
+    "generated": 420,
+    "tool": 54,
+    "user": 9
+  },
+  "tokens_exact": false,
+  "total_events": 12,
+  "usage": {
+    "cache_creation": 0,
+    "cache_read": 5800,
+    "input": 1850,
+    "output": 665
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "session_id": "3f0c9a1e-hook-demo",
+  "transcript_path": "/home/dev/.claude/projects/-home-dev-app/3f0c9a1e-hook-demo.jsonl",
+  "cwd": "/home/dev/app",
+  "permission_mode": "default",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Read",
+  "tool_input": {
+    "file_path": "/home/dev/app/src/parser.py"
+  },
+  "tool_response": {
+    "type": "text",
+    "file": {
+      "filePath": "/home/dev/app/src/parser.py",
+      "content": "def parse_duration(text):\n    ...\n",
+      "numLines": 2,
+      "startLine": 1,
+      "totalLines": 2
+    }
+  },
+  "tool_use_id": "toolu_01ReadParser"
+}

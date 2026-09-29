@@ -1,0 +1,187 @@
+{
+  "by_class": {
+    "generated": 7,
+    "tool": 5,
+    "user": 1
+  },
+  "by_kind": {
+    "intent.stated": 1,
+    "reasoning": 1,
+    "response": 1,
+    "tool.completed": 5,
+    "tool.requested": 5
+  },
+  "by_tool": {
+    "agent.handoff": 1,
+    "fs.edit": 1,
+    "fs.read": 1,
+    "net.fetch": 1,
+    "plan.todo": 1
+  },
+  "duplicate_tool_calls": [],
+  "edits_since_validation": 1,
+  "open_requests": [],
+  "orphan_results": [],
+  "peak_edits_without_validation": 1,
+  "repeated_reads": {},
+  "session_id": "golden-handoff",
+  "timeline": [
+    [
+      0,
+      "cfe38703c440c315",
+      "intent.stated",
+      "user",
+      null,
+      null,
+      23,
+      null,
+      []
+    ],
+    [
+      1,
+      "4172b0441cd7cfba",
+      "reasoning",
+      "assistant",
+      null,
+      null,
+      11,
+      49,
+      []
+    ],
+    [
+      2,
+      "f1146cba7555b4e6",
+      "tool.requested",
+      "assistant",
+      "fs.read",
+      "Read",
+      13,
+      null,
+      []
+    ],
+    [
+      3,
+      "61179269c4df5b69",
+      "tool.completed",
+      "tool",
+      "fs.read",
+      "Read",
+      18,
+      null,
+      []
+    ],
+    [
+      4,
+      "21222454fe82bdbe",
+      "tool.requested",
+      "assistant",
+      "agent.handoff",
+      "Task",
+      30,
+      46,
+      []
+    ],
+    [
+      5,
+      "8c5e4ee9638011b7",
+      "tool.completed",
+      "tool",
+      "agent.handoff",
+      "Task",
+      24,
+      null,
+      []
+    ],
+    [
+      6,
+      "3b63c8d624bcf410",
+      "tool.requested",
+      "assistant",
+      "net.fetch",
+      "WebFetch",
+      35,
+      44,
+      []
+    ],
+    [
+      7,
+      "85abe9461af226a2",
+      "tool.completed",
+      "tool",
+      "net.fetch",
+      "WebFetch",
+      20,
+      null,
+      []
+    ],
+    [
+      8,
+      "0c09dd0c065ec07b",
+      "tool.requested",
+      "assistant",
+      "plan.todo",
+      "TodoWrite",
+      29,
+      38,
+      []
+    ],
+    [
+      9,
+      "be91bfcb97b1fce4",
+      "tool.completed",
+      "tool",
+      "plan.todo",
+      "TodoWrite",
+      2,
+      null,
+      []
+    ],
+    [
+      10,
+      "4f983f4cbf7260c1",
+      "tool.requested",
+      "assistant",
+      "fs.edit",
+      "Edit",
+      49,
+      45,
+      []
+    ],
+    [
+      11,
+      "1797e204a67133ae",
+      "tool.completed",
+      "tool",
+      "fs.edit",
+      "Edit",
+      9,
+      null,
+      []
+    ],
+    [
+      12,
+      "71f7f1f147f2ae8d",
+      "response",
+      "assistant",
+      null,
+      null,
+      31,
+      43,
+      []
+    ]
+  ],
+  "tokenizer": "regex-v1",
+  "tokens_by_class": {
+    "generated": 198,
+    "tool": 73,
+    "user": 23
+  },
+  "tokens_exact": false,
+  "total_events": 13,
+  "usage": {
+    "cache_creation": 0,
+    "cache_read": 0,
+    "input": 2400,
+    "output": 265
+  }
+}

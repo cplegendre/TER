@@ -1,0 +1,11 @@
+{
+  "session_id": "3f0c9a1e-hook-demo",
+  "transcript_path": "/home/dev/.claude/projects/-home-dev-app/3f0c9a1e-hook-demo.jsonl",
+  "cwd": "/home/dev/app",
+  "permission_mode": "default",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "mcp__github__get_me",
+  "tool_input": {},
+  "tool_response": "{\"login\": \"dev\"}",
+  "tool_use_id": "toolu_04Mcp"
+}

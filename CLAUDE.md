@@ -19,6 +19,8 @@ tests/contract/        # One suite per port; real adapters and fakes must both p
 tests/architecture/    # Import-contract fitness tests
 tests/requirements/    # EARS catalogue lint, trace and ter-req tooling tests
 requirements/          # EARS requirement catalogue (YAML per maturity level) + points.yaml (200 vision points)
+tests/equivalence/     # Live (incremental) analysis == batch analysis on the golden corpus
+tests/fixtures/hooks/  # Example Claude Code hook payloads pinned by contract tests
 docs/                  # Architecture, user guide, context orchestrator reference
 sample_sessions/       # Sample JSONL files for testing
 ```
@@ -35,6 +37,8 @@ ter-req lint --tests tests                # EARS grammar + every req marker cite
 pytest --req-trace=req-trace.json && ter-req trace --results req-trace.json --gate L0  # traceability gate
 ter-req report --results req-trace.json   # Markdown coverage per level
 ter-req points                            # regenerate docs/ter4/points.md (CI runs --check)
+pytest tests/equivalence tests/contract                # L1 gate (plus tests/unit/test_ter4_*)
+python -m ter observe <session.jsonl> --timeline      # TER 4 L1 report
 ```
 
 ## Code Style
@@ -50,6 +54,9 @@ Python 3.11+: Follow standard conventions. Dataclasses for models, enums for dom
 - Tag tests with `@pytest.mark.req("TER-XXX-NNN")` for the requirement they verify. Every behaviour is an EARS requirement in `requirements/*.yaml` (see `docs/ter4/requirements.md`); new ones start `status: planned` and become `verified` once a passing test cites them.
 - Every TER 4 change names the vision point ids it advances (`P044`, …) in its commit message and PR body, and updates those points' `status` and `verification` in `requirements/points.yaml` in the same PR (then `ter-req points`). A point is `done` only when its rules are verified by tests. Index: `docs/ter4/points.md`.
 - New `ter` code is strictly typed (mypy overrides in pyproject.toml).
+- Analysis is a fold over `ter.event`: `AnalysisEngine.apply` must stay O(1) amortised and idempotent by event id, and batch must equal incremental (`docs/ter4/l1-observed.md`).
+- Hook entry points fail open: never raise out of `ter.adapters.driving.claude_hooks`.
+- Run TER 4 tools with `PYTHONPATH=src` when the venv's editable install may point at another checkout.
 - See `docs/ter4/architecture.md` and `docs/decisions/`.
 
 ## Key Modules
@@ -66,3 +73,5 @@ Python 3.11+: Follow standard conventions. Dataclasses for models, enums for dom
 ## CLI Subcommands
 
 `ter analyze` `ter report` `ter compare` `ter list` `ter watch` `ter budget` `ter context {store|graph|optimize|delta|check}`
+
+TER 4 (`python -m ter`): `observe` `hook`
