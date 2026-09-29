@@ -136,4 +136,5 @@ requirement at that level verified) and a runtime ceiling
 | Dependencies point inward | `tests/architecture`, `lint-imports` | TER-ARC-001 |
 
 Tests carry `@pytest.mark.req("<id>")`. The EARS requirement catalogue and
-the CI traceability gate that checks these links arrive in the next step.
+the CI traceability gate that checks these links are described in
+[requirements.md](requirements.md).

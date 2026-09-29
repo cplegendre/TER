@@ -1,0 +1,16 @@
+# L3 Grounded: findings backed by repository evidence.
+level: L3
+requirements:
+  - id: TER-EVD-003
+    pattern: event-driven
+    text: >-
+      When a detector requests repository evidence for a source module, the
+      repository evidence adapter shall return every test module that imports
+      that source module.
+    level: L3
+    port: RepositoryEvidence
+    source_points: []
+    rationale: >-
+      Detectors judge whether an edit was verified by knowing which tests
+      exercise the edited code.
+    status: planned

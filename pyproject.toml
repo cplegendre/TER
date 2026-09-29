@@ -13,6 +13,7 @@ dependencies = [
     "numpy>=1.24,<3",
     "rich>=13,<16",
     "tiktoken>=0.7,<1",
+    "pyyaml>=6,<7",
 ]
 
 [project.optional-dependencies]
@@ -30,10 +31,12 @@ dev = [
     "ruff>=0.1,<0.16",
     "pre-commit>=3,<5",
     "import-linter>=2,<3",
+    "types-PyYAML>=6,<7",
 ]
 
 [project.scripts]
 ter = "ter_calculator.cli:main"
+ter-req = "ter.adapters.driving.req_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -131,6 +134,8 @@ forbidden_modules = [
     "socket",
     "urllib",
     "http",
+    "yaml",
+    "pytest",
 ]
 
 [[tool.importlinter.contracts]]
@@ -145,6 +150,8 @@ forbidden_modules = [
     "anthropic",
     "rich",
     "sqlite3",
+    "yaml",
+    "pytest",
 ]
 
 [[tool.importlinter.contracts]]
@@ -157,6 +164,7 @@ modules = [
     "ter.adapters.driven.tokenizers",
     "ter.adapters.driven.in_memory",
     "ter.adapters.driven.pricing",
+    "ter.adapters.driven.requirements_yaml",
 ]
 # TER 3 sits outside the hexagon and reads its prices through the pricing
 # adapter. A chain that passes through TER 3 is not one adapter depending on

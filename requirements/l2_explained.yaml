@@ -1,0 +1,39 @@
+# L2 Explained: Lean waste classes, evidence and confidence.
+level: L2
+requirements:
+  - id: TER-ANL-020
+    pattern: event-driven
+    text: >-
+      When TER classifies a span as avoidable waste, TER shall attach at least
+      one evidence reference and a confidence value between 0 and 1 to the
+      classification.
+    level: L2
+    source_points: []
+    rationale: >-
+      A waste claim without evidence cannot be checked or acted on.
+    status: planned
+
+  - id: TER-ANL-021
+    pattern: unwanted
+    text: >-
+      If the confidence of a waste classification is below the configured
+      confidence threshold, then TER shall report the classification as
+      uncertain.
+    level: L2
+    source_points: []
+    rationale: >-
+      Low-confidence findings are shown as such instead of being presented as
+      fact.
+    status: planned
+
+  - id: TER-EXP-001
+    pattern: ubiquitous
+    text: >-
+      TER shall recompute every reported metric from the recorded events of
+      the session, with no other input.
+    level: L2
+    source_points: []
+    rationale: >-
+      Every number in a report is reproducible and explainable from the event
+      stream alone.
+    status: planned

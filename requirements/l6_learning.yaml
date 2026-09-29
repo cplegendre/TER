@@ -1,0 +1,16 @@
+# L6 Learning: closed loop and a second agent harness.
+level: L6
+requirements:
+  - id: TER-SRC-010
+    pattern: optional
+    text: >-
+      Where a second agent harness adapter is installed, TER shall read the
+      sessions of that harness into event streams that pass the session source
+      contract suite.
+    level: L6
+    port: SessionSource
+    source_points: []
+    rationale: >-
+      The event contract is proven provider-neutral only when a second harness
+      passes the same contract tests as Claude Code.
+    status: planned

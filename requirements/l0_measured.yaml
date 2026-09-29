@@ -1,0 +1,128 @@
+# L0 Measured: TER 3 parity inside the TER 4 hexagon.
+# Schema and controls: docs/ter4/requirements.md. The CI gate enforces every
+# `status: verified` requirement at or below the gate level.
+level: L0
+requirements:
+  - id: TER-ANL-000
+    pattern: ubiquitous
+    text: >-
+      TER shall produce TER 3 scores that equal the committed golden snapshots
+      for every session in the golden corpus.
+    level: L0
+    source_points: []
+    rationale: >-
+      The strangler-fig rebuild must not change scores by accident; every
+      scoring change appears as a snapshot diff committed on purpose (ADR 0002).
+    status: verified
+
+  - id: TER-ANL-001
+    pattern: ubiquitous
+    text: >-
+      TER shall exclude user-authored tokens from the scored token total of
+      every session.
+    level: L0
+    source_points: []
+    rationale: >-
+      TER measures the agent's output; the user's own prompts are input and
+      never count as aligned or wasted work.
+    status: verified
+
+  - id: TER-ANL-002
+    pattern: ubiquitous
+    text: >-
+      TER shall report aligned tokens plus waste tokens equal to the total
+      scored tokens, and a TER value between 0 and 1 inclusive.
+    level: L0
+    source_points: []
+    rationale: >-
+      The ratio is only meaningful when the token accounting is closed and
+      bounded.
+    status: verified
+
+  - id: TER-SRC-002
+    pattern: unwanted
+    text: >-
+      If a session source reads a record that it cannot map to an event, then
+      the session source shall count that record by record type in the trace
+      coverage.
+    level: L0
+    port: SessionSource
+    source_points: []
+    rationale: >-
+      Silent drops hide format drift; every trace states how much of the
+      session it understood.
+    status: verified
+
+  - id: TER-SRC-004
+    pattern: ubiquitous
+    text: >-
+      The session source shall produce an identical event stream, including
+      event ids, on every read of the same session file.
+    level: L0
+    port: SessionSource
+    source_points: []
+    rationale: >-
+      Deterministic reconstruction lets live and batch analysis, snapshots and
+      ledgers refer to the same event ids.
+    status: verified
+
+  - id: TER-ARC-001
+    pattern: ubiquitous
+    text: >-
+      The TER codebase shall keep every package dependency pointing inward,
+      from bootstrap to adapters to application to ports to domain.
+    level: L0
+    source_points: []
+    rationale: >-
+      The hexagon keeps analysis independent of harnesses, vendors and IO, so
+      a second harness needs only new adapters (ADR 0001).
+    status: verified
+
+  - id: TER-INT-001
+    pattern: state-driven
+    text: >-
+      While the maturity ceiling is below L4 Advisory, TER shall deliver no
+      intervention to the agent session.
+    level: L0
+    source_points: []
+    rationale: >-
+      An installation that only observes never acts on the session; the
+      ceiling is a runtime guarantee, not a convention.
+    status: verified
+
+  - id: TER-REQ-001
+    pattern: ubiquitous
+    text: >-
+      The requirements linter shall reject every requirement whose text does
+      not match the EARS template of its declared pattern.
+    level: L0
+    source_points: []
+    rationale: >-
+      Requirements written in one of six fixed templates are testable and
+      comparable; free prose drifts.
+    status: verified
+
+  - id: TER-REQ-002
+    pattern: event-driven
+    text: >-
+      When the traceability gate runs at a maturity level, the traceability
+      gate shall fail for every verified requirement at or below that level
+      that has no passing citing test.
+    level: L0
+    source_points: []
+    rationale: >-
+      A level is claimed only when every requirement at that level is
+      demonstrably met by a passing test.
+    status: verified
+
+  - id: TER-REQ-003
+    pattern: unwanted
+    text: >-
+      If a test cites a requirement id that is absent from the catalogue, then
+      the traceability gate shall fail and name the citing test.
+    level: L0
+    source_points: []
+    rationale: >-
+      Backward trace keeps test tags honest when requirements are renamed or
+      removed.
+    status: verified

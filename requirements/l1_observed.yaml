@@ -1,0 +1,41 @@
+# L1 Observed: a live event stream with the same semantics as batch analysis.
+level: L1
+requirements:
+  - id: TER-OBS-003
+    pattern: event-driven
+    text: >-
+      When Claude Code runs the PostToolUse hook, the hook adapter shall append
+      one tool.completed event to the session event store within 50 ms at the
+      95th percentile.
+    level: L1
+    port: EventStore
+    source_points: []
+    rationale: >-
+      Observation must not slow the agent down noticeably; 50 ms at p95 keeps
+      the hook below human-perceptible latency.
+    status: planned
+
+  - id: TER-OBS-004
+    pattern: unwanted
+    text: >-
+      If the event store receives an event whose id it already holds, then the
+      event store shall discard the duplicate without changing stored state.
+    level: L1
+    port: EventStore
+    source_points: []
+    rationale: >-
+      Hooks can fire twice and replays overlap live capture; idempotent
+      ingestion keeps counts exact.
+    status: planned
+
+  - id: TER-ANL-010
+    pattern: ubiquitous
+    text: >-
+      TER shall produce an incremental session report that is identical to the
+      batch report for the same event stream.
+    level: L1
+    source_points: []
+    rationale: >-
+      Live equals batch: a number shown during a session never changes when
+      the session is analysed again afterwards.
+    status: planned

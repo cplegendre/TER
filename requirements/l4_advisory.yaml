@@ -1,0 +1,29 @@
+# L4 Advisory: policies, interventions and the intervention ledger.
+level: L4
+requirements:
+  - id: TER-INT-007
+    pattern: unwanted
+    text: >-
+      If a detector signal cites no contextual evidence beyond token counts,
+      then TER shall deliver no intervention for that signal.
+    level: L4
+    port: InterventionChannel
+    source_points: []
+    rationale: >-
+      Token volume alone is not waste; an intervention needs a reason the
+      agent and the user can inspect.
+    status: planned
+
+  - id: TER-INT-009
+    pattern: event-driven
+    text: >-
+      When TER delivers an intervention, TER shall write one ledger record
+      that holds the triggering signal, its evidence, the action taken and the
+      observed outcome.
+    level: L4
+    port: InterventionLedger
+    source_points: []
+    rationale: >-
+      The ledger is how interventions are audited and how L6 learns which
+      ones help.
+    status: planned

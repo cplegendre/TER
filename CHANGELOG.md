@@ -12,11 +12,13 @@ All notable public changes to TER are documented in this file. The project follo
 - Golden snapshots that freeze TER 3 analysis on a six-session corpus, port contract tests, and architecture tests.
 - TER scoring (phase scores, weighted aggregate, raw ratio, aligned and waste accounting) in the pure domain, `ter.domain.scoring`, with property-style tests.
 - A `PriceBook` port, a domain `Rates`/`PriceSchedule` model with cost arithmetic, a dated price book shipped as package data (`ter/data/price_book.json`), a JSON adapter, an in-memory fake, and a contract suite for both.
+- EARS requirements control: a YAML requirement catalogue per maturity level under `requirements/`, an EARS grammar linter (six templates, one "shall", banned vague words, optional controlled vocabulary), a `--req-trace` pytest option recording which tests verify which requirement, and the `ter-req` command (`lint`, `trace`, `points`, `report`) with a CI gate that fails when a verified L0 requirement lacks a passing test or a test cites an unknown id.
 
 ### Changed
 
 - `ter_calculator.compute.compute_ter` delegates to `ter.domain.scoring`, and TER 3's model rates (`CostModel` defaults, `--cost-model sonnet`, cost-weighted pricing tiers) are read from the price book. Scores and costs are unchanged on the golden corpus.
 - CI pins ruff below 0.16, whose wider default rule set fails the existing code base.
+- PyYAML is now a runtime dependency (catalogue loading).
 
 ## [3.0.0] - 2026-07-22
 

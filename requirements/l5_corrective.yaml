@@ -1,0 +1,15 @@
+# L5 Corrective: model routing and opt-in corrective actions.
+level: L5
+requirements:
+  - id: TER-RTE-001
+    pattern: ubiquitous
+    text: >-
+      TER shall reference language models only through the role names defined
+      in the active routing profile.
+    level: L5
+    port: ModelRouter
+    source_points: []
+    rationale: >-
+      Model ids change often; routing by role keeps policies and code stable
+      when a model is replaced.
+    status: planned

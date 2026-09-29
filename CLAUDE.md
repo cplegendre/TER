@@ -17,6 +17,8 @@ tests/integration/     # Integration tests
 tests/golden/          # Golden snapshots freezing TER 3 scores (TER_UPDATE_GOLDEN=1 to regenerate)
 tests/contract/        # One suite per port; real adapters and fakes must both pass
 tests/architecture/    # Import-contract fitness tests
+tests/requirements/    # EARS catalogue lint, trace and ter-req tooling tests
+requirements/          # EARS requirement catalogue (YAML, one file per maturity level)
 docs/                  # Architecture, user guide, context orchestrator reference
 sample_sessions/       # Sample JSONL files for testing
 ```
@@ -29,6 +31,9 @@ pytest tests/unit/test_fragment_store.py  # Run specific module tests
 ruff check src/                           # Lint
 lint-imports                              # Hexagon dependency rules
 pytest tests/golden tests/contract tests/architecture  # L0 gate
+ter-req lint --tests tests                # EARS grammar + every req marker cites a known id
+pytest --req-trace=req-trace.json && ter-req trace --results req-trace.json --gate L0  # traceability gate
+ter-req report --results req-trace.json   # Markdown coverage per level; `ter-req points` for vision points
 ```
 
 ## Code Style
@@ -41,7 +46,7 @@ Python 3.11+: Follow standard conventions. Dataclasses for models, enums for dom
 - TER scoring arithmetic lives in `ter.domain.scoring`; `ter_calculator.compute` delegates to it.
 - Model prices are data in `src/ter/data/price_book.json`, read through the `PriceBook` port (ADR 0003). Never hard-code rates.
 - Scoring changes must show up as a golden snapshot diff, committed on purpose.
-- Tag tests with `@pytest.mark.req("TER-XXX-NNN")` for the requirement they verify.
+- Tag tests with `@pytest.mark.req("TER-XXX-NNN")` for the requirement they verify. Every behaviour is an EARS requirement in `requirements/*.yaml` (see `docs/ter4/requirements.md`); new ones start `status: planned` and become `verified` once a passing test cites them.
 - New `ter` code is strictly typed (mypy overrides in pyproject.toml).
 - See `docs/ter4/architecture.md` and `docs/decisions/`.
 
