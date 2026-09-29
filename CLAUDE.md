@@ -9,10 +9,14 @@ Last updated: 2026-05-15
 ## Project Structure
 
 ```text
-src/ter_calculator/    # All source modules
+src/ter/               # TER 4 hexagon: domain/ ports/ application/ adapters/ bootstrap/
+src/ter_calculator/    # TER 3 modules (wrapped by ter adapters during the rebuild)
 tests/unit/            # Unit tests
 tests/features/        # BDD feature files and step definitions
 tests/integration/     # Integration tests
+tests/golden/          # Golden snapshots freezing TER 3 scores (TER_UPDATE_GOLDEN=1 to regenerate)
+tests/contract/        # One suite per port; real adapters and fakes must both pass
+tests/architecture/    # Import-contract fitness tests
 docs/                  # Architecture, user guide, context orchestrator reference
 sample_sessions/       # Sample JSONL files for testing
 ```
@@ -23,11 +27,21 @@ sample_sessions/       # Sample JSONL files for testing
 pytest                                    # Run all tests
 pytest tests/unit/test_fragment_store.py  # Run specific module tests
 ruff check src/                           # Lint
+lint-imports                              # Hexagon dependency rules
+pytest tests/golden tests/contract tests/architecture  # L0 gate
 ```
 
 ## Code Style
 
 Python 3.11+: Follow standard conventions. Dataclasses for models, enums for domain constants, lazy imports in CLI handlers.
+
+## TER 4 rules
+
+- Dependencies point inward: bootstrap → adapters → application → ports → domain. `ter.domain` never imports `ter_calculator`, vendor SDKs or IO modules.
+- Scoring changes must show up as a golden snapshot diff, committed on purpose.
+- Tag tests with `@pytest.mark.req("TER-XXX-NNN")` for the requirement they verify.
+- New `ter` code is strictly typed (mypy overrides in pyproject.toml).
+- See `docs/ter4/architecture.md` and `docs/decisions/`.
 
 ## Key Modules
 

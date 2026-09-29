@@ -1,0 +1,53 @@
+"""In-memory adapters: fakes for tests that must pass the same contract suites.
+
+A fake that drifts from the real adapter's obligations fails
+``tests/contract``, so tests that use these fakes stay honest.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from dataclasses import replace
+from datetime import datetime, timedelta
+from pathlib import Path
+
+from ...domain.events import Event, SessionTrace
+
+
+class InMemorySessionSource:
+    """Serves pre-built traces by reference, renumbering sequences on the way out."""
+
+    format_name = "in-memory"
+
+    def __init__(self, traces: Mapping[str, SessionTrace]) -> None:
+        self._traces = dict(traces)
+
+    def read(self, ref: str | Path) -> SessionTrace:
+        key = str(ref)
+        if key not in self._traces:
+            raise FileNotFoundError(f"No in-memory session named {key!r}")
+        trace = self._traces[key]
+        events: tuple[Event, ...] = tuple(
+            replace(event, sequence=index) for index, event in enumerate(trace.events)
+        )
+        return replace(trace, events=events, source_format=self.format_name)
+
+
+class FixedClock:
+    """A clock that returns a fixed time, advanced explicitly by tests."""
+
+    def __init__(self, start: datetime) -> None:
+        self._now = start
+
+    def now(self) -> datetime:
+        return self._now
+
+    def advance(self, delta: timedelta) -> None:
+        self._now = self._now + delta
+
+
+class SystemClock:
+    """The real wall clock."""
+
+    def now(self) -> datetime:
+        return datetime.now().astimezone()

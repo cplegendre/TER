@@ -27,8 +27,9 @@ dev = [
     "pytest-cov>=4,<8",
     "pytest-bdd>=7,<9",
     "mypy>=1,<3",
-    "ruff>=0.1,<1",
+    "ruff>=0.1,<0.16",
     "pre-commit>=3,<5",
+    "import-linter>=2,<3",
 ]
 
 [project.scripts]
@@ -37,11 +38,17 @@ ter = "ter_calculator.cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+ter = ["py.typed"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
 python_files = ["test_*.py", "*_steps.py"]
 addopts = "--strict-markers"
+markers = [
+    "req(id): links a test to the EARS requirement it verifies (see docs/ter4)",
+]
 
 [tool.ruff]
 src = ["src", "tests"]
@@ -57,13 +64,26 @@ python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 
+# TER 4 code is held to strict typing from its first line.
+[[tool.mypy.overrides]]
+module = ["ter", "ter.*"]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = true
+disallow_any_generics = true
+disallow_untyped_decorators = true
+check_untyped_defs = true
+no_implicit_reexport = true
+strict_equality = true
+warn_unused_ignores = true
+
 [[tool.mypy.overrides]]
 module = ["anthropic", "sentence_transformers", "tiktoken"]
 ignore_missing_imports = true
 
 [tool.coverage.run]
 branch = true
-source = ["ter_calculator"]
+source = ["ter_calculator", "ter"]
 
 [tool.coverage.report]
 fail_under = 90
@@ -76,3 +96,64 @@ exclude_also = [
 
 [tool.coverage.xml]
 output = "coverage.xml"
+
+# TER 4 architecture rules, enforced by `lint-imports` in CI and by
+# tests/architecture. See docs/ter4/architecture.md.
+[tool.importlinter]
+root_packages = ["ter", "ter_calculator"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+id = "hexagon-layers"
+name = "TER 4 hexagon: dependencies point inward"
+type = "layers"
+layers = [
+    "ter.bootstrap",
+    "ter.adapters",
+    "ter.application",
+    "ter.ports",
+    "ter.domain",
+]
+
+[[tool.importlinter.contracts]]
+id = "pure-domain"
+name = "The domain is pure: no IO, no vendors, no TER 3 internals"
+type = "forbidden"
+source_modules = ["ter.domain"]
+forbidden_modules = [
+    "ter_calculator",
+    "tiktoken",
+    "sentence_transformers",
+    "anthropic",
+    "rich",
+    "sqlite3",
+    "subprocess",
+    "socket",
+    "urllib",
+    "http",
+]
+
+[[tool.importlinter.contracts]]
+id = "vendor-free-core"
+name = "Ports and use cases know no vendors and no TER 3 internals"
+type = "forbidden"
+source_modules = ["ter.ports", "ter.application"]
+forbidden_modules = [
+    "ter_calculator",
+    "tiktoken",
+    "sentence_transformers",
+    "anthropic",
+    "rich",
+    "sqlite3",
+]
+
+[[tool.importlinter.contracts]]
+id = "independent-adapters"
+name = "Driven adapters do not import each other"
+type = "independence"
+modules = [
+    "ter.adapters.driven.claude_code",
+    "ter.adapters.driven.embedders",
+    "ter.adapters.driven.tokenizers",
+    "ter.adapters.driven.in_memory",
+]

@@ -2,6 +2,19 @@
 
 All notable public changes to TER are documented in this file. The project follows Semantic Versioning.
 
+## [Unreleased]
+
+### Added
+
+- TER 4 foundation (maturity level L0): a new `ter` package laid out as a hexagon of domain, ports, application, adapters and bootstrap, with import-linter contracts enforcing inward-only dependencies.
+- Provider-neutral `ter.event/0.1` event model with stable event ids, provenance, tool kinds and coverage of unmapped records, plus a Claude Code JSONL adapter.
+- Deterministic offline tokenizer and embedder adapters.
+- Golden snapshots that freeze TER 3 analysis on a six-session corpus, port contract tests, and architecture tests.
+
+### Changed
+
+- CI pins ruff below 0.16, whose wider default rule set fails the existing code base.
+
 ## [3.0.0] - 2026-07-22
 
 ### Added
