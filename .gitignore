@@ -89,6 +89,7 @@ Backup/
 backup/
 Data/
 data/
+!src/ter/data/
 .ter/
 ter-results/
 reports/

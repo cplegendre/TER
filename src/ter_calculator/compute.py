@@ -1,6 +1,13 @@
-"""TER score computation."""
+"""TER score computation.
+
+The arithmetic lives in the TER 4 domain (``ter.domain.scoring``); this module
+adapts TER 3's classified spans to it and keeps ``compute_ter``'s signature
+and ``TERResult`` output unchanged.
+"""
 
 from __future__ import annotations
+
+from ter.domain.scoring import ScoredSpan, score_spans
 
 from .models import (
     ALIGNED_LABELS,
@@ -10,6 +17,9 @@ from .models import (
     TERResult,
     IntentVector,
 )
+
+#: Phases in TER 3's summation order (the ``SpanPhase`` declaration order).
+_PHASES: tuple[str, ...] = tuple(phase.value for phase in SpanPhase)
 
 
 def compute_ter(
@@ -24,44 +34,29 @@ def compute_ter(
     and token counts.
     """
     weights = phase_weights or PHASE_WEIGHTS_DEFAULT
-
-    phase_aligned: dict[SpanPhase, int] = {p: 0 for p in SpanPhase}
-    phase_total: dict[SpanPhase, int] = {p: 0 for p in SpanPhase}
-
-    for cs in classified_spans:
-        phase = cs.span.phase
-        phase_total[phase] += cs.span.token_count
-        if cs.label in ALIGNED_LABELS:
-            phase_aligned[phase] += cs.span.token_count
-
-    # Per-phase scores.
-    phase_scores: dict[str, float] = {}
-    for phase in SpanPhase:
-        total = phase_total[phase]
-        if total > 0:
-            phase_scores[phase.value] = round(phase_aligned[phase] / total, 4)
-        else:
-            phase_scores[phase.value] = 1.0  # No tokens → no waste.
-
-    # Weighted aggregate TER.
-    aggregate_ter = sum(
-        weights[phase] * phase_scores[phase.value] for phase in SpanPhase
+    score = score_spans(
+        (
+            ScoredSpan(
+                phase=cs.span.phase.value,
+                tokens=cs.span.token_count,
+                aligned=cs.label in ALIGNED_LABELS,
+            )
+            for cs in classified_spans
+        ),
+        weights={phase.value: weight for phase, weight in weights.items()},
+        phases=_PHASES,
     )
-
-    total_aligned = sum(phase_aligned.values())
-    total_all = sum(phase_total.values())
-    raw_ratio = total_aligned / total_all if total_all > 0 else 1.0
 
     from .uncertainty import estimate_uncertainty
 
     return TERResult(
         session_id=session_id,
-        aggregate_ter=round(aggregate_ter, 4),
-        raw_ratio=round(raw_ratio, 4),
-        phase_scores=phase_scores,
-        total_tokens=total_all,
-        aligned_tokens=total_aligned,
-        waste_tokens=total_all - total_aligned,
+        aggregate_ter=score.aggregate,
+        raw_ratio=score.raw_ratio,
+        phase_scores=dict(score.phase_scores),
+        total_tokens=score.total_tokens,
+        aligned_tokens=score.aligned_tokens,
+        waste_tokens=score.waste_tokens,
         intent=intent,
         classified_spans=list(classified_spans),
         uncertainty=estimate_uncertainty(classified_spans),

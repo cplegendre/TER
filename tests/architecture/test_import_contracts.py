@@ -20,6 +20,7 @@ EXPECTED_CONTRACTS = {
     "pure-domain",
     "vendor-free-core",
     "independent-adapters",
+    "ter3-uses-hexagon-edges",
 }
 
 

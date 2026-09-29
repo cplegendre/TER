@@ -39,7 +39,7 @@ ter = "ter_calculator.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-ter = ["py.typed"]
+ter = ["py.typed", "data/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -156,4 +156,16 @@ modules = [
     "ter.adapters.driven.embedders",
     "ter.adapters.driven.tokenizers",
     "ter.adapters.driven.in_memory",
+    "ter.adapters.driven.pricing",
 ]
+# TER 3 sits outside the hexagon and reads its prices through the pricing
+# adapter. A chain that passes through TER 3 is not one adapter depending on
+# another, so those edges are exempt here (and only here).
+ignore_imports = ["ter_calculator.** -> ter.adapters.driven.pricing"]
+
+[[tool.importlinter.contracts]]
+id = "ter3-uses-hexagon-edges"
+name = "TER 3 uses TER 4 only through domain, ports or adapters, never bootstrap"
+type = "forbidden"
+source_modules = ["ter_calculator"]
+forbidden_modules = ["ter.bootstrap", "ter.application"]

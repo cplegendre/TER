@@ -20,8 +20,38 @@ from .events import (
     make_event_id,
 )
 from .maturity import Maturity
+from .pricing import (
+    PriceEntry,
+    PriceSchedule,
+    Rates,
+    TokenCounts,
+    UnknownModelError,
+    token_cost,
+    usage_cost,
+)
+from .scoring import (
+    DEFAULT_PHASE_WEIGHTS,
+    PHASES,
+    EfficiencyScore,
+    ScoredSpan,
+    score_spans,
+    validate_phase_weights,
+)
 
 __all__ = [
+    "DEFAULT_PHASE_WEIGHTS",
+    "PHASES",
+    "EfficiencyScore",
+    "PriceEntry",
+    "PriceSchedule",
+    "Rates",
+    "ScoredSpan",
+    "TokenCounts",
+    "UnknownModelError",
+    "score_spans",
+    "token_cost",
+    "usage_cost",
+    "validate_phase_weights",
     "Actor",
     "Event",
     "EventId",

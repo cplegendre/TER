@@ -6,12 +6,13 @@ A fake that drifts from the real adapter's obligations fails
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import replace
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from ...domain.events import Event, SessionTrace
+from ...domain.pricing import PriceEntry, PriceSchedule, Rates
 
 
 class InMemorySessionSource:
@@ -31,6 +32,21 @@ class InMemorySessionSource:
             replace(event, sequence=index) for index, event in enumerate(trace.events)
         )
         return replace(trace, events=events, source_format=self.format_name)
+
+
+class InMemoryPriceBook:
+    """Serves prices from entries built in code, with the real book's semantics."""
+
+    name = "in-memory"
+
+    def __init__(self, entries: Iterable[PriceEntry]) -> None:
+        self._schedule = PriceSchedule(entries)
+
+    def models(self) -> tuple[str, ...]:
+        return self._schedule.models()
+
+    def rate(self, model: str, at: date | None = None) -> Rates:
+        return self._schedule.rate(model, at)
 
 
 class FixedClock:

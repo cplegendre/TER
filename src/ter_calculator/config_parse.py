@@ -2,13 +2,21 @@
 
 from __future__ import annotations
 
+from ter.adapters.driven.pricing import default_price_book
+
 from .models import CostModel, SpanPhase
 
 
 def parse_cost_model(value: str) -> CostModel:
-    """Parse cost model argument."""
+    """Parse cost model argument: ``sonnet`` (priced from the price book) or 4 rates."""
     if value.lower() == "sonnet":
-        return CostModel()
+        rates = default_price_book().rate("sonnet")
+        return CostModel(
+            input_rate=rates.input,
+            output_rate=rates.output,
+            cache_read_rate=rates.cache_read,
+            cache_write_rate=rates.cache_write,
+        )
     parts = value.split(",")
     if len(parts) != 4:
         raise ValueError(
