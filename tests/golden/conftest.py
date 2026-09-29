@@ -22,7 +22,12 @@ from ter_calculator import embedding_cache
 
 from .corpus import CORPUS, GOLDEN_DIR, REPO_ROOT
 
-__all__ = ["CORPUS", "assert_matches_snapshot", "pinned_models"]
+__all__ = [
+    "CORPUS",
+    "assert_matches_snapshot",
+    "assert_matches_text_snapshot",
+    "pinned_models",
+]
 
 SNAPSHOT_DIR = GOLDEN_DIR / "snapshots"
 UPDATE_ENV = "TER_UPDATE_GOLDEN"
@@ -71,5 +76,28 @@ def assert_matches_snapshot(name: str, actual: dict[str, Any]) -> None:
     expected = json.loads(path.read_text(encoding="utf-8"))
     assert json.loads(rendered) == expected, (
         f"{name} no longer matches its golden snapshot. If the change is "
+        f"intended, regenerate with {UPDATE_ENV}=1 and commit the diff."
+    )
+
+
+def assert_matches_text_snapshot(relative: str, actual: str) -> None:
+    """Compare rendered text (SVG, HTML) with ``snapshots/<relative>``.
+
+    Same contract as :func:`assert_matches_snapshot`: ``TER_UPDATE_GOLDEN=1``
+    (re)writes the file, and any diff is a reviewed change.
+    """
+    path = SNAPSHOT_DIR / relative
+    if os.environ.get(UPDATE_ENV) == "1":
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(actual, encoding="utf-8", newline="\n")
+        return
+    if not path.exists():
+        pytest.fail(
+            f"Missing golden snapshot {path.relative_to(REPO_ROOT)}; "
+            f"run with {UPDATE_ENV}=1 to create it"
+        )
+    expected = path.read_text(encoding="utf-8")
+    assert actual == expected, (
+        f"{relative} no longer matches its golden snapshot. If the change is "
         f"intended, regenerate with {UPDATE_ENV}=1 and commit the diff."
     )

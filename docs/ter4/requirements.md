@@ -48,10 +48,10 @@ requirements, so planned ones document the road ahead without failing CI.
 
 Areas in use: `ANL` analysis, `SRC` session sources, `OBS` observation,
 `LEN` Lean model, `DET` waste detectors, `WIP` work in progress, `ITN` intent,
-`SCR` scorecard, `FLW` flow, `EVD` repository evidence, `GRF` evidence graph,
-`CTX` context bundles, `RTE` routing, `INT` interventions, `CAL` calibration,
-`BEN` benchmarks, `RSH` research protocols, `EXP` explanation, `ARC`
-architecture, `REQ` this control itself.
+`SCR` scorecard, `RPT` reports, `FLW` flow, `EVD` repository evidence, `GRF`
+evidence graph, `CTX` context bundles, `RTE` routing, `INT` interventions,
+`CAL` calibration, `BEN` benchmarks, `RSH` research protocols, `EXP`
+explanation, `ARC` architecture, `REQ` this control itself.
 
 ## Vision points
 

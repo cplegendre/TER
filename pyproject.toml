@@ -156,6 +156,17 @@ forbidden_modules = [
 ]
 
 [[tool.importlinter.contracts]]
+id = "report-renderers"
+name = "Report renderers read only the view-model, never TER 3 results"
+type = "forbidden"
+source_modules = [
+    "ter.adapters.driving.reports.palette",
+    "ter.adapters.driving.reports.svg",
+    "ter.adapters.driving.reports.html",
+]
+forbidden_modules = ["ter_calculator"]
+
+[[tool.importlinter.contracts]]
 id = "independent-adapters"
 name = "Driven adapters do not import each other"
 type = "independence"

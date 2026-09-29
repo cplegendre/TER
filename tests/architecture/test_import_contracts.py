@@ -21,6 +21,7 @@ EXPECTED_CONTRACTS = {
     "vendor-free-core",
     "independent-adapters",
     "ter3-uses-hexagon-edges",
+    "report-renderers",
 }
 
 

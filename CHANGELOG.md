@@ -18,6 +18,9 @@ All notable public changes to TER are documented in this file. The project follo
 - `EventIngest` driving port, `EventLog` driven port with JSONL and in-memory adapters, and `ObserveEvent` / `RecordEvent` / `AnalyseTrace` / `AnalyseEventLog` use cases. The hook path only appends, to a private (0700/0600) log under the user cache directory.
 - Claude Code hooks driving adapter that fails open, and `python -m ter observe` / `python -m ter hook` commands. See `docs/ter4/l1-observed.md`.
 - Equivalence, hypothesis property, hook payload contract and StreamReport golden tests; `hypothesis` joins the dev extra.
+- TER 4 visual report layer: a `SessionReport` view-model in `ter.domain.report`, and a driving-side reports adapter (`ter.adapters.driving.reports`) with accessible SVG chart primitives (stat tiles, stacked and horizontal bars, span timeline, waste Pareto, positional sparkline) and one colour palette for light and dark themes.
+- `ter report --html FILE` writes a self-contained HTML report (no scripts or network requests) with KPIs, all charts, a waste-pattern table, an uncertainty note and a how-to-read guide; see `docs/ter4/reports.md`.
+- Golden snapshots of the report view-model, HTML and SVG output, and a `report-renderers` import contract.
 
 ### Changed
 
@@ -26,6 +29,7 @@ All notable public changes to TER are documented in this file. The project follo
 - PyYAML is now a runtime dependency (catalogue loading).
 - The Claude Code tool map moved to `ter.adapters.claude_code_tools`, shared by the JSONL source and the hooks adapter; `ter.adapters.driven.claude_code.tool_map` re-exports it.
 - `ter.ports.driven` imports numpy for type checking only, so hook processes start faster.
+- `ter visualize` and `ter present` charts now draw through the TER 4 report primitives: each SVG gains a `<title>` and `<desc>` (via `aria-labelledby`), legends wrap, and in-bar labels use a contrast-checked text colour. Chart names and the `ter_calculator.charts` API are unchanged.
 
 ## [3.0.0] - 2026-07-22
 

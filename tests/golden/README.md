@@ -16,7 +16,13 @@ Gaps noted above are recorded on purpose: they are TER 3's baseline, and
 the L2 detectors should close them with a reviewed snapshot change.
 
 Each session is analysed twice (`default` and `fine` span segmentation), and
-its normalised event stream is snapshotted as `<name>.events.json`.
+its normalised event stream is snapshotted as `<name>.events.json`. The visual
+report layer is frozen as `<name>.report.json` (view-model),
+`report/<name>.html` and, for the sample session, `report/example_session/*.svg`.
+`corpus.py` lists these layouts (`SNAPSHOT_KINDS`, `REPORT_KINDS`,
+`CHART_SESSIONS`), and `test_corpus_integrity.py` fails on a missing snapshot
+or on any file under `snapshots/` or `snapshots/report/` that belongs to no
+listed session.
 
 Tokenizer and embedder are pinned to deterministic offline adapters (see
 `docs/decisions/0002-hermetic-golden-characterisation.md`), so the tests need

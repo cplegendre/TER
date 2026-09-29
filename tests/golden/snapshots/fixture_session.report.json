@@ -1,0 +1,130 @@
+{
+  "classifier_version": "v11",
+  "composition": [
+    {
+      "label": "aligned_reasoning",
+      "tokens": 81
+    },
+    {
+      "label": "aligned_response",
+      "tokens": 185
+    },
+    {
+      "label": "aligned_tool_call",
+      "tokens": 157
+    }
+  ],
+  "economics": {
+    "cache_hit_rate": 0.7582,
+    "cache_read_tokens": 5800,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0173,
+    "input_tokens": 1850,
+    "output_tokens": 665,
+    "waste_cost_usd": 0.0
+  },
+  "metrics": {
+    "aligned_tokens": 423,
+    "raw_ratio": 1.0,
+    "ter": 1.0,
+    "total_tokens": 423,
+    "waste_tokens": 0
+  },
+  "phases": [
+    {
+      "phase": "reasoning",
+      "score": 1.0,
+      "tokens": 81
+    },
+    {
+      "phase": "tool_use",
+      "score": 1.0,
+      "tokens": 157
+    },
+    {
+      "phase": "generation",
+      "score": 1.0,
+      "tokens": 185
+    }
+  ],
+  "positional": {
+    "early": 1.0,
+    "early_spans": 2,
+    "late": 1.0,
+    "late_spans": 4,
+    "mid": 1.0,
+    "mid_spans": 2
+  },
+  "sections": [],
+  "session_id": "session-test-001",
+  "spans": [
+    {
+      "confidence": 0.5,
+      "label": "aligned_reasoning",
+      "phase": "reasoning",
+      "position": 0,
+      "tokens": 30
+    },
+    {
+      "confidence": 0.558217,
+      "label": "aligned_response",
+      "phase": "generation",
+      "position": 1,
+      "tokens": 23
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 2,
+      "tokens": 91
+    },
+    {
+      "confidence": 0.5,
+      "label": "aligned_reasoning",
+      "phase": "reasoning",
+      "position": 3,
+      "tokens": 51
+    },
+    {
+      "confidence": 0.5,
+      "label": "aligned_response",
+      "phase": "generation",
+      "position": 4,
+      "tokens": 20
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 5,
+      "tokens": 54
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 6,
+      "tokens": 12
+    },
+    {
+      "confidence": 0.577762,
+      "label": "aligned_response",
+      "phase": "generation",
+      "position": 7,
+      "tokens": 142
+    }
+  ],
+  "uncertainty": {
+    "confidence_level": 0.95,
+    "low_confidence_share": 1.0,
+    "low_confidence_tokens": 423,
+    "lower": 1.0,
+    "mean_confidence": 0.5545,
+    "method": "deterministic_span_bootstrap",
+    "reliability": "low",
+    "upper": 1.0
+  },
+  "waste_by_type": [],
+  "waste_patterns": []
+}

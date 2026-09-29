@@ -357,6 +357,33 @@ requirements:
       The session is a development process, not a token sequence.
     status: planned
 
+  - id: TER-RPT-001
+    pattern: ubiquitous
+    text: >-
+      The report mapper shall carry the TER value, token composition, phase
+      scores, waste patterns and 95 percent TER interval of every analysed
+      session into the session report view-model.
+    level: L2
+    source_points: [85, 86]
+    rationale: >-
+      Renderers read one format-neutral view-model, so every chart and page
+      shows the same numbers, uncertainty included.
+    status: verified
+
+  - id: TER-RPT-002
+    pattern: ubiquitous
+    text: >-
+      The HTML report renderer shall render each session report as one
+      self-contained HTML file with no scripts and no external resources
+      that shows the 95 percent TER interval and the count of
+      low-confidence tokens.
+    level: L2
+    source_points: [85, 86]
+    rationale: >-
+      A report that can be attached to a ticket or opened offline, and that
+      states its uncertainty, keeps estimates from being read as facts.
+    status: verified
+
   - id: TER-SCR-001
     pattern: ubiquitous
     text: >-

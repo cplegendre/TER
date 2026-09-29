@@ -55,17 +55,14 @@ flowchart LR
 
 | Package | Holds | May import |
 |---|---|---|
-| `ter.domain` | Event model, maturity levels, TER scoring (`scoring`: phase scores, weighted aggregate, raw ratio, aligned/waste accounting), pricing (`pricing`: `Rates`, dated `PriceSchedule`, cost arithmetic); later the Lean model, detectors, evidence graph, scorecard | stdlib, numpy |
-| `ter.ports` | `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `PriceBook` | `ter.domain` |
-| `ter.application` | Use cases (empty at L0) | ports, domain |
-| `ter.domain` | Event model, maturity levels, the incremental `AnalysisEngine` (L1); later the Lean model, detectors, evidence graph, scorecard | stdlib, numpy |
-| `ter.ports` | Driven: `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `EventLog`. Driving: `EventIngest` | `ter.domain` |
+| `ter.domain` | Event model, maturity levels, TER scoring (`scoring`: phase scores, weighted aggregate, raw ratio, aligned/waste accounting), pricing (`pricing`: `Rates`, dated `PriceSchedule`, cost arithmetic), the incremental `AnalysisEngine` (L1), the `SessionReport` view-model (`report`); later the Lean model, detectors, evidence graph, scorecard | stdlib, numpy |
+| `ter.ports` | Driven: `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `PriceBook`, `EventLog`. Driving: `EventIngest` | `ter.domain` |
 | `ter.application` | Use cases: `ObserveEvent`, `RecordEvent`, `AnalyseTrace`, `AnalyseEventLog` (L1) | ports, domain |
 | `ter.adapters` | Everything that knows a vendor, format or IO | anything inward, plus `ter_calculator` |
 | `ter.bootstrap` | Wiring, and the maturity ceiling | everything |
 
 The rules are enforced, not described. `[tool.importlinter]` in
-`pyproject.toml` declares five contracts, and both the `lint-imports` CI step
+`pyproject.toml` declares six contracts, and both the `lint-imports` CI step
 and `tests/architecture` fail when one breaks:
 
 1. **hexagon-layers**: bootstrap → adapters → application → ports → domain, never outward.
@@ -75,6 +72,7 @@ and `tests/architecture` fail when one breaks:
    through TER 3 to the pricing adapter are exempt: TER 3 is outside the hexagon).
 5. **ter3-uses-hexagon-edges**: TER 3 uses TER 4 only through the domain, ports
    or adapters, never `ter.application` or `ter.bootstrap`.
+6. **report-renderers**: the SVG and HTML renderers read only the `SessionReport` view-model, never TER 3 types (see [reports.md](reports.md)).
 
 ## Strangler moves so far
 

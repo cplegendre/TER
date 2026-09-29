@@ -26,4 +26,11 @@ CORPUS: dict[str, Path] = {
 }
 
 #: Snapshot kinds every session must have, as ``<name>.<kind>.json``.
-SNAPSHOT_KINDS: tuple[str, ...] = ("default", "fine", "events", "stream")
+SNAPSHOT_KINDS: tuple[str, ...] = ("default", "fine", "events", "stream", "report")
+
+#: Rendered report files every session must have, as ``report/<name>.<kind>``.
+REPORT_KINDS: tuple[str, ...] = ("html",)
+
+#: Sessions whose standalone charts are also frozen, as
+#: ``report/<name>/<chart>.svg``.
+CHART_SESSIONS: tuple[str, ...] = ("example_session",)

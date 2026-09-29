@@ -93,6 +93,7 @@ data/
 .ter/
 ter-results/
 reports/
+!src/ter/adapters/driving/reports/
 benchmark-results/
 evaluation-results/
 datasets/

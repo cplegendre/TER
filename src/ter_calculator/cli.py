@@ -160,6 +160,14 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="Write Markdown to FILE instead of stdout (e.g. report.md)",
     )
+    report_parser.add_argument(
+        "--html",
+        dest="report_html",
+        metavar="FILE",
+        default=None,
+        help="Write a self-contained visual HTML report (charts, waste table, "
+        "uncertainty) to FILE; Markdown is then only written if -o is given",
+    )
 
     # compare subcommand
     compare_parser = subparsers.add_parser(

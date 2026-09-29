@@ -58,6 +58,7 @@ Python 3.11+: Follow standard conventions. Dataclasses for models, enums for dom
 - Hook entry points fail open: never raise out of `ter.adapters.driving.claude_hooks`.
 - Run TER 4 tools with `PYTHONPATH=src` when the venv's editable install may point at another checkout.
 - See `docs/ter4/architecture.md` and `docs/decisions/`.
+- Visual reports: renderers in `ter.adapters.driving.reports` (`svg.py`, `html.py`, colours only in `palette.py`) read the `ter.domain.report.SessionReport` view-model; `reports/ter3.py` (`from_ter_result`) is the only piece that reads `TERResult`. `ter_calculator.charts` delegates to these primitives. Rendered output is frozen in `tests/golden/snapshots/report/`. See `docs/ter4/reports.md`.
 
 ## Key Modules
 
@@ -72,6 +73,6 @@ Python 3.11+: Follow standard conventions. Dataclasses for models, enums for dom
 
 ## CLI Subcommands
 
-`ter analyze` `ter report` `ter compare` `ter list` `ter watch` `ter budget` `ter context {store|graph|optimize|delta|check}`
+`ter analyze` `ter report [--html FILE]` `ter visualize` `ter present` `ter compare` `ter list` `ter watch` `ter budget` `ter context {store|graph|optimize|delta|check}`
 
 TER 4 (`python -m ter`): `observe` `hook`
