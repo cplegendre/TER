@@ -43,23 +43,13 @@ def _cmd_visualize(args) -> int:
             return 1
         charts = filtered
 
-    if output_dir:
-        out = Path(output_dir)
-        out.mkdir(parents=True, exist_ok=True)
-        for name, svg in charts.items():
-            path = out / f"{name}.svg"
-            path.write_text(svg, encoding="utf-8")
-            if not args.quiet:
-                print(f"Wrote {path}", file=sys.stderr)
-    else:
-        session_stem = Path(args.session_path).stem
-        out = Path(f"{session_stem}_charts")
-        out.mkdir(parents=True, exist_ok=True)
-        for name, svg in charts.items():
-            path = out / f"{name}.svg"
-            path.write_text(svg, encoding="utf-8")
-            if not args.quiet:
-                print(f"Wrote {path}", file=sys.stderr)
+    out = Path(output_dir or f"{Path(args.session_path).stem}_charts")
+    out.mkdir(parents=True, exist_ok=True)
+    for name, svg in charts.items():
+        path = out / f"{name}.svg"
+        path.write_text(svg, encoding="utf-8")
+        if not args.quiet:
+            print(f"Wrote {path}", file=sys.stderr)
 
     if not args.quiet:
         print(
