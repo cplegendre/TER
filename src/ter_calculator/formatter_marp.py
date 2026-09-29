@@ -39,9 +39,7 @@ def _sanitize_md(text: str) -> str:
 def _speaker_notes(text: str) -> str:
     lines = text.strip().split("\n")
     return "\n".join(
-        f"<!-- {_sanitize_comment(line.strip())} -->"
-        for line in lines
-        if line.strip()
+        f"<!-- {_sanitize_comment(line.strip())} -->" for line in lines if line.strip()
     )
 
 
@@ -92,10 +90,10 @@ def _slide_key_metrics(result: TERResult) -> str:
     lines.append(f"| Aligned | {result.aligned_tokens:,} |")
     lines.append(f"| Waste | {result.waste_tokens:,} |")
     if result.economics:
+        lines.append(f"| Est. Cost | ${result.economics.estimated_cost_usd:.4f} |")
         lines.append(
-            f"| Est. Cost | ${result.economics.estimated_cost_usd:.4f} |"
+            f"| Cache Hit Rate | {result.economics.cache_hit_rate * 100:.1f}% |"
         )
-        lines.append(f"| Cache Hit Rate | {result.economics.cache_hit_rate * 100:.1f}% |")
     lines.append("")
 
     notes_lines = [
@@ -104,9 +102,7 @@ def _slide_key_metrics(result: TERResult) -> str:
         f"{result.waste_tokens:,} were classified as waste.",
     ]
     if result.uncertainty:
-        notes_lines.append(
-            f"Reliability grade: {result.uncertainty.reliability}."
-        )
+        notes_lines.append(f"Reliability grade: {result.uncertainty.reliability}.")
     lines.append(_speaker_notes("\n".join(notes_lines)))
     return "\n".join(lines)
 
@@ -128,9 +124,7 @@ def _slide_waste_breakdown(result: TERResult) -> str:
             lines.append("")
 
     waste_pct = (
-        result.waste_tokens / result.total_tokens * 100
-        if result.total_tokens
-        else 0.0
+        result.waste_tokens / result.total_tokens * 100 if result.total_tokens else 0.0
     )
     lines.append(
         _speaker_notes(
@@ -158,8 +152,8 @@ def _slide_phase_scores(result: TERResult) -> str:
         lines.append(f"- **{label}**: {score:.3f} `{bar}`")
     lines.append("")
 
-    lowest_phase = min(result.phase_scores, key=result.phase_scores.get)
-    highest_phase = max(result.phase_scores, key=result.phase_scores.get)
+    lowest_phase = min(result.phase_scores, key=result.phase_scores.__getitem__)
+    highest_phase = max(result.phase_scores, key=result.phase_scores.__getitem__)
     lines.append(
         _speaker_notes(
             f"Phase scores show per-phase token efficiency.\n"
@@ -191,7 +185,9 @@ def _slide_waste_patterns(result: TERResult) -> str:
     )[:5]
     for p in sorted_patterns:
         label = p.pattern_type.replace("_", " ").title()
-        desc = _sanitize_md(p.description[:100]) + ("..." if len(p.description) > 100 else "")
+        desc = _sanitize_md(p.description[:100]) + (
+            "..." if len(p.description) > 100 else ""
+        )
         lines.append(f"- **{label}** — {p.tokens_wasted:,} tokens: {desc}")
     lines.append("")
 
@@ -254,7 +250,7 @@ def _slide_recommendations(result: TERResult) -> str:
 
     recs: list[str] = []
 
-    lowest_phase = min(result.phase_scores, key=result.phase_scores.get)
+    lowest_phase = min(result.phase_scores, key=result.phase_scores.__getitem__)
     recs.append(
         f"Tighten prompts or add CLAUDE.md rules targeting "
         f"**{lowest_phase.replace('_', ' ')}** (lowest phase TER)"

@@ -164,9 +164,7 @@ class TestAnalyzeSession:
         mock_load.return_value = mock_session
         mock_segment.return_value = []
 
-        intent = IntentVector(
-            text="test", embedding=np.zeros(384), confidence=0.9
-        )
+        intent = IntentVector(text="test", embedding=np.zeros(384), confidence=0.9)
         mock_extractor = MagicMock()
         mock_extractor.extract.return_value = [intent]
         mock_extractor_cls.return_value = mock_extractor

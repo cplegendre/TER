@@ -80,9 +80,7 @@ def _stacked_bar_svg(
         f' width="{width}" height="{height}" role="img"'
         f' aria-label="{_esc(title)}">'
     )
-    parts.append(
-        f'<rect width="{width}" height="{height}" fill="{_SURFACE}" rx="8"/>'
-    )
+    parts.append(f'<rect width="{width}" height="{height}" fill="{_SURFACE}" rx="8"/>')
     parts.append(
         f'<text x="{left_margin}" y="24" fill="{_INK_PRIMARY}"'
         f' font-family="system-ui,sans-serif" font-size="15" font-weight="600">'
@@ -161,9 +159,7 @@ def _horizontal_bar_svg(
         f' width="{width}" height="{height}" role="img"'
         f' aria-label="{_esc(title)}">'
     )
-    parts.append(
-        f'<rect width="{width}" height="{height}" fill="{_SURFACE}" rx="8"/>'
-    )
+    parts.append(f'<rect width="{width}" height="{height}" fill="{_SURFACE}" rx="8"/>')
     parts.append(
         f'<text x="16" y="24" fill="{_INK_PRIMARY}"'
         f' font-family="system-ui,sans-serif" font-size="15" font-weight="600">'
@@ -217,9 +213,7 @@ def _stat_tile_svg(
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}"'
         f' width="{width}" height="{height}" role="img" aria-label="Key metrics">'
     )
-    parts.append(
-        f'<rect width="{width}" height="{height}" fill="{_SURFACE}" rx="8"/>'
-    )
+    parts.append(f'<rect width="{width}" height="{height}" fill="{_SURFACE}" rx="8"/>')
 
     for i, (label, value) in enumerate(metrics):
         x = i * tile_w + tile_w // 2
@@ -358,7 +352,7 @@ def chart_economics(result: TERResult) -> str:
         ("Cache Read", e.total_cache_read_tokens, PALETTE[2]),
         ("Cache Write", e.total_cache_creation_tokens, PALETTE[3]),
     ]
-    segments = [(l, v, c) for l, v, c in segments if v > 0]
+    segments = [(label, v, c) for label, v, c in segments if v > 0]
     return _stacked_bar_svg("Token Economics", segments)
 
 
