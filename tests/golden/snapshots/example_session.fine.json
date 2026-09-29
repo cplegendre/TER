@@ -1,0 +1,171 @@
+{
+  "aggregate_ter": 0.806,
+  "classifier_version": "v11",
+  "economics": {
+    "cache_creation": 24,
+    "cache_hit_rate": 0.399,
+    "cache_read": 960,
+    "context_bloat": false,
+    "cost_usd": 0.0113,
+    "input": 1446,
+    "input_growth": 4.52,
+    "output": 442,
+    "positional": [
+      0.7069,
+      0.3947,
+      1.0
+    ],
+    "waste_cost_usd": 0.0009
+  },
+  "input_analysis": {
+    "alignment": 0.358,
+    "drift": "stable",
+    "drift_steps": [],
+    "low_alignment": 0,
+    "prompt_redundancy": 0.0,
+    "similar_pairs": 0,
+    "user_ratio": 0.1735
+  },
+  "intent_confidence": 0.85,
+  "phase_scores": {
+    "generation": 1.0,
+    "reasoning": 0.4615,
+    "tool_use": 0.9188
+  },
+  "raw_ratio": 0.869,
+  "session_id": "sample-session-001",
+  "spans": [
+    {
+      "block_type": "thinking",
+      "confidence": 0.6,
+      "cosine": 0.147344,
+      "label": "redundant_reasoning",
+      "phase": "reasoning",
+      "position": 0,
+      "reason": "low_information_reasoning",
+      "tokens": 17,
+      "tool": null
+    },
+    {
+      "block_type": "text",
+      "confidence": 0.5,
+      "cosine": 0.160185,
+      "label": "aligned_response",
+      "phase": "generation",
+      "position": 1,
+      "reason": "aligned_default",
+      "tokens": 13,
+      "tool": null
+    },
+    {
+      "block_type": "tool_use",
+      "confidence": 0.6,
+      "cosine": -0.062107,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 2,
+      "reason": "aligned_default",
+      "tokens": 28,
+      "tool": "Read"
+    },
+    {
+      "block_type": "thinking",
+      "confidence": 0.5,
+      "cosine": 0.311475,
+      "label": "aligned_reasoning",
+      "phase": "reasoning",
+      "position": 3,
+      "reason": "novel_or_below_threshold",
+      "tokens": 30,
+      "tool": null
+    },
+    {
+      "block_type": "tool_use",
+      "confidence": 1.0,
+      "cosine": -0.062107,
+      "label": "unnecessary_tool_call",
+      "phase": "tool_use",
+      "position": 4,
+      "reason": "repetition",
+      "tokens": 28,
+      "tool": "Read"
+    },
+    {
+      "block_type": "thinking",
+      "confidence": 0.6,
+      "cosine": 0.178307,
+      "label": "redundant_reasoning",
+      "phase": "reasoning",
+      "position": 5,
+      "reason": "low_information_reasoning",
+      "tokens": 18,
+      "tool": null
+    },
+    {
+      "block_type": "tool_use",
+      "confidence": 0.6,
+      "cosine": 0.106936,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 6,
+      "reason": "novel_or_below_threshold",
+      "tokens": 191,
+      "tool": "Write"
+    },
+    {
+      "block_type": "tool_use",
+      "confidence": 0.6,
+      "cosine": 0.138536,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 7,
+      "reason": "novel_or_below_threshold",
+      "tokens": 98,
+      "tool": "Bash"
+    },
+    {
+      "block_type": "text",
+      "confidence": 0.5,
+      "cosine": 0.066118,
+      "label": "aligned_response",
+      "phase": "generation",
+      "position": 8,
+      "reason": "novel_or_below_threshold",
+      "tokens": 13,
+      "tool": null
+    },
+    {
+      "block_type": "text",
+      "confidence": 0.5,
+      "cosine": 0.322126,
+      "label": "aligned_response",
+      "phase": "generation",
+      "position": 9,
+      "reason": "novel_or_below_threshold",
+      "tokens": 45,
+      "tool": null
+    }
+  ],
+  "tokens": {
+    "aligned": 418,
+    "total": 481,
+    "waste": 63
+  },
+  "uncertainty": {
+    "interval": [
+      0.5154,
+      1.0
+    ],
+    "low_confidence_tokens": 453,
+    "reliability": "moderate"
+  },
+  "waste_patterns": [
+    {
+      "end": 4,
+      "spans": 2,
+      "start": 2,
+      "tokens": 28,
+      "type": "duplicate_tool_call"
+    }
+  ]
+}
