@@ -22,8 +22,9 @@ from pathlib import Path
 from typing import IO
 
 from ...domain.stream import StreamReport
+from ...ports.driven import Clock
 from ...ports.driving import EventIngest
-from .claude_hooks import run_hook
+from .claude_hooks import HookStatus, run_hook
 
 __all__ = ["CliServices", "format_report", "format_timeline", "main"]
 
@@ -39,6 +40,7 @@ class CliServices:
     analyse_log: Callable[[Path, str, str], StreamReport]
     hook_ingest: Callable[[Path], EventIngest]
     default_log_dir: Path
+    hook_clock: Clock | None = None
 
 
 def main(
@@ -54,7 +56,16 @@ def main(
     args = _parser(services.default_log_dir).parse_args(argv)
     if args.command == "hook":
         log_dir: Path = args.event_log
-        run_hook(stdin or sys.stdin, out, lambda: services.hook_ingest(log_dir))
+        result = run_hook(
+            stdin or sys.stdin,
+            out,
+            lambda: services.hook_ingest(log_dir),
+            clock=services.hook_clock,
+        )
+        if result.status is HookStatus.IGNORED and result.reason:
+            # Still exit 0 so the agent carries on; stderr leaves a trace
+            # (Claude Code shows it in verbose mode and debug logs).
+            err.write(f"ter hook: event not recorded: {result.reason}\n")
         return 0
     return _observe(args, services, out, err)
 

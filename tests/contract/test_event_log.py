@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import stat
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
@@ -97,6 +99,42 @@ class TestJsonlSpecifics:
         for session in ("../../etc/passwd", "..", ".hidden", "a" * 300):
             assert log.path_for(session).parent == tmp_path
         assert log.path_for("abc-123").name == "abc-123.events.jsonl"
+
+    def test_an_append_after_a_torn_last_line_starts_a_new_line(
+        self, tmp_path: Path
+    ) -> None:
+        log = JsonlEventLog(tmp_path)
+        log.append(prompt("s", 0))
+        with open(log.path_for("s"), "a", encoding="utf-8") as handle:
+            handle.write('{"schema": "ter.event/0.1", "id": ')  # crash mid-write
+        log.append(prompt("s", 1))
+        log.append(prompt("s", 2))
+        assert [e.sequence for e in log.events("s")] == [0, 1, 2]
+        assert log.skipped == 1
+
+    @pytest.mark.skipif(os.name != "posix", reason="POSIX file modes")
+    def test_the_log_is_private_to_its_owner(self, tmp_path: Path) -> None:
+        old = os.umask(0o022)
+        try:
+            log = JsonlEventLog(tmp_path / "events")
+            log.append(prompt("s", 0))
+        finally:
+            os.umask(old)
+        assert stat.S_IMODE(log.directory.stat().st_mode) == 0o700
+        assert stat.S_IMODE(log.path_for("s").stat().st_mode) == 0o600
+
+    @pytest.mark.skipif(os.name != "posix", reason="POSIX file modes")
+    def test_an_existing_open_log_is_tightened(self, tmp_path: Path) -> None:
+        directory = tmp_path / "events"
+        directory.mkdir(mode=0o755)
+        directory.chmod(0o755)
+        log = JsonlEventLog(directory)
+        path = log.path_for("s")
+        path.write_text("", encoding="utf-8")
+        path.chmod(0o644)
+        log.append(prompt("s", 0))
+        assert stat.S_IMODE(directory.stat().st_mode) == 0o700
+        assert stat.S_IMODE(path.stat().st_mode) == 0o600
 
     def test_missing_directory_lists_no_sessions(self, tmp_path: Path) -> None:
         assert JsonlEventLog(tmp_path / "absent").sessions() == ()

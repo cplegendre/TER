@@ -60,7 +60,7 @@ flowchart LR
 | `ter.application` | Use cases (empty at L0) | ports, domain |
 | `ter.domain` | Event model, maturity levels, the incremental `AnalysisEngine` (L1); later the Lean model, detectors, evidence graph, scorecard | stdlib, numpy |
 | `ter.ports` | Driven: `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `EventLog`. Driving: `EventIngest` | `ter.domain` |
-| `ter.application` | Use cases: `ObserveEvent`, `AnalyseTrace`, `AnalyseEventLog` (L1) | ports, domain |
+| `ter.application` | Use cases: `ObserveEvent`, `RecordEvent`, `AnalyseTrace`, `AnalyseEventLog` (L1) | ports, domain |
 | `ter.adapters` | Everything that knows a vendor, format or IO | anything inward, plus `ter_calculator` |
 | `ter.bootstrap` | Wiring, and the maturity ceiling | everything |
 

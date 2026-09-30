@@ -1738,6 +1738,7 @@ points:
       - 'test: tests/unit/test_ter4_stream.py::test_redelivered_event_is_discarded_without_changing_state'
       - 'test: tests/contract/test_event_ingest.py::test_redelivery_changes_nothing'
       - 'test: tests/equivalence/test_live_static.py::test_live_with_redelivery_through_the_log_equals_batch'
+      - 'test: tests/contract/test_event_ingest.py::test_hook_processes_that_record_again_leave_the_report_unchanged'
 
   - id: P120
     text: >-
@@ -1753,6 +1754,7 @@ points:
     rules: [TER-OBS-003]
     verification:
       - 'test: tests/unit/test_ter4_claude_hooks.py::test_post_tool_use_is_appended_within_50ms_at_p95'
+      - 'test: tests/unit/test_ter4_claude_hooks.py::test_a_fresh_hook_process_appends_within_50ms_at_p95'
 
   - id: P121
     text: >-

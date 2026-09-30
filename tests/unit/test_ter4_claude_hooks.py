@@ -21,7 +21,8 @@ from ter.adapters.driving.claude_hooks import (
     run_hook,
     translate,
 )
-from ter.application import ObserveEvent
+from ter.adapters.driven.event_log import JsonlEventLog
+from ter.application import ObserveEvent, RecordEvent
 from ter.domain import EventKind, Signal, Signals, StreamReport
 from ter.domain.events import Event
 
@@ -97,12 +98,29 @@ class TestTranslate:
         assert request.provenance.source == "claude-code-hooks"
         assert translate(payload).events == (request, completed)
 
-    def test_received_at_is_stamped_but_not_part_of_identity(self) -> None:
+    def test_received_at_is_stamped_but_not_part_of_a_tool_call_identity(
+        self,
+    ) -> None:
         early = datetime(2026, 1, 1, tzinfo=UTC)
         late = datetime(2026, 1, 2, tzinfo=UTC)
-        a = translate(load("user_prompt_submit"), received_at=early).events[0]
-        b = translate(load("user_prompt_submit"), received_at=late).events[0]
-        assert a.timestamp == early and b.timestamp == late
+        a = translate(load("post_tool_use_read"), received_at=early).events
+        b = translate(load("post_tool_use_read"), received_at=late).events
+        assert [e.timestamp for e in a + b] == [early, early, late, late]
+        assert [e.id for e in a] == [e.id for e in b]
+
+    def test_the_same_prompt_submitted_twice_gets_two_ids(self) -> None:
+        first = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
+        again = datetime(2026, 1, 1, 12, 0, 7, tzinfo=UTC)
+        a = translate(load("user_prompt_submit"), received_at=first).events[0]
+        b = translate(load("user_prompt_submit"), received_at=again).events[0]
+        assert a.timestamp == first and b.timestamp == again
+        assert a.id != b.id
+
+    def test_one_prompt_seen_twice_within_a_second_keeps_one_id(self) -> None:
+        start = datetime(2026, 1, 1, 12, 0, 0, 100, tzinfo=UTC)
+        echo = datetime(2026, 1, 1, 12, 0, 0, 900_000, tzinfo=UTC)
+        a = translate(load("user_prompt_submit"), received_at=start).events[0]
+        b = translate(load("user_prompt_submit"), received_at=echo).events[0]
         assert a.id == b.id
 
     def test_distinct_calls_get_distinct_ids(self) -> None:
@@ -225,6 +243,38 @@ def test_post_tool_use_is_appended_within_50ms_at_p95() -> None:
         raw = json.dumps(payload)
         start = time.perf_counter()
         result = handle_hook(raw, sink)
+        samples.append(time.perf_counter() - start)
+        assert result.appended == 2
+    p95 = statistics.quantiles(samples, n=20)[-1]
+    assert p95 < 0.050, f"p95 {p95 * 1000:.2f} ms"
+
+
+@pytest.mark.req("TER-OBS-003")
+def test_a_fresh_hook_process_appends_within_50ms_at_p95(tmp_path: Path) -> None:
+    """Benchmark: the path ``python -m ter hook`` runs, cold, on a long session.
+
+    Every sample builds a new ``RecordEvent`` over a new ``JsonlEventLog``, as
+    a hook process does, against a log file that already holds 2,000 events.
+    The hook only appends, so its cost does not grow with the session.
+    """
+    template = load("post_tool_use_bash")
+    session = template["session_id"]
+    warm = RecordEvent(RegexTokenizer(), JsonlEventLog(tmp_path))
+    for n in range(1000):
+        payload = dict(template, tool_use_id=f"warm-{n}")
+        payload["tool_input"] = {"command": f"echo {n}"}
+        handle_hook(payload, warm)
+    assert len(JsonlEventLog(tmp_path).events(session)) == 2000
+
+    samples: list[float] = []
+    for n in range(300):
+        payload = dict(template, tool_use_id=f"bench-{n}")
+        payload["tool_input"] = {"command": f"pytest -k case_{n}"}
+        raw = json.dumps(payload)
+        start = time.perf_counter()
+        result = handle_hook(
+            raw, lambda: RecordEvent(RegexTokenizer(), JsonlEventLog(tmp_path))
+        )
         samples.append(time.perf_counter() - start)
         assert result.appended == 2
     p95 = statistics.quantiles(samples, n=20)[-1]

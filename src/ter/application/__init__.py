@@ -9,6 +9,6 @@ ports. L1 adds live observation and batch analysis of the event stream
 
 from __future__ import annotations
 
-from .observe import AnalyseEventLog, AnalyseTrace, ObserveEvent
+from .observe import AnalyseEventLog, AnalyseTrace, ObserveEvent, RecordEvent
 
-__all__ = ["AnalyseEventLog", "AnalyseTrace", "ObserveEvent"]
+__all__ = ["AnalyseEventLog", "AnalyseTrace", "ObserveEvent", "RecordEvent"]

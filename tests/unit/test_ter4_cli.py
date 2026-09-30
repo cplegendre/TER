@@ -80,9 +80,20 @@ def test_observe_event_log_needs_a_session_when_ambiguous(tmp_path: Path) -> Non
 
 @pytest.mark.req("TER-OBS-008")
 def test_hook_with_garbage_still_succeeds(tmp_path: Path) -> None:
-    code, out, _ = run(["hook", "--event-log", str(tmp_path)], stdin="{oops")
+    code, out, err = run(["hook", "--event-log", str(tmp_path)], stdin="{oops")
     assert code == 0 and out == "{}\n"
+    assert err.startswith("ter hook: event not recorded: invalid JSON")
     assert not tmp_path.joinpath("x").exists()
+
+
+@pytest.mark.req("TER-OBS-008")
+def test_hook_that_cannot_record_says_why_on_stderr(tmp_path: Path) -> None:
+    blocked = tmp_path / "not-a-directory"
+    blocked.write_text("", encoding="utf-8")
+    payload = (HOOKS / "user_prompt_submit.json").read_text(encoding="utf-8")
+    code, out, err = run(["hook", "--event-log", str(blocked)], stdin=payload)
+    assert code == 0 and out == "{}\n"
+    assert err.startswith("ter hook: event not recorded: ")
 
 
 def test_format_timeline_without_limit() -> None:
@@ -102,7 +113,11 @@ class TestBootstrap:
         monkeypatch.setenv(bootstrap.EVENT_LOG_ENV, str(tmp_path))
         assert bootstrap.default_event_log_dir() == tmp_path
         monkeypatch.delenv(bootstrap.EVENT_LOG_ENV)
-        assert bootstrap.default_event_log_dir().name == "ter-events"
+        monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "cache"))
+        assert bootstrap.default_event_log_dir() == tmp_path / "cache/ter/events"
+        monkeypatch.delenv("XDG_CACHE_HOME")
+        monkeypatch.setenv("HOME", str(tmp_path / "home"))
+        assert bootstrap.default_event_log_dir() == tmp_path / "home/.cache/ter/events"
 
     def test_make_tokenizer(self) -> None:
         assert isinstance(bootstrap.make_tokenizer("regex"), RegexTokenizer)

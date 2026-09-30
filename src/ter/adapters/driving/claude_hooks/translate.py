@@ -128,9 +128,17 @@ def _translate_content(
         if not isinstance(prompt, str):
             raise _Malformed("UserPromptSubmit without a prompt string")
         digest = _digest(prompt)
+        # The payload carries no id for the submission itself, so the second
+        # it was received tells two submissions of the same text apart, while
+        # one submission seen twice within that second (the same hook set up
+        # in two settings files) keeps one id. Without a clock the id is the
+        # text's alone (deterministic, as in tests).
+        parts: tuple[str, ...] = (_SOURCE, session_id, name, digest)
+        if received_at is not None:
+            parts += (received_at.replace(microsecond=0).isoformat(),)
         return (
             Event(
-                id=make_event_id(_SOURCE, session_id, name, digest),
+                id=make_event_id(*parts),
                 session_id=session_id,
                 sequence=0,
                 kind=EventKind.PROMPT,

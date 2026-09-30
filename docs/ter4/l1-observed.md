@@ -21,7 +21,7 @@ sequenceDiagram
     autonumber
     participant CC as Claude Code
     participant H as ter hook<br/>(claude_hooks adapter)
-    participant O as ObserveEvent<br/>(EventIngest use case)
+    participant O as RecordEvent<br/>(EventIngest use case)
     participant E as AnalysisEngine<br/>(domain)
     participant L as EventLog<br/>(JSONL file)
     participant R as ter observe
@@ -29,20 +29,29 @@ sequenceDiagram
     CC->>H: PostToolUse JSON on stdin
     H->>H: translate → tool.requested + tool.completed<br/>(ids from session_id + tool_use_id)
     H->>O: apply(event)
-    O->>L: first event of the process: events(session_id)
-    O->>E: replay log, then apply(event)
-    E-->>O: Signals (accepted? duplicate call, repeated read, …)
-    O->>L: append(event) if accepted
+    O->>L: append(event) unless this process already did
     H-->>CC: {} (always, exit 0: fail open)
     R->>L: events(session_id)
     R->>E: analyse_batch(events)
     E-->>R: StreamReport
 ```
 
-A hook is a new process per event, so `ObserveEvent` rebuilds its engine from
-the session's log on the first event it sees, then applies the new event and
-appends it only if the engine accepted it. The log may still hold a duplicate
-line (two hook processes racing); replay discards it by id.
+A hook is a new process per event, so the hook path (`RecordEvent`) only
+appends: its cost does not grow with the session (the cold-process benchmark
+holds it under 50 ms at p95 on a 2,000-event log). The log may therefore hold
+an event twice (a PostToolUse repeats its PreToolUse request; two hook
+processes race), and analysis discards the repeat by id. A long-lived process
+uses `ObserveEvent` instead, which keeps an engine per session, replays the
+log once, and appends each new event before applying it, so a failed append
+can be retried.
+
+A hook that cannot record an event (bad JSON, a full disk) still prints `{}`
+and exits 0, and writes `ter hook: event not recorded: <reason>` to stderr.
+
+`UserPromptSubmit` carries no id for the submission, so a prompt's id includes
+the second it was received: the same text submitted twice counts twice, and
+one submission seen twice within a second (the hook registered in two settings
+files) counts once.
 
 ## Hook to event mapping
 
@@ -86,7 +95,7 @@ discarded before any state changes.
 
 ```bash
 python -m ter observe session.jsonl --timeline      # a recorded transcript
-python -m ter observe --event-log /tmp/ter-events   # what hooks recorded
+python -m ter observe --event-log ~/.cache/ter/events # what hooks recorded
 python -m ter hook                                  # hook entry: payload on stdin
 ```
 
@@ -101,8 +110,10 @@ Register the hook in `.claude/settings.json`:
 }
 ```
 
-The log directory defaults to `$TMPDIR/ter-events` and follows
-`TER_EVENT_LOG_DIR`. The TER 3 `ter hook monitor` is unchanged.
+The log directory defaults to `ter/events` under `$XDG_CACHE_HOME` (else
+`~/.cache`) and follows `TER_EVENT_LOG_DIR`. The log holds prompts and tool
+output in plain text, so the directory is created `0700` and each file `0600`,
+and an existing one that others can read is tightened. The TER 3 `ter hook monitor` is unchanged.
 
 ## Where the code lives
 
@@ -110,7 +121,7 @@ The log directory defaults to `$TMPDIR/ter-events` and follows
 |---|---|
 | domain | `ter/domain/stream.py`: `AnalysisEngine`, `StreamReport`, `Signals`, `analyse_batch` |
 | ports | `ter/ports/driving.py`: `EventIngest`; `ter/ports/driven.py`: `EventLog` |
-| application | `ter/application/observe.py`: `ObserveEvent`, `AnalyseTrace`, `AnalyseEventLog` |
+| application | `ter/application/observe.py`: `ObserveEvent`, `RecordEvent`, `AnalyseTrace`, `AnalyseEventLog` |
 | driving adapters | `ter/adapters/driving/claude_hooks/`, `ter/adapters/driving/cli.py` |
 | driven adapters | `ter/adapters/driven/event_log/` (JSONL), `InMemoryEventLog` |
 | shared data | `ter/adapters/claude_code_tools.py`: the Claude Code tool map, used by the JSONL source and the hooks adapter |

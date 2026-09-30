@@ -8,13 +8,13 @@ module decides which capabilities are switched on.
 from __future__ import annotations
 
 import os
-import tempfile
 from collections.abc import Sequence
 from pathlib import Path
 
 from ..adapters.driving.cli import CliServices
 from ..adapters.driving.cli import main as cli_main
-from ..application.observe import AnalyseEventLog, AnalyseTrace, ObserveEvent
+from ..adapters.driven.in_memory import SystemClock
+from ..application.observe import AnalyseEventLog, AnalyseTrace, RecordEvent
 from ..domain.stream import StreamReport
 from ..ports.driven import Tokenizer
 from ..ports.driving import EventIngest
@@ -26,10 +26,18 @@ EVENT_LOG_ENV = "TER_EVENT_LOG_DIR"
 
 
 def default_event_log_dir() -> Path:
+    """``$TER_EVENT_LOG_DIR``, else ``ter/events`` in the user's cache directory.
+
+    The log holds prompts and tool output, so the default lives under the
+    user's home (``$XDG_CACHE_HOME`` or ``~/.cache``), not a shared temporary
+    directory.
+    """
     configured = os.environ.get(EVENT_LOG_ENV)
     if configured:
         return Path(configured)
-    return Path(tempfile.gettempdir()) / "ter-events"
+    cache = os.environ.get("XDG_CACHE_HOME")
+    base = Path(cache) if cache else Path.home() / ".cache"
+    return base / "ter" / "events"
 
 
 def make_tokenizer(name: str = "regex") -> Tokenizer:
@@ -65,7 +73,8 @@ def cli_services() -> CliServices:
     def hook_ingest(directory: Path) -> EventIngest:
         from ..adapters.driven.event_log import JsonlEventLog
 
-        return ObserveEvent(make_tokenizer("regex"), JsonlEventLog(directory))
+        # Append-only: a hook's cost must not grow with the session.
+        return RecordEvent(make_tokenizer("regex"), JsonlEventLog(directory))
 
     return CliServices(
         analyse_transcript=analyse_transcript,
@@ -73,6 +82,7 @@ def cli_services() -> CliServices:
         analyse_log=analyse_log,
         hook_ingest=hook_ingest,
         default_log_dir=default_event_log_dir(),
+        hook_clock=SystemClock(),
     )
 
 
