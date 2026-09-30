@@ -8,6 +8,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
+from ter.adapters.driven.pricing import default_price_book
+
 
 class SpanPhase(Enum):
     REASONING = "reasoning"
@@ -168,14 +170,18 @@ class WastePattern:
     details: dict[str, Any] = field(default_factory=dict)
 
 
+#: TER 3's default pricing ("sonnet"), read from TER's shipped price book.
+_DEFAULT_RATES = default_price_book().rate("sonnet")
+
+
 @dataclass
 class CostModel:
-    """Pricing rates per million tokens."""
+    """Pricing rates per million tokens (defaults from the price book's "sonnet")."""
 
-    input_rate: float = 3.00
-    output_rate: float = 15.00
-    cache_read_rate: float = 0.30
-    cache_write_rate: float = 3.75
+    input_rate: float = _DEFAULT_RATES.input
+    output_rate: float = _DEFAULT_RATES.output
+    cache_read_rate: float = _DEFAULT_RATES.cache_read
+    cache_write_rate: float = _DEFAULT_RATES.cache_write
 
 
 @dataclass

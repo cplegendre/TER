@@ -1,0 +1,28 @@
+{
+  "schema": "ter.price_book/1",
+  "currency": "USD",
+  "unit": "per_million_tokens",
+  "prices": [
+    {
+      "model": "claude-haiku-4-5",
+      "aliases": ["haiku"],
+      "effective_from": "2025-01-01",
+      "source": "Carried over unchanged from TER 3.0.0 (ter_calculator.cost_model.PRICING['haiku']); not re-verified against the vendor's published list prices.",
+      "rates": {"input": 0.80, "output": 4.00, "cache_read": 0.08, "cache_write": 1.00}
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "aliases": ["sonnet"],
+      "effective_from": "2025-01-01",
+      "source": "Carried over unchanged from TER 3.0.0 (ter_calculator.cost_model.PRICING['sonnet'], models.CostModel defaults, config_parse.parse_cost_model('sonnet')); not re-verified against the vendor's published list prices.",
+      "rates": {"input": 3.00, "output": 15.00, "cache_read": 0.30, "cache_write": 3.75}
+    },
+    {
+      "model": "claude-opus-4-6",
+      "aliases": ["opus"],
+      "effective_from": "2025-01-01",
+      "source": "Carried over unchanged from TER 3.0.0 (ter_calculator.cost_model.PRICING['opus']); not re-verified against the vendor's published list prices.",
+      "rates": {"input": 15.00, "output": 75.00, "cache_read": 1.50, "cache_write": 18.75}
+    }
+  ]
+}

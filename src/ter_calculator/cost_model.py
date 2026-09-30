@@ -33,6 +33,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Sequence
 
+from ter.adapters.driven.pricing import default_price_book
+
 
 if TYPE_CHECKING:
     pass
@@ -116,29 +118,24 @@ class PricingTier:
         return rates[category] / self.input_per_mtok
 
 
-PRICING: dict[str, PricingTier] = {
-    "haiku": PricingTier(
-        name="claude-haiku-4-5",
-        input_per_mtok=0.80,
-        output_per_mtok=4.00,
-        cached_read_per_mtok=0.08,
-        cached_write_per_mtok=1.00,
-    ),
-    "sonnet": PricingTier(
-        name="claude-sonnet-4-6",
-        input_per_mtok=3.00,
-        output_per_mtok=15.00,
-        cached_read_per_mtok=0.30,
-        cached_write_per_mtok=3.75,
-    ),
-    "opus": PricingTier(
-        name="claude-opus-4-6",
-        input_per_mtok=15.00,
-        output_per_mtok=75.00,
-        cached_read_per_mtok=1.50,
-        cached_write_per_mtok=18.75,
-    ),
-}
+#: TER 3's pricing tiers. Each tier is a model-family alias in TER's shipped
+#: price book (``ter/data/price_book.json``), so a tier follows its family to
+#: a successor model on that model's effective date.
+_TIERS: tuple[str, ...] = ("haiku", "sonnet", "opus")
+
+
+def _tier_from_price_book(alias: str) -> PricingTier:
+    entry = default_price_book().entry(alias)
+    return PricingTier(
+        name=entry.model,
+        input_per_mtok=entry.rates.input,
+        output_per_mtok=entry.rates.output,
+        cached_read_per_mtok=entry.rates.cache_read,
+        cached_write_per_mtok=entry.rates.cache_write,
+    )
+
+
+PRICING: dict[str, PricingTier] = {tier: _tier_from_price_book(tier) for tier in _TIERS}
 
 
 # ---------------------------------------------------------------------------

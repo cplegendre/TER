@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from ter.domain.pricing import token_cost
+
 from .models import (
     ALIGNED_LABELS,
     ClassifiedSpan,
@@ -88,10 +90,10 @@ def _estimate_cost(
 ) -> float:
     """Estimate session cost in USD using per-million-token rates."""
     return (
-        input_tok * cost_model.input_rate / 1_000_000
-        + output_tok * cost_model.output_rate / 1_000_000
-        + cache_read_tok * cost_model.cache_read_rate / 1_000_000
-        + cache_write_tok * cost_model.cache_write_rate / 1_000_000
+        token_cost(input_tok, cost_model.input_rate)
+        + token_cost(output_tok, cost_model.output_rate)
+        + token_cost(cache_read_tok, cost_model.cache_read_rate)
+        + token_cost(cache_write_tok, cost_model.cache_write_rate)
     )
 
 
@@ -136,9 +138,9 @@ def _estimate_waste_cost(
         if cs.label in ALIGNED_LABELS:
             continue
         if cs.span.source_role == "assistant":
-            cost += cs.span.token_count * cost_model.output_rate / 1_000_000
+            cost += token_cost(cs.span.token_count, cost_model.output_rate)
         else:
-            cost += cs.span.token_count * cost_model.input_rate / 1_000_000
+            cost += token_cost(cs.span.token_count, cost_model.input_rate)
 
     return cost, 1.0
 

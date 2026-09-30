@@ -10,9 +10,12 @@ All notable public changes to TER are documented in this file. The project follo
 - Provider-neutral `ter.event/0.1` event model with stable event ids, provenance, tool kinds and coverage of unmapped records, plus a Claude Code JSONL adapter.
 - Deterministic offline tokenizer and embedder adapters.
 - Golden snapshots that freeze TER 3 analysis on a six-session corpus, port contract tests, and architecture tests.
+- TER scoring (phase scores, weighted aggregate, raw ratio, aligned and waste accounting) in the pure domain, `ter.domain.scoring`, with property-style tests.
+- A `PriceBook` port, a domain `Rates`/`PriceSchedule` model with cost arithmetic, a dated price book shipped as package data (`ter/data/price_book.json`), a JSON adapter, an in-memory fake, and a contract suite for both.
 
 ### Changed
 
+- `ter_calculator.compute.compute_ter` delegates to `ter.domain.scoring`, and TER 3's model rates (`CostModel` defaults, `--cost-model sonnet`, cost-weighted pricing tiers) are read from the price book. Scores and costs are unchanged on the golden corpus.
 - CI pins ruff below 0.16, whose wider default rule set fails the existing code base.
 
 ## [3.0.0] - 2026-07-22

@@ -32,6 +32,7 @@ flowchart LR
         CC["claude_code<br/>JSONL → ter.event"]
         TOK["tokenizers<br/>regex · tiktoken"]
         EMB["embedders<br/>lexical hash"]
+        PRICE["pricing<br/>dated price book"]
         MEM["in_memory<br/>fakes · clocks"]
     end
 
@@ -39,6 +40,7 @@ flowchart LR
     CC -. implements .-> PORTS
     TOK -. implements .-> PORTS
     EMB -. implements .-> PORTS
+    PRICE -. implements .-> PORTS
     MEM -. implements .-> PORTS
     BOOT["bootstrap<br/>composition root"] --> driving
     BOOT --> driven
@@ -51,20 +53,35 @@ flowchart LR
 
 | Package | Holds | May import |
 |---|---|---|
-| `ter.domain` | Event model, maturity levels; later the Lean model, detectors, evidence graph, scorecard | stdlib, numpy |
-| `ter.ports` | `SessionSource`, `Tokenizer`, `Embedder`, `Clock` | `ter.domain` |
+| `ter.domain` | Event model, maturity levels, TER scoring (`scoring`: phase scores, weighted aggregate, raw ratio, aligned/waste accounting), pricing (`pricing`: `Rates`, dated `PriceSchedule`, cost arithmetic); later the Lean model, detectors, evidence graph, scorecard | stdlib, numpy |
+| `ter.ports` | `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `PriceBook` | `ter.domain` |
 | `ter.application` | Use cases (empty at L0) | ports, domain |
 | `ter.adapters` | Everything that knows a vendor, format or IO | anything inward, plus `ter_calculator` |
 | `ter.bootstrap` | Wiring, and the maturity ceiling | everything |
 
 The rules are enforced, not described. `[tool.importlinter]` in
-`pyproject.toml` declares four contracts, and both the `lint-imports` CI step
+`pyproject.toml` declares five contracts, and both the `lint-imports` CI step
 and `tests/architecture` fail when one breaks:
 
 1. **hexagon-layers**: bootstrap → adapters → application → ports → domain, never outward.
 2. **pure-domain**: the domain imports no TER 3 internals, no vendor SDKs, no IO modules.
 3. **vendor-free-core**: ports and use cases import no TER 3 internals or vendor SDKs.
-4. **independent-adapters**: driven adapters never import each other.
+4. **independent-adapters**: driven adapters never import each other (chains
+   through TER 3 to the pricing adapter are exempt: TER 3 is outside the hexagon).
+5. **ter3-uses-hexagon-edges**: TER 3 uses TER 4 only through the domain, ports
+   or adapters, never `ter.application` or `ter.bootstrap`.
+
+## Strangler moves so far
+
+| TER 3 code | Now delegates to | Guarded by |
+|---|---|---|
+| `ter_calculator.compute.compute_ter` | `ter.domain.scoring.score_spans` | golden snapshots, `tests/unit/test_ter4_scoring.py` |
+| `ter_calculator.economics` cost sums | `ter.domain.pricing.token_cost` | golden snapshots (`cost_usd`, `waste_cost_usd`) |
+| `models.CostModel` defaults, `config_parse.parse_cost_model("sonnet")`, `cost_model.PRICING` | `PriceBook` via `ter.adapters.driven.pricing` reading `ter/data/price_book.json` | `tests/unit/test_ter4_pricing.py`, `tests/contract/test_price_book.py` |
+
+Prices are data (ADR 0003): each entry in the price book names a model, its
+aliases, an `effective_from` date, four per-million-token USD rates and a
+source note.
 
 ## The event contract (`ter.event/0.1`)
 
@@ -113,7 +130,7 @@ requirement at that level verified) and a runtime ceiling
 |---|---|---|
 | TER 3 scores unchanged on the golden corpus | `tests/golden/test_ter3_characterisation.py` | TER-ANL-000 |
 | User-authored tokens never scored | same, and `tests/contract` | TER-ANL-001 |
-| aligned + waste = total, 0 ≤ TER ≤ 1 | same | TER-ANL-002 |
+| aligned + waste = total, 0 ≤ TER ≤ 1 | same, and `tests/unit/test_ter4_scoring.py` | TER-ANL-002 |
 | Unmapped records counted | `tests/unit/test_ter4_*` | TER-SRC-002 |
 | Same JSONL, same event stream | `tests/golden/test_event_stream_snapshot.py`, `tests/contract` | TER-SRC-004 |
 | Dependencies point inward | `tests/architecture`, `lint-imports` | TER-ARC-001 |

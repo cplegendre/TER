@@ -38,6 +38,8 @@ Python 3.11+: Follow standard conventions. Dataclasses for models, enums for dom
 ## TER 4 rules
 
 - Dependencies point inward: bootstrap → adapters → application → ports → domain. `ter.domain` never imports `ter_calculator`, vendor SDKs or IO modules.
+- TER scoring arithmetic lives in `ter.domain.scoring`; `ter_calculator.compute` delegates to it.
+- Model prices are data in `src/ter/data/price_book.json`, read through the `PriceBook` port (ADR 0003). Never hard-code rates.
 - Scoring changes must show up as a golden snapshot diff, committed on purpose.
 - Tag tests with `@pytest.mark.req("TER-XXX-NNN")` for the requirement they verify.
 - New `ter` code is strictly typed (mypy overrides in pyproject.toml).
