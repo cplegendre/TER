@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:">
+<meta name="color-scheme" content="light dark">
+<title>TER A3: The duration parser in src/parser.py fails for hours like &#x27;2h&#x27;. Fix parse_duration so hours work and keep the existing…</title>
+<style>
+:root{--ter-surface:#fcfcfb;--ter-on-surface:#0b0b0b;--ter-ink:#0b0b0b;--ter-on-ink:#0b0b0b;--ter-ink-2:#52514e;--ter-on-ink-2:#0b0b0b;--ter-muted:#6f6d68;--ter-on-muted:#0b0b0b;--ter-grid:#e1e0d9;--ter-on-grid:#0b0b0b;--ter-baseline:#c3c2b7;--ter-on-baseline:#0b0b0b;--ter-aligned:#2a78d6;--ter-on-aligned:#ffffff;--ter-waste:#e34948;--ter-on-waste:#0b0b0b;--ter-series-1:#2a78d6;--ter-on-series-1:#ffffff;--ter-series-2:#eb6834;--ter-on-series-2:#0b0b0b;--ter-series-3:#1baf7a;--ter-on-series-3:#0b0b0b;--ter-series-4:#eda100;--ter-on-series-4:#0b0b0b;--ter-series-5:#e87ba4;--ter-on-series-5:#0b0b0b;--ter-series-6:#008300;--ter-on-series-6:#ffffff;--ter-series-7:#4a3aa7;--ter-on-series-7:#ffffff;--ter-series-8:#e34948;--ter-on-series-8:#0b0b0b}
+@media (prefers-color-scheme: dark){:root:not([data-theme=light]){--ter-surface:#1a1a19;--ter-on-surface:#ffffff;--ter-ink:#ffffff;--ter-on-ink:#ffffff;--ter-ink-2:#c3c2b7;--ter-on-ink-2:#ffffff;--ter-muted:#a3a19a;--ter-on-muted:#ffffff;--ter-grid:#33332f;--ter-on-grid:#ffffff;--ter-baseline:#52514e;--ter-on-baseline:#ffffff;--ter-aligned:#3987e5;--ter-on-aligned:#ffffff;--ter-waste:#e66767;--ter-on-waste:#0b0b0b;--ter-series-1:#3987e5;--ter-on-series-1:#ffffff;--ter-series-2:#d95926;--ter-on-series-2:#ffffff;--ter-series-3:#199e70;--ter-on-series-3:#ffffff;--ter-series-4:#c98500;--ter-on-series-4:#0b0b0b;--ter-series-5:#d55181;--ter-on-series-5:#ffffff;--ter-series-6:#008300;--ter-on-series-6:#ffffff;--ter-series-7:#9085e9;--ter-on-series-7:#0b0b0b;--ter-series-8:#e66767;--ter-on-series-8:#0b0b0b}}
+:root[data-theme=dark]{--ter-surface:#1a1a19;--ter-on-surface:#ffffff;--ter-ink:#ffffff;--ter-on-ink:#ffffff;--ter-ink-2:#c3c2b7;--ter-on-ink-2:#ffffff;--ter-muted:#a3a19a;--ter-on-muted:#ffffff;--ter-grid:#33332f;--ter-on-grid:#ffffff;--ter-baseline:#52514e;--ter-on-baseline:#ffffff;--ter-aligned:#3987e5;--ter-on-aligned:#ffffff;--ter-waste:#e66767;--ter-on-waste:#0b0b0b;--ter-series-1:#3987e5;--ter-on-series-1:#ffffff;--ter-series-2:#d95926;--ter-on-series-2:#ffffff;--ter-series-3:#199e70;--ter-on-series-3:#ffffff;--ter-series-4:#c98500;--ter-on-series-4:#0b0b0b;--ter-series-5:#d55181;--ter-on-series-5:#ffffff;--ter-series-6:#008300;--ter-on-series-6:#ffffff;--ter-series-7:#9085e9;--ter-on-series-7:#0b0b0b;--ter-series-8:#e66767;--ter-on-series-8:#0b0b0b}
+@media print{:root,:root:not([data-theme=light]),:root[data-theme=dark]{--ter-surface:#fcfcfb;--ter-on-surface:#0b0b0b;--ter-ink:#0b0b0b;--ter-on-ink:#0b0b0b;--ter-ink-2:#52514e;--ter-on-ink-2:#0b0b0b;--ter-muted:#6f6d68;--ter-on-muted:#0b0b0b;--ter-grid:#e1e0d9;--ter-on-grid:#0b0b0b;--ter-baseline:#c3c2b7;--ter-on-baseline:#0b0b0b;--ter-aligned:#2a78d6;--ter-on-aligned:#ffffff;--ter-waste:#e34948;--ter-on-waste:#0b0b0b;--ter-series-1:#2a78d6;--ter-on-series-1:#ffffff;--ter-series-2:#eb6834;--ter-on-series-2:#0b0b0b;--ter-series-3:#1baf7a;--ter-on-series-3:#0b0b0b;--ter-series-4:#eda100;--ter-on-series-4:#0b0b0b;--ter-series-5:#e87ba4;--ter-on-series-5:#0b0b0b;--ter-series-6:#008300;--ter-on-series-6:#ffffff;--ter-series-7:#4a3aa7;--ter-on-series-7:#ffffff;--ter-series-8:#e34948;--ter-on-series-8:#0b0b0b}}
+.ter-chart .ter-f-surface{fill:var(--ter-surface)}.ter-chart .ter-s-surface{stroke:var(--ter-surface)}.ter-chart .ter-f-on-surface{fill:var(--ter-on-surface)}
+.ter-chart .ter-f-ink{fill:var(--ter-ink)}.ter-chart .ter-s-ink{stroke:var(--ter-ink)}.ter-chart .ter-f-on-ink{fill:var(--ter-on-ink)}
+.ter-chart .ter-f-ink-2{fill:var(--ter-ink-2)}.ter-chart .ter-s-ink-2{stroke:var(--ter-ink-2)}.ter-chart .ter-f-on-ink-2{fill:var(--ter-on-ink-2)}
+.ter-chart .ter-f-muted{fill:var(--ter-muted)}.ter-chart .ter-s-muted{stroke:var(--ter-muted)}.ter-chart .ter-f-on-muted{fill:var(--ter-on-muted)}
+.ter-chart .ter-f-grid{fill:var(--ter-grid)}.ter-chart .ter-s-grid{stroke:var(--ter-grid)}.ter-chart .ter-f-on-grid{fill:var(--ter-on-grid)}
+.ter-chart .ter-f-baseline{fill:var(--ter-baseline)}.ter-chart .ter-s-baseline{stroke:var(--ter-baseline)}.ter-chart .ter-f-on-baseline{fill:var(--ter-on-baseline)}
+.ter-chart .ter-f-aligned{fill:var(--ter-aligned)}.ter-chart .ter-s-aligned{stroke:var(--ter-aligned)}.ter-chart .ter-f-on-aligned{fill:var(--ter-on-aligned)}
+.ter-chart .ter-f-waste{fill:var(--ter-waste)}.ter-chart .ter-s-waste{stroke:var(--ter-waste)}.ter-chart .ter-f-on-waste{fill:var(--ter-on-waste)}
+.ter-chart .ter-f-series-1{fill:var(--ter-series-1)}.ter-chart .ter-s-series-1{stroke:var(--ter-series-1)}.ter-chart .ter-f-on-series-1{fill:var(--ter-on-series-1)}
+.ter-chart .ter-f-series-2{fill:var(--ter-series-2)}.ter-chart .ter-s-series-2{stroke:var(--ter-series-2)}.ter-chart .ter-f-on-series-2{fill:var(--ter-on-series-2)}
+.ter-chart .ter-f-series-3{fill:var(--ter-series-3)}.ter-chart .ter-s-series-3{stroke:var(--ter-series-3)}.ter-chart .ter-f-on-series-3{fill:var(--ter-on-series-3)}
+.ter-chart .ter-f-series-4{fill:var(--ter-series-4)}.ter-chart .ter-s-series-4{stroke:var(--ter-series-4)}.ter-chart .ter-f-on-series-4{fill:var(--ter-on-series-4)}
+.ter-chart .ter-f-series-5{fill:var(--ter-series-5)}.ter-chart .ter-s-series-5{stroke:var(--ter-series-5)}.ter-chart .ter-f-on-series-5{fill:var(--ter-on-series-5)}
+.ter-chart .ter-f-series-6{fill:var(--ter-series-6)}.ter-chart .ter-s-series-6{stroke:var(--ter-series-6)}.ter-chart .ter-f-on-series-6{fill:var(--ter-on-series-6)}
+.ter-chart .ter-f-series-7{fill:var(--ter-series-7)}.ter-chart .ter-s-series-7{stroke:var(--ter-series-7)}.ter-chart .ter-f-on-series-7{fill:var(--ter-on-series-7)}
+.ter-chart .ter-f-series-8{fill:var(--ter-series-8)}.ter-chart .ter-s-series-8{stroke:var(--ter-series-8)}.ter-chart .ter-f-on-series-8{fill:var(--ter-on-series-8)}
+:root{--ter-page:#f3f2ee}@media (prefers-color-scheme: dark){:root:not([data-theme=light]){--ter-page:#0f0f0e}}:root[data-theme=dark]{--ter-page:#0f0f0e}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ter-page);color:var(--ter-ink);
+font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1320px;margin:0 auto;padding:24px 24px 40px}
+header.a3{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;
+gap:8px 24px;border-bottom:3px solid var(--ter-ink);padding-bottom:10px;margin-bottom:16px}
+.eyebrow{margin:0;color:var(--ter-muted);font-size:12px;letter-spacing:.08em;
+text-transform:uppercase;font-weight:700}
+h1{margin:2px 0 0;font-size:24px;line-height:1.25;max-width:900px}
+.meta{margin:0;color:var(--ter-ink-2);font-size:13px;text-align:right}
+code{font:12.5px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
+.sheet{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.box{background:var(--ter-surface);border:1px solid var(--ter-grid);border-radius:10px;
+padding:14px 16px;min-width:0}
+.full{grid-column:1/-1}
+h2{margin:0 0 10px;font-size:15px;display:flex;align-items:center;gap:10px}
+h2 .n{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
+border-radius:50%;background:var(--ter-ink);color:var(--ter-surface);font-size:13px;flex:none}
+h3{margin:14px 0 6px;font-size:13.5px}
+p{margin:0 0 8px}
+.problem{border-left:4px solid var(--ter-waste);padding:6px 10px;margin:8px 0 0;
+background:var(--ter-page);border-radius:0 6px 6px 0}
+blockquote{margin:0 0 8px;padding:8px 12px;border-left:3px solid var(--ter-series-1);
+background:var(--ter-page);border-radius:0 6px 6px 0;color:var(--ter-ink-2);white-space:pre-wrap;
+max-height:9.5em;overflow:auto}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.kpi{border:1px solid var(--ter-grid);border-radius:8px;padding:10px 12px;min-width:0}
+.kpi span{display:block;color:var(--ter-muted);font-size:12px}
+.kpi b{display:block;font-size:24px;line-height:1.2;margin:2px 0;font-variant-numeric:tabular-nums}
+.kpi small{display:block;color:var(--ter-ink-2);font-size:12px;line-height:1.35}
+.chart{overflow-x:auto}
+.chart svg{display:block;width:100%;height:auto}
+.full .chart svg{min-width:760px}
+.charts{display:grid;gap:10px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--ter-grid);vertical-align:top}
+th{color:var(--ter-ink-2);font-weight:600;font-size:12px}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td small{display:block;color:var(--ter-ink-2)}
+.tag{display:inline-block;border-radius:999px;padding:0 8px;font-size:11.5px;font-weight:600;
+border:1px solid var(--ter-grid);white-space:nowrap}
+.tag.warn{border-color:var(--ter-series-4);background:color-mix(in srgb,var(--ter-series-4) 18%,transparent)}
+.tag.risk{border-color:var(--ter-series-7)}
+.tag.waste{border-color:var(--ter-waste)}
+.ev{margin-top:4px;font-size:11.5px;color:var(--ter-muted)}
+.ev code{display:inline-block;margin:0 4px 2px 0;padding:0 4px;border-radius:4px;
+background:var(--ter-page);font-size:11.5px}
+.rc td.num{white-space:normal;min-width:120px}
+.rc .rank{width:28px;color:var(--ter-muted);font-variant-numeric:tabular-nums}
+.rc td.num .tag{margin-bottom:2px}
+.cms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.cm{border:1px solid var(--ter-grid);border-radius:8px;padding:10px 12px;min-width:0}
+.cm h3{margin:0 0 4px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.cm .why{color:var(--ter-ink-2);font-size:12.5px}
+.cm ol{margin:6px 0 0;padding-left:20px}
+.cm li{margin:0 0 6px}
+.kind{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ter-muted)}
+pre{margin:4px 0 0;padding:8px 10px;background:var(--ter-page);border:1px solid var(--ter-grid);
+border-radius:6px;overflow:auto;max-height:16em;font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;
+white-space:pre-wrap;overflow-wrap:anywhere}
+details{margin-top:4px}
+summary{cursor:pointer;color:var(--ter-ink-2);font-size:12.5px}
+.empty{color:var(--ter-muted);margin:0}
+.fine{color:var(--ter-muted);font-size:12px}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0;font-size:12.5px}
+dt{font-weight:600}
+dd{margin:0;color:var(--ter-ink-2)}
+@media (max-width:900px){
+main{padding:16px 16px 28px}
+.sheet,.cms{grid-template-columns:minmax(0,1fr)}
+.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+.meta{text-align:left}
+h1{font-size:21px}
+}
+@page{size:A3 landscape;margin:10mm}
+@media print{
+body{background:#fff;font-size:11px}
+main{max-width:none;padding:0}
+.box,.cm{break-inside:avoid}
+.chart{overflow:visible}
+.full .chart svg{min-width:0}
+pre{max-height:none}
+details>summary{display:none}
+}
+</style>
+</head>
+<body><main class="ter-chart">
+<header class="a3"><div><p class="eyebrow">TER A3 · Lean analysis of an agent session</p><h1>The duration parser in src/parser.py fails for hours like &#x27;2h&#x27;. Fix parse_duration so hours work and keep the existing…</h1></div><p class="meta">Session <code>golden-rework</code><br>20 events · schema ter.a3/0.1</p></header>
+<div class="sheet">
+<section class="box " aria-labelledby="s-1"><h2 id="s-1"><span class="n">1</span>Background</h2><p>The developer asked for the outcome below. Value is judged against it.</p><blockquote>The duration parser in src/parser.py fails for hours like &#x27;2h&#x27;. Fix parse_duration so hours work and keep the existing tests passing.</blockquote><p class="problem"><b>Problem.</b> 23% of the 396 tokens the agent generated went to avoidable work across 1 confident finding(s); flow efficiency is 77% of tokens and 80% of agent time.</p><p class="fine">20 events analysed · session <code>golden-rework</code></p></section>
+<section class="box " aria-labelledby="s-scorecard"><h2 id="s-scorecard">Scorecard</h2><div class="kpis" role="list" aria-label="Scorecard"><div class="kpi"><span>Flow efficiency</span><b>77%</b><small>of generated tokens progressing or iterating; 80% of agent time</small></div><div class="kpi"><span>Waste cost</span><b>130</b><small>tokens: 92 generated, 38 context; 9s of agent time</small></div><div class="kpi"><span>Value-adding</span><b>38%</b><small>necessary NVA 39%, avoidable 23%, uncertain 0%</small></div><div class="kpi"><span>TER</span><b>0.80</b><small>TER 3, offline (regex-v1 tokens, lexical-hash-384 embeddings)</small></div><div class="kpi"><span>Findings</span><b>1</b><small>confident waste; 0 uncertain, 0 risk(s); 1 iteration / 1 rework cycle(s)</small></div><div class="kpi"><span>Composite</span><b>0.79</b><small>= mean of Flow efficiency (tokens) 0.77 + Flow efficiency (time) 0.80 + TER 0.80. Read the parts, not the sum.</small></div></div><p class="fine" style="margin-top:8px">Each dimension stands alone: no single score hides the others. Findings below confidence 0.70 are counted as uncertain, never as waste.</p></section>
+<section class="box full" aria-labelledby="s-2"><h2 id="s-2"><span class="n">2</span>Current state</h2><figure style="margin:0"><div class="chart"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 250" width="1040" height="250" role="img" class="ter-chart-svg" aria-labelledby="value-stream-title value-stream-desc" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+<title id="value-stream-title">Agentic value stream</title>
+<desc id="value-stream-desc">Value stream, in order. Intent: 1 steps, 0 generated tokens, 0 context tokens, 0s, 0 avoidable and 0 uncertain tokens, 0 findings; Explore: 1 steps, 15 generated tokens, 57 context tokens, 3s, 0 avoidable and 0 uncertain tokens, 0 findings; Plan: 4 steps, 103 generated tokens, 0 context tokens, 12s, 0 avoidable and 0 uncertain tokens, 0 findings; Implement: 3 steps, 185 generated tokens, 33 context tokens, 9s, 74 avoidable and 0 uncertain tokens, 1 findings; Validate: 3 steps, 54 generated tokens, 61 context tokens, 18s, 18 avoidable and 0 uncertain tokens, 1 findings; Respond: 1 steps, 39 generated tokens, 0 context tokens, 3s, 0 avoidable and 0 uncertain tokens, 0 findings</desc>
+<rect width="1040" height="250" rx="8" fill="#fcfcfb" class="ter-f-surface"/>
+<defs><pattern id="value-stream-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#ffffff" stroke-width="2" stroke-opacity="0.6"/></pattern></defs>
+<defs><marker id="value-stream-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6f6d68" class="ter-f-muted"/></marker></defs>
+<text x="16.0" y="24.0" fill="#0b0b0b" class="ter-f-ink" font-size="15" font-weight="600">Agentic value stream</text>
+<rect x="16" y="36" width="10" height="10" rx="2" fill="#e34948" class="ter-f-waste"/>
+<text x="30.0" y="45.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Avoidable (confident findings)</text>
+<rect x="232.0" y="36" width="10" height="10" rx="2" fill="#eda100" class="ter-f-series-4"/><rect x="232.0" y="36" width="10" height="10" rx="2" fill="url(#value-stream-hatch)"/>
+<text x="246.0" y="45.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Uncertain (verify)</text>
+<text x="1024.0" y="45.0" fill="#6f6d68" class="ter-f-muted" font-size="11" text-anchor="end">developer intent → verified response</text>
+<rect x="16.0" y="58" width="146.3" height="148" rx="8" stroke-width="1" fill="#fcfcfb" stroke="#c3c2b7" class="ter-f-surface ter-s-baseline"><title>Intent: 1 steps, 0 generated and 0 context tokens, 0s; findings: none</title></rect>
+<rect x="16.0" y="58" width="146.3" height="26" rx="8" fill="#e1e0d9" class="ter-f-grid"/><rect x="16.0" y="76" width="146.3" height="8" fill="#e1e0d9" class="ter-f-grid"/>
+<text x="26.0" y="76.0" fill="#0b0b0b" class="ter-f-ink" font-size="13" font-weight="700">Intent</text>
+<text x="26.0" y="104.0" fill="#0b0b0b" class="ter-f-ink" font-size="12" font-weight="600">1 prompt</text>
+<text x="26.0" y="121.0" fill="#6f6d68" class="ter-f-muted" font-size="12">developer input,</text>
+<text x="26.0" y="138.0" fill="#6f6d68" class="ter-f-muted" font-size="12">not scored</text>
+<text x="26.0" y="155.0" fill="#52514e" class="ter-f-ink-2" font-size="12">0s developer</text>
+<rect x="26.0" y="186" width="126.3" height="8" rx="4" fill="#e1e0d9" class="ter-f-grid"/>
+<line x1="165.3" y1="132.0" x2="185.3" y2="132.0" stroke-width="2" marker-end="url(#value-stream-arrow)" stroke="#6f6d68" class="ter-s-muted"/>
+<rect x="188.3" y="58" width="146.3" height="148" rx="8" stroke-width="1" fill="#fcfcfb" stroke="#c3c2b7" class="ter-f-surface ter-s-baseline"><title>Explore: 1 steps, 15 generated and 57 context tokens, 3s; findings: none</title></rect>
+<rect x="188.3" y="58" width="146.3" height="26" rx="8" fill="#e1e0d9" class="ter-f-grid"/><rect x="188.3" y="76" width="146.3" height="8" fill="#e1e0d9" class="ter-f-grid"/>
+<text x="198.3" y="76.0" fill="#0b0b0b" class="ter-f-ink" font-size="13" font-weight="700">Explore</text>
+<text x="198.3" y="104.0" fill="#0b0b0b" class="ter-f-ink" font-size="12" font-weight="600">1 step</text>
+<text x="198.3" y="121.0" fill="#52514e" class="ter-f-ink-2" font-size="12">15 generated</text>
+<text x="198.3" y="138.0" fill="#52514e" class="ter-f-ink-2" font-size="12">57 context</text>
+<text x="198.3" y="155.0" fill="#52514e" class="ter-f-ink-2" font-size="12">3s · 4% of tokens</text>
+<rect x="198.3" y="186" width="126.3" height="8" rx="4" fill="#e1e0d9" class="ter-f-grid"/>
+<text x="198.3" y="181.0" fill="#6f6d68" class="ter-f-muted" font-size="10">no waste found</text>
+<line x1="337.7" y1="132.0" x2="357.7" y2="132.0" stroke-width="2" marker-end="url(#value-stream-arrow)" stroke="#6f6d68" class="ter-s-muted"/>
+<rect x="360.7" y="58" width="146.3" height="148" rx="8" stroke-width="1" fill="#fcfcfb" stroke="#c3c2b7" class="ter-f-surface ter-s-baseline"><title>Plan: 4 steps, 103 generated and 0 context tokens, 12s; findings: none</title></rect>
+<rect x="360.7" y="58" width="146.3" height="26" rx="8" fill="#e1e0d9" class="ter-f-grid"/><rect x="360.7" y="76" width="146.3" height="8" fill="#e1e0d9" class="ter-f-grid"/>
+<text x="370.7" y="76.0" fill="#0b0b0b" class="ter-f-ink" font-size="13" font-weight="700">Plan</text>
+<text x="370.7" y="104.0" fill="#0b0b0b" class="ter-f-ink" font-size="12" font-weight="600">4 steps</text>
+<text x="370.7" y="121.0" fill="#52514e" class="ter-f-ink-2" font-size="12">103 generated</text>
+<text x="370.7" y="138.0" fill="#52514e" class="ter-f-ink-2" font-size="12">0 context</text>
+<text x="370.7" y="155.0" fill="#52514e" class="ter-f-ink-2" font-size="12">12s · 26% of tokens</text>
+<rect x="370.7" y="186" width="126.3" height="8" rx="4" fill="#e1e0d9" class="ter-f-grid"/>
+<text x="370.7" y="181.0" fill="#6f6d68" class="ter-f-muted" font-size="10">no waste found</text>
+<line x1="510.0" y1="132.0" x2="530.0" y2="132.0" stroke-width="2" marker-end="url(#value-stream-arrow)" stroke="#6f6d68" class="ter-s-muted"/>
+<rect x="533.0" y="58" width="146.3" height="148" rx="8" stroke-width="2" fill="#fcfcfb" stroke="#e34948" class="ter-f-surface ter-s-waste"><title>Implement: 3 steps, 185 generated and 33 context tokens, 9s; findings: rework_cycle:d149692b66de4b4b</title></rect>
+<rect x="533.0" y="58" width="146.3" height="26" rx="8" fill="#e1e0d9" class="ter-f-grid"/><rect x="533.0" y="76" width="146.3" height="8" fill="#e1e0d9" class="ter-f-grid"/>
+<text x="543.0" y="76.0" fill="#0b0b0b" class="ter-f-ink" font-size="13" font-weight="700">Implement</text>
+<circle cx="663.3" cy="71" r="9" fill="#e34948" class="ter-f-waste"><title>1 finding(s) touch this stage</title></circle>
+<text x="663.3" y="75" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">1</text>
+<text x="543.0" y="104.0" fill="#0b0b0b" class="ter-f-ink" font-size="12" font-weight="600">3 steps</text>
+<text x="543.0" y="121.0" fill="#52514e" class="ter-f-ink-2" font-size="12">185 generated</text>
+<text x="543.0" y="138.0" fill="#52514e" class="ter-f-ink-2" font-size="12">33 context</text>
+<text x="543.0" y="155.0" fill="#52514e" class="ter-f-ink-2" font-size="12">9s · 47% of tokens</text>
+<rect x="543.0" y="186" width="126.3" height="8" rx="4" fill="#e1e0d9" class="ter-f-grid"/>
+<rect x="543.0" y="186" width="50.5" height="8" rx="4" fill="#e34948" class="ter-f-waste"><title>74 avoidable tokens</title></rect>
+<text x="543.0" y="181.0" fill="#6f6d68" class="ter-f-muted" font-size="10">waste 40%</text>
+<line x1="682.3" y1="132.0" x2="702.3" y2="132.0" stroke-width="2" marker-end="url(#value-stream-arrow)" stroke="#6f6d68" class="ter-s-muted"/>
+<rect x="705.3" y="58" width="146.3" height="148" rx="8" stroke-width="2" fill="#fcfcfb" stroke="#e34948" class="ter-f-surface ter-s-waste"><title>Validate: 3 steps, 54 generated and 61 context tokens, 18s; findings: rework_cycle:d149692b66de4b4b</title></rect>
+<rect x="705.3" y="58" width="146.3" height="26" rx="8" fill="#e1e0d9" class="ter-f-grid"/><rect x="705.3" y="76" width="146.3" height="8" fill="#e1e0d9" class="ter-f-grid"/>
+<text x="715.3" y="76.0" fill="#0b0b0b" class="ter-f-ink" font-size="13" font-weight="700">Validate</text>
+<circle cx="835.7" cy="71" r="9" fill="#e34948" class="ter-f-waste"><title>1 finding(s) touch this stage</title></circle>
+<text x="835.7" y="75" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">1</text>
+<text x="715.3" y="104.0" fill="#0b0b0b" class="ter-f-ink" font-size="12" font-weight="600">3 steps</text>
+<text x="715.3" y="121.0" fill="#52514e" class="ter-f-ink-2" font-size="12">54 generated</text>
+<text x="715.3" y="138.0" fill="#52514e" class="ter-f-ink-2" font-size="12">61 context</text>
+<text x="715.3" y="155.0" fill="#52514e" class="ter-f-ink-2" font-size="12">18s · 14% of tokens</text>
+<rect x="715.3" y="186" width="126.3" height="8" rx="4" fill="#e1e0d9" class="ter-f-grid"/>
+<rect x="715.3" y="186" width="42.1" height="8" rx="4" fill="#e34948" class="ter-f-waste"><title>18 avoidable tokens</title></rect>
+<text x="715.3" y="181.0" fill="#6f6d68" class="ter-f-muted" font-size="10">waste 33%</text>
+<line x1="854.7" y1="132.0" x2="874.7" y2="132.0" stroke-width="2" marker-end="url(#value-stream-arrow)" stroke="#6f6d68" class="ter-s-muted"/>
+<rect x="877.7" y="58" width="146.3" height="148" rx="8" stroke-width="1" fill="#fcfcfb" stroke="#c3c2b7" class="ter-f-surface ter-s-baseline"><title>Respond: 1 steps, 39 generated and 0 context tokens, 3s; findings: none</title></rect>
+<rect x="877.7" y="58" width="146.3" height="26" rx="8" fill="#e1e0d9" class="ter-f-grid"/><rect x="877.7" y="76" width="146.3" height="8" fill="#e1e0d9" class="ter-f-grid"/>
+<text x="887.7" y="76.0" fill="#0b0b0b" class="ter-f-ink" font-size="13" font-weight="700">Respond</text>
+<text x="887.7" y="104.0" fill="#0b0b0b" class="ter-f-ink" font-size="12" font-weight="600">1 step</text>
+<text x="887.7" y="121.0" fill="#52514e" class="ter-f-ink-2" font-size="12">39 generated</text>
+<text x="887.7" y="138.0" fill="#52514e" class="ter-f-ink-2" font-size="12">0 context</text>
+<text x="887.7" y="155.0" fill="#52514e" class="ter-f-ink-2" font-size="12">3s · 10% of tokens</text>
+<rect x="887.7" y="186" width="126.3" height="8" rx="4" fill="#e1e0d9" class="ter-f-grid"/>
+<text x="887.7" y="181.0" fill="#6f6d68" class="ter-f-muted" font-size="10">no waste found</text>
+<text x="16.0" y="232.0" fill="#6f6d68" class="ter-f-muted" font-size="11">Agent lead time 45s · 396 generated tokens · time is the wall-clock gap each event closed (tool time counts toward its request)</text>
+</svg></div><figcaption class="fine">Each box is a stage of the agentic value stream. Hover a box for its findings.</figcaption></figure></section>
+<section class="box " aria-labelledby="s-3"><h2 id="s-3"><span class="n">3</span>Analysis</h2><div class="charts"><figure style="margin:0"><div class="chart"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 236" width="520" height="236" role="img" class="ter-chart-svg" aria-labelledby="a3-pareto-title a3-pareto-desc" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+<title id="a3-pareto-title">Waste Pareto (confident findings)</title>
+<desc id="a3-pareto-desc">130 tokens in detected waste patterns. Rework: 130 (100.0%, cumulative 100.0%)</desc>
+<rect width="520" height="236" rx="8" fill="#fcfcfb" class="ter-f-surface"/>
+<text x="16.0" y="24.0" fill="#0b0b0b" class="ter-f-ink" font-size="15" font-weight="600">Waste Pareto (confident findings)</text>
+<rect x="16.0" y="34.0" width="10" height="10" rx="2" fill="#e34948" class="ter-f-waste"/>
+<text x="30.0" y="43.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Waste tokens, share</text>
+<line x1="163.8" y1="39.0" x2="173.8" y2="39.0" stroke-width="2" stroke="#52514e" class="ter-s-ink-2"/>
+<text x="177.8" y="43.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Cumulative share</text>
+<line x1="48" y1="188.0" x2="504" y2="188.0" stroke-width="1" stroke="#c3c2b7" class="ter-s-baseline"/>
+<text x="42.0" y="192.0" fill="#6f6d68" class="ter-f-muted" font-size="11" text-anchor="end">0%</text>
+<line x1="48" y1="155.5" x2="504" y2="155.5" stroke-width="1" stroke="#e1e0d9" class="ter-s-grid"/>
+<text x="42.0" y="159.5" fill="#6f6d68" class="ter-f-muted" font-size="11" text-anchor="end">25%</text>
+<line x1="48" y1="123.0" x2="504" y2="123.0" stroke-width="1" stroke="#e1e0d9" class="ter-s-grid"/>
+<text x="42.0" y="127.0" fill="#6f6d68" class="ter-f-muted" font-size="11" text-anchor="end">50%</text>
+<line x1="48" y1="90.5" x2="504" y2="90.5" stroke-width="1" stroke="#e1e0d9" class="ter-s-grid"/>
+<text x="42.0" y="94.5" fill="#6f6d68" class="ter-f-muted" font-size="11" text-anchor="end">75%</text>
+<line x1="48" y1="58.0" x2="504" y2="58.0" stroke-width="1" stroke="#e1e0d9" class="ter-s-grid"/>
+<text x="42.0" y="62.0" fill="#6f6d68" class="ter-f-muted" font-size="11" text-anchor="end">100%</text>
+<path d="M240.0,188 V62.0 q0,-4 4,-4 H308.0 q4,0 4,4 V188 Z" fill="#e34948" class="ter-f-waste"><title>Rework: 130 tokens in 1 occurrence(s), 100.0% of pattern waste, cumulative 100.0%</title></path>
+<text x="276.0" y="219.0" fill="#0b0b0b" class="ter-f-ink" font-size="11" font-weight="600" text-anchor="middle">130 &#183; 100%</text>
+<text x="276.0" y="204.0" fill="#52514e" class="ter-f-ink-2" font-size="11" text-anchor="middle">Rework</text>
+<path d="M276.0,58.0" fill="none" stroke-width="2" stroke-linejoin="round" stroke="#52514e" class="ter-s-ink-2"/>
+<circle cx="276.0" cy="58.0" r="4.5" stroke-width="2" fill="#52514e" stroke="#fcfcfb" class="ter-f-ink-2 ter-s-surface"><title>Cumulative 100.0%</title></circle>
+</svg></div><figcaption class="fine">Wastes by tokens claimed (generated and context), with the running share.</figcaption></figure><figure style="margin:0"><div class="chart"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 138" width="520" height="138" role="img" class="ter-chart-svg" aria-labelledby="a3-activity-title a3-activity-desc" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+<title id="a3-activity-title">Activity classes (generated tokens)</title>
+<desc id="a3-activity-desc">Activity classes (generated tokens). Value-adding (150, 37.9%); Necessary NVA (154, 38.9%); Avoidable (92, 23.2%)</desc>
+<rect width="520" height="138" rx="8" fill="#fcfcfb" class="ter-f-surface"/>
+<text x="16.0" y="24.0" fill="#0b0b0b" class="ter-f-ink" font-size="15" font-weight="600">Activity classes (generated tokens)</text>
+<rect x="16.0" y="36" width="182.8" height="42" rx="4" fill="#2a78d6" class="ter-f-series-1"><title>Value-adding: 150 tokens, 37.9%</title></rect>
+<text x="107.4" y="61.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" class="ter-f-on-series-1">37.9%</text>
+<rect x="200.8" y="36" width="187.8" height="42" rx="4" fill="#1baf7a" class="ter-f-series-3"><title>Necessary NVA: 154 tokens, 38.9%</title></rect>
+<text x="294.7" y="61.0" text-anchor="middle" font-size="12" font-weight="600" fill="#0b0b0b" class="ter-f-on-series-3">38.9%</text>
+<rect x="390.6" y="36" width="113.4" height="42" rx="4" fill="#e34948" class="ter-f-waste"><title>Avoidable: 92 tokens, 23.2%</title></rect>
+<text x="447.3" y="61.0" text-anchor="middle" font-size="12" font-weight="600" fill="#0b0b0b" class="ter-f-on-waste">23.2%</text>
+<rect x="16.0" y="94.0" width="10" height="10" rx="2" fill="#2a78d6" class="ter-f-series-1"/>
+<text x="30.0" y="103.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Value-adding (150, 37.9%)</text>
+<rect x="201.0" y="94.0" width="10" height="10" rx="2" fill="#1baf7a" class="ter-f-series-3"/>
+<text x="215.0" y="103.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Necessary NVA (154, 38.9%)</text>
+<rect x="16.0" y="112.0" width="10" height="10" rx="2" fill="#e34948" class="ter-f-waste"/>
+<text x="30.0" y="121.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Avoidable (92, 23.2%)</text>
+</svg></div><figcaption class="fine">Value-adding, necessary but non-value-adding, avoidable, uncertain.</figcaption></figure><figure style="margin:0"><div class="chart"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 138" width="520" height="138" role="img" class="ter-chart-svg" aria-labelledby="a3-flow-title a3-flow-desc" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+<title id="a3-flow-title">Flow (generated tokens)</title>
+<desc id="a3-flow-desc">Flow (generated tokens). Progressing (237, 59.8%); Recovering (67, 16.9%); Reworking (92, 23.2%)</desc>
+<rect width="520" height="138" rx="8" fill="#fcfcfb" class="ter-f-surface"/>
+<text x="16.0" y="24.0" fill="#0b0b0b" class="ter-f-ink" font-size="15" font-weight="600">Flow (generated tokens)</text>
+<rect x="16.0" y="36" width="290.1" height="42" rx="4" fill="#2a78d6" class="ter-f-series-1"><title>Progressing: 237 tokens, 59.8%</title></rect>
+<text x="161.0" y="61.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" class="ter-f-on-series-1">59.8%</text>
+<rect x="308.1" y="36" width="80.6" height="42" rx="4" fill="#1baf7a" class="ter-f-series-3"><title>Recovering: 67 tokens, 16.9%</title></rect>
+<text x="348.3" y="61.0" text-anchor="middle" font-size="12" font-weight="600" fill="#0b0b0b" class="ter-f-on-series-3">16.9%</text>
+<rect x="390.6" y="36" width="113.4" height="42" rx="4" fill="#e34948" class="ter-f-waste"><title>Reworking: 92 tokens, 23.2%</title></rect>
+<text x="447.3" y="61.0" text-anchor="middle" font-size="12" font-weight="600" fill="#0b0b0b" class="ter-f-on-waste">23.2%</text>
+<rect x="16.0" y="94.0" width="10" height="10" rx="2" fill="#2a78d6" class="ter-f-series-1"/>
+<text x="30.0" y="103.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Progressing (237, 59.8%)</text>
+<rect x="194.8" y="94.0" width="10" height="10" rx="2" fill="#1baf7a" class="ter-f-series-3"/>
+<text x="208.8" y="103.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Recovering (67, 16.9%)</text>
+<rect x="16.0" y="112.0" width="10" height="10" rx="2" fill="#e34948" class="ter-f-waste"/>
+<text x="30.0" y="121.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Reworking (92, 23.2%)</text>
+</svg></div><figcaption class="fine">Progressing versus repeating, reworking, recovering, waiting, inventory.</figcaption></figure><figure style="margin:0"><div class="chart"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120" width="520" height="120" role="img" class="ter-chart-svg" aria-labelledby="a3-flow-time-title a3-flow-time-desc" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+<title id="a3-flow-time-title">Flow (agent time, seconds)</title>
+<desc id="a3-flow-time-desc">Flow (agent time, seconds). Progressing (27, 60.0%); Recovering (9, 20.0%); Reworking (9, 20.0%)</desc>
+<rect width="520" height="120" rx="8" fill="#fcfcfb" class="ter-f-surface"/>
+<text x="16.0" y="24.0" fill="#0b0b0b" class="ter-f-ink" font-size="15" font-weight="600">Flow (agent time, seconds)</text>
+<rect x="16.0" y="36" width="290.8" height="42" rx="4" fill="#2a78d6" class="ter-f-series-1"><title>Progressing: 27 tokens, 60.0%</title></rect>
+<text x="161.4" y="61.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" class="ter-f-on-series-1">60.0%</text>
+<rect x="308.8" y="36" width="95.6" height="42" rx="4" fill="#1baf7a" class="ter-f-series-3"><title>Recovering: 9 tokens, 20.0%</title></rect>
+<text x="356.6" y="61.0" text-anchor="middle" font-size="12" font-weight="600" fill="#0b0b0b" class="ter-f-on-series-3">20.0%</text>
+<rect x="406.4" y="36" width="97.6" height="42" rx="4" fill="#e34948" class="ter-f-waste"><title>Reworking: 9 tokens, 20.0%</title></rect>
+<text x="455.2" y="61.0" text-anchor="middle" font-size="12" font-weight="600" fill="#0b0b0b" class="ter-f-on-waste">20.0%</text>
+<rect x="16.0" y="94.0" width="10" height="10" rx="2" fill="#2a78d6" class="ter-f-series-1"/>
+<text x="30.0" y="103.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Progressing (27, 60.0%)</text>
+<rect x="188.6" y="94.0" width="10" height="10" rx="2" fill="#1baf7a" class="ter-f-series-3"/>
+<text x="202.6" y="103.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Recovering (9, 20.0%)</text>
+<rect x="348.8" y="94.0" width="10" height="10" rx="2" fill="#e34948" class="ter-f-waste"/>
+<text x="362.8" y="103.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Reworking (9, 20.0%)</text>
+</svg></div><figcaption class="fine">The same split for wall-clock agent time.</figcaption></figure></div><h3>Fail → fix → re-run cycles</h3><ul class="fine"><li><code>pytest tests/test_parser.py -q</code>: rework, the next run failed identically.</li><li><code>pytest tests/test_parser.py -q</code>: iteration, the next run passed.</li></ul><p class="fine">Iteration (the next run passed or failed differently) is productive and counted as recovering; only an unchanged failure is rework.</p></section>
+<section class="box " aria-labelledby="s-4"><h2 id="s-4"><span class="n">4</span>Root causes</h2><p class="fine">Largest cost first; uncertain findings and risks after. Each cites the events it rests on.</p><table class="rc"><thead><tr><th scope="col">#</th><th scope="col">Finding and evidence</th><th scope="col" class="num">Waste · confidence · cost</th></tr></thead><tbody><tr><td class="rank">1</td><td><b>Fix attempt did not change the failure of pytest tests/test_parser.py -q</b><small>1 edit(s) to src/parser.py after `pytest tests/test_parser.py -q` failed, then the same command failed with the same failure. The attempt was rework: it did not move the check.</small><div class="ev" aria-label="Evidence event ids"><code>1c91989c08c0ed50</code><code>67f5fdb471aa600f</code><code>d149692b66de4b4b</code><code>7bb0cb9e49bf57ce</code><code>763dc8c817be8d49</code><code>672962215503debc</code></div></td><td class="num"><span class="tag waste">Rework</span><small>confidence 0.80</small><small>130 tokens, 9s</small></td></tr></tbody></table></section>
+<section class="box full" aria-labelledby="s-5"><h2 id="s-5"><span class="n">5</span>Countermeasures</h2><p class="fine">Derived from the findings above, never from token thresholds. Hook scripts use documented Claude Code behaviour (exit 2 blocks a PreToolUse call, or returns stderr to the agent after PostToolUse); adapt paths and commands before use.</p><div class="cms"><article class="cm"><h3>Re-diagnose after an identical failure instead of patching again</h3><p class="why">1 finding(s), 130 tokens: Fix attempt did not change the failure of pytest tests/test_parser.py -q. Answers <code>rework_cycle:d149692b66de4b4b</code>.</p><ol><li><span class="kind">Add to CLAUDE.md</span> Make an unchanged failure a stop signal.<pre><code>- If `pytest tests/test_parser.py -q` fails the same way after a fix, stop editing: re-read the full failure, state the root cause in one sentence, then change approach.</code></pre></li><li><span class="kind">Practice</span> Run the failing test alone with full output before the next edit, e.g. `pytest tests/test_parser.py -q -x -vv` for pytest, so the diagnosis rests on the whole assertion.</li><li><span class="kind">Install a hook</span> Tell the agent when a check fails exactly as before.<pre><code>{
+  &quot;hooks&quot;: {
+    &quot;PostToolUse&quot;: [
+      {
+        &quot;matcher&quot;: &quot;Bash&quot;,
+        &quot;hooks&quot;: [
+          {
+            &quot;type&quot;: &quot;command&quot;,
+            &quot;command&quot;: &quot;\&quot;$CLAUDE_PROJECT_DIR\&quot;/.claude/hooks/same-failure.sh&quot;
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre><details><summary>Hook script</summary><pre><code>#!/usr/bin/env bash
+# .claude/hooks/same-failure.sh: PostToolUse(Bash). When a check fails exactly
+# as it failed last time, tell the agent to stop patching and re-diagnose.
+input=$(cat)
+session=$(jq -r &#x27;.session_id&#x27; &lt;&lt;&lt;&quot;$input&quot;)
+output=$(jq -r &#x27;.tool_response | tostring&#x27; &lt;&lt;&lt;&quot;$input&quot;)
+grep -qE &#x27;FAILED|[0-9]+ failed|Traceback|error:&#x27; &lt;&lt;&lt;&quot;$output&quot; || exit 0
+sig=$(grep -E &#x27;FAILED|Error|error:&#x27; &lt;&lt;&lt;&quot;$output&quot; | sed -E &#x27;s/[0-9.]+s//g&#x27; | sort -u | sha1sum | cut -c1-16)
+last=&quot;${TMPDIR:-/tmp}/claude-failure-$session&quot;
+if [ &quot;$(cat &quot;$last&quot; 2&gt;/dev/null)&quot; = &quot;$sig&quot; ]; then
+  echo &quot;Same failure as the previous run: the last edit did not change it.&quot; \
+       &quot;Re-read the failure and state its root cause before editing again.&quot; &gt;&amp;2
+  exit 2
+fi
+echo &quot;$sig&quot; &gt; &quot;$last&quot;
+</code></pre></details></li></ol></article></div></section>
+<section class="box " aria-labelledby="s-6"><h2 id="s-6"><span class="n">6</span>Follow-up</h2><p class="fine">Run <code>ter a3 &lt;next-session.jsonl&gt; --json</code> and read the field under How. Targets are directions, not token budgets.</p><div class="chart"><table><thead><tr><th scope="col">Measure next run</th><th scope="col" class="num">Now</th><th scope="col" class="num">Target</th><th scope="col">How</th></tr></thead><tbody><tr><td>Fix attempts that left a failure unchanged</td><td class="num">1</td><td class="num">0</td><td><code>findings[detector=rework_cycle]</code></td></tr><tr><td>Agentic flow efficiency (tokens)</td><td class="num">77%</td><td class="num">higher</td><td><code>scorecard.flow_efficiency_tokens</code></td></tr><tr><td>Avoidable share of generated tokens</td><td class="num">23%</td><td class="num">lower</td><td><code>scorecard.activity_tokens.avoidable</code></td></tr></tbody></table></div></section>
+<section class="box " aria-labelledby="s-evidence and method"><h2 id="s-evidence and method">Evidence and method</h2><p class="fine">Every classification cites event ids from the <code>ter.event</code> stream; the JSON output (<code>--json</code>) carries the per-event basis and the evidence graph (<code>--graph</code>). Detectors and their confidence rules:</p><details><summary>Show the 11 detector rules</summary><dl><dt><code>repeated_tool_call</code></dt><dd>0.90 when input and output are identical and nothing was edited in between; 0.85 for a validation re-run with no edit in between; 0.75 when edits happened in between but the output is still identical; 0.50 (uncertain) when an output was not observed. Different output: no finding. File reads and searches are left to repeated_exploration; a validation re-run after edits is left to rework_cycle.</dd><dt><code>repeated_exploration</code></dt><dd>0.85 when the same read or search (same arguments) returned identical output and the file was not edited in between; 0.55 (uncertain) when either output was not observed. A read after an edit of that file, a read of a different range, or a changed output is not a finding.</dd><dt><code>rework_cycle</code></dt><dd>Only cycles of the same validation command with edits in between. 0.80 when the next run fails with the same failure signature (timings and addresses ignored); 0.90 when that is the second or later identical failure in a row. A cycle whose next run passes or fails differently is productive iteration and is not a finding.</dd><dt><code>unvalidated_implementation</code></dt><dd>Judged per prompt, once the agent has responded after its edits. 0.85 when no validation ran in the whole session; 0.75 when validation ran earlier but not after these edits; 0.50 (uncertain) when every unvalidated edit is documentation. 0.85 when the last validation before the response failed.</dd><dt><code>premature_implementation</code></dt><dd>0.75 for an in-place edit of a file never read, written or named in an earlier search or shell output; 0.45 (uncertain) for writing a new file before any exploration at all in the session. One finding per file.</dd><dt><code>excessive_planning</code></dt><dd>A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary; the rest as waste.</dd><dt><code>fragmented_edits</code></dt><dd>At least 3 consecutive edit calls to one file with only reasoning and their results in between. 0.70 for 3, plus 0.05 per extra edit, capped at 0.85. Only the round-trip overhead (results and waiting of edits after the first) is counted as waste, never the change itself.</dd><dt><code>unused_context</code></dt><dd>Judged only once the agent has responded after the read. A read counts as used when a later reasoning, response or tool call names the file, or names something the file defines, or edits it. Otherwise 0.65 when the file defined names that were never used, 0.55 when it defined none. Always uncertain: reading to rule something out is legitimate, and only repository evidence (L3) can tell.</dd><dt><code>unnecessary_handoff</code></dt><dd>A later tool call by the agent itself shares at least 3 content words and at least half of the smaller word set with the handoff&#x27;s task. Confidence 0.45 + 0.40 × overlap, capped at 0.85. The handoff (and its waiting time) is the waste; the agent&#x27;s own call is kept.</dd><dt><code>repeated_reasoning</code></dt><dd>Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, and at most 25% of its content words are new (in neither the earlier block nor the prompt). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.</dd><dt><code>regeneration</code></dt><dd>A whole-file write of a file the agent had itself written, keeping at least 80% of its lines: 0.80. A whole-file write of a file it had read (3+ lines), keeping at least 60% of them: 0.60 (uncertain; small files are often rewritten on purpose). The retained share of the write is waste.</dd></dl></details></section>
+</div>
+</main></body>
+</html>

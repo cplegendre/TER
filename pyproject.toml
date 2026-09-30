@@ -163,6 +163,7 @@ source_modules = [
     "ter.adapters.driving.reports.palette",
     "ter.adapters.driving.reports.svg",
     "ter.adapters.driving.reports.html",
+    "ter.adapters.driving.reports.a3",
 ]
 forbidden_modules = ["ter_calculator"]
 
@@ -178,6 +179,7 @@ modules = [
     "ter.adapters.driven.in_memory",
     "ter.adapters.driven.pricing",
     "ter.adapters.driven.requirements_yaml",
+    "ter.adapters.driven.ter3",
 ]
 # TER 3 sits outside the hexagon and reads its prices through the pricing
 # adapter. A chain that passes through TER 3 is not one adapter depending on
@@ -190,3 +192,7 @@ name = "TER 3 uses TER 4 only through domain, ports or adapters, never bootstrap
 type = "forbidden"
 source_modules = ["ter_calculator"]
 forbidden_modules = ["ter.bootstrap", "ter.application"]
+# The TER 3 `ter` command hands `ter a3` and `ter explain` to the TER 4
+# command line, whose services only the composition root builds. That one
+# lazy delegation in the TER 3 CLI entry point is exempt (and only it).
+ignore_imports = ["ter_calculator.cli -> ter.bootstrap"]

@@ -1,0 +1,446 @@
+"""Unit tests for the L2 model: facts, classification, graph, scorecard, A3."""
+
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass
+from typing import Any
+
+import pytest
+from ter4_lean_builder import FAIL, PASS, Script
+
+from ter.adapters.driven.tokenizers import RegexTokenizer
+from ter.domain import AnalysisEngine, EventKind, explain_batch
+from ter.domain.lean import (
+    DEFAULT_REGISTRY,
+    ActivityClass,
+    DetectorRegistry,
+    EdgeType,
+    Finding,
+    FindingKind,
+    FlowState,
+    LeanWaste,
+    Outcome,
+    SessionView,
+    ShellIntent,
+    Stage,
+    TerMeasure,
+    build_a3,
+    explain,
+)
+from ter.domain.lean.countermeasures import ActionKind
+from ter.domain.lean.facts import (
+    content_words,
+    defined_identifiers,
+    failure_signature,
+    overlap,
+    shell_intent,
+    source_lines,
+    tool_paths,
+    validation_outcome,
+)
+from ter.domain.lean.model import UNCERTAIN_BELOW
+
+
+def analysis_of(script: Script, **kw: Any) -> Any:
+    return explain(script.events, RegexTokenizer(), **kw)
+
+
+# --- facts -------------------------------------------------------------------
+
+
+@pytest.mark.req("TER-LEN-007")
+@pytest.mark.parametrize(
+    ("command", "intent"),
+    [
+        ("pytest tests/test_a.py -q", ShellIntent.VALIDATE),
+        ("cd app && npm run test", ShellIntent.VALIDATE),
+        ("python -m mypy src", ShellIntent.VALIDATE),
+        ("go test ./...", ShellIntent.VALIDATE),
+        ("python -c 'import a; print(a.f())'", ShellIntent.VALIDATE),
+        ("ruff check src && pytest", ShellIntent.VALIDATE),
+        ("pip install requests", ShellIntent.CHANGE),
+        ("git commit -m x && pytest", ShellIntent.CHANGE),
+        ("ls -la", ShellIntent.EXPLORE),
+        ("git status", ShellIntent.EXPLORE),
+        ("cd src && grep -r foo .", ShellIntent.EXPLORE),
+        ("docker compose up", ShellIntent.OTHER),
+        ("", ShellIntent.OTHER),
+    ],
+)
+def test_shell_intent(command: str, intent: ShellIntent) -> None:
+    assert shell_intent(command) is intent
+
+
+@pytest.mark.req("TER-DET-006")
+@pytest.mark.parametrize(
+    ("output", "outcome"),
+    [
+        (FAIL, Outcome.FAILED),
+        ("Traceback (most recent call last):\n  File x", Outcome.FAILED),
+        ("error[E0308]: mismatched types", Outcome.FAILED),
+        ("Found 3 errors in 2 files", Outcome.FAILED),
+        ("Process exited with exit code 2", Outcome.FAILED),
+        (PASS, Outcome.PASSED),
+        ("All checks passed!", Outcome.PASSED),
+        ("Success: no issues found in 3 source files", Outcome.PASSED),
+        ("0 errors, 0 warnings", Outcome.PASSED),
+        ("a.txt\nb.txt", Outcome.UNKNOWN),
+        ("", Outcome.UNKNOWN),
+    ],
+)
+def test_validation_outcome(output: str, outcome: Outcome) -> None:
+    assert validation_outcome(output) is outcome
+
+
+@pytest.mark.req("TER-DET-006")
+def test_failure_signature_ignores_timing_but_not_the_failure() -> None:
+    assert failure_signature(FAIL) == failure_signature(FAIL.replace("0.12s", "9.9s"))
+    assert failure_signature(FAIL) != failure_signature(
+        FAIL.replace("test_x", "test_z")
+    )
+    assert failure_signature("weird") == failure_signature("weird")
+
+
+@pytest.mark.req("TER-DET-002")
+def test_small_facts() -> None:
+    assert tool_paths({"file_path": "a.py"}) == ("a.py",)
+    assert tool_paths({"pattern": "x"}) == ()
+    assert "slugify" in defined_identifiers("def slugify(s):\n    pass\nMAX_SIZE = 3")
+    assert "MAX_SIZE" in defined_identifiers("MAX_SIZE = 3")
+    assert source_lines("   1\tx = 1\n   2\t\n   3→y") == frozenset({"x = 1", "y"})
+    assert "the" not in content_words("the parser handles arguments")
+    assert overlap(frozenset(), frozenset({"a"})) == 0.0
+    assert overlap(frozenset({"a", "b"}), frozenset({"a"})) == 1.0
+
+
+# --- stages and classes ------------------------------------------------------
+
+
+@pytest.mark.req("TER-LEN-001", "TER-LEN-007")
+def test_every_event_gets_a_stage_and_classified_basis() -> None:
+    s = Script()
+    s.prompt("fix")
+    s.think("look first")
+    s.read("a.py")
+    s.todo("plan")
+    s.edit("a.py")
+    s.bash("pip install x")
+    s.bash("pytest -q", PASS)
+    s.say("working")
+    s.say("done")
+    a = analysis_of(s)
+    stages = [c.stage for c in a.classifications]
+    assert stages == [
+        Stage.INTENT,
+        Stage.PLAN,
+        Stage.EXPLORE,
+        Stage.EXPLORE,
+        Stage.PLAN,
+        Stage.PLAN,
+        Stage.IMPLEMENT,
+        Stage.IMPLEMENT,
+        Stage.IMPLEMENT,
+        Stage.IMPLEMENT,
+        Stage.VALIDATE,
+        Stage.VALIDATE,
+        Stage.RESPOND,
+        Stage.RESPOND,
+    ]
+    classes = {c.event_id: c for c in a.classifications}
+    events = s.events
+    assert classes[events[0].id].activity_class is None
+    assert classes[events[6].id].activity_class is ActivityClass.VALUE_ADDING
+    assert (
+        classes[events[8].id].activity_class is ActivityClass.NECESSARY_NON_VALUE_ADDING
+    )
+    assert (
+        classes[events[12].id].activity_class
+        is ActivityClass.NECESSARY_NON_VALUE_ADDING
+    )
+    assert classes[events[13].id].activity_class is ActivityClass.VALUE_ADDING
+    assert all(c.basis for c in a.classifications)
+
+
+@pytest.mark.req("TER-ANL-021", "TER-LEN-002")
+def test_confident_waste_is_avoidable_and_uncertain_is_kept_apart() -> None:
+    s = Script()
+    s.prompt("x")
+    s.read("src/a.py", "def a(): pass")
+    repeat, _ = s.read("src/a.py", "def a(): pass")
+    unused, _ = s.read("src/zzz.py", "def zzz(): pass")
+    s.say("used a.py")
+    a = analysis_of(s)
+    by_id = {c.event_id: c for c in a.classifications}
+    assert by_id[repeat.id].activity_class is ActivityClass.AVOIDABLE
+    assert by_id[repeat.id].flow is FlowState.REPEATING
+    assert by_id[repeat.id].basis.startswith("repeated_exploration:")
+    assert by_id[unused.id].activity_class is ActivityClass.NECESSARY_NON_VALUE_ADDING
+    assert by_id[unused.id].uncertain_share == 1.0
+    assert "uncertain unused_context:" in by_id[unused.id].basis
+    sc = a.scorecard
+    assert sc.findings == 1 and sc.uncertain_findings == 1
+    assert dict(sc.activity_tokens)["uncertain"] > 0
+    assert sum(n for _, n in sc.activity_tokens) == sc.generated_tokens
+    assert sum(n for _, n in sc.flow_tokens) == sc.generated_tokens
+    assert UNCERTAIN_BELOW == 0.7
+
+
+@pytest.mark.req("TER-SCR-002", "TER-FLW-001")
+def test_scorecard_dimensions_and_explained_composite() -> None:
+    s = Script()
+    s.prompt("fix")
+    s.read("a.py")
+    s.bash("pytest -q", FAIL)
+    s.edit("a.py", "1")
+    s.bash("pytest -q", FAIL)
+    s.edit("a.py", "2")
+    s.bash("pytest -q", PASS)
+    s.say("done")
+    sc = analysis_of(s, ter=TerMeasure(0.5, "test")).scorecard
+    flows = dict(sc.flow_tokens)
+    assert flows[FlowState.REWORKING] > 0 and flows[FlowState.RECOVERING] > 0
+    assert sc.flow_efficiency_tokens == pytest.approx(
+        (flows[FlowState.PROGRESSING] + flows[FlowState.RECOVERING])
+        / sc.generated_tokens
+    )
+    assert sc.flow_efficiency_time is not None and 0 < sc.flow_efficiency_time < 1
+    assert sc.rework_cycles == 1 and sc.iterations == 1
+    assert sc.composite is not None
+    names = [n for n, _, _ in sc.composite.components]
+    assert names == ["Flow efficiency (tokens)", "Flow efficiency (time)", "TER"]
+    assert sc.composite.value == pytest.approx(
+        sum(v * w for _, v, w in sc.composite.components)
+    )
+    assert "mean" in sc.composite.formula
+    assert sc.as_dict()["ter"] == {"value": 0.5, "method": "test"}
+    assert sc.developer_seconds == 0
+
+
+@pytest.mark.req("TER-SCR-002")
+def test_scorecard_without_time_or_activity() -> None:
+    empty = analysis_of(Script())
+    assert empty.scorecard.flow_efficiency_tokens is None
+    assert empty.scorecard.composite is None
+    assert empty.scorecard.activity_share(ActivityClass.AVOIDABLE) == 0.0
+    s = Script(timed=False)
+    s.prompt("x")
+    s.say("y")
+    sc = analysis_of(s).scorecard
+    assert sc.flow_efficiency_time is None
+    assert sc.composite is not None and len(sc.composite.components) == 1
+
+
+@pytest.mark.req("TER-LEN-007")
+def test_value_stream_has_every_stage_in_order() -> None:
+    s = Script()
+    s.prompt("x")
+    s.read("a.py")
+    s.read("a.py")
+    s.say("y")
+    vs = analysis_of(s).value_stream
+    assert [v.stage for v in vs] == list(Stage)
+    explore = vs[1]
+    assert explore.steps == 2 and explore.avoidable_tokens > 0 and explore.findings
+    assert vs[0].steps == 1 and vs[0].seconds == 0
+
+
+@pytest.mark.req("TER-LEN-002")
+def test_time_attribution_gives_tool_time_to_the_request() -> None:
+    s = Script()
+    s.prompt("x")
+    request, _ = s.read("a.py")
+    a = analysis_of(s)
+    steps = {st.event_id: st for st in a.steps}
+    assert steps[request.id].seconds == 2.0  # its own gap plus the tool's running time
+
+
+# --- evidence graph ----------------------------------------------------------
+
+
+@pytest.mark.req("TER-GRF-002", "TER-GRF-003")
+def test_evidence_graph_edges_and_export() -> None:
+    s = Script()
+    prompt = s.prompt("fix a")
+    read, read_done = s.read("a.py")
+    edit1, _ = s.edit("a.py", "1")
+    run1, fail = s.bash("pytest -q", FAIL)
+    edit2, _ = s.edit("a.py", "2")
+    run2, _ = s.bash("pytest -q", PASS)
+    s.read("b.py")
+    again, _ = s.read("b.py")
+    s.say("done")
+    g = analysis_of(s).graph
+    edges = {(e.source, e.target, e.type) for e in g.edges}
+    assert read_done is not None and fail is not None
+    assert (read_done.id, read.id, EdgeType.COMPLETES) in edges
+    assert (edit1.id, read_done.id, EdgeType.MOTIVATED_BY) in edges
+    assert (edit1.id, prompt.id, EdgeType.MOTIVATED_BY) in edges
+    assert (run1.id, edit1.id, EdgeType.VALIDATES) in edges
+    assert (edit2.id, fail.id, EdgeType.CORRECTS) in edges
+    assert (run2.id, edit2.id, EdgeType.VALIDATES) in edges
+    assert (again.id, s.events[-5].id, EdgeType.REPEATS) in edges
+    assert prompt.id in g.ancestors(edit2.id)
+    assert g.edges_of(EdgeType.CORRECTS)
+    exported = json.loads(json.dumps(g.as_dict()))
+    assert exported["schema"] == "ter.evidence/0.1"
+    ids = {n["id"] for n in exported["nodes"]}
+    assert all(e["source"] in ids and e["target"] in ids for e in exported["edges"])
+    assert all(e.target != e.source for e in g.edges)
+
+
+# --- registry ----------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class _EveryPrompt:
+    id: str = "every_prompt"
+    waste: LeanWaste = LeanWaste.WAITING
+    kind: FindingKind = FindingKind.RISK
+    summary: str = "test plugin"
+    confidence_rule: str = "always 0.5"
+
+    def detect(self, view: SessionView) -> list[Finding]:
+        return [
+            Finding(
+                id=f"{self.id}:{s.event_id}",
+                detector=self.id,
+                waste=self.waste,
+                kind=self.kind,
+                activity_class=ActivityClass.AVOIDABLE,
+                confidence=0.5,
+                title="prompt",
+                explanation="a prompt",
+                evidence=(s.event_id,),
+                waste_events=(),
+                share=0.0,
+                subject="",
+                tokens=0,
+                context_tokens=0,
+                seconds=0.0,
+            )
+            for s in view.steps
+            if s.kind is EventKind.PROMPT
+        ]
+
+
+def test_detectors_are_plugins() -> None:
+    registry = DetectorRegistry([_EveryPrompt()])
+    assert "every_prompt" in registry and len(registry) == 1
+    assert registry.get("every_prompt").id == "every_prompt"
+    with pytest.raises(ValueError, match="already registered"):
+        registry.register(_EveryPrompt())
+    s = Script()
+    s.prompt("a")
+    s.prompt("b")
+    a = analysis_of(s, registry=registry)
+    assert [f.detector for f in a.findings] == ["every_prompt", "every_prompt"]
+    assert a.detectors == (("every_prompt", "waiting", "risk", "always 0.5"),)
+    assert len(DEFAULT_REGISTRY) == 11
+    assert all(d.confidence_rule and d.summary for d in DEFAULT_REGISTRY)
+
+
+# --- countermeasures and A3 --------------------------------------------------
+
+
+def _messy() -> Script:
+    s = Script()
+    s.prompt("Fix parse in src/a.py and keep tests green")
+    s.read("src/a.py", "def parse(): pass")
+    s.read("src/a.py", "def parse(): pass")
+    s.bash("pytest tests/test_a.py -q", FAIL)
+    s.edit("src/a.py", "1")
+    s.bash("pytest tests/test_a.py -q", FAIL)
+    s.edit("src/b.py", "1")
+    s.say("Done")
+    return s
+
+
+@pytest.mark.req("TER-RPT-005")
+def test_countermeasures_are_derived_from_findings() -> None:
+    a = analysis_of(_messy())
+    report = build_a3(a, ["Fix parse in src/a.py"])
+    detectors = {c.detector for c in report.countermeasures}
+    assert detectors == {f.detector for f in a.findings}
+    rework = next(c for c in report.countermeasures if c.detector == "rework_cycle")
+    assert any("pytest tests/test_a.py -q" in (x.snippet or "") for x in rework.actions)
+    kinds = {x.kind for c in report.countermeasures for x in c.actions}
+    assert {ActionKind.CLAUDE_MD, ActionKind.HOOK} <= kinds
+    for c in report.countermeasures:
+        assert set(c.addresses) <= {f.id for f in a.findings}
+        for action in c.actions:
+            if action.language == "json" or action.language == "json+bash":
+                json.loads((action.snippet or "").partition("\n\n")[0])
+    reread = next(
+        c for c in report.countermeasures if c.detector == "repeated_exploration"
+    )
+    assert "src/a.py" in json.dumps(reread.as_dict())
+
+
+@pytest.mark.req("TER-RPT-005")
+def test_no_findings_means_no_countermeasures() -> None:
+    s = Script()
+    s.prompt("x")
+    s.read("a.py", "def a(): pass")
+    s.edit("a.py")
+    s.bash("pytest -q", PASS)
+    s.say("a.py done")
+    report = build_a3(analysis_of(s), ["x"])
+    assert report.countermeasures == ()
+    assert [f.metric for f in report.follow_up] == [
+        "Agentic flow efficiency (tokens)",
+        "Avoidable share of generated tokens",
+    ]
+
+
+@pytest.mark.req("TER-RPT-005")
+def test_every_detector_has_a_countermeasure_and_a_follow_up() -> None:
+    from ter.domain.lean import countermeasures as cm
+
+    assert set(cm._CATALOGUE) == {d.id for d in DEFAULT_REGISTRY}
+    assert set(cm._MEASURES) == {d.id for d in DEFAULT_REGISTRY}
+
+
+@pytest.mark.req("TER-RPT-003")
+def test_a3_structure() -> None:
+    a = analysis_of(_messy(), ter=TerMeasure(0.4, "t"))
+    report = build_a3(a, ["Fix parse in src/a.py " + "x" * 200])
+    assert report.title.endswith("…") and len(report.title) <= 120
+    d = report.as_dict()
+    assert list(d) == [
+        "schema",
+        "title",
+        "session_id",
+        "background",
+        "problem",
+        "current_state",
+        "analysis",
+        "root_causes",
+        "findings",
+        "countermeasures",
+        "follow_up",
+        "detectors",
+    ]
+    assert d["schema"] == "ter.a3/0.1"
+    assert "avoidable" in report.problem and "risk" in report.problem
+    assert report.pareto and report.pareto[0].tokens >= report.pareto[-1].tokens
+    assert all(not f.uncertain for f in report.root_causes[:1])
+    json.dumps(d)
+
+
+@pytest.mark.req("TER-RPT-003")
+def test_a3_edge_cases() -> None:
+    empty = build_a3(analysis_of(Script()))
+    assert empty.title == "Agent session"
+    assert "no agent activity" in empty.problem
+
+
+@pytest.mark.req("TER-ANL-010")
+def test_engine_explain_equals_batch_explain() -> None:
+    s = _messy()
+    engine = AnalysisEngine(RegexTokenizer())
+    for event in s.events:
+        engine.apply(event)
+        engine.apply(event)
+    assert engine.explain() == explain_batch(s.events, RegexTokenizer())
+    assert engine.explain() == analysis_of(s)

@@ -499,6 +499,20 @@ def main(argv: list[str] | None = None) -> int:
         help="Override state file directory (default: system temp)",
     )
 
+    # TER 4 L2 commands, delegated to the TER 4 CLI (``python -m ter``).
+    for name, text in (
+        ("a3", "Lean A3 report of a session (TER 4 L2): --html FILE, --json [FILE]"),
+        ("explain", "Lean findings, value stream and scorecard (TER 4 L2)"),
+    ):
+        delegated = subparsers.add_parser(name, help=text, add_help=False)
+        delegated.add_argument("ter4_args", nargs=argparse.REMAINDER)
+
+    raw = list(sys.argv[1:] if argv is None else argv)
+    if raw and raw[0] in ("a3", "explain"):
+        from ter.bootstrap import main as ter4_main
+
+        return ter4_main(raw)
+
     args = parser.parse_args(argv)
 
     _setup_stdout_encoding()

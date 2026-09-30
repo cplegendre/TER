@@ -28,6 +28,8 @@ from enum import StrEnum
 from typing import Protocol, TypeVar
 
 from .events import Actor, Event, EventId, EventKind, TokenUsage, ToolKind
+from .lean.analysis import LeanAnalyser, LeanAnalysis, TerMeasure
+from .lean.detectors import DEFAULT_REGISTRY, DetectorRegistry
 
 __all__ = [
     "AnalysisEngine",
@@ -39,6 +41,7 @@ __all__ = [
     "TokenCounter",
     "analyse_batch",
     "canonical_arguments",
+    "explain_batch",
 ]
 
 #: Argument keys that name the file a read targets, across tool vocabularies.
@@ -276,6 +279,7 @@ class AnalysisEngine:
         self._edits_since_validation = 0
         self._peak_edits = 0
         self._timeline: list[TimelineRow] = []
+        self._lean = LeanAnalyser()
 
     @property
     def session_id(self) -> str | None:
@@ -318,6 +322,7 @@ class AnalysisEngine:
             raised.extend(self._on_completion(event))
 
         signals = tuple(raised)
+        self._lean.add(event, tokens)
         self._timeline.append(
             TimelineRow(
                 index=len(self._timeline),
@@ -407,9 +412,35 @@ class AnalysisEngine:
             timeline=tuple(self._timeline),
         )
 
+    def explain(
+        self,
+        *,
+        ter: TerMeasure | None = None,
+        registry: DetectorRegistry = DEFAULT_REGISTRY,
+    ) -> LeanAnalysis:
+        """The L2 explanation so far: findings, value stream, scorecard, graph.
+
+        Steps are folded in :meth:`apply` in O(1) amortised time; detectors
+        run here, over the session so far, in time linear in its length.
+        """
+        return self._lean.analysis(ter=ter, registry=registry)
+
 
 def analyse_batch(events: Iterable[Event], tokenizer: TokenCounter) -> StreamReport:
     """Analyse a whole stream at once: exactly the fold of :meth:`AnalysisEngine.apply`."""
     engine = AnalysisEngine(tokenizer)
     engine.apply_all(events)
     return engine.snapshot()
+
+
+def explain_batch(
+    events: Iterable[Event],
+    tokenizer: TokenCounter,
+    *,
+    ter: TerMeasure | None = None,
+    registry: DetectorRegistry = DEFAULT_REGISTRY,
+) -> LeanAnalysis:
+    """Explain a whole stream at once: the L2 view of the same fold as :func:`analyse_batch`."""
+    engine = AnalysisEngine(tokenizer)
+    engine.apply_all(events)
+    return engine.explain(ter=ter, registry=registry)

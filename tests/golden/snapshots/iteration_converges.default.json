@@ -1,0 +1,189 @@
+{
+  "aggregate_ter": 0.6422,
+  "classifier_version": "v11",
+  "economics": {
+    "cache_creation": 0,
+    "cache_hit_rate": 0.6154,
+    "cache_read": 5600,
+    "context_bloat": false,
+    "cost_usd": 0.0164,
+    "input": 3500,
+    "input_growth": 2.71,
+    "output": 280,
+    "positional": [
+      0.5333,
+      0.9091,
+      0.7257
+    ],
+    "waste_cost_usd": 0.0011
+  },
+  "input_analysis": {
+    "alignment": 0.3259,
+    "drift": "stable",
+    "drift_steps": [],
+    "low_alignment": 0,
+    "prompt_redundancy": 0.0,
+    "similar_pairs": 0,
+    "user_ratio": 0.3826
+  },
+  "intent_confidence": 0.85,
+  "phase_scores": {
+    "generation": 1.0,
+    "reasoning": 0.0,
+    "tool_use": 0.8555
+  },
+  "raw_ratio": 0.7761,
+  "session_id": "golden-iterate",
+  "spans": [
+    {
+      "block_type": "thinking",
+      "confidence": 0.6,
+      "cosine": 0.124274,
+      "label": "redundant_reasoning",
+      "phase": "reasoning",
+      "position": 0,
+      "reason": "low_information_reasoning",
+      "tokens": 5,
+      "tool": null
+    },
+    {
+      "block_type": "tool_use",
+      "confidence": 0.6,
+      "cosine": 0.273998,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 1,
+      "reason": "aligned_default",
+      "tokens": 16,
+      "tool": "Read"
+    },
+    {
+      "block_type": "thinking",
+      "confidence": 0.6,
+      "cosine": 0.15949,
+      "label": "redundant_reasoning",
+      "phase": "reasoning",
+      "position": 2,
+      "reason": "low_information_reasoning",
+      "tokens": 9,
+      "tool": null
+    },
+    {
+      "block_type": "tool_use",
+      "confidence": 0.6,
+      "cosine": 0.279108,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 3,
+      "reason": "novel_or_below_threshold",
+      "tokens": 19,
+      "tool": "Bash"
+    },
+    {
+      "block_type": "thinking",
+      "confidence": 0.6,
+      "cosine": 0.119618,
+      "label": "redundant_reasoning",
+      "phase": "reasoning",
+      "position": 4,
+      "reason": "low_information_reasoning",
+      "tokens": 11,
+      "tool": null
+    },
+    {
+      "block_type": "tool_use",
+      "confidence": 0.6,
+      "cosine": 0.211505,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 5,
+      "reason": "novel_or_below_threshold",
+      "tokens": 91,
+      "tool": "Edit"
+    },
+    {
+      "block_type": "tool_use",
+      "confidence": 1.0,
+      "cosine": 0.279108,
+      "label": "unnecessary_tool_call",
+      "phase": "tool_use",
+      "position": 6,
+      "reason": "repetition",
+      "tokens": 19,
+      "tool": "Bash"
+    },
+    {
+      "block_type": "thinking",
+      "confidence": 0.5,
+      "cosine": 0.042448,
+      "label": "redundant_reasoning",
+      "phase": "reasoning",
+      "position": 7,
+      "reason": "low_information_reasoning",
+      "tokens": 10,
+      "tool": null
+    },
+    {
+      "block_type": "tool_use",
+      "confidence": 0.6,
+      "cosine": 0.226541,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 8,
+      "reason": "novel_or_below_threshold",
+      "tokens": 99,
+      "tool": "Edit"
+    },
+    {
+      "block_type": "tool_use",
+      "confidence": 1.0,
+      "cosine": 0.279108,
+      "label": "unnecessary_tool_call",
+      "phase": "tool_use",
+      "position": 9,
+      "reason": "repetition",
+      "tokens": 19,
+      "tool": "Bash"
+    },
+    {
+      "block_type": "text",
+      "confidence": 0.5,
+      "cosine": 0.325918,
+      "label": "aligned_response",
+      "phase": "generation",
+      "position": 10,
+      "reason": "aligned_default",
+      "tokens": 28,
+      "tool": null
+    }
+  ],
+  "tokens": {
+    "aligned": 253,
+    "total": 326,
+    "waste": 73
+  },
+  "uncertainty": {
+    "interval": [
+      0.4,
+      0.7
+    ],
+    "low_confidence_tokens": 288,
+    "reliability": "moderate"
+  },
+  "waste_patterns": [
+    {
+      "end": 6,
+      "spans": 2,
+      "start": 3,
+      "tokens": 19,
+      "type": "duplicate_tool_call"
+    },
+    {
+      "end": 0,
+      "spans": 3,
+      "start": 0,
+      "tokens": 29,
+      "type": "repeated_command"
+    }
+  ]
+}

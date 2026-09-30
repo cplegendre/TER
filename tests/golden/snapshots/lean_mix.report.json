@@ -1,0 +1,230 @@
+{
+  "classifier_version": "v11",
+  "composition": [
+    {
+      "label": "aligned_reasoning",
+      "tokens": 19
+    },
+    {
+      "label": "aligned_response",
+      "tokens": 47
+    },
+    {
+      "label": "aligned_tool_call",
+      "tokens": 569
+    },
+    {
+      "label": "redundant_reasoning",
+      "tokens": 43
+    },
+    {
+      "label": "unnecessary_tool_call",
+      "tokens": 31
+    }
+  ],
+  "economics": {
+    "cache_hit_rate": 0.7727,
+    "cache_read_tokens": 27200,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0418,
+    "input_tokens": 8000,
+    "output_tokens": 640,
+    "waste_cost_usd": 0.0011
+  },
+  "metrics": {
+    "aligned_tokens": 635,
+    "raw_ratio": 0.8956,
+    "ter": 0.7713,
+    "total_tokens": 709,
+    "waste_tokens": 74
+  },
+  "phases": [
+    {
+      "phase": "reasoning",
+      "score": 0.3065,
+      "tokens": 62
+    },
+    {
+      "phase": "tool_use",
+      "score": 0.9483,
+      "tokens": 600
+    },
+    {
+      "phase": "generation",
+      "score": 1.0,
+      "tokens": 47
+    }
+  ],
+  "positional": {
+    "early": 0.7014,
+    "early_spans": 5,
+    "late": 0.9215,
+    "late_spans": 6,
+    "mid": 0.9628,
+    "mid_spans": 5
+  },
+  "sections": [],
+  "session_id": "golden-lean-mix",
+  "spans": [
+    {
+      "confidence": 0.523884,
+      "label": "aligned_reasoning",
+      "phase": "reasoning",
+      "position": 0,
+      "tokens": 19
+    },
+    {
+      "confidence": 0.6,
+      "label": "redundant_reasoning",
+      "phase": "reasoning",
+      "position": 1,
+      "tokens": 20
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 2,
+      "tokens": 30
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 3,
+      "tokens": 52
+    },
+    {
+      "confidence": 0.6,
+      "label": "redundant_reasoning",
+      "phase": "reasoning",
+      "position": 4,
+      "tokens": 23
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 5,
+      "tokens": 12
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 6,
+      "tokens": 16
+    },
+    {
+      "confidence": 1.0,
+      "label": "unnecessary_tool_call",
+      "phase": "tool_use",
+      "position": 7,
+      "tokens": 12
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 8,
+      "tokens": 131
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 9,
+      "tokens": 152
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 10,
+      "tokens": 50
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 11,
+      "tokens": 55
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 12,
+      "tokens": 52
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 13,
+      "tokens": 19
+    },
+    {
+      "confidence": 1.0,
+      "label": "unnecessary_tool_call",
+      "phase": "tool_use",
+      "position": 14,
+      "tokens": 19
+    },
+    {
+      "confidence": 0.5,
+      "label": "aligned_response",
+      "phase": "generation",
+      "position": 15,
+      "tokens": 47
+    }
+  ],
+  "uncertainty": {
+    "confidence_level": 0.95,
+    "low_confidence_share": 0.9563,
+    "low_confidence_tokens": 678,
+    "lower": 0.6397,
+    "mean_confidence": 0.639,
+    "method": "deterministic_span_bootstrap",
+    "reliability": "moderate",
+    "upper": 0.9853
+  },
+  "waste_by_type": [
+    {
+      "occurrences": 2,
+      "pattern_type": "duplicate_tool_call",
+      "tokens": 31
+    },
+    {
+      "occurrences": 1,
+      "pattern_type": "edit_fragmentation",
+      "tokens": 0
+    }
+  ],
+  "waste_patterns": [
+    {
+      "description": "Duplicate tool call: Bash {\"command\":\"ls src tests\"}",
+      "end_position": 7,
+      "pattern_type": "duplicate_tool_call",
+      "spans_involved": 2,
+      "start_position": 5,
+      "tokens_wasted": 12
+    },
+    {
+      "description": "Duplicate tool call: Bash {\"command\":\"pytest tests/test_net.py -q\"}",
+      "end_position": 14,
+      "pattern_type": "duplicate_tool_call",
+      "spans_involved": 2,
+      "start_position": 13,
+      "tokens_wasted": 19
+    },
+    {
+      "description": "3 consecutive edits to net.py (0 fragmented tokens)",
+      "end_position": 0,
+      "pattern_type": "edit_fragmentation",
+      "spans_involved": 3,
+      "start_position": 0,
+      "tokens_wasted": 0
+    }
+  ]
+}

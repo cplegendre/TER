@@ -19,7 +19,7 @@ tests/contract/        # One suite per port; real adapters and fakes must both p
 tests/architecture/    # Import-contract fitness tests
 tests/requirements/    # EARS catalogue lint, trace and ter-req tooling tests
 requirements/          # EARS requirement catalogue (YAML per maturity level) + points.yaml (200 vision points)
-tests/equivalence/     # Live (incremental) analysis == batch analysis on the golden corpus
+tests/equivalence/     # Live (incremental) analysis and explanation == batch on the golden corpus
 tests/fixtures/hooks/  # Example Claude Code hook payloads pinned by contract tests
 docs/                  # Architecture, user guide, context orchestrator reference
 sample_sessions/       # Sample JSONL files for testing
@@ -38,7 +38,10 @@ pytest --req-trace=req-trace.json && ter-req trace --results req-trace.json --ga
 ter-req report --results req-trace.json   # Markdown coverage per level
 ter-req points                            # regenerate docs/ter4/points.md (CI runs --check)
 pytest tests/equivalence tests/contract                # L1 gate (plus tests/unit/test_ter4_*)
+pytest tests/unit/test_ter4_lean_* tests/unit/test_ter4_a3.py tests/golden/test_lean_snapshots.py  # L2 gate
 python -m ter observe <session.jsonl> --timeline      # TER 4 L1 report
+ter a3 <session.jsonl> --html a3.html --json a3.json   # TER 4 L2 Lean A3 (also python -m ter a3)
+python -m ter explain <session.jsonl>                 # L2 findings as text
 ```
 
 ## Code Style
@@ -57,6 +60,7 @@ Python 3.11+: Follow standard conventions. Dataclasses for models, enums for dom
 - Analysis is a fold over `ter.event`: `AnalysisEngine.apply` must stay O(1) amortised and idempotent by event id, and batch must equal incremental (`docs/ter4/l1-observed.md`).
 - Hook entry points fail open: never raise out of `ter.adapters.driving.claude_hooks`.
 - Run TER 4 tools with `PYTHONPATH=src` when the venv's editable install may point at another checkout.
+- Lean model (L2): detectors are plugins in `ter.domain.lean.detectors` (register in `DEFAULT_REGISTRY`, add a countermeasure and a follow-up measure, add unit tests with positive, negative and boundary cases). Every finding cites evidence event ids and a published `confidence_rule`; below 0.70 it is uncertain and never counted as avoidable. Thresholds are structural, never token counts; iteration that converges is never rework. See `docs/ter4/l2-explained.md` and ADR 0004.
 - See `docs/ter4/architecture.md` and `docs/decisions/`.
 - Visual reports: renderers in `ter.adapters.driving.reports` (`svg.py`, `html.py`, colours only in `palette.py`) read the `ter.domain.report.SessionReport` view-model; `reports/ter3.py` (`from_ter_result`) is the only piece that reads `TERResult`. `ter_calculator.charts` delegates to these primitives. Rendered output is frozen in `tests/golden/snapshots/report/`. See `docs/ter4/reports.md`.
 
@@ -71,8 +75,11 @@ Python 3.11+: Follow standard conventions. Dataclasses for models, enums for dom
 ### Real-Time & Adaptive
 `real_time.py` `adaptive_budget.py` `cost_model.py` `overthinking.py`
 
+### TER 4 Lean (L2, `src/ter/domain/lean/`)
+`model.py` `facts.py` `steps.py` `detectors.py` `graph.py` `analysis.py` `countermeasures.py` `a3.py`; renderer `src/ter/adapters/driving/reports/a3.py`; use case `src/ter/application/explain.py`
+
 ## CLI Subcommands
 
-`ter analyze` `ter report [--html FILE]` `ter visualize` `ter present` `ter compare` `ter list` `ter watch` `ter budget` `ter context {store|graph|optimize|delta|check}`
+`ter analyze` `ter report [--html FILE]` `ter a3` `ter explain` `ter visualize` `ter present` `ter compare` `ter list` `ter watch` `ter budget` `ter context {store|graph|optimize|delta|check}`
 
-TER 4 (`python -m ter`): `observe` `hook`
+TER 4 (`python -m ter`): `observe` `hook` `explain` `a3`

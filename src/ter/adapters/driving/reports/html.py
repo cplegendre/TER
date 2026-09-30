@@ -266,9 +266,7 @@ def _waste_table(report: SessionReport) -> str:
 
 def uncertainty_note(ter: float, u: UncertaintySummary | None) -> str:
     """Plain-language statement of how far to trust the headline TER."""
-    caveat = (
-        "TER labels are heuristic estimates, not human-validated ground truth."
-    )
+    caveat = "TER labels are heuristic estimates, not human-validated ground truth."
     if u is None:
         return (
             f"This analysis carries no uncertainty estimate for the TER of {ter:.2f}, "

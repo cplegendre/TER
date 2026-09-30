@@ -76,7 +76,9 @@ PHASE_ROLES: dict[str, str] = {
 }
 OTHER_PHASE_ROLE = "series-4"
 
-_HEX_TO_ROLE: dict[str, str] = {c.light: f"series-{i + 1}" for i, c in enumerate(SERIES)}
+_HEX_TO_ROLE: dict[str, str] = {
+    c.light: f"series-{i + 1}" for i, c in enumerate(SERIES)
+}
 
 
 def resolve(colour: str) -> tuple[str, str | None]:

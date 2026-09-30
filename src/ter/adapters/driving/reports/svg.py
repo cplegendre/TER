@@ -136,9 +136,7 @@ def _text(
     return f"<text {attrs}>{content}</text>"
 
 
-def _open(
-    chart_id: str, title: str, desc: str, width: int, height: int
-) -> list[str]:
+def _open(chart_id: str, title: str, desc: str, width: int, height: int) -> list[str]:
     cid = esc(chart_id)
     return [
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}"'
@@ -373,7 +371,9 @@ def span_timeline(
     )
     lane_y = {p: top + i * (lane_h + lane_gap) for i, p in enumerate(phases)}
     for phase, y in lane_y.items():
-        parts.append(_text(left - 8, y + lane_h / 2 + 4, esc(humanise(phase)), anchor="end"))
+        parts.append(
+            _text(left - 8, y + lane_h / 2 + 4, esc(humanise(phase)), anchor="end")
+        )
         parts.append(
             f'<rect x="{left}" y="{y}" width="{plot_w}" height="{lane_h}"'
             f' rx="3" {_paint("grid")} fill-opacity="0.45"/>'
@@ -397,7 +397,9 @@ def span_timeline(
                 f' fill="url(#{cid}-hatch)" pointer-events="none"/>'
             )
     axis_y = top + len(phases) * (lane_h + lane_gap) + 12
-    parts.append(_text(left, axis_y, f"span {spans[0].position}", role="muted", size=11))
+    parts.append(
+        _text(left, axis_y, f"span {spans[0].position}", role="muted", size=11)
+    )
     parts.append(
         _text(
             width - right,
@@ -474,7 +476,14 @@ def waste_pareto(
             f' stroke-width="1" {_paint(role, "s")}/>'
         )
         parts.append(
-            _text(left - 6, y + 4, f"{tick * 100:.0f}%", role="muted", size=11, anchor="end")
+            _text(
+                left - 6,
+                y + 4,
+                f"{tick * 100:.0f}%",
+                role="muted",
+                size=11,
+                anchor="end",
+            )
         )
     points: list[tuple[float, float]] = []
     max_chars = max(4, int(slot / _CHAR_W))
@@ -516,7 +525,7 @@ def waste_pareto(
     )
     parts.append(
         f'<path d="{path}" fill="none" stroke-width="2" stroke-linejoin="round"'
-        f' {_paint("ink-2", "s")}/>'
+        f" {_paint('ink-2', 's')}/>"
     )
     for (x, y), cum in zip(points, cumulative, strict=True):
         parts.append(
@@ -557,18 +566,20 @@ def positional_sparkline(
             f'<line x1="{left}" y1="{y:.1f}" x2="{width - right}" y2="{y:.1f}"'
             f' stroke-width="1" {_paint("baseline" if tick == 0 else "grid", "s")}/>'
         )
-        parts.append(_text(left - 6, y + 4, f"{tick:.1f}", role="muted", size=11, anchor="end"))
+        parts.append(
+            _text(left - 6, y + 4, f"{tick:.1f}", role="muted", size=11, anchor="end")
+        )
     if session_ter is not None:
         y = base_y - max(0.0, min(1.0, session_ter)) * plot_h
         parts.append(
             f'<line x1="{left}" y1="{y:.1f}" x2="{width - right}" y2="{y:.1f}"'
             f' stroke-width="1" stroke-dasharray="4 3" {_paint("muted", "s")}/>'
         )
+        parts.append(_text(width - right + 6, y - 2, "session", role="muted", size=10))
         parts.append(
-            _text(width - right + 6, y - 2, "session", role="muted", size=10)
-        )
-        parts.append(
-            _text(width - right + 6, y + 10, f"{session_ter:.2f}", role="muted", size=10)
+            _text(
+                width - right + 6, y + 10, f"{session_ter:.2f}", role="muted", size=10
+            )
         )
     points = [
         (left + plot_w * (i + 0.5) / 3, base_y - max(0.0, min(1.0, v)) * plot_h)
@@ -579,7 +590,7 @@ def positional_sparkline(
     )
     parts.append(
         f'<path d="{path}" fill="none" stroke-width="2" stroke-linejoin="round"'
-        f' {_paint("series-1", "s")}/>'
+        f" {_paint('series-1', 's')}/>"
     )
     for (x, y), name, value, count in zip(
         points, names, positional.values, counts, strict=True

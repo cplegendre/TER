@@ -41,7 +41,8 @@ def _report_owner(relative: str) -> str | None:
     """
     parts = relative.split("/")
     if len(parts) == 1:
-        for kind in REPORT_KINDS:
+        # Longest kind first, so ``x.a3.html`` is an A3 report of ``x``.
+        for kind in sorted(REPORT_KINDS, key=len, reverse=True):
             suffix = f".{kind}"
             if parts[0].endswith(suffix):
                 return parts[0][: -len(suffix)]
@@ -115,6 +116,7 @@ def test_session_name_strips_only_known_suffixes(
     ("relative", "expected"),
     [
         ("example_session.html", "example_session"),
+        ("example_session.a3.html", "example_session"),
         ("example_session/composition.svg", "example_session"),
         ("example_session/notes.txt", None),
         ("rework_loop/composition.svg", None),

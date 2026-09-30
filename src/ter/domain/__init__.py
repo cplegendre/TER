@@ -60,6 +60,7 @@ from .stream import (
     TimelineRow,
     TokenCounter,
     analyse_batch,
+    explain_batch,
 )
 
 __all__ = [
@@ -103,6 +104,7 @@ __all__ = [
     "WasteByType",
     "WasteEntry",
     "analyse_batch",
+    "explain_batch",
     "make_event_id",
     "score_spans",
     "token_cost",

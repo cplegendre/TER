@@ -1,0 +1,437 @@
+{
+  "analysis": {
+    "cycles": [],
+    "pareto": [],
+    "scorecard": {
+      "activity_seconds": {
+        "avoidable": 0.0,
+        "necessary_non_value_adding": 14.0,
+        "uncertain": 0.0,
+        "value_adding": 16.0
+      },
+      "activity_tokens": {
+        "avoidable": 0,
+        "necessary_non_value_adding": 135,
+        "uncertain": 0,
+        "value_adding": 285
+      },
+      "agent_seconds": 30.0,
+      "composite": {
+        "components": [
+          {
+            "name": "Flow efficiency (tokens)",
+            "value": 1.0,
+            "weight": 0.3333
+          },
+          {
+            "name": "Flow efficiency (time)",
+            "value": 1.0,
+            "weight": 0.3333
+          },
+          {
+            "name": "TER",
+            "value": 1.0,
+            "weight": 0.3333
+          }
+        ],
+        "formula": "Unweighted mean of Flow efficiency (tokens), Flow efficiency (time), TER.",
+        "value": 1.0
+      },
+      "context_tokens": 54,
+      "developer_seconds": 0.0,
+      "findings": 0,
+      "flow_efficiency_time": 1.0,
+      "flow_efficiency_tokens": 1.0,
+      "flow_seconds": {
+        "inventory": 0.0,
+        "progressing": 30.0,
+        "recovering": 0.0,
+        "repeating": 0.0,
+        "reworking": 0.0,
+        "waiting": 0.0
+      },
+      "flow_tokens": {
+        "inventory": 0,
+        "progressing": 420,
+        "recovering": 0,
+        "repeating": 0,
+        "reworking": 0,
+        "waiting": 0
+      },
+      "generated_tokens": 420,
+      "iterations": 0,
+      "rework_cycles": 0,
+      "risks": 3,
+      "ter": {
+        "method": "TER 3, offline (regex-v1 tokens, lexical-hash-384 embeddings)",
+        "value": 1.0
+      },
+      "uncertain_findings": 0,
+      "uncertain_waste_tokens": 0,
+      "waste_context_tokens": 0,
+      "waste_seconds": 0.0,
+      "waste_tokens": 0
+    }
+  },
+  "background": {
+    "events": 12,
+    "intents": [
+      "Add a login page with email and password validation"
+    ]
+  },
+  "countermeasures": [
+    {
+      "actions": [
+        {
+          "kind": "claude_md",
+          "language": "markdown",
+          "snippet": "- After changing code, run `<your test command, e.g. pytest -q>` and report its result before saying the task is done; say so explicitly if it cannot be run.",
+          "text": "Make validation part of done."
+        },
+        {
+          "kind": "hook",
+          "language": "json",
+          "snippet": "{\n  \"hooks\": {\n    \"PostToolUse\": [\n      {\n        \"matcher\": \"Edit|MultiEdit|Write\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"cd \\\"$CLAUDE_PROJECT_DIR\\\" && <your test command, e.g. pytest -q> >/dev/null 2>&1 || { echo '<your test command, e.g. pytest -q> fails after this edit' >&2; exit 2; }\",\n            \"timeout\": 300\n          }\n        ]\n      }\n    ]\n  }\n}",
+          "text": "Run the check after every edit and feed a failure back to the agent (edited without validation: `src/login.py, templates/login.html`)."
+        }
+      ],
+      "addresses": [
+        "unvalidated_implementation:66675543479d5262"
+      ],
+      "detector": "unvalidated_implementation",
+      "rationale": "1 finding(s), 0 tokens: 2 edit(s) reported without validation.",
+      "title": "Validate every change before reporting it",
+      "uncertain": false,
+      "waste": "defects"
+    },
+    {
+      "actions": [
+        {
+          "kind": "claude_md",
+          "language": "markdown",
+          "snippet": "- Read a file (or the relevant range) before editing it. Before creating a file, read one neighbouring file to follow its conventions.",
+          "text": "Require a look before a change."
+        },
+        {
+          "kind": "setting",
+          "language": "json",
+          "snippet": "{\n  \"permissions\": {\n    \"defaultMode\": \"plan\"\n  }\n}",
+          "text": "Start unfamiliar tasks in plan mode, so exploration comes before edits (changed before reading: `src/login.py`, `templates/login.html`)."
+        }
+      ],
+      "addresses": [
+        "premature_implementation:efbc3fb8debf69d2",
+        "premature_implementation:efbc3fb8debf69d2"
+      ],
+      "detector": "premature_implementation",
+      "rationale": "2 finding(s), 0 tokens: Changed src/login.py before reading it; Changed templates/login.html before reading it. All below the confidence threshold: verify before acting.",
+      "title": "Collect evidence before changing code",
+      "uncertain": true,
+      "waste": "defects"
+    }
+  ],
+  "current_state": {
+    "value_stream": [
+      {
+        "avoidable_tokens": 0,
+        "context_tokens": 0,
+        "findings": [],
+        "seconds": 0.0,
+        "stage": "intent",
+        "steps": 1,
+        "tokens": 0,
+        "uncertain_tokens": 0
+      },
+      {
+        "avoidable_tokens": 0,
+        "context_tokens": 48,
+        "findings": [],
+        "seconds": 5.0,
+        "stage": "explore",
+        "steps": 1,
+        "tokens": 11,
+        "uncertain_tokens": 0
+      },
+      {
+        "avoidable_tokens": 0,
+        "context_tokens": 0,
+        "findings": [],
+        "seconds": 9.0,
+        "stage": "plan",
+        "steps": 2,
+        "tokens": 81,
+        "uncertain_tokens": 0
+      },
+      {
+        "avoidable_tokens": 0,
+        "context_tokens": 6,
+        "findings": [
+          "premature_implementation:efbc3fb8debf69d2",
+          "premature_implementation:efbc3fb8debf69d2",
+          "unvalidated_implementation:66675543479d5262"
+        ],
+        "seconds": 12.0,
+        "stage": "implement",
+        "steps": 2,
+        "tokens": 143,
+        "uncertain_tokens": 0
+      },
+      {
+        "avoidable_tokens": 0,
+        "context_tokens": 0,
+        "findings": [],
+        "seconds": 0,
+        "stage": "validate",
+        "steps": 0,
+        "tokens": 0,
+        "uncertain_tokens": 0
+      },
+      {
+        "avoidable_tokens": 0,
+        "context_tokens": 0,
+        "findings": [
+          "unvalidated_implementation:66675543479d5262"
+        ],
+        "seconds": 4.0,
+        "stage": "respond",
+        "steps": 3,
+        "tokens": 185,
+        "uncertain_tokens": 0
+      }
+    ]
+  },
+  "detectors": [
+    {
+      "confidence_rule": "0.90 when input and output are identical and nothing was edited in between; 0.85 for a validation re-run with no edit in between; 0.75 when edits happened in between but the output is still identical; 0.50 (uncertain) when an output was not observed. Different output: no finding. File reads and searches are left to repeated_exploration; a validation re-run after edits is left to rework_cycle.",
+      "id": "repeated_tool_call",
+      "kind": "waste",
+      "waste": "over_processing"
+    },
+    {
+      "confidence_rule": "0.85 when the same read or search (same arguments) returned identical output and the file was not edited in between; 0.55 (uncertain) when either output was not observed. A read after an edit of that file, a read of a different range, or a changed output is not a finding.",
+      "id": "repeated_exploration",
+      "kind": "waste",
+      "waste": "motion"
+    },
+    {
+      "confidence_rule": "Only cycles of the same validation command with edits in between. 0.80 when the next run fails with the same failure signature (timings and addresses ignored); 0.90 when that is the second or later identical failure in a row. A cycle whose next run passes or fails differently is productive iteration and is not a finding.",
+      "id": "rework_cycle",
+      "kind": "waste",
+      "waste": "rework"
+    },
+    {
+      "confidence_rule": "Judged per prompt, once the agent has responded after its edits. 0.85 when no validation ran in the whole session; 0.75 when validation ran earlier but not after these edits; 0.50 (uncertain) when every unvalidated edit is documentation. 0.85 when the last validation before the response failed.",
+      "id": "unvalidated_implementation",
+      "kind": "risk",
+      "waste": "defects"
+    },
+    {
+      "confidence_rule": "0.75 for an in-place edit of a file never read, written or named in an earlier search or shell output; 0.45 (uncertain) for writing a new file before any exploration at all in the session. One finding per file.",
+      "id": "premature_implementation",
+      "kind": "risk",
+      "waste": "defects"
+    },
+    {
+      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary; the rest as waste.",
+      "id": "excessive_planning",
+      "kind": "waste",
+      "waste": "over_processing"
+    },
+    {
+      "confidence_rule": "At least 3 consecutive edit calls to one file with only reasoning and their results in between. 0.70 for 3, plus 0.05 per extra edit, capped at 0.85. Only the round-trip overhead (results and waiting of edits after the first) is counted as waste, never the change itself.",
+      "id": "fragmented_edits",
+      "kind": "waste",
+      "waste": "over_processing"
+    },
+    {
+      "confidence_rule": "Judged only once the agent has responded after the read. A read counts as used when a later reasoning, response or tool call names the file, or names something the file defines, or edits it. Otherwise 0.65 when the file defined names that were never used, 0.55 when it defined none. Always uncertain: reading to rule something out is legitimate, and only repository evidence (L3) can tell.",
+      "id": "unused_context",
+      "kind": "waste",
+      "waste": "inventory"
+    },
+    {
+      "confidence_rule": "A later tool call by the agent itself shares at least 3 content words and at least half of the smaller word set with the handoff's task. Confidence 0.45 + 0.40 × overlap, capped at 0.85. The handoff (and its waiting time) is the waste; the agent's own call is kept.",
+      "id": "unnecessary_handoff",
+      "kind": "waste",
+      "waste": "handoffs"
+    },
+    {
+      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, and at most 25% of its content words are new (in neither the earlier block nor the prompt). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
+      "id": "repeated_reasoning",
+      "kind": "waste",
+      "waste": "over_processing"
+    },
+    {
+      "confidence_rule": "A whole-file write of a file the agent had itself written, keeping at least 80% of its lines: 0.80. A whole-file write of a file it had read (3+ lines), keeping at least 60% of them: 0.60 (uncertain; small files are often rewritten on purpose). The retained share of the write is waste.",
+      "id": "regeneration",
+      "kind": "waste",
+      "waste": "overproduction"
+    }
+  ],
+  "findings": [
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.45,
+      "context_tokens": 0,
+      "detector": "premature_implementation",
+      "evidence": [
+        "efbc3fb8debf69d2",
+        "66675543479d5262"
+      ],
+      "explanation": "Write changed src/login.py with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
+      "id": "premature_implementation:efbc3fb8debf69d2",
+      "kind": "risk",
+      "seconds": 0.0,
+      "share": 0.0,
+      "subject": "src/login.py",
+      "title": "Changed src/login.py before reading it",
+      "tokens": 0,
+      "uncertain": true,
+      "waste": "defects",
+      "waste_events": []
+    },
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.45,
+      "context_tokens": 0,
+      "detector": "premature_implementation",
+      "evidence": [
+        "efbc3fb8debf69d2",
+        "0c500468149caeae"
+      ],
+      "explanation": "Write changed templates/login.html with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
+      "id": "premature_implementation:efbc3fb8debf69d2",
+      "kind": "risk",
+      "seconds": 0.0,
+      "share": 0.0,
+      "subject": "templates/login.html",
+      "title": "Changed templates/login.html before reading it",
+      "tokens": 0,
+      "uncertain": true,
+      "waste": "defects",
+      "waste_events": []
+    },
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.85,
+      "context_tokens": 0,
+      "detector": "unvalidated_implementation",
+      "evidence": [
+        "66675543479d5262",
+        "9a6da2c967f21f87",
+        "0c500468149caeae",
+        "8a871331a40d3fb9",
+        "96610fb80b1bda8a"
+      ],
+      "explanation": "The agent edited src/login.py, templates/login.html and then responded without running tests, a type check or the code. No check ran anywhere in the session.",
+      "id": "unvalidated_implementation:66675543479d5262",
+      "kind": "risk",
+      "seconds": 0.0,
+      "share": 0.0,
+      "subject": "src/login.py, templates/login.html",
+      "title": "2 edit(s) reported without validation",
+      "tokens": 0,
+      "uncertain": false,
+      "waste": "defects",
+      "waste_events": []
+    }
+  ],
+  "follow_up": [
+    {
+      "current": "2",
+      "how": "findings[detector=premature_implementation]",
+      "metric": "Edits to files not read first",
+      "target": "0"
+    },
+    {
+      "current": "1",
+      "how": "findings[detector=unvalidated_implementation]",
+      "metric": "Responses after unvalidated edits or failing checks",
+      "target": "0"
+    },
+    {
+      "current": "100%",
+      "how": "scorecard.flow_efficiency_tokens",
+      "metric": "Agentic flow efficiency (tokens)",
+      "target": "higher"
+    },
+    {
+      "current": "0%",
+      "how": "scorecard.activity_tokens.avoidable",
+      "metric": "Avoidable share of generated tokens",
+      "target": "lower"
+    }
+  ],
+  "problem": "0% of the 420 tokens the agent generated went to avoidable work across 0 confident finding(s); flow efficiency is 100% of tokens and 100% of agent time; 3 risk(s) to the outcome were flagged.",
+  "root_causes": [
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.85,
+      "context_tokens": 0,
+      "detector": "unvalidated_implementation",
+      "evidence": [
+        "66675543479d5262",
+        "9a6da2c967f21f87",
+        "0c500468149caeae",
+        "8a871331a40d3fb9",
+        "96610fb80b1bda8a"
+      ],
+      "explanation": "The agent edited src/login.py, templates/login.html and then responded without running tests, a type check or the code. No check ran anywhere in the session.",
+      "id": "unvalidated_implementation:66675543479d5262",
+      "kind": "risk",
+      "seconds": 0.0,
+      "share": 0.0,
+      "subject": "src/login.py, templates/login.html",
+      "title": "2 edit(s) reported without validation",
+      "tokens": 0,
+      "uncertain": false,
+      "waste": "defects",
+      "waste_events": []
+    },
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.45,
+      "context_tokens": 0,
+      "detector": "premature_implementation",
+      "evidence": [
+        "efbc3fb8debf69d2",
+        "66675543479d5262"
+      ],
+      "explanation": "Write changed src/login.py with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
+      "id": "premature_implementation:efbc3fb8debf69d2",
+      "kind": "risk",
+      "seconds": 0.0,
+      "share": 0.0,
+      "subject": "src/login.py",
+      "title": "Changed src/login.py before reading it",
+      "tokens": 0,
+      "uncertain": true,
+      "waste": "defects",
+      "waste_events": []
+    },
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.45,
+      "context_tokens": 0,
+      "detector": "premature_implementation",
+      "evidence": [
+        "efbc3fb8debf69d2",
+        "0c500468149caeae"
+      ],
+      "explanation": "Write changed templates/login.html with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
+      "id": "premature_implementation:efbc3fb8debf69d2",
+      "kind": "risk",
+      "seconds": 0.0,
+      "share": 0.0,
+      "subject": "templates/login.html",
+      "title": "Changed templates/login.html before reading it",
+      "tokens": 0,
+      "uncertain": true,
+      "waste": "defects",
+      "waste_events": []
+    }
+  ],
+  "schema": "ter.a3/0.1",
+  "session_id": "session-test-001",
+  "title": "Add a login page with email and password validation"
+}

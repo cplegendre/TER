@@ -83,3 +83,17 @@ class InMemoryEventLog:
 
     def sessions(self) -> tuple[str, ...]:
         return tuple(sorted(self._events))
+
+
+class FixedTerScorer:
+    """A :class:`~ter.ports.driven.TerScorer` fake returning preset scores by reference."""
+
+    def __init__(self, scores: Mapping[str, float], method: str = "fixed") -> None:
+        self._scores = dict(scores)
+        self.method = method
+
+    def score(self, ref: str | Path) -> float:
+        key = str(ref)
+        if key not in self._scores:
+            raise FileNotFoundError(f"No fixed TER for {key!r}")
+        return self._scores[key]

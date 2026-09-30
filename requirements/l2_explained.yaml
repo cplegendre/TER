@@ -3,6 +3,20 @@
 # checked both ways against requirements/points.yaml.
 level: L2
 requirements:
+  - id: TER-ANL-012
+    pattern: ubiquitous
+    text: >-
+      The TER scorer shall return a TER value between 0 and 1 with the name
+      of its scoring method, and the same value on every call for the same
+      session.
+    level: L2
+    port: TerScorer
+    source_points: [4]
+    rationale: >-
+      The L2 scorecard keeps TER as a foundational measure; a bounded,
+      repeatable, named score keeps it comparable with TER 3.
+    status: verified
+
   - id: TER-ANL-020
     pattern: event-driven
     text: >-
@@ -13,7 +27,7 @@ requirements:
     source_points: [40]
     rationale: >-
       A waste claim without evidence cannot be checked or acted on.
-    status: planned
+    status: verified
 
   - id: TER-ANL-021
     pattern: unwanted
@@ -26,7 +40,7 @@ requirements:
     rationale: >-
       Low-confidence findings are shown as such instead of being presented
       as fact.
-    status: planned
+    status: verified
 
   - id: TER-ANL-025
     pattern: ubiquitous
@@ -84,7 +98,7 @@ requirements:
     source_points: [40]
     rationale: >-
       Every waste classification is traceable to observable evidence.
-    status: planned
+    status: verified
 
   - id: TER-DET-002
     pattern: event-driven
@@ -97,7 +111,7 @@ requirements:
     rationale: >-
       Repeated reasoning, exploration, tool calls and regeneration share one
       detection rule.
-    status: planned
+    status: verified
 
   - id: TER-DET-003
     pattern: event-driven
@@ -135,7 +149,7 @@ requirements:
     rationale: >-
       Premature implementation, endless planning and unvalidated
       implementation are sequence faults.
-    status: planned
+    status: verified
 
   - id: TER-DET-006
     pattern: event-driven
@@ -146,7 +160,7 @@ requirements:
     source_points: [26, 37]
     rationale: >-
       Rework must be told apart from productive iteration.
-    status: planned
+    status: verified
 
   - id: TER-DET-007
     pattern: ubiquitous
@@ -193,7 +207,7 @@ requirements:
     source_points: [39]
     rationale: >-
       Validation is valuable once per change; repeats add no information.
-    status: planned
+    status: verified
 
   - id: TER-EXP-001
     pattern: ubiquitous
@@ -211,14 +225,15 @@ requirements:
     pattern: ubiquitous
     text: >-
       TER shall report Agentic Flow Efficiency as the share of session time
-      and tokens spent progressing rather than waiting, repeating,
-      recovering or reworking.
+      and tokens spent progressing or recovering rather than waiting,
+      repeating, reworking or holding unused context.
     level: L2
     source_points: [79, 80]
     rationale: >-
       Flow efficiency is the Lean measure of how much of the session moved
-      the work forward.
-    status: planned
+      the work forward. Recovering (a fix whose next run passes or fails
+      differently) is productive iteration and counts as flow (ADR 0004).
+    status: verified
 
   - id: TER-ITN-001
     pattern: ubiquitous
@@ -285,7 +300,7 @@ requirements:
     rationale: >-
       The three Lean activity classes are the base of every other Lean
       measure.
-    status: planned
+    status: verified
 
   - id: TER-LEN-002
     pattern: ubiquitous
@@ -296,7 +311,7 @@ requirements:
     source_points: [3, 16]
     rationale: >-
       Shares make the Lean classification comparable across sessions.
-    status: planned
+    status: verified
 
   - id: TER-LEN-003
     pattern: ubiquitous
@@ -355,7 +370,19 @@ requirements:
     source_points: [1, 2, 13, 14]
     rationale: >-
       The session is a development process, not a token sequence.
-    status: planned
+    status: verified
+
+  - id: TER-LEN-008
+    pattern: ubiquitous
+    text: >-
+      TER shall produce the same explanation, scorecard and A3 report every
+      time it explains the same event stream.
+    level: L2
+    source_points: [195]
+    rationale: >-
+      A deterministic explanation can be frozen in golden snapshots and
+      recomputed from the recorded events.
+    status: verified
 
   - id: TER-RPT-001
     pattern: ubiquitous
@@ -384,6 +411,45 @@ requirements:
       states its uncertainty, keeps estimates from being read as facts.
     status: verified
 
+  - id: TER-RPT-003
+    pattern: event-driven
+    text: >-
+      When the A3 command runs on a session, the A3 command shall write one
+      A3 report as HTML and JSON from one view-model, with background,
+      current state, analysis, root causes, countermeasures and follow-up
+      sections.
+    level: L2
+    source_points: [13, 80]
+    rationale: >-
+      The A3 shows the value stream as ordered stages and the flow split by
+      tokens and time, in the problem-solving order teams already know.
+    status: verified
+
+  - id: TER-RPT-004
+    pattern: ubiquitous
+    text: >-
+      The A3 renderer shall render each A3 report as one self-contained HTML
+      file with no scripts and no external resources, in which every chart
+      has a title and a description and all session text is escaped.
+    level: L2
+    source_points: [13, 80]
+    rationale: >-
+      The A3 is attached to tickets and opened offline; accessible charts
+      and escaped session text keep it readable and safe.
+    status: verified
+
+  - id: TER-RPT-005
+    pattern: ubiquitous
+    text: >-
+      TER shall derive every A3 countermeasure from a finding of the
+      analysed session.
+    level: L2
+    source_points: [139]
+    rationale: >-
+      A recommendation that no finding supports, for example one triggered
+      by a token count alone, cannot be explained or checked.
+    status: verified
+
   - id: TER-SCR-001
     pattern: ubiquitous
     text: >-
@@ -405,7 +471,7 @@ requirements:
     source_points: [84]
     rationale: >-
       An aggregate is allowed only when its composition stays explainable.
-    status: planned
+    status: verified
 
   - id: TER-SCR-003
     pattern: ubiquitous
