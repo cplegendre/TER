@@ -27,7 +27,7 @@ jobs:
       - name: Architecture import contracts
         run: lint-imports
       - name: EARS requirements and vision points lint
-        run: ter-req lint --tests tests
+        run: ter-req lint --strict --tests tests
       - name: Vision points index is up to date
         run: ter-req points --check
 

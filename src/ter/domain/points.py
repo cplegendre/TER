@@ -120,7 +120,7 @@ class VisionPoint:
             PointError: If a field is missing or has the wrong shape.
         """
         ident = data.get("id")
-        match = _POINT_ID.match(ident) if isinstance(ident, str) else None
+        match = _POINT_ID.fullmatch(ident) if isinstance(ident, str) else None
         if match is None:
             raise PointError(
                 f"point id {ident!r} does not match P001..P{VISION_POINTS}"

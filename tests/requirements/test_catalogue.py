@@ -27,9 +27,10 @@ L0_BASELINE = {
     "TER-SRC-002",
     "TER-SRC-004",
     "TER-ARC-001",
-    "TER-INT-001",
 }
 STARTER_PLANNED = {
+    # Planned until an intervention path exists to prove it is suppressed.
+    "TER-INT-001",
     "TER-OBS-003",
     "TER-OBS-004",
     "TER-ANL-010",

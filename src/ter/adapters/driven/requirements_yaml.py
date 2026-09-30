@@ -43,7 +43,11 @@ class Catalogue:
 
 def _read_yaml(path: Path) -> object:
     try:
-        return yaml.safe_load(path.read_text(encoding="utf-8"))
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise CatalogueError(f"{path}: cannot read: {exc}") from exc
+    try:
+        return yaml.safe_load(text)
     except yaml.YAMLError as exc:
         raise CatalogueError(f"{path}: invalid YAML: {exc}") from exc
 

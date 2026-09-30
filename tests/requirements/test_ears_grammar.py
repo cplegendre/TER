@@ -173,6 +173,7 @@ def test_from_mapping_normalises_fields() -> None:
     [
         ({"id": "ANL-1"}, "does not match"),
         ({"id": None}, "does not match"),
+        ({"id": "TER-ANL-001\n"}, "does not match"),
         ({"extra": 1}, "unknown fields extra"),
         ({"text": ""}, "text is required"),
         ({"rationale": None}, "rationale is required"),

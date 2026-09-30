@@ -1471,12 +1471,12 @@ points:
       Introduce a real-time event stream as a core architectural boundary.
     level: L1
     kind: capability
-    status: done
+    status: partial
     definition_of_done:
       - An EventIngest port is the only way events enter analysis.
     rules: [TER-OBS-001]
     verification:
-      - 'branch: work/l1-observed EventIngest port contract tests'
+      - 'planned: EventIngest port contract tests (lands with the L1 PR, work/l1-observed)'
 
   - id: P102
     text: >-
@@ -1551,14 +1551,14 @@ points:
       Support incremental analysis while a session is active.
     level: L1
     kind: capability
-    status: done
+    status: partial
     definition_of_done:
       - >-
         Analysis runs incrementally, one event at a time, while a session is
         active.
     rules: [TER-ANL-010]
     verification:
-      - 'branch: work/l1-observed AnalysisEngine.apply tests'
+      - 'planned: AnalysisEngine.apply tests (lands with the L1 PR, work/l1-observed)'
 
   - id: P108
     text: >-
@@ -1566,12 +1566,12 @@ points:
       semantics.
     level: L1
     kind: principle
-    status: done
+    status: partial
     definition_of_done:
       - Live and batch analysis share one fold over events.
     rules: [TER-ANL-010]
     verification:
-      - 'branch: work/l1-observed shared fold equivalence tests'
+      - 'planned: shared fold equivalence tests (lands with the L1 PR, work/l1-observed)'
 
   - id: P109
     text: >-
@@ -1579,14 +1579,14 @@ points:
       live results.
     level: L1
     kind: principle
-    status: done
+    status: partial
     definition_of_done:
       - >-
         An equivalence test proves incremental and batch reports are
         identical on the corpus.
     rules: [TER-ANL-010]
     verification:
-      - 'branch: work/l1-observed live = batch equivalence tests'
+      - 'planned: live = batch equivalence tests (lands with the L1 PR, work/l1-observed)'
 
   - id: P110
     text: >-
@@ -1594,64 +1594,64 @@ points:
       recompute entire sessions.
     level: L1
     kind: capability
-    status: done
+    status: partial
     definition_of_done:
       - >-
         Applying one event updates state without reprocessing earlier
         events, shown by an operation-count test.
     rules: [TER-ANL-011]
     verification:
-      - 'branch: work/l1-observed incremental engine state tests'
+      - 'planned: incremental engine state tests (lands with the L1 PR, work/l1-observed)'
 
   - id: P111
     text: >-
       Establish a TER hook subsystem for Claude Code.
     level: L1
     kind: capability
-    status: done
+    status: partial
     definition_of_done:
       - A claude_hooks adapter is installable into Claude Code settings.
     rules: [TER-OBS-002]
     verification:
-      - 'branch: work/l1-observed claude_hooks adapter tests'
+      - 'planned: claude_hooks adapter tests (lands with the L1 PR, work/l1-observed)'
 
   - id: P112
     text: >-
       Observe appropriate Claude lifecycle and tool events through hooks.
     level: L1
     kind: capability
-    status: done
+    status: partial
     definition_of_done:
       - >-
         A documented table maps each supported Claude hook to the events it
         emits.
     rules: [TER-OBS-002]
     verification:
-      - 'branch: work/l1-observed hook to event table tests'
+      - 'planned: hook to event table tests (lands with the L1 PR, work/l1-observed)'
 
   - id: P113
     text: >-
       Capture tool-use events before execution where supported.
     level: L1
     kind: capability
-    status: done
+    status: partial
     definition_of_done:
       - PreToolUse hooks emit tool.requested events.
     rules: [TER-OBS-002]
     verification:
-      - 'branch: work/l1-observed PreToolUse tests'
+      - 'planned: PreToolUse tests (lands with the L1 PR, work/l1-observed)'
 
   - id: P114
     text: >-
       Capture tool outcomes after execution where supported.
     level: L1
     kind: capability
-    status: done
+    status: partial
     definition_of_done:
       - PostToolUse hooks emit tool.completed events.
     rules: [TER-OBS-002, TER-OBS-003]
     verification:
-      - 'branch: work/l1-observed PostToolUse tests'
+      - 'planned: PostToolUse tests (lands with the L1 PR, work/l1-observed)'
 
   - id: P115
     text: >-
@@ -1707,26 +1707,26 @@ points:
       Assign stable identities across static and live observations.
     level: L1
     kind: capability
-    status: done
+    status: partial
     definition_of_done:
       - >-
         Static and live observation of the same record produce the same
         event id.
     rules: [TER-OBS-007, TER-SRC-004]
     verification:
-      - 'branch: work/l1-observed same-id static and live tests'
+      - 'planned: same-id static and live tests (lands with the L1 PR, work/l1-observed)'
 
   - id: P119
     text: >-
       Ensure duplicate events do not distort analysis.
     level: L1
     kind: capability
-    status: done
+    status: partial
     definition_of_done:
       - Re-delivered events are discarded without changing analysis state.
     rules: [TER-OBS-004]
     verification:
-      - 'branch: work/l1-observed re-delivery tests'
+      - 'planned: re-delivery tests (lands with the L1 PR, work/l1-observed)'
 
   - id: P120
     text: >-
@@ -1734,14 +1734,14 @@ points:
       a source of development waste.
     level: L1
     kind: capability
-    status: done
+    status: partial
     definition_of_done:
       - >-
         Hook processing completes within 50 ms at p95 in a benchmark run in
         CI.
     rules: [TER-OBS-003]
     verification:
-      - 'branch: work/l1-observed hook latency benchmark'
+      - 'planned: hook latency benchmark (lands with the L1 PR, work/l1-observed)'
 
   - id: P121
     text: >-
@@ -1762,7 +1762,7 @@ points:
       Make passive observation the safest default operating mode.
     level: L1
     kind: principle
-    status: done
+    status: partial
     definition_of_done:
       - >-
         The default ceiling observes only; the hook returns an empty
@@ -1770,7 +1770,7 @@ points:
     rules: [TER-INT-001, TER-OBS-008]
     verification:
       - 'test: tests/unit/test_ter4_domain.py::TestMaturity::test_ceiling_permits_only_levels_at_or_below_it'
-      - 'branch: work/l1-observed observe-only hook tests'
+      - 'planned: observe-only hook tests (lands with the L1 PR, work/l1-observed)'
 
   - id: P123
     text: >-

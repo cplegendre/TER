@@ -74,7 +74,7 @@ requirements:
     rationale: >-
       An installation that only observes never acts on the session; the
       ceiling is a runtime guarantee, not a convention.
-    status: verified
+    status: planned
 
   - id: TER-REQ-001
     pattern: ubiquitous

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -376,12 +377,29 @@ def _run(capsys: pytest.CaptureFixture[str], *argv: str) -> tuple[int, str]:
     return code, capsys.readouterr().out
 
 
-def test_cli_lint_checks_points(capsys: pytest.CaptureFixture[str]) -> None:
+def test_cli_lint_checks_points(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     base = ["--catalogue", str(ROOT / "requirements"), "--root", str(ROOT), "lint"]
-    code, out = _run(capsys, *base)
-    assert code == 0 and "200 points, 0 errors" in out
     code, out = _run(capsys, *base, "--strict")
-    assert code == 1 and "warning: P101: [POINT-PENDING]" in out
+    assert code == 0 and "200 points, 0 errors, 0 warnings" in out
+
+    # A done point whose only proof is on another branch passes plain lint
+    # with a warning, and fails --strict (what CI runs).
+    copy = tmp_path / "requirements"
+    shutil.copytree(ROOT / "requirements", copy)
+    points = copy / "points.yaml"
+    text = points.read_text(encoding="utf-8")
+    start = text.index("id: P102")
+    proof = text.index("'test: ", start)
+    end = text.index("'", proof + 1) + 1
+    text = text[:proof] + "'branch: work/other pending proof'" + text[end:]
+    points.write_text(text, encoding="utf-8")
+    pending = ["--catalogue", str(copy), "--root", str(ROOT), "lint"]
+    code, out = _run(capsys, *pending)
+    assert code == 0 and "warning: P102: [POINT-PENDING]" in out
+    code, out = _run(capsys, *pending, "--strict")
+    assert code == 1 and "warning: P102: [POINT-PENDING]" in out
 
 
 def test_cli_points_writes_and_checks_the_index(

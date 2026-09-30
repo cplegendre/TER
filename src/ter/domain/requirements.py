@@ -129,7 +129,7 @@ class Requirement:
         }
         unknown = sorted(set(data) - known)
         ident = data.get("id")
-        if not isinstance(ident, str) or not REQUIREMENT_ID.match(ident):
+        if not isinstance(ident, str) or not REQUIREMENT_ID.fullmatch(ident):
             raise RequirementError(f"id {ident!r} does not match TER-<AREA>-NNN")
         if unknown:
             raise RequirementError(f"{ident}: unknown fields {', '.join(unknown)}")

@@ -177,18 +177,27 @@ def _cmd_report(args: argparse.Namespace, catalogue: Catalogue) -> int:
     return 0
 
 
+def _add_location_options(parser: argparse.ArgumentParser, default: object) -> None:
+    """--catalogue and --root, accepted before or after the subcommand."""
+    parser.add_argument(
+        "--catalogue",
+        type=Path,
+        default=DEFAULT_CATALOGUE if default is None else default,
+    )
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=Path(".") if default is None else default,
+        help="repository root for test/ci checks",
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="ter-req",
         description="Lint, trace and report on the TER EARS requirement catalogue.",
     )
-    parser.add_argument("--catalogue", type=Path, default=DEFAULT_CATALOGUE)
-    parser.add_argument(
-        "--root",
-        type=Path,
-        default=Path("."),
-        help="repository root for test/ci checks",
-    )
+    _add_location_options(parser, None)
     sub = parser.add_subparsers(dest="command", required=True)
 
     lint = sub.add_parser("lint", help="check EARS grammar and catalogue invariants")
@@ -200,6 +209,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="treat warnings (pending merges) as errors",
     )
+    _add_location_options(lint, argparse.SUPPRESS)
     lint.set_defaults(handler=_cmd_lint)
 
     gate = sub.add_parser(
@@ -210,6 +220,7 @@ def build_parser() -> argparse.ArgumentParser:
     gate.add_argument(
         "--summary", type=Path, default=None, help="append a Markdown report here"
     )
+    _add_location_options(gate, argparse.SUPPRESS)
     gate.set_defaults(handler=_cmd_trace)
 
     points = sub.add_parser("points", help="write the vision points index")
@@ -217,6 +228,7 @@ def build_parser() -> argparse.ArgumentParser:
     points.add_argument(
         "--check", action="store_true", help="fail when the committed index is stale"
     )
+    _add_location_options(points, argparse.SUPPRESS)
     points.set_defaults(handler=_cmd_points)
 
     report = sub.add_parser(
@@ -225,6 +237,7 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("--results", type=Path, default=None)
     report.add_argument("--gate", type=Maturity.parse, default=Maturity.MEASURED)
     report.add_argument("--out", type=Path, default=None)
+    _add_location_options(report, argparse.SUPPRESS)
     report.set_defaults(handler=_cmd_report)
     return parser
 

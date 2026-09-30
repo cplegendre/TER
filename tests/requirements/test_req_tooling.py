@@ -240,6 +240,23 @@ def test_cli_reports_missing_catalogue(
     assert code == 2 and "not found" in err
 
 
+def test_cli_accepts_location_options_after_the_subcommand(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    catalogue = str(_catalogue(tmp_path))
+    code, out, _ = _run(capsys, "lint", "--catalogue", catalogue, "--root", ".")
+    assert code == 0 and "OK: 2 requirements" in out
+
+
+def test_cli_reports_an_unreadable_catalogue_file(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    directory = _catalogue(tmp_path)
+    (directory / "broken.yaml").write_bytes(b"requirements: [\xff\xfe]\n")
+    code, _, err = _run(capsys, "--catalogue", str(directory), "lint")
+    assert code == 2 and "cannot read" in err
+
+
 def test_cli_points_needs_a_points_file(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
