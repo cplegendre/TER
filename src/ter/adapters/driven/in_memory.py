@@ -67,3 +67,19 @@ class SystemClock:
 
     def now(self) -> datetime:
         return datetime.now().astimezone()
+
+
+class InMemoryEventLog:
+    """An :class:`~ter.ports.driven.EventLog` held in a dict, for tests."""
+
+    def __init__(self) -> None:
+        self._events: dict[str, list[Event]] = {}
+
+    def append(self, event: Event) -> None:
+        self._events.setdefault(event.session_id, []).append(event)
+
+    def events(self, session_id: str) -> tuple[Event, ...]:
+        return tuple(self._events.get(session_id, ()))
+
+    def sessions(self) -> tuple[str, ...]:
+        return tuple(sorted(self._events))

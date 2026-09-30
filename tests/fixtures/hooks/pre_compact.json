@@ -1,0 +1,8 @@
+{
+  "session_id": "3f0c9a1e-hook-demo",
+  "transcript_path": "/home/dev/.claude/projects/-home-dev-app/3f0c9a1e-hook-demo.jsonl",
+  "cwd": "/home/dev/app",
+  "hook_event_name": "PreCompact",
+  "trigger": "auto",
+  "custom_instructions": ""
+}

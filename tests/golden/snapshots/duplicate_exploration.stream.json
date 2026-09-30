@@ -1,0 +1,308 @@
+{
+  "by_class": {
+    "generated": 13,
+    "tool": 9,
+    "user": 1
+  },
+  "by_kind": {
+    "intent.stated": 1,
+    "reasoning": 3,
+    "response": 1,
+    "tool.completed": 9,
+    "tool.requested": 9
+  },
+  "by_tool": {
+    "exec.shell": 1,
+    "fs.edit": 2,
+    "fs.read": 4,
+    "fs.search": 2
+  },
+  "duplicate_tool_calls": [
+    "1177e4320222fe66",
+    "8b7fad85cf80c1b4"
+  ],
+  "edits_since_validation": 0,
+  "open_requests": [],
+  "orphan_results": [],
+  "peak_edits_without_validation": 2,
+  "repeated_reads": {
+    "src/cli.py": 2
+  },
+  "session_id": "golden-explore",
+  "timeline": [
+    [
+      0,
+      "3bd62fa0b8f7bf38",
+      "intent.stated",
+      "user",
+      null,
+      null,
+      22,
+      null,
+      []
+    ],
+    [
+      1,
+      "e91df7fc4c6628ba",
+      "reasoning",
+      "assistant",
+      null,
+      null,
+      9,
+      49,
+      []
+    ],
+    [
+      2,
+      "b7220effbe9d33b8",
+      "tool.requested",
+      "assistant",
+      "fs.search",
+      "Grep",
+      17,
+      null,
+      []
+    ],
+    [
+      3,
+      "84876697215eb36b",
+      "tool.completed",
+      "tool",
+      "fs.search",
+      "Grep",
+      10,
+      null,
+      []
+    ],
+    [
+      4,
+      "69551b0f692010d4",
+      "tool.requested",
+      "assistant",
+      "fs.read",
+      "Read",
+      15,
+      26,
+      []
+    ],
+    [
+      5,
+      "a01c619d1c5c27e1",
+      "tool.completed",
+      "tool",
+      "fs.read",
+      "Read",
+      54,
+      null,
+      []
+    ],
+    [
+      6,
+      "98e08d2104e03291",
+      "tool.requested",
+      "assistant",
+      "fs.read",
+      "Read",
+      15,
+      27,
+      []
+    ],
+    [
+      7,
+      "a2a3ce288e90f730",
+      "tool.completed",
+      "tool",
+      "fs.read",
+      "Read",
+      22,
+      null,
+      []
+    ],
+    [
+      8,
+      "a33373b4cca658c1",
+      "tool.requested",
+      "assistant",
+      "fs.read",
+      "Read",
+      15,
+      27,
+      []
+    ],
+    [
+      9,
+      "c878858709305d4e",
+      "tool.completed",
+      "tool",
+      "fs.read",
+      "Read",
+      9,
+      null,
+      []
+    ],
+    [
+      10,
+      "546f400bea474093",
+      "reasoning",
+      "assistant",
+      null,
+      null,
+      17,
+      57,
+      []
+    ],
+    [
+      11,
+      "1177e4320222fe66",
+      "tool.requested",
+      "assistant",
+      "fs.search",
+      "Grep",
+      17,
+      null,
+      [
+        "tool.duplicate_call"
+      ]
+    ],
+    [
+      12,
+      "aabd7f3b0c0ca016",
+      "tool.completed",
+      "tool",
+      "fs.search",
+      "Grep",
+      10,
+      null,
+      []
+    ],
+    [
+      13,
+      "8b7fad85cf80c1b4",
+      "tool.requested",
+      "assistant",
+      "fs.read",
+      "Read",
+      15,
+      26,
+      [
+        "tool.duplicate_call",
+        "fs.repeated_read"
+      ]
+    ],
+    [
+      14,
+      "551fb453dac2dc0c",
+      "tool.completed",
+      "tool",
+      "fs.read",
+      "Read",
+      54,
+      null,
+      []
+    ],
+    [
+      15,
+      "978c4f7ab23a85c2",
+      "reasoning",
+      "assistant",
+      null,
+      null,
+      29,
+      112,
+      []
+    ],
+    [
+      16,
+      "0f8094ebbe312229",
+      "tool.requested",
+      "assistant",
+      "fs.edit",
+      "Edit",
+      87,
+      null,
+      []
+    ],
+    [
+      17,
+      "6780ba10f97237d3",
+      "tool.completed",
+      "tool",
+      "fs.edit",
+      "Edit",
+      11,
+      null,
+      []
+    ],
+    [
+      18,
+      "ad332e5d05b44868",
+      "tool.requested",
+      "assistant",
+      "fs.edit",
+      "Edit",
+      54,
+      56,
+      [
+        "fs.unvalidated_edit"
+      ]
+    ],
+    [
+      19,
+      "a7dfb58e41535f1b",
+      "tool.completed",
+      "tool",
+      "fs.edit",
+      "Edit",
+      11,
+      null,
+      []
+    ],
+    [
+      20,
+      "77910e19bcf7fd61",
+      "tool.requested",
+      "assistant",
+      "exec.shell",
+      "Bash",
+      23,
+      33,
+      []
+    ],
+    [
+      21,
+      "ba596fba8145538b",
+      "tool.completed",
+      "tool",
+      "exec.shell",
+      "Bash",
+      6,
+      null,
+      []
+    ],
+    [
+      22,
+      "1fe73e0664d87005",
+      "response",
+      "assistant",
+      null,
+      null,
+      67,
+      83,
+      []
+    ]
+  ],
+  "tokenizer": "regex-v1",
+  "tokens_by_class": {
+    "generated": 380,
+    "tool": 187,
+    "user": 22
+  },
+  "tokens_exact": false,
+  "total_events": 23,
+  "usage": {
+    "cache_creation": 0,
+    "cache_read": 0,
+    "input": 4000,
+    "output": 496
+  }
+}

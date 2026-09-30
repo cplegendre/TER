@@ -1,0 +1,19 @@
+{
+  "session_id": "3f0c9a1e-hook-demo",
+  "transcript_path": "/home/dev/.claude/projects/-home-dev-app/3f0c9a1e-hook-demo.jsonl",
+  "cwd": "/home/dev/app",
+  "permission_mode": "default",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "pytest tests/test_parser.py -q",
+    "description": "Run parser tests"
+  },
+  "tool_response": {
+    "stdout": "3 passed in 0.02s",
+    "stderr": "",
+    "interrupted": false,
+    "isImage": false
+  },
+  "tool_use_id": "toolu_03BashTests"
+}

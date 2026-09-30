@@ -1,0 +1,203 @@
+{
+  "by_class": {
+    "generated": 9,
+    "tool": 4,
+    "user": 1
+  },
+  "by_kind": {
+    "intent.stated": 1,
+    "reasoning": 3,
+    "response": 2,
+    "tool.completed": 4,
+    "tool.requested": 4
+  },
+  "by_tool": {
+    "exec.shell": 1,
+    "fs.read": 2,
+    "fs.write": 1
+  },
+  "duplicate_tool_calls": [
+    "53fa055cfc1d65bf"
+  ],
+  "edits_since_validation": 0,
+  "open_requests": [],
+  "orphan_results": [],
+  "peak_edits_without_validation": 1,
+  "repeated_reads": {
+    "src/app.py": 2
+  },
+  "session_id": "sample-session-001",
+  "timeline": [
+    [
+      0,
+      "ea7ea3e6dc9e7df9",
+      "intent.stated",
+      "user",
+      null,
+      null,
+      34,
+      null,
+      []
+    ],
+    [
+      1,
+      "3063f61df0524c05",
+      "reasoning",
+      "assistant",
+      null,
+      null,
+      17,
+      48,
+      []
+    ],
+    [
+      2,
+      "ee0118c14f82fa55",
+      "response",
+      "assistant",
+      null,
+      null,
+      13,
+      null,
+      []
+    ],
+    [
+      3,
+      "a7ca94f36f4da52d",
+      "tool.requested",
+      "assistant",
+      "fs.read",
+      "Read",
+      27,
+      31,
+      []
+    ],
+    [
+      4,
+      "811ba328293575c9",
+      "tool.completed",
+      "tool",
+      "fs.read",
+      "Read",
+      28,
+      null,
+      []
+    ],
+    [
+      5,
+      "15fe5e5a30ddea26",
+      "reasoning",
+      "assistant",
+      null,
+      null,
+      30,
+      59,
+      []
+    ],
+    [
+      6,
+      "53fa055cfc1d65bf",
+      "tool.requested",
+      "assistant",
+      "fs.read",
+      "Read",
+      27,
+      null,
+      [
+        "tool.duplicate_call",
+        "fs.repeated_read"
+      ]
+    ],
+    [
+      7,
+      "c418879109656e20",
+      "tool.completed",
+      "tool",
+      "fs.read",
+      "Read",
+      28,
+      null,
+      []
+    ],
+    [
+      8,
+      "11462446bcebf612",
+      "reasoning",
+      "assistant",
+      null,
+      null,
+      18,
+      132,
+      []
+    ],
+    [
+      9,
+      "eca762078b6545c5",
+      "tool.requested",
+      "assistant",
+      "fs.write",
+      "Write",
+      190,
+      null,
+      []
+    ],
+    [
+      10,
+      "8892e9f624a892b5",
+      "tool.completed",
+      "tool",
+      "fs.write",
+      "Write",
+      9,
+      null,
+      []
+    ],
+    [
+      11,
+      "48f5065363d25a9f",
+      "tool.requested",
+      "assistant",
+      "exec.shell",
+      "Bash",
+      97,
+      76,
+      []
+    ],
+    [
+      12,
+      "2471b8726436c8ff",
+      "tool.completed",
+      "tool",
+      "exec.shell",
+      "Bash",
+      2,
+      null,
+      []
+    ],
+    [
+      13,
+      "d3a04d382391d0f4",
+      "response",
+      "assistant",
+      null,
+      null,
+      58,
+      96,
+      []
+    ]
+  ],
+  "tokenizer": "regex-v1",
+  "tokens_by_class": {
+    "generated": 477,
+    "tool": 67,
+    "user": 34
+  },
+  "tokens_exact": false,
+  "total_events": 14,
+  "usage": {
+    "cache_creation": 24,
+    "cache_read": 960,
+    "input": 1446,
+    "output": 442
+  }
+}

@@ -27,7 +27,7 @@ from ....domain.events import (
     UnrecognisedRecord,
     make_event_id,
 )
-from .tool_map import tool_kind
+from ...claude_code_tools import tool_kind
 
 #: Record types that carry conversation content and are mapped to events.
 _CONTENT_TYPES = frozenset({"user", "assistant"})

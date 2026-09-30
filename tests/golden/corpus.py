@@ -26,4 +26,4 @@ CORPUS: dict[str, Path] = {
 }
 
 #: Snapshot kinds every session must have, as ``<name>.<kind>.json``.
-SNAPSHOT_KINDS: tuple[str, ...] = ("default", "fine", "events")
+SNAPSHOT_KINDS: tuple[str, ...] = ("default", "fine", "events", "stream")

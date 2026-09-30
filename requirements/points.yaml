@@ -1476,7 +1476,8 @@ points:
       - An EventIngest port is the only way events enter analysis.
     rules: [TER-OBS-001]
     verification:
-      - 'planned: EventIngest port contract tests (lands with the L1 PR, work/l1-observed)'
+      - 'test: tests/contract/test_event_ingest.py'
+      - 'planned: recorded sessions enter analysis through EventIngest too (TER-OBS-001)'
 
   - id: P102
     text: >-
@@ -1551,14 +1552,14 @@ points:
       Support incremental analysis while a session is active.
     level: L1
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Analysis runs incrementally, one event at a time, while a session is
         active.
     rules: [TER-ANL-010]
     verification:
-      - 'planned: AnalysisEngine.apply tests (lands with the L1 PR, work/l1-observed)'
+      - 'test: tests/equivalence/test_live_static.py::test_replay_one_by_one_equals_batch'
 
   - id: P108
     text: >-
@@ -1566,12 +1567,12 @@ points:
       semantics.
     level: L1
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - Live and batch analysis share one fold over events.
     rules: [TER-ANL-010]
     verification:
-      - 'planned: shared fold equivalence tests (lands with the L1 PR, work/l1-observed)'
+      - 'test: tests/unit/test_ter4_stream.py::test_batch_is_the_fold_of_apply'
 
   - id: P109
     text: >-
@@ -1579,14 +1580,16 @@ points:
       live results.
     level: L1
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         An equivalence test proves incremental and batch reports are
         identical on the corpus.
     rules: [TER-ANL-010]
     verification:
-      - 'planned: live = batch equivalence tests (lands with the L1 PR, work/l1-observed)'
+      - 'test: tests/equivalence/test_live_static.py'
+      - 'test: tests/unit/test_ter4_stream_properties.py::test_incremental_equals_batch'
+      - 'test: tests/golden/test_stream_report_snapshot.py'
 
   - id: P110
     text: >-
@@ -1601,57 +1604,62 @@ points:
         events, shown by an operation-count test.
     rules: [TER-ANL-011]
     verification:
-      - 'planned: incremental engine state tests (lands with the L1 PR, work/l1-observed)'
+      - 'test: tests/unit/test_ter4_stream.py::test_batch_is_the_fold_of_apply'
+      - 'planned: operation-count test showing apply does not reprocess earlier events (TER-ANL-011)'
 
   - id: P111
     text: >-
       Establish a TER hook subsystem for Claude Code.
     level: L1
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - A claude_hooks adapter is installable into Claude Code settings.
     rules: [TER-OBS-002]
     verification:
-      - 'planned: claude_hooks adapter tests (lands with the L1 PR, work/l1-observed)'
+      - 'test: tests/unit/test_ter4_claude_hooks.py'
+      - 'test: tests/unit/test_ter4_cli.py::test_python_dash_m_ter'
 
   - id: P112
     text: >-
       Observe appropriate Claude lifecycle and tool events through hooks.
     level: L1
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         A documented table maps each supported Claude hook to the events it
         emits.
     rules: [TER-OBS-002]
     verification:
-      - 'planned: hook to event table tests (lands with the L1 PR, work/l1-observed)'
+      - 'test: tests/contract/test_hook_payloads.py::test_fixture_translates_to_the_pinned_events'
+      - 'test: tests/contract/test_hook_payloads.py::test_every_fixture_has_an_expectation'
 
   - id: P113
     text: >-
       Capture tool-use events before execution where supported.
     level: L1
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - PreToolUse hooks emit tool.requested events.
     rules: [TER-OBS-002]
     verification:
-      - 'planned: PreToolUse tests (lands with the L1 PR, work/l1-observed)'
+      - 'test: tests/contract/test_hook_payloads.py::test_fixture_translates_to_the_pinned_events'
+      - 'test: tests/contract/test_hook_payloads.py::test_pre_and_post_tool_use_share_the_request_identity'
 
   - id: P114
     text: >-
       Capture tool outcomes after execution where supported.
     level: L1
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - PostToolUse hooks emit tool.completed events.
     rules: [TER-OBS-002, TER-OBS-003]
     verification:
-      - 'planned: PostToolUse tests (lands with the L1 PR, work/l1-observed)'
+      - 'test: tests/contract/test_hook_payloads.py::test_fixture_translates_to_the_pinned_events'
+      - 'test: tests/unit/test_ter4_claude_hooks.py::TestHandleHook::test_records_events_through_the_ingest'
 
   - id: P115
     text: >-
@@ -1714,19 +1722,23 @@ points:
         event id.
     rules: [TER-OBS-007, TER-SRC-004]
     verification:
-      - 'planned: same-id static and live tests (lands with the L1 PR, work/l1-observed)'
+      - 'test: tests/golden/test_event_stream_snapshot.py::test_event_stream_matches_golden_snapshot'
+      - 'planned: hook and transcript observation of one record share an event id (TER-OBS-007)'
 
   - id: P119
     text: >-
       Ensure duplicate events do not distort analysis.
     level: L1
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - Re-delivered events are discarded without changing analysis state.
     rules: [TER-OBS-004]
     verification:
-      - 'planned: re-delivery tests (lands with the L1 PR, work/l1-observed)'
+      - 'test: tests/unit/test_ter4_stream.py::test_redelivered_event_is_discarded_without_changing_state'
+      - 'test: tests/contract/test_event_ingest.py::test_redelivery_changes_nothing'
+      - 'test: tests/equivalence/test_live_static.py::test_live_with_redelivery_through_the_log_equals_batch'
+      - 'test: tests/contract/test_event_ingest.py::test_hook_processes_that_record_again_leave_the_report_unchanged'
 
   - id: P120
     text: >-
@@ -1734,14 +1746,15 @@ points:
       a source of development waste.
     level: L1
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Hook processing completes within 50 ms at p95 in a benchmark run in
         CI.
     rules: [TER-OBS-003]
     verification:
-      - 'planned: hook latency benchmark (lands with the L1 PR, work/l1-observed)'
+      - 'test: tests/unit/test_ter4_claude_hooks.py::test_post_tool_use_is_appended_within_50ms_at_p95'
+      - 'test: tests/unit/test_ter4_claude_hooks.py::test_a_fresh_hook_process_appends_within_50ms_at_p95'
 
   - id: P121
     text: >-
@@ -1762,7 +1775,7 @@ points:
       Make passive observation the safest default operating mode.
     level: L1
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         The default ceiling observes only; the hook returns an empty
@@ -1770,7 +1783,7 @@ points:
     rules: [TER-INT-001, TER-OBS-008]
     verification:
       - 'test: tests/unit/test_ter4_domain.py::TestMaturity::test_ceiling_permits_only_levels_at_or_below_it'
-      - 'planned: observe-only hook tests (lands with the L1 PR, work/l1-observed)'
+      - 'test: tests/unit/test_ter4_claude_hooks.py::TestRunHook::test_prints_the_neutral_hook_output'
 
   - id: P123
     text: >-

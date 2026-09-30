@@ -5,13 +5,16 @@ from __future__ import annotations
 from collections.abc import Sequence
 from datetime import date, datetime
 from pathlib import Path
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-import numpy as np
-from numpy.typing import NDArray
-
-from ..domain.events import SessionTrace
+from ..domain.events import Event, SessionTrace
 from ..domain.pricing import Rates
+
+if TYPE_CHECKING:
+    # Annotation-only, so short-lived entry points (hooks) do not pay for
+    # importing numpy just to declare the Embedder port.
+    import numpy as np
+    from numpy.typing import NDArray
 
 
 @runtime_checkable
@@ -82,3 +85,26 @@ class PriceBook(Protocol):
     def models(self) -> tuple[str, ...]: ...
 
     def rate(self, model: str, at: date | None = None) -> Rates: ...
+
+
+@runtime_checkable
+class EventLog(Protocol):
+    """An append-only store of normalised events, grouped by session.
+
+    Live mode appends each event as it arrives; analysis replays the log. The
+    log may hold the same event twice (a retried append): consumers rely on
+    event ids, not on the log, for idempotency.
+
+    Obligations, verified by ``tests/contract/test_event_log.py``:
+
+    * ``events(session_id)`` returns appended events in append order, equal
+      field for field to what was appended;
+    * sessions never leak into each other, and an unknown session is empty;
+    * ``sessions()`` lists every session with at least one event, sorted.
+    """
+
+    def append(self, event: Event) -> None: ...
+
+    def events(self, session_id: str) -> tuple[Event, ...]: ...
+
+    def sessions(self) -> tuple[str, ...]: ...

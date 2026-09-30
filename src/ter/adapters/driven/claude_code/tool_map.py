@@ -1,39 +1,7 @@
-"""Claude Code native tool names mapped to harness-independent tool kinds.
-
-This table is data: when Claude Code adds or renames a tool, only this table
-changes. Unknown tools map to ``ToolKind.OTHER`` and stay visible in reports.
-"""
+"""Compatibility re-export; the table lives in :mod:`ter.adapters.claude_code_tools`."""
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from ...claude_code_tools import CLAUDE_CODE_TOOL_KINDS, tool_kind
 
-from ....domain.events import ToolKind
-
-CLAUDE_CODE_TOOL_KINDS: Mapping[str, ToolKind] = {
-    "Read": ToolKind.FS_READ,
-    "NotebookRead": ToolKind.FS_READ,
-    "Grep": ToolKind.FS_SEARCH,
-    "Glob": ToolKind.FS_SEARCH,
-    "LS": ToolKind.FS_SEARCH,
-    "Edit": ToolKind.FS_EDIT,
-    "MultiEdit": ToolKind.FS_EDIT,
-    "NotebookEdit": ToolKind.FS_EDIT,
-    "Write": ToolKind.FS_WRITE,
-    "Bash": ToolKind.EXEC_SHELL,
-    "BashOutput": ToolKind.EXEC_SHELL,
-    "KillShell": ToolKind.EXEC_SHELL,
-    "WebFetch": ToolKind.NET_FETCH,
-    "WebSearch": ToolKind.NET_FETCH,
-    "Task": ToolKind.AGENT_HANDOFF,
-    "Agent": ToolKind.AGENT_HANDOFF,
-    "TodoWrite": ToolKind.PLAN,
-    "ExitPlanMode": ToolKind.PLAN,
-}
-
-
-def tool_kind(native_name: str | None) -> ToolKind:
-    """Return the neutral kind for a Claude Code tool name."""
-    if not native_name:
-        return ToolKind.OTHER
-    return CLAUDE_CODE_TOOL_KINDS.get(native_name, ToolKind.OTHER)
+__all__ = ["CLAUDE_CODE_TOOL_KINDS", "tool_kind"]

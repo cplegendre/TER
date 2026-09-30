@@ -68,7 +68,7 @@ points:
     # issue: 35                 # optional: GitHub issue for work needing real session data
     # real_data: true           # blocks status done until real_data_verified: true
     verification:
-      - 'branch: work/l1-observed re-delivery tests'
+      - 'test: tests/contract/test_event_ingest.py::test_redelivery_changes_nothing'
 ```
 
 Verification entries take one of four forms:
@@ -200,8 +200,10 @@ Markdown report with one row per level:
 Mermaid pie chart of the status split, the vision-point grid and a table of
 every requirement per level follow.
 
-CI runs the gate at L0. Raising the gate (`--gate L1`) is the build side of
-claiming a level; `Maturity.permits` is the runtime side.
+CI runs the gate at L0 and at L1. Raising the gate (`--gate L2`) is the build
+side of claiming a level; `Maturity.permits` is the runtime side. The L1 gate
+checks only the L1 requirements already verified; planned ones (Stop and
+SubagentStop hooks, hook to transcript id correlation) wait on issue #35.
 
 ## Where the code lives
 
