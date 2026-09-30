@@ -1,0 +1,294 @@
+# Claude Code hooks guide
+
+Claude Code runs *hooks*: shell commands it calls at points in a session,
+passing a JSON payload on stdin. TER uses hooks in three ways:
+
+| Use | Command | What it does | Changes agent behaviour? |
+|---|---|---|---|
+| **Capture** (TER 4, L1) | `python -m ter hook` | Records each prompt and tool call as a `ter.event` in an event log, for live or later analysis | No: always answers `{}` |
+| **Live waste monitor** (TER 3) | `ter hook monitor` | Checks five fast patterns on each tool call and injects guidance when one trips | Yes: adds context for the agent and a notice for you |
+| **Countermeasure hooks** (from the A3) | scripts the A3 writes for you | Block or flag a specific waste the A3 found in your sessions | Yes: blocks or feeds back on the call |
+
+The TER 3 monitor's full reference, with every threshold, remains in
+[docs/hooks-guide.md](../hooks-guide.md).
+
+## Capturing sessions with the TER 4 hook
+
+The capture hook turns Claude Code hook payloads into the same event stream
+TER builds from transcripts, so a live session and its transcript go through
+one analysis engine ([docs/ter4/l1-observed.md](../ter4/l1-observed.md)).
+
+### 1. Register the hook
+
+Add to `.claude/settings.json` in your project (or `~/.claude/settings.json`
+for every project):
+
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {"hooks": [{"type": "command", "command": "python -m ter hook"}]}
+    ],
+    "PreToolUse": [
+      {"matcher": "*", "hooks": [{"type": "command", "command": "python -m ter hook"}]}
+    ],
+    "PostToolUse": [
+      {"matcher": "*", "hooks": [{"type": "command", "command": "python -m ter hook"}]}
+    ]
+  }
+}
+```
+
+`python` must be the interpreter TER is installed in. If it is in a virtual
+environment, use its absolute path, for example
+`/path/to/venv/bin/python -m ter hook`.
+
+PostToolUse alone is enough to record tool calls: it emits the request and
+the completion. Registering PreToolUse too records the request before the
+tool runs; the duplicate request that PostToolUse emits later has the same id
+and is discarded (TER-OBS-004).
+
+### 2. Choose where events go
+
+Events are appended as JSONL, one file per session, under
+`$XDG_CACHE_HOME/ter/events` (`~/.cache/ter/events` when `XDG_CACHE_HOME` is
+unset) by default. The log holds your prompts and tool output, so it lives in
+your home directory rather than a shared temporary directory. Move it with an
+environment variable or a flag:
+
+```bash
+export TER_EVENT_LOG_DIR="$HOME/.ter/events"
+python -m ter hook --event-log "$HOME/.ter/events" < payload.json
+```
+
+### 3. Check it works
+
+Replay the fixture payloads the contract tests use, then read the log back:
+
+```bash
+python -m ter hook --event-log /tmp/ter-demo < tests/fixtures/hooks/user_prompt_submit.json
+python -m ter hook --event-log /tmp/ter-demo < tests/fixtures/hooks/post_tool_use_read.json
+python -m ter hook --event-log /tmp/ter-demo < tests/fixtures/hooks/post_tool_use_edit.json
+python -m ter observe --event-log /tmp/ter-demo
+```
+
+Each hook call prints `{}` and exits 0. `observe` then shows the observables:
+
+```text
+TER observe · session 3f0c9a1e-hook-demo
+  events             5  (generated 2 · tool 2 · user 1)
+  by kind            intent.stated 1 · tool.completed 2 · tool.requested 2
+  by tool            fs.edit 1 · fs.read 1
+  ...
+```
+
+With one session in the log, `observe` picks it; with several, it lists them
+and asks for `--session`.
+
+### 4. Analyse what was captured
+
+```bash
+python -m ter observe --event-log "$HOME/.ter/events"                   # lists sessions if there are several
+python -m ter observe --event-log "$HOME/.ter/events" --session SESSION_ID --timeline
+python -m ter observe --event-log "$HOME/.ter/events" --session SESSION_ID --json
+```
+
+For the Lean explanation and the A3, analyse the session's transcript
+(`~/.claude/projects/<project>/<session>.jsonl`): hooks carry no reasoning or
+responses, so the planning, restated-reasoning and unvalidated-response
+detectors need the transcript.
+
+```bash
+ter a3 ~/.claude/projects/my-project/SESSION_ID.jsonl --html a3.html
+```
+
+### Which hook events are recorded
+
+| Hook | Recorded as |
+|---|---|
+| `UserPromptSubmit` | `intent.stated` (the prompt) |
+| `PreToolUse` | `tool.requested`, with the tool kind and input |
+| `PostToolUse` | `tool.requested` (same id as PreToolUse) and `tool.completed` with the tool response |
+| `SessionStart`, `SessionEnd`, `Stop`, `SubagentStart`, `SubagentStop`, `PreCompact`, `Notification` | recognised as lifecycle; no event yet |
+| anything else, or a malformed payload | ignored, with a reason |
+
+Task-completion and subagent events (Stop, SubagentStop) are planned
+requirements that wait on real hook data (issue #35).
+
+### Guarantees
+
+- **Fail open.** The hook always prints `{}` and exits 0, even on a malformed
+  payload or a full disk, so it can never block your session. When it cannot
+  record an event it writes `ter hook: event not recorded: <reason>` to
+  stderr, which Claude Code shows in verbose mode and its debug log.
+- **Append-only.** Each hook process only appends to the session's log (the
+  `RecordEvent` use case); it does not replay the session, so its cost does
+  not grow as the session gets longer. A repeated record (PostToolUse
+  repeating its PreToolUse request, a retried hook) is dropped by id when the
+  log is analysed.
+- **Light.** Appending a PostToolUse event takes under 50 ms at the 95th
+  percentile, on a 2,000-event log (TER-OBS-003, benchmarked in
+  `tests/unit/test_ter4_claude_hooks.py`). The hook entry point avoids
+  importing the transcript reader and numpy.
+- **Idempotent.** A redelivered event (same id) changes nothing (TER-OBS-004).
+- **Passive.** While the maturity ceiling is L1, the hook returns an empty
+  response (TER-OBS-008). Advisory interventions are L4 work.
+
+Known limits: a prompt's id includes the second it was received (hooks carry
+no prompt id), so the same text submitted twice counts twice, while one
+submission seen twice within a second (the hook registered in two settings
+files) counts once. Tool calls without a `tool_use_id` are keyed by content,
+and hook event ids differ from transcript event ids for the same session.
+
+## The live waste monitor (TER 3)
+
+`ter hook monitor` runs on PostToolUse and checks: bash commands that should
+be Read, Grep or Glob; repeated reads of one file; runs of edits to one file;
+identical tool calls; and repeated commands. When one trips, it returns
+`additionalContext` (guidance for the agent) and a `systemMessage` (a notice
+for you).
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash|Read|Edit|Write|Glob|Grep",
+        "hooks": [
+          {"type": "command", "command": "ter hook monitor", "timeout": 15}
+        ]
+      }
+    ]
+  }
+}
+```
+
+Try it without Claude Code:
+
+```bash
+echo '{"session_id":"test","tool_name":"Bash","tool_input":{"command":"cat foo.py"}}' | ter hook monitor
+ter hook monitor --help
+```
+
+Thresholds and the full output format are in
+[docs/hooks-guide.md](../hooks-guide.md#customizing-thresholds).
+
+### Capture and monitor together
+
+Both can run on the same event; Claude Code runs every matching hook:
+
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {"hooks": [{"type": "command", "command": "python -m ter hook"}]}
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {"type": "command", "command": "python -m ter hook"},
+          {"type": "command", "command": "ter hook monitor", "timeout": 15}
+        ]
+      }
+    ]
+  }
+}
+```
+
+The capture hook stays passive; only the monitor's guidance reaches the
+agent. If you want analysis without influencing the session, register only
+the capture hook.
+
+## Hooks recommended by waste findings
+
+The A3's countermeasures include hooks built from your session's findings.
+Each is a settings snippet plus, usually, a small bash script using `jq`
+and `sha1sum`. Install them only where the A3 found the waste, and measure
+the next session.
+
+| Detector that fired | Hook event (matcher) | Script | What it does |
+|---|---|---|---|
+| `repeated_exploration` | PreToolUse (`Read`) | `no-reread.sh` | Blocks re-reading a file whose contents have not changed since this session read the same range |
+| `repeated_tool_call` | PreToolUse (`Bash`) | `no-repeat.sh` | Blocks an identical command while `git diff` and `git status` are unchanged since it last ran |
+| `rework_cycle` | PostToolUse (`Bash`) | `same-failure.sh` | When a check fails with the same signature as last time, tells the agent to stop patching and re-diagnose |
+| `unvalidated_implementation` | PostToolUse (`Edit\|MultiEdit\|Write`) | inline command | Runs the session's own test command after each edit and feeds a failure back |
+| `regeneration` | PreToolUse (`Write`) | `edit-not-write.sh` | Blocks whole-file rewrites of files that exist, so changes go through Edit or MultiEdit |
+
+The other detectors recommend settings or CLAUDE.md lines instead:
+`premature_implementation` suggests `"permissions": {"defaultMode": "plan"}`,
+`unnecessary_handoff` suggests `"permissions": {"deny": ["Task"]}` for small
+tasks, and `excessive_planning`, `fragmented_edits`, `unused_context` and
+`repeated_reasoning` suggest CLAUDE.md lines and practices.
+
+### Installing one
+
+Take the snippet from the A3 page (section 5) or its JSON:
+
+```bash
+ter a3 session.jsonl --json a3.json
+jq -r '.countermeasures[] | select(.detector == "regeneration") | .actions[] | select(.kind == "hook") | .snippet' a3.json
+```
+
+The snippet is the settings JSON, a blank line, then the script. For
+`regeneration` that is:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/edit-not-write.sh"}
+        ]
+      }
+    ]
+  }
+}
+```
+
+```bash
+#!/usr/bin/env bash
+# .claude/hooks/edit-not-write.sh: PreToolUse(Write). Blocks whole-file rewrites
+# of files that already exist, so changes go through Edit/MultiEdit.
+file=$(jq -r '.tool_input.file_path // empty')
+if [ -n "$file" ] && [ -f "$file" ]; then
+  echo "$file exists: change it with Edit or MultiEdit instead of rewriting it." >&2
+  exit 2
+fi
+```
+
+1. Save the script as `.claude/hooks/edit-not-write.sh` and `chmod +x` it.
+2. Merge the `hooks` entry into `.claude/settings.json`.
+3. Start a new session and ask for a change to an existing file; the agent
+   should use Edit.
+
+Exit code 2 from a PreToolUse hook blocks the call and shows stderr to the
+agent; from a PostToolUse hook it feeds stderr back after the call. Anything
+else lets the session continue.
+
+### Keeping hooks from becoming waste
+
+- Start with the single most costly detector in the Pareto, not all of them.
+- Compare the A3 follow-up metric on the next comparable session. If the
+  waste did not fall, remove the hook.
+- A hook that blocks often without improving flow efficiency is itself
+  waiting and rework. Evidence-based, auditable interventions with cooldowns
+  are the L4 roadmap (points P161 to P180).
+
+## Troubleshooting
+
+- **Nothing recorded.** Run Claude Code with `--verbose` (or read its debug
+  log) and look for `ter hook: event not recorded:` lines on stderr. Check
+  the settings file is valid JSON
+  (`python -m json.tool .claude/settings.json`) and that the `python` in the
+  command imports TER: `python -c "import ter"`.
+- **Events in the wrong place.** The hook uses `--event-log`, else
+  `TER_EVENT_LOG_DIR`, else `$XDG_CACHE_HOME/ter/events` (or
+  `~/.cache/ter/events`). If the hook's environment
+  differs from your shell's, pass `--event-log` in the hook command itself.
+- **A countermeasure hook blocks legitimate work.** The scripts are examples
+  to adapt. `no-repeat.sh`, for instance, keys on the working tree, so a
+  command whose result depends on something outside git (a server, the
+  network) should be excluded in the script.

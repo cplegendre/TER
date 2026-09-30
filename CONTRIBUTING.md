@@ -1,6 +1,12 @@
 # Contributing to TER Calculator
 
-Thanks for your interest in contributing! This guide covers everything you need to get started.
+Thanks for your interest in contributing! This page is the short version.
+For TER 4 work, read the [contributing guide](docs/guides/contributing.md):
+it covers the hexagon's rules, the gates to run before pushing, and the
+commit and PR conventions (vision point ids, requirement ids, golden
+snapshot diffs on purpose, strict typing for `ter` code). The other
+[guides](docs/guides/README.md) cover testing, EARS requirements, the
+definition of done, Lean, hooks and the A3.
 
 ## Getting Started
 
@@ -63,7 +69,8 @@ refactor: extract shared CLI argument definitions
 
 1. Create a feature branch from `main`
 2. Make your changes with tests
-3. Ensure all checks pass: `pytest && ruff check src/ && mypy src/`
+3. Ensure all checks pass (the full list is in the
+   [contributing guide](docs/guides/contributing.md#gates-to-run-before-pushing))
 4. Open a PR against `main` with a clear description
 5. One approval required for merge
 
@@ -84,10 +91,16 @@ refactor: extract shared CLI argument definitions
 ## Project Structure
 
 ```
-src/ter_calculator/    # Source modules
+src/ter/               # TER 4 hexagon: domain/ ports/ application/ adapters/ bootstrap/
+src/ter_calculator/    # TER 3 modules
+requirements/          # EARS requirements (one file per level) and points.yaml
 tests/unit/            # Unit tests
 tests/features/        # BDD feature files
 tests/integration/     # Integration tests
+tests/golden/          # Golden snapshots (TER_UPDATE_GOLDEN=1 to regenerate)
+tests/contract/        # One suite per port
+tests/architecture/    # Import-contract fitness tests
+tests/docs/            # Link, command-example and points-index checks
 docs/                  # Architecture and user documentation
 sample_sessions/       # Sample JSONL files for testing
 ```

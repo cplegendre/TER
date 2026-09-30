@@ -1,987 +1,258 @@
-# TER Calculator
-
-> **TER 3.0.0** is the current major release. It consolidates the expanded analysis, orchestration, acceleration, evaluation, and reporting capabilities documented in `UPDATES.md` and `CHANGELOG.md`.
-
+# TER
 
 [![CI](https://github.com/lgriffin/TER/actions/workflows/ci.yml/badge.svg)](https://github.com/lgriffin/TER/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-Token Efficiency Ratio (TER) calculator for Claude Code sessions.
+TER analyses AI coding sessions (today, Claude Code sessions) to show how
+efficiently an agent turned a developer's intent into working software, where
+it wasted effort, and what to change so the next session wastes less.
 
-TER measures how efficiently an AI coding agent uses its token budget by classifying token spans as **aligned** with the user’s intent or as potential **waste**, such as redundant reasoning, repeated tool calls, unnecessary restatement, or over-explanation.
+It started as the **Token Efficiency Ratio**: the share of the tokens an agent
+generated that were aligned with what the developer asked. **TER 4** keeps
+that ratio and builds a Lean analysis platform around it: every session
+becomes a value stream of events, waste is classified and traced to evidence,
+and an A3 report turns findings into concrete countermeasures for
+`CLAUDE.md`, Claude Code hooks and settings.
 
-The project also provides session economics, real-time monitoring, context optimization, intent construction, repetition analysis, evaluation tooling, and regression checks.
+> TER is a heuristic, decision-support tool. Its numbers are signals to
+> investigate, not verdicts on a developer, a model or a session.
 
-> TER is a heuristic analysis system. Its scores should be interpreted as decision-support signals, not as ground-truth judgments.
+## TER 4 at a glance
 
----
-
-## Highlights
-
-- **TER scoring** with phase-aware analysis for reasoning, tool use, and generation
-- **Waste detection** for repeated reasoning, duplicate tools, repeated reads, retries, fragmented edits, and command repetition
-- **Session economics** using API token usage, cache statistics, pricing models, and waste-cost estimates
-- **Intent construction** using weighted prompt embeddings rather than simple text repetition
-- **Structured repetition scoring** using semantic, lexical, entity, action, and tool-call evidence
-- **Tool fingerprints** based on normalized tool names and arguments
-- **JSONL identity and merging** with source provenance and content fingerprints
-- **Span segmentation** for finer-grained reasoning and generation analysis
-- **Real-time monitoring** with rolling TER, drift detection, and live warnings
-- **Context orchestration** with fragment storage, dependency graphs, budget optimization, and delta composition
-- **Evaluation and regression tooling** for threshold calibration and release comparison
-- **High automated test coverage** with branch coverage enforced in CI
-
-Current verified test status:
-
-```text
-1,065 tests passed
-91.96% branch coverage
-Configured minimum: 90%
+```mermaid
+flowchart LR
+    S["Claude Code<br/>transcript or hooks"] --> E["ter.event stream"]
+    E --> T["TER ratio<br/>(TER 3, kept)"]
+    E --> L["Lean model<br/>value stream · 11 waste detectors"]
+    L --> G["Evidence graph"]
+    L --> SC["Scorecard<br/>flow efficiency · activity · waste cost"]
+    T --> SC
+    SC --> A3["A3 report<br/>root causes → countermeasures"]
 ```
 
----
+- **Two packages, one install.** `ter_calculator` is TER 3, the original
+  calculator behind `ter analyze`. `ter` is TER 4, a hexagonal
+  (ports-and-adapters) rebuild that wraps TER 3 and replaces it piece by
+  piece without changing its scores.
+- **One event stream.** Transcripts and live hooks become the same
+  `ter.event` stream, and live analysis equals batch analysis.
+- **Lean, with evidence.** Each event is value-adding, necessary
+  non-value-adding or avoidable; every waste finding cites the events it
+  rests on and publishes its confidence rule. Uncertain findings are shown,
+  never counted.
+- **Controlled by requirements.** Every behaviour is an EARS requirement
+  traced to tests and gated in CI, under a 200-point vision with a definition
+  of done per point.
 
+### Maturity levels
 
-## Scoring scope and JSONL compatibility
+TER 4 is delivered in seven levels. A level is claimed only when every
+requirement at that level is verified by a passing test; CI gates L0, L1 and
+L2 today.
 
-TER scores **model output only**: assistant reasoning, tool use, and generated
-responses. User prompts remain available for intent construction, prompt-response
-alignment, and input analysis, but are excluded from `total_tokens`,
-`aligned_tokens`, `waste_tokens`, and phase TER scores.
+| Level | Name | Adds | Status | Requirements verified | Points done / partial / not started |
+|---|---|---|---|---:|---:|
+| L0 | Measured | TER 3 parity inside the hexagon: event contract, scoring, dated prices | Gate passing; the runtime maturity ceiling (TER-INT-001) is planned | 18 of 19 | 10 / 1 / 0 |
+| L1 | Observed | Event stream as the core boundary, Claude Code hooks, live = batch | Gate passing; Stop and SubagentStop hooks wait on real data (#35) | 4 of 12 | 10 / 6 / 0 |
+| L2 | Explained | Lean model, waste detectors, evidence graph, scorecard, A3 | Built, gate passing; more detectors planned | 19 of 41 | 25 / 24 / 5 |
+| L3 | Grounded | Repository evidence: symbols, tests, git diff, change surface | Started: session evidence-graph edges only | 2 of 20 | 3 / 8 / 37 |
+| L4 | Advisory | Intervention engine, declarative policies, ledger | Not started | 0 of 15 | 0 / 4 / 35 |
+| L5 | Corrective | Routing, opt-in corrective actions, calibration | Not started | 0 of 9 | 1 / 3 / 9 |
+| L6 | Learning | Closed loop, second harness, research datasets | Not started | 0 of 9 | 0 / 2 / 17 |
 
-Claude Code and SDK JSONL exports may contain metadata records such as
-`queue-operation`, `last-prompt`, and `ai-title`. The loader ignores these
-non-conversation records. Only supported conversation records are converted into
-messages, and only messages whose role is `assistant` become scored spans. This
-prevents duplicated queued prompts from being misclassified as generated output.
+Live numbers: `ter-req report` (requirements) and
+[docs/ter4/points.md](docs/ter4/points.md) (points).
 
-To verify a session after analysis:
-
-```bash
-ter analyze path/to/session.jsonl --format json | jq '{
-  total_tokens,
-  aligned_tokens,
-  waste_tokens,
-  roles: [.classified_spans[].source_role] | unique
-}'
-```
-
-The `roles` output should contain only `"assistant"`. User-token totals are
-reported separately under `input_analysis.token_breakdown`.
-
-## Installation
-
-### Base installation
-
-```bash
-python -m pip install -e .
-```
-
-### Development installation
+## Quick start
 
 ```bash
 python -m pip install -e ".[dev]"
-```
-
-### Embedding-enabled installation
-
-Some TER features use sentence-transformer embeddings. If embeddings are optional in your installation configuration, install the corresponding extra:
-
-```bash
-python -m pip install -e ".[embeddings]"
-```
-
-For development with embedding features:
-
-```bash
-python -m pip install -e ".[dev,embeddings]"
-```
-
-TER requires Python 3.11 or a newer version explicitly supported by the project’s CI configuration.
-
----
-
-## Quick Start
-
-A deterministic synthetic session is included at:
-
-```text
-sample_sessions/example_session.jsonl
-```
-
-It contains no real user data, credentials, or proprietary source code.
-
-### Analyze the sample session
-
-```bash
 ter analyze sample_sessions/example_session.jsonl
+ter report sample_sessions/example_session.jsonl --html report.html
+ter a3 tests/golden/sessions/lean_mix.jsonl --html a3.html
 ```
 
-### Generate JSON output
-
-```bash
-ter analyze sample_sessions/example_session.jsonl --format json
-```
-
-### Generate a Markdown report
-
-```bash
-ter report sample_sessions/example_session.jsonl
-```
-
-Write the report to a file:
-
-```bash
-ter report sample_sessions/example_session.jsonl -o example-report.md
-```
-
-### Run cost-weighted and overthinking analysis
-
-```bash
-ter analyze sample_sessions/example_session.jsonl \
-  --cost-weighted \
-  --check-overthinking
-```
-
-### Store and optimize context fragments
-
-```bash
-ter context store sample_sessions/example_session.jsonl
-
-ter context optimize \
-  sample_sessions/example_session.jsonl \
-  --budget 10000
-```
-
----
-
-## Sample Session Contents
-
-The included synthetic session demonstrates:
-
-- A user request with explicit requirements
-- Assistant reasoning
-- Assistant text output
-- Tool calls and tool results
-- A repeated file read
-- A file write
-- A verification command
-- Input/output/cache token usage
-- Stable session, request, message, and tool identifiers
-
-The sample is intended for:
-
-- README examples
-- Manual experimentation
-- CLI smoke tests
-- Regression tests
-- Demonstrations and screenshots
-
----
-
-## Core Commands
-
-### Analyze a session
-
-```bash
-ter analyze path/to/session.jsonl
-```
-
-Useful options:
-
-```text
---format text|json
---similarity-threshold FLOAT
---confidence-threshold FLOAT
---restatement-threshold FLOAT
---phase-weights REASONING,TOOL_USE,GENERATION
---no-waste-patterns
---cost-model MODEL
---group
---no-input-analysis
---prompt-similarity-threshold FLOAT
---cost-weighted
---check-overthinking
-```
-
-Example:
-
-```bash
-ter analyze sample_sessions/example_session.jsonl \
-  --format json \
-  --cost-weighted
-```
-
----
-
-### Generate a Markdown report
-
-```bash
-ter report path/to/session.jsonl
-```
-
-Write to a file:
-
-```bash
-ter report path/to/session.jsonl -o report.md
-```
-
-The report can include:
-
-- Aggregate TER
-- Per-phase scores
-- Waste percentage
-- Token totals
-- Cost estimates
-- Cache efficiency
-- Context growth
-- Positional TER
-- Waste patterns
-- Suggested next steps
-- Calibration and uncertainty metadata when available
-
----
-
-### List sessions
-
-```bash
-ter list
-```
-
-Specify a location:
+`sample_sessions/example_session.jsonl` is a synthetic session with no real
+user data. `tests/golden/sessions/` holds more synthetic sessions, each built
+to show particular wastes (see [tests/golden/README.md](tests/golden/README.md)).
+Your own Claude Code sessions are under `~/.claude/projects/`:
 
 ```bash
 ter list ~/.claude/projects/
+ter a3 ~/.claude/projects/my-project/SESSION_ID.jsonl --html a3.html
+ter report --latest ~/.claude/projects/my-project --html latest.html
 ```
 
-JSON output:
+### Installation options
 
 ```bash
-ter list ~/.claude/projects/ --format json
+python -m pip install -e .                    # base
+python -m pip install -e ".[dev]"             # development: tests, linters, type checker
+python -m pip install -e ".[embeddings]"      # sentence-transformers for TER 3 semantic scoring
 ```
 
-Limit results:
+Python 3.11 to 3.13. tiktoken and the sentence-transformers model download
+data on first use; TER 4 commands default to offline, deterministic
+adapters (`--ter offline`, `--tokenizer regex`), so `ter a3` and `ter explain`
+work without network access.
+
+## Key commands
+
+### Analyse and report (TER 3 ratio)
 
 ```bash
+ter analyze session.jsonl                          # TER, phases, waste patterns, economics
+ter analyze session.jsonl --format json
+ter analyze session.jsonl --format html -o report.html   # interactive HTML with span inspector
+ter analyze session.jsonl --cost-weighted --check-overthinking
+ter analyze session.jsonl --group                  # include subagent sessions
+ter report session.jsonl -o report.md              # Markdown summary
+ter report session.jsonl --html report.html        # self-contained visual report, no scripts
+ter visualize session.jsonl -o charts/             # one SVG per chart
+ter present session.jsonl -o slides.md             # Marp slide deck
+ter compare before.jsonl after.jsonl --baseline    # before/after delta
 ter list ~/.claude/projects/ --limit 20
 ```
 
----
-
-### Compare sessions
+### Explain and improve (TER 4 Lean, L2)
 
 ```bash
-ter compare session-a.jsonl session-b.jsonl
+ter explain session.jsonl                          # findings, flow efficiency, activity classes
+ter explain session.jsonl --json --graph evidence.json
+ter a3 session.jsonl --html a3.html --json a3.json # the A3: root causes and countermeasures
+python -m ter observe session.jsonl --timeline     # L1 observables, event by event
 ```
 
-Directories may also be supplied:
+### Observe live (hooks)
 
 ```bash
-ter compare ~/.claude/projects/project-a ~/.claude/projects/project-b
+python -m ter hook < payload.json                  # capture hook: records events, answers {}
+python -m ter observe --event-log ~/.cache/ter/events  # analyse what the hook recorded
+ter hook monitor < payload.json                    # TER 3 live waste monitor
+ter watch ~/.claude/projects/my-project --latest   # live terminal dashboard
 ```
 
-Sort results:
+See the [hooks guide](docs/guides/hooks.md) for `.claude/settings.json`
+setups.
 
-```bash
-ter compare sessions/ --sort ter
-ter compare sessions/ --sort tokens
-ter compare sessions/ --sort waste
-```
-
-Generate a before/after baseline comparison:
-
-```bash
-ter compare before.jsonl after.jsonl --baseline
-```
-
----
-
-## Live Monitoring
-
-Monitor active Claude Code sessions in real time:
-
-```bash
-ter watch ~/.claude/projects/your-project
-```
-
-Watch a specific session file:
-
-```bash
-ter watch path/to/session.jsonl
-```
-
-Watch the most recently modified session:
-
-```bash
-ter watch ~/.claude/projects/your-project --latest
-```
-
-Use stream mode for logs or pipelines:
-
-```bash
-ter watch --stream ~/.claude/projects/your-project
-```
-
-Save monitoring signals:
-
-```bash
-ter watch ~/.claude/projects/your-project \
-  --stream \
-  --log ter-signals.jsonl
-```
-
-The live monitor can display:
-
-- Rolling TER
-- Reasoning, tool-use, and generation scores
-- Output, aligned, and waste token totals
-- Input and cache token statistics
-- Cost and estimated waste cost
-- Session duration
-- Token throughput
-- Context growth and bloat signals
-- Recent TER trend
-- Drift warnings
-
----
-
-## Budget Recommendations
-
-Estimate an appropriate token and model budget before starting a task:
+### More TER 3 tools
 
 ```bash
 ter budget "Fix the authentication bug in login.py"
+ter context optimize session.jsonl --budget 10000
+ter benchmark benchmarks/example_annotations.jsonl
+ter benchmark-compare benchmarks/example_annotations.jsonl benchmarks/example_annotations_candidate.jsonl
 ```
 
-Use prior history:
+Every `ter` command and option is described in the
+[user guide](docs/user-guide.md); the context orchestrator in
+[docs/context-orchestrator.md](docs/context-orchestrator.md).
+
+### Requirements and vision points
 
 ```bash
-ter budget \
-  "Implement an e-commerce checkout with Stripe" \
-  --use-history
+ter-req lint --tests tests                          # EARS grammar, catalogue, points, test markers
+python -m pytest --req-trace=req-trace.json
+ter-req trace --results req-trace.json --gate L2    # forward and backward traceability gate
+ter-req report --results req-trace.json --out coverage.md
+ter-req points                                      # regenerate docs/ter4/points.md
+ter-req points --check                              # fail if it is stale
 ```
 
-The recommendation can include:
+## Guides
 
-- Complexity classification
-- Model tier
-- Thinking-token budget
-- Estimated total tokens
-- Estimated cost
-- Historical adjustment
+| Guide | For |
+|---|---|
+| [Architecture](docs/guides/architecture.md) | The hexagon, strangler fig over TER 3, ports, adding an adapter, maturity levels |
+| [Testing](docs/guides/testing.md) | Test layers, golden snapshots, contract suites, tracing, CI gates, writing a test end to end |
+| [Lean](docs/guides/lean.md) | Value stream, activity classes, waste taxonomy, each detector, flow, A3 thinking |
+| [Reports and the A3](docs/guides/a3-report.md) | Reading and producing the per-run report and the A3; applying countermeasures |
+| [Hooks](docs/guides/hooks.md) | Capturing sessions live; hooks recommended by waste findings |
+| [EARS requirements](docs/guides/ears.md) | The grammar, the catalogue, lint rules, tagging tests, trace and report |
+| [Vision points and definition of done](docs/guides/definition-of-done.md) | The 200 points, statuses, when a point is done, the real-data rule |
+| [Contributing](docs/guides/contributing.md) | Setup, workflow, gates, commit and PR conventions |
 
----
+All guides: [docs/guides](docs/guides/README.md). Reference:
+[TER 4 architecture](docs/ter4/architecture.md) ·
+[L1 Observed](docs/ter4/l1-observed.md) ·
+[L2 Explained](docs/ter4/l2-explained.md) ·
+[visual reports](docs/ter4/reports.md) ·
+[requirements control](docs/ter4/requirements.md) ·
+[vision points](docs/ter4/points.md) ·
+[decision records](docs/decisions/).
 
-## Context Orchestrator
+## How the TER ratio works
 
-### Store fragments
+TER scores **model output only**: assistant reasoning, tool use and
+responses. User prompts build the intent but are never counted as work.
+
+1. **Load and identify.** Parse the JSONL, merge sibling records that share a
+   `requestId` while keeping every distinct content block, and keep source
+   provenance. Metadata records (`queue-operation`, `last-prompt`,
+   `ai-title`) are ignored.
+2. **Segment** reasoning, tool and response content into spans.
+3. **Construct intent** from weighted prompt embeddings.
+4. **Classify** each span as aligned or waste (redundant reasoning,
+   unnecessary tool call, over-explanation), combining semantic, lexical,
+   entity, action and structured tool evidence.
+5. **Compute TER** per phase (reasoning, tool use, generation) and as a
+   weighted aggregate; `aligned + waste = total` and `0 ≤ TER ≤ 1`.
+6. **Detect waste patterns** such as repeated reads, duplicate tool calls,
+   fragmented edits, failed retries and repeated commands.
+7. **Cost it** with dated prices from `src/ter/data/price_book.json` and the
+   session's cache statistics.
+
+To check that only assistant output was scored:
 
 ```bash
-ter context store path/to/session.jsonl
+ter analyze sample_sessions/example_session.jsonl --format json | jq '[.classified_spans[].source_role] | unique'
 ```
 
-### Build a context graph
-
-```bash
-ter context graph path/to/session.jsonl
-```
-
-### Optimize context for a token budget
-
-```bash
-ter context optimize path/to/session.jsonl --budget 10000
-```
-
-Optional relevance threshold:
-
-```bash
-ter context optimize path/to/session.jsonl \
-  --budget 10000 \
-  --relevance-threshold 0.2
-```
-
-### Compose a delta prompt
-
-```bash
-ter context delta path/to/session.jsonl
-```
-
-### Check cross-session consistency
-
-```bash
-ter context check path/to/session.jsonl
-```
-
-Include subagents:
-
-```bash
-ter context check path/to/session.jsonl --group
-```
-
-Select consistency mode:
-
-```bash
-ter context check path/to/session.jsonl --mode strict
-ter context check path/to/session.jsonl --mode relaxed
-```
-
----
-
-## Grouped Analysis
-
-Analyze a parent session together with subagent sessions:
-
-```bash
-ter analyze path/to/session.jsonl --group
-```
-
-TER discovers subagent sessions from the supported filesystem layout and reports:
-
-- Parent-session results
-- Per-subagent results
-- Token-weighted aggregate TER
-- Aggregate costs
-- Aggregate waste
-- Cross-session comparisons
-
----
-
-## Architecture
-
-```text
-src/ter_calculator/
-├── __main__.py
-├── cli.py
-├── commands/
-│   ├── analyze.py
-│   ├── context.py
-│   ├── hook.py
-│   ├── listing.py
-│   ├── report.py
-│   └── watch.py
-│
-├── acceleration/
-│   ├── __init__.py
-│   ├── cache.py
-│   ├── parallel.py
-│   ├── quick_analyser.py
-│   └── session_watcher.py
-│
-├── models.py
-├── loader.py
-├── jsonl_identity.py
-├── span_segmentation.py
-├── intent.py
-├── intent_construction.py
-├── intent_extraction.py
-├── classifier.py
-├── repetition_scoring.py
-├── tool_fingerprints.py
-├── compute.py
-├── waste.py
-├── waste_detectors.py
-├── economics.py
-├── cost_model.py
-├── input_analysis.py
-├── overthinking.py
-├── real_time.py
-├── adaptive_budget.py
-├── formatter.py
-├── formatter_json.py
-├── formatter_rich.py
-├── rich_components.py
-├── dashboard.py
-├── fragment_store.py
-├── context_graph.py
-├── budget_optimizer.py
-├── delta_composer.py
-├── consistency.py
-├── embedding_cache.py
-├── token_counting.py
-├── validation.py
-├── evaluation.py
-├── regression.py
-├── feedback.py
-├── plugins.py
-├── hook_monitor.py
-├── session_report.py
-└── analyze_pipeline.py
-```
-
-### Main responsibilities
-
-#### Parsing and identity
-
-- `loader.py` parses session JSONL.
-- `jsonl_identity.py` creates stable block identities and fingerprints.
-- Sibling entries sharing a request ID can be merged while preserving distinct content.
-- Source provenance is retained so merged spans can be traced to source records.
-- Partial, duplicated, or malformed records are handled through validation and recovery logic.
-
-#### Segmentation
-
-- `span_segmentation.py` divides large reasoning or generation blocks into finer segments.
-- Segmentation can use paragraph, sentence-group, Markdown, or discourse boundaries.
-- Small adjacent segments may be merged to avoid unstable micro-spans.
-
-#### Intent construction
-
-- Prompts are embedded independently.
-- Explicit weights can represent recency and information content.
-- Weighted prompt embeddings are combined into a normalized intent centroid.
-- Operational prompts such as “continue” can be down-weighted.
-- Topic-shift handling can preserve more than one active intent representation.
-
-#### Repetition analysis
-
-Reasoning repetition can combine:
-
-- Semantic similarity
-- Lexical similarity
-- Entity overlap
-- Action overlap
-- Parameter novelty
-- Temporal distance
-
-Tool repetition uses structured evidence such as:
-
-- Tool name
-- Normalized arguments
-- File path
-- Line range
-- Query
-- Command
-- Exit state
-- Result fingerprint
-
-#### Evaluation and regression
-
-- `evaluation.py` supports metric evaluation and threshold analysis.
-- `regression.py` supports release-to-release comparisons.
-- Thresholds should be calibrated against labeled data.
-- Precision-weighted metrics such as F0.5 are appropriate when false-positive waste labels are especially costly.
-
----
-
-## How TER Works
-
-A typical analysis pipeline is:
-
-1. **Load**  
-   Parse JSONL records and recover valid session messages.
-
-2. **Identify and merge**  
-   Assign stable identities, merge sibling records, remove exact duplicate blocks, and preserve provenance.
-
-3. **Segment**  
-   Split reasoning, generation, and tool content into analysis spans.
-
-4. **Construct intent**  
-   Build one or more weighted intent vectors from user prompts.
-
-5. **Classify**  
-   Estimate whether each span is aligned, repetitive, or potentially wasteful.
-
-6. **Score repetition**  
-   Combine semantic, lexical, entity, action, and structured tool evidence.
-
-7. **Compute TER**  
-   Calculate per-phase efficiency and a weighted aggregate.
-
-8. **Detect structural waste**  
-   Detect repeated reads, fragmented edits, failed retries, repeated commands, and related patterns.
-
-9. **Calculate economics**  
-   Use API usage, model pricing, cache statistics, and output calibration.
-
-10. **Evaluate confidence**  
-    Track classifier confidence and low-confidence token share.
-
-11. **Report**  
-    Produce Rich terminal output, JSON, Markdown, monitoring signals, or comparison results.
-
-12. **Optimize context**  
-    Optionally store fragments, build dependency graphs, and select context within a token budget.
-
----
-
-## JSONL Merge Semantics
-
-A `requestId` can represent one logical API response that was serialized across several sibling JSONL lines.
-
-TER therefore preserves distinct content blocks instead of keeping only the sibling with the highest `output_tokens`.
-
-The parser should protect against:
-
-- Exact duplicate content blocks
-- Out-of-order sibling entries
-- Reused request IDs
-- Missing request IDs
-- Partial writes
-- Interrupted sessions
-- Corrupt final lines
-- Tool results arriving separately
-- Multiple assistant messages sharing a request identifier
-
-Stable content fingerprints and source-line provenance help make merging deterministic and auditable.
-
----
-
-## Interpretation and Uncertainty
-
-TER is a heuristic metric.
-
-A score such as:
-
-```text
-TER: 0.83
-```
-
-does not imply perfect certainty. Classification depends on:
-
-- Prompt interpretation
-- Embedding behavior
-- Similarity thresholds
-- Segmentation choices
-- Tool normalization
-- Session completeness
-- Model and tokenizer differences
-
-Where supported, reports should include uncertainty information such as:
-
-```text
-TER estimate: 0.83
-Bootstrap 95% interval: 0.77–0.88
-Low-confidence tokens: 14.2%
-```
-
-TER is most useful for:
-
-- Comparing similar sessions
-- Detecting regressions
-- Identifying repeated work
-- Finding high-cost waste patterns
-- Guiding investigation
-
-It should not be used as the sole basis for judging a developer, model, or individual session.
-
----
-
-## Empirical Validation
-
-Functional correctness does not by itself prove that TER matches expert judgment.
-
-A strong validation program should include:
-
-- A labeled evaluation dataset
-- Multiple human annotators
-- Annotation guidelines
-- Inter-rater agreement
-- Precision and recall by waste category
-- F1 and F0.5
-- Precision-recall curves
-- Confusion matrices
-- Bootstrap confidence intervals
-- Leave-one-session-out validation
-- False-positive analysis
-- Model and embedding sensitivity analysis
-- Release-to-release regression benchmarks
-
-Threshold changes should be justified by benchmark results rather than hand tuning alone.
-
----
+The TER 3 pipeline is described in [docs/architecture.md](docs/architecture.md).
+
+## Interpreting results
+
+- Token estimates can differ from provider billing; embeddings approximate
+  intent; thresholds are sensitive to model and data.
+- Repetition is not always waste: verification and corrections can look
+  similar and still be necessary. TER 4 separates productive iteration from
+  rework for exactly this reason.
+- A high TER does not prove the task succeeded; a low one does not prove poor
+  engineering. Use TER with task outcomes and review.
+- Short, single-shot sessions give the detectors little to work on;
+  `scripts/labeling_priority.py` finds sessions with enough structure to be
+  worth labelling.
+- Claims about real agent behaviour need real session data. That work is
+  tracked in GitHub issues #34 to #46 (tracker #47), and the points that
+  depend on it are never marked done from synthetic tests.
 
 ## Development
 
-Install development dependencies:
-
 ```bash
-python -m pip install -e ".[dev]"
-```
-
-Run the full test suite:
-
-```bash
+python -m pip install -c constraints/dev.txt -e ".[dev]"
 python -m pytest
-```
-
-Run tests with branch coverage:
-
-```bash
-python -m pytest \
-  --cov=ter_calculator \
-  --cov-branch \
-  --cov-report=term-missing
-```
-
-Current verified result:
-
-```text
-1,065 passed
-91.96% branch coverage
-```
-
-Lint:
-
-```bash
-ruff check src/
-```
-
-Apply safe automatic fixes:
-
-```bash
-ruff check src/ --fix
-```
-
-Type check:
-
-```bash
+ruff format --check src tests && ruff check src tests
 mypy src/
+lint-imports
+ter-req lint --strict --tests tests && ter-req points --check
 ```
 
-Recommended full local quality check:
-
-```bash
-python -m pytest && ruff check src/ && mypy src/
-```
-
-Run an individual test module:
-
-```bash
-python -m pytest tests/unit/test_loader.py -v
-```
-
-Run a single BDD scenario:
-
-```bash
-python -m pytest \
-  tests/features/steps/performance_steps.py::test_sibling_entries_sharing_a_requestid_preserve_all_content_blocks \
-  -vv
-```
-
----
-
-## Coverage Policy
-
-Branch coverage is enabled.
-
-The configured project floor is:
-
-```text
-90%
-```
-
-The current verified result is:
-
-```text
-91.96%
-```
-
-Coverage is most important in:
-
-- Parsing and JSONL merging
-- Identity and fingerprinting
-- Classification
-- TER computation
-- Cost calculations
-- Validation
-- Real-time state management
-- Context persistence
-- Regression detection
-
-Some presentation, platform-specific, and defensive fallback paths may reasonably remain below the repository average.
-
----
-
-## Testing the README Example
-
-A smoke test should verify that the included sample remains usable:
-
-```python
-def test_readme_sample_session_runs(cli_runner):
-    result = cli_runner.invoke(
-        ["analyze", "sample_sessions/example_session.jsonl"]
-    )
-
-    assert result.exit_code == 0
-```
-
-At minimum, CI should verify:
-
-```bash
-ter analyze sample_sessions/example_session.jsonl
-ter analyze sample_sessions/example_session.jsonl --format json
-ter report sample_sessions/example_session.jsonl -o /tmp/ter-example-report.md
-```
-
-This prevents documentation examples from becoming stale.
-
----
-
-## Troubleshooting
-
-### `ModuleNotFoundError: No module named 'pytest_bdd'`
-
-Install the development dependencies:
-
-```bash
-python -m pip install -e ".[dev]"
-```
-
-Run pytest through the active interpreter:
-
-```bash
-python -m pytest
-```
-
-This avoids invoking a `pytest` executable from a different Python environment.
-
-### `Session file not found`
-
-Confirm that the path exists:
-
-```bash
-ls -l sample_sessions/example_session.jsonl
-```
-
-Run the included example from the repository root:
-
-```bash
-ter analyze sample_sessions/example_session.jsonl
-```
-
-### Embedding model unavailable
-
-Install embedding dependencies:
-
-```bash
-python -m pip install -e ".[embeddings]"
-```
-
-If the model must be downloaded, ensure network access is available during first use or configure a local model path.
-
-### Coverage unexpectedly drops
-
-Check for stale or duplicate modules left behind after a package refactor. A file and package with the same import name can cause coverage to count unreachable source files.
-
-Verify the imported module path:
-
-```bash
-python -c "import ter_calculator.acceleration as a; print(a.__file__)"
-```
-
----
-
-## Documentation
-
-- [Architecture](docs/architecture.md)
-- [Context Orchestrator](docs/context-orchestrator.md)
-- [User Guide](docs/user-guide.md)
-- [Contributing](CONTRIBUTING.md)
-- [Code of Conduct](CODE_OF_CONDUCT.md)
-- [License](LICENSE)
-
----
-
-## Contributing
-
-Contributions are welcome.
-
-Before submitting a pull request:
-
-```bash
-python -m pytest
-ruff check src/
-mypy src/
-```
-
-New behavior should include:
-
-- Unit or integration tests
-- Regression coverage for bug fixes
-- Documentation updates where relevant
-- No reduction below the configured coverage floor
-
----
-
-## Limits of Interpretation
-
-TER should be interpreted carefully:
-
-- Token estimates may differ from provider billing totals.
-- Embeddings are approximations of semantic intent.
-- Similarity thresholds are model- and dataset-sensitive.
-- Repetition is not always waste.
-- Corrections and verification can be necessary even when text appears similar.
-- Tool calls require structured comparison, not semantic similarity alone.
-- Incomplete or corrupt logs reduce confidence.
-- A high TER does not prove task success.
-- A low TER does not prove poor engineering judgment.
-- Waste detection (duplicate tool calls, retries, restated reasoning) assumes
-  long-lived, multi-turn sessions. On bursty workloads made of many short,
-  single-shot sessions, spans per session can be as low as one `thinking` +
-  one `text` block, leaving nothing for these detectors to act on. TER on
-  such sessions is not wrong, just largely uninformative — see
-  `scripts/labeling_priority.py` for a way to find which sessions in a
-  bursty corpus have enough structure to be worth hand-labeling.
-- Semantic embeddings (`sentence-transformers`) and token estimation
-  (`tiktoken`) both attempt a one-time network download on first use.
-  Tiktoken now falls back to a character-based estimate if that download
-  fails (see UPDATES.md); the embedding model download has no offline
-  fallback yet, so first run on a firewalled or air-gapped machine will fail
-  until the model is vendored or cached ahead of time.
-
-Use TER alongside task outcomes, expert review, and session context.
-
----
-
-## Requirements
-
-Core requirements typically include:
-
-- Python
-- NumPy
-- Rich
-- Standard-library SQLite support
-
-Embedding-enabled features may additionally require:
-
-- sentence-transformers
-- A compatible ML backend
-- Access to a local or downloadable embedding model
-
-See `pyproject.toml` for the authoritative dependency and Python-version declarations.
-
-## Standalone HTML reports
-
-TER can generate a portable, interactive HTML report for a session. The report embeds its CSS, JavaScript, charts, and analysis data, so it opens directly in a browser and does not require a web server or network access.
-
-```bash
-ter analyze sample_sessions/example_session.jsonl --format html
-```
-
-The default output is written beside the input file as:
-
-```text
-sample_sessions/example_session.ter-report.html
-```
-
-Choose an explicit destination with `--output`:
-
-```bash
-ter analyze session.jsonl \
-  --format html \
-  --output reports/session-report.html
-```
-
-The report includes:
-
-- an executive scorecard for TER, aligned and waste tokens, cost, and reliability;
-- token composition and phase distribution charts;
-- a token-weighted span timeline;
-- an alignment-versus-confidence scatter plot;
-- an interactive span inspector with text and classification evidence;
-- consistency diagnostics for low confidence, low alignment, and invalid source roles;
-- an embedded JSON download for downstream analysis.
-
-HTML reports score only assistant-origin spans. User prompts remain available for intent construction and input analysis but are excluded from TER output scoring.
+Branch coverage is enforced at 90%. The [testing guide](docs/guides/testing.md)
+explains every gate CI runs, and the [contributing guide](docs/guides/contributing.md)
+the commit and PR conventions (vision point ids, requirement ids, golden
+diffs on purpose, strict typing for `ter` code).
+
+### Troubleshooting
+
+- **`ModuleNotFoundError: No module named 'pytest_bdd'`**: install the dev
+  extra and run `python -m pytest` so the right interpreter is used.
+- **Embedding model or tiktoken download fails**: install
+  `".[embeddings]"` with network access once, or use the offline TER 4
+  commands (`ter a3`, `ter explain`), which do not download anything.
+- **`docs/ter4/points.md is stale`**: run `ter-req points` and commit it.
+
+## Project documents
+
+[Changelog](CHANGELOG.md) · [Updates](UPDATES.md) · [Roadmap](ROADMAP.md) ·
+[Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) ·
+[Code of Conduct](CODE_OF_CONDUCT.md) · [License](LICENSE)

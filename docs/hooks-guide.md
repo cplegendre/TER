@@ -1,5 +1,11 @@
 # TER Waste Monitor — Claude Code Hooks Guide
 
+> **TER 4:** the current hooks guide is [docs/guides/hooks.md](guides/hooks.md).
+> It covers capturing sessions with the TER 4 hook (`python -m ter hook`),
+> running it alongside this monitor, and installing the hooks the A3 report
+> recommends from waste findings. This page remains the full reference for
+> the TER 3 `ter hook monitor`.
+
 The TER Waste Monitor runs as a Claude Code hook, detecting waste patterns in real-time during a session and injecting guidance back into Claude's context to course-correct before waste accumulates.
 
 ## How It Works

@@ -212,7 +212,7 @@ points:
     rules: [TER-LEN-006]
     verification:
       - 'test: tests/unit/test_ter4_lean_detectors.py'
-      - 'planned: pull, WIP and queue measures at L3 and L4 (TER-LEN-006)'
+      - 'planned: pull, WIP and queue measures at L3 and L4 (TER-LEN-006); the concept-to-measure table is in docs/guides/lean.md'
 
   - id: P013
     text: >-
@@ -2886,9 +2886,16 @@ points:
         Code, requirements, points index and reports are open and
         inspectable.
       - The points index is regenerated and checked in CI.
-    rules: [TER-EXP-001, TER-REQ-005]
+      - >-
+        The README and guides are tested: relative links resolve and every
+        command they show exists.
+    rules: [TER-EXP-001, TER-REQ-005, TER-REQ-007, TER-REQ-008]
     verification:
       - 'ci: Vision points index is up to date'
+      - 'test: tests/docs/test_docs.py::test_committed_points_index_matches_the_catalogue'
+      - 'test: tests/docs/test_docs.py::test_relative_links_resolve'
+      - 'test: tests/docs/test_docs.py::test_shell_examples_name_real_commands_and_options'
+      - 'planned: TER-EXP-001 recompute test over the event store'
 
   - id: P197
     text: >-

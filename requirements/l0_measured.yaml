@@ -150,6 +150,32 @@ requirements:
       prove claims about real agent behaviour (issues #34 to #46).
     status: verified
 
+  - id: TER-REQ-007
+    pattern: unwanted
+    text: >-
+      If a relative link in the README or a documentation page names a file
+      or heading anchor that does not exist, then the documentation check
+      shall fail and name the page, line and link.
+    level: L0
+    source_points: [196]
+    rationale: >-
+      An inspectable platform needs documentation a reader can follow; a
+      broken link is found in CI, not by the reader.
+    status: verified
+
+  - id: TER-REQ-008
+    pattern: unwanted
+    text: >-
+      If a fenced shell example in the README or a guide names a subcommand
+      or option that the TER command line does not define, then the
+      documentation check shall fail and name the example.
+    level: L0
+    source_points: [196]
+    rationale: >-
+      Guides are followed by copying their commands; an example for a
+      command or flag that does not exist teaches the wrong thing.
+    status: verified
+
   - id: TER-SRC-001
     pattern: ubiquitous
     text: >-

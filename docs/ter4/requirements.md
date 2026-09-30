@@ -51,7 +51,8 @@ Areas in use: `ANL` analysis, `SRC` session sources, `OBS` observation,
 `SCR` scorecard, `RPT` reports, `FLW` flow, `EVD` repository evidence, `GRF`
 evidence graph, `CTX` context bundles, `RTE` routing, `INT` interventions,
 `CAL` calibration, `BEN` benchmarks, `RSH` research protocols, `EXP`
-explanation, `ARC` architecture, `REQ` this control itself.
+explanation, `ARC` architecture, `REQ` this control itself and the
+documentation checks in `tests/docs`.
 
 ## Vision points
 
