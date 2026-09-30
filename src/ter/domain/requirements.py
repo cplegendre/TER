@@ -186,14 +186,20 @@ def _required_str(data: Mapping[str, object], key: str, ident: str) -> str:
 
 @dataclass(frozen=True)
 class LintIssue:
-    """One problem found in a requirement or in the catalogue."""
+    """One problem found in a requirement, a vision point or the catalogue.
+
+    ``requirement_id`` names the subject: a requirement id or a point id.
+    Warnings are reported but do not fail the lint.
+    """
 
     requirement_id: str
     code: str
     message: str
+    warning: bool = False
 
     def __str__(self) -> str:
-        return f"{self.requirement_id}: [{self.code}] {self.message}"
+        prefix = "warning: " if self.warning else ""
+        return f"{prefix}{self.requirement_id}: [{self.code}] {self.message}"
 
 
 @dataclass(frozen=True)

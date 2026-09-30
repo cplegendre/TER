@@ -43,6 +43,7 @@ def _assistant(uuid: str, req: str, content: list[dict[str, Any]]) -> dict[str, 
 
 
 class TestToolMap:
+    @pytest.mark.req("TER-SRC-003")
     def test_known_tools_map_to_kinds(self) -> None:
         assert tool_kind("Read") is ToolKind.FS_READ
         assert tool_kind("Bash") is ToolKind.EXEC_SHELL
@@ -52,6 +53,7 @@ class TestToolMap:
     def test_unknown_tools_are_other(self, name: str | None) -> None:
         assert tool_kind(name) is ToolKind.OTHER
 
+    @pytest.mark.req("TER-SRC-003")
     def test_every_kind_except_other_has_a_claude_tool(self) -> None:
         mapped = set(CLAUDE_CODE_TOOL_KINDS.values())
         assert mapped == set(ToolKind) - {ToolKind.OTHER}
@@ -85,6 +87,7 @@ class TestClaudeCodeJsonlSource:
         assert [r.line for r in trace.unrecognised] == [1, 3, 4, 5]
         assert trace.coverage == pytest.approx(1 / 5)
 
+    @pytest.mark.req("TER-SRC-001")
     def test_tool_results_inherit_their_request_kind(self, tmp_path: Path) -> None:
         path = _write(
             tmp_path / "s.jsonl",
@@ -143,6 +146,27 @@ class TestClaudeCodeJsonlSource:
         )
         assert (orphan.native_name, orphan.kind) == ("", ToolKind.OTHER)
         assert events[1].text == '{"pattern":"x"}'
+
+    @pytest.mark.req("TER-SRC-007", "TER-ANL-001")
+    def test_user_prompts_are_intent_not_generated_work(self, tmp_path: Path) -> None:
+        path = _write(
+            tmp_path / "s.jsonl",
+            [
+                {
+                    "type": "user",
+                    "uuid": "u1",
+                    "sessionId": "s1",
+                    "message": {"role": "user", "content": "Fix the failing test"},
+                },
+                _assistant("a1", "r1", [{"type": "text", "text": "Done"}]),
+            ],
+        )
+        trace = ClaudeCodeJsonlSource().read(path)
+        prompt = trace.events[0]
+        assert (prompt.kind, prompt.actor) == (EventKind.PROMPT, Actor.USER)
+        assert prompt.kind.value == "intent.stated"
+        assert "Fix the failing test" in prompt.text
+        assert prompt not in trace.generated()
 
     def test_usage_is_attached_once_per_model_turn(self, tmp_path: Path) -> None:
         path = _write(

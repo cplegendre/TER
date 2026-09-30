@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 import numpy as np
+import pytest
 
 from ter_calculator.classifier import classify_spans
 from ter_calculator.compute import compute_ter
@@ -87,6 +88,7 @@ def test_uncertainty_is_deterministic(monkeypatch):
     assert first.reliability == "low"
 
 
+@pytest.mark.req("TER-ANL-003")
 def test_result_formatters_expose_uncertainty_and_explanations(monkeypatch):
     monkeypatch.setattr(
         "ter_calculator.classifier.embed_texts",
@@ -99,6 +101,7 @@ def test_result_formatters_expose_uncertainty_and_explanations(monkeypatch):
     payload = json.loads(format_json(result))
     assert payload["classifier_version"] == "v11"
     assert payload["uncertainty"]["method"] == "deterministic_span_bootstrap"
+    assert "low_confidence_tokens" in payload["uncertainty"]
     assert payload["classified_spans"][0]["explanation"]["reason_code"]
 
     rendered = format_text(result)

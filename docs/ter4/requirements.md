@@ -5,6 +5,22 @@ Requirements Syntax), stored as YAML, traced to the tests that verify it and
 gated in CI. A maturity level is claimed only when every requirement at that
 level is verified by a passing test.
 
+Above the requirements sit Leigh's 200 vision points (`requirements/points.yaml`).
+Each point has a definition of done, the EARS requirements (rules) that
+enforce it and its verification, and every requirement names the points it
+serves. [points.md](points.md) is the generated, always-current index.
+
+## Working rule for every TER 4 change
+
+1. Name the point ids the change advances (`P044`, `P102`, …) in the commit
+   message and the PR body.
+2. Update `status` and `verification` of those points in
+   `requirements/points.yaml` in the same PR, and regenerate the index with
+   `ter-req points`.
+3. A point becomes `done` only when its rules are verified by passing tests
+   (or its verification names an existing test or CI check). `ter-req lint`
+   rejects a `done` point without that proof.
+
 ## The catalogue
 
 `requirements/` holds one file per maturity level (`l0_measured.yaml` to
@@ -21,7 +37,7 @@ requirements:
       event store shall discard the duplicate without changing stored state.
     level: L1                    # L0..L6
     port: EventStore             # optional: the port the behaviour belongs to
-    source_points: []            # items (1-200) of the TER 4 vision list this realises
+    source_points: [119]         # vision points (1-200) this realises; must match points.yaml
     rationale: Hooks can fire twice; idempotent ingestion keeps counts exact.
     status: planned              # planned | verified
 ```
@@ -31,8 +47,52 @@ that adds a passing test citing it. The gate enforces only `verified`
 requirements, so planned ones document the road ahead without failing CI.
 
 Areas in use: `ANL` analysis, `SRC` session sources, `OBS` observation,
-`EVD` evidence, `EXP` explanation, `INT` interventions, `RTE` routing,
-`ARC` architecture, `REQ` this control itself.
+`LEN` Lean model, `DET` waste detectors, `WIP` work in progress, `ITN` intent,
+`SCR` scorecard, `FLW` flow, `EVD` repository evidence, `GRF` evidence graph,
+`CTX` context bundles, `RTE` routing, `INT` interventions, `CAL` calibration,
+`BEN` benchmarks, `RSH` research protocols, `EXP` explanation, `ARC`
+architecture, `REQ` this control itself.
+
+## Vision points
+
+```yaml
+points:
+  - id: P119
+    text: Ensure duplicate events do not distort analysis.   # verbatim
+    level: L1
+    kind: capability            # capability | principle | research
+    status: done                # done | partial | not-started
+    definition_of_done:         # 1 to 3 checkable statements
+      - Re-delivered events are discarded without changing analysis state.
+    rules: [TER-OBS-004]        # EARS requirement ids
+    # issue: 35                 # optional: GitHub issue for work needing real session data
+    # real_data: true           # blocks status done until real_data_verified: true
+    verification:
+      - 'branch: work/l1-observed re-delivery tests'
+```
+
+Verification entries take one of four forms:
+
+| Form | Meaning | Checked |
+|---|---|---|
+| `test: <pytest node id>` | a test on this branch proves the point | file and every `::` name must exist |
+| `ci: <step name>` | a CI step proves the point | a step with that name must exist in `.github/workflows` |
+| `branch: <branch> <what>` | proof exists on an unmerged branch | warning until merged; `--strict` fails |
+| `planned: <what>` | how the point will be verified | none |
+
+**Real session data.** 46 points need data this repository cannot produce
+(real sessions, annotations, benchmark runs, experiments). Each carries the
+GitHub issue that collects it (`issue`, #34 to #46, tracked in #47) and
+`real_data: true`. Such a point cannot become `done` on synthetic tests:
+the lint rejects it until `real_data_verified: true` is set, which is done in
+the change that closes the issue (the lint cannot query GitHub, so the flag
+records the closure). Where an issue proposed a requirement id, the catalogue
+uses that id.
+
+Principles are enforced by an architectural rule whose verification is the
+check itself (an import-linter contract, the golden gate, a lint). Research
+points get a protocol requirement ("TER shall produce dataset X with fields
+Y"), planned until the dataset exists.
 
 ## Controls
 
@@ -48,7 +108,9 @@ flowchart LR
     G -->|forward| F["every verified req ≤ gate<br/>has a passing test"]
     G -->|backward| B["every cited id<br/>is in the catalogue"]
     G --> R["Markdown report<br/>bars per level · job summary"]
-    Y --> PT["ter-req points<br/>vision points 1-200 without a requirement"]
+    V["requirements/points.yaml"] <-->|rules ⇄ source_points| Y
+    V --> PL["ter-req lint<br/>DoD · rules · two-way links · done proof"]
+    V --> PT["ter-req points<br/>docs/ter4/points.md (--check in CI)"]
     classDef gate fill:#dff1ee,stroke:#0d7a6f,color:#16212a
     class G,F,B gate
 ```
@@ -102,11 +164,26 @@ It also lists planned requirements that already have a passing test, ready
 to promote. `--summary PATH` appends the Markdown report; CI points it at
 `$GITHUB_STEP_SUMMARY`.
 
-### 3. Point trace (`ter-req points`)
+### 3. Point lint and index (`ter-req lint`, `ter-req points`)
 
-Each requirement names the items of the 200-point TER 4 vision list it
-realises. `ter-req points` draws a 10 × 20 grid (■ covered, · not yet) and
-lists the uncovered points. It is informational and never fails.
+When `points.yaml` is present, `ter-req lint` also checks that:
+
+- every point P001-P200 appears once, with 1 to 3 definition-of-done
+  statements, at least one rule and at least one verification entry;
+- every rule id exists, and links go both ways: a point lists rule R if and
+  only if R's `source_points` contains that point;
+- every requirement traces to at least one point;
+- every `test:` and `ci:` entry names a check that exists;
+- a `done` point has all its rules verified, or a `test:`/`ci:` entry that
+  exists. Proof only on another branch is a warning (`POINT-PENDING`);
+- a point with an `issue` has `real_data: true`, and a `real_data` point is
+  `done` only with `real_data_verified: true` (`POINT-REAL-DATA`).
+
+`ter-req points` writes [points.md](points.md): counts by status and level
+with bars, a 10 × 20 map (● done, ◐ partial, ○ not started) and one row per
+point with its issue link, definition of done, rules (✓ verified, · planned) and
+verification. `ter-req points --check` fails CI when the committed file is
+stale.
 
 ### 4. Maturity gate and report (`ter-req report`)
 
@@ -131,10 +208,11 @@ claiming a level; `Maturity.permits` is the runtime side.
 | Module | Role |
 |---|---|
 | `ter.domain.requirements` | `Requirement`, `EarsPattern`, grammar lint, forward/backward/point trace. Pure, no IO. |
-| `ter.adapters.driven.requirements_yaml` | Loads the YAML catalogue and vocabulary. |
+| `ter.domain.points` | `VisionPoint`, `Verification`, the two-way point lint. Pure; existence checks are injected. |
+| `ter.adapters.driven.requirements_yaml` | Loads the YAML catalogue, vocabulary and points; `RepositoryChecks` resolves `test:` and `ci:` entries. |
 | `ter.adapters.driving.pytest_req` | Pytest plugin behind `--req-trace`. |
 | `ter.adapters.driving.req_cli` | The `ter-req` command (also `python -m ter.adapters.driving.req_cli`). |
-| `ter.adapters.driving.req_report` | Markdown rendering: bars, grid, Mermaid. |
+| `ter.adapters.driving.req_report` | Markdown rendering: coverage report and points index. |
 
 The import-linter contracts forbid `yaml` and `pytest` in the domain, ports
 and use cases, and keep `requirements_yaml` independent of the other driven
@@ -142,8 +220,10 @@ adapters.
 
 ## Adding a requirement
 
-1. Add it to the file for its level with `status: planned`.
-2. Run `ter-req lint`.
+1. Add it to the file for its level with `status: planned`, with
+   `source_points` naming the points it enforces, and add its id to those
+   points' `rules` in `points.yaml`.
+2. Run `ter-req lint` and `ter-req points`.
 3. Write the test, tag it `@pytest.mark.req("<id>")`, make it pass.
 4. Set `status: verified` in the same change. From then on, CI fails if that
    test stops passing or loses its tag.

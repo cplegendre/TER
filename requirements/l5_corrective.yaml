@@ -1,15 +1,110 @@
-# L5 Corrective: model routing and opt-in corrective actions.
+# L5 Corrective: calibration, benchmarks and precision-gated correction.
+# Schema and controls: docs/ter4/requirements.md. Links to vision points are
+# checked both ways against requirements/points.yaml.
 level: L5
 requirements:
-  - id: TER-RTE-001
+  - id: TER-ANL-030
+    pattern: event-driven
+    text: >-
+      When the benchmark reporter runs on a recorded result set, the
+      benchmark reporter shall produce the same result table on every run.
+    level: L5
+    source_points: [94]
+    rationale: >-
+      Issue #37: benchmark results are reproducible from recorded sessions
+      without re-running the agent.
+    status: planned
+
+  - id: TER-ANL-031
+    pattern: event-driven
+    text: >-
+      When the benchmark comparer runs on a recorded experiment, the
+      benchmark comparer shall report a paired difference and a confidence
+      interval for every measure and every pair of conditions.
+    level: L5
+    source_points: [96, 97, 98, 153]
+    rationale: >-
+      Issues #38 and #42: comparisons report effect sizes with uncertainty,
+      not bare means.
+    status: planned
+
+  - id: TER-BEN-001
     pattern: ubiquitous
     text: >-
-      TER shall reference language models only through the role names defined
-      in the active routing profile.
+      TER shall keep a versioned benchmark corpus of synthetic sessions,
+      controlled tasks with expected outcomes, and real sessions cleared for
+      privacy and licensing.
     level: L5
-    port: ModelRouter
-    source_points: []
+    source_points: [92, 93, 94, 95]
     rationale: >-
-      Model ids change often; routing by role keeps policies and code stable
-      when a model is replaced.
+      Reproducible corpora make every claim re-runnable.
+    status: planned
+
+  - id: TER-BEN-002
+    pattern: ubiquitous
+    text: >-
+      TER shall compare sessions that perform the same benchmark task across
+      models, prompting strategies, context strategies and intervention
+      settings.
+    level: L5
+    source_points: [96, 97, 98, 99]
+    rationale: >-
+      Controlled comparisons isolate what actually changes efficiency.
+    status: planned
+
+  - id: TER-BEN-003
+    pattern: ubiquitous
+    text: >-
+      TER shall link every efficiency claim in a report to the benchmark
+      result that supports it.
+    level: L5
+    source_points: [100]
+    rationale: >-
+      Empirical validation is a prerequisite for strong claims.
+    status: planned
+
+  - id: TER-CAL-001
+    pattern: ubiquitous
+    text: >-
+      TER shall store expert annotations of agent behaviours with the event
+      ids they label.
+    level: L5
+    source_points: [87, 88]
+    rationale: >-
+      Calibration needs expert labels tied to the same event ids TER
+      analyses.
+    status: planned
+
+  - id: TER-CAL-002
+    pattern: ubiquitous
+    text: >-
+      TER shall report inter-rater agreement for each Lean waste category in
+      the calibration dataset.
+    level: L5
+    source_points: [89]
+    rationale: >-
+      Categories humans cannot agree on cannot be detected reliably.
+    status: planned
+
+  - id: TER-EVD-010
+    pattern: ubiquitous
+    text: >-
+      The annotation importer shall reject a label file whose event ids are
+      absent from the session event stream.
+    level: L5
+    source_points: [88]
+    rationale: >-
+      Issue #36: labels keyed by stable event ids survive re-analysis only
+      if the ids exist.
+    status: planned
+
+  - id: TER-EVD-011
+    pattern: ubiquitous
+    text: >-
+      The agreement report shall state Krippendorff's alpha and its 95
+      percent confidence interval for every label.
+    level: L5
+    source_points: [89]
+    rationale: >-
+      Issue #36: labels humans cannot agree on cannot be calibrated against.
     status: planned

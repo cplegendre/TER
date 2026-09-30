@@ -1,41 +1,160 @@
 # L1 Observed: a live event stream with the same semantics as batch analysis.
+# Schema and controls: docs/ter4/requirements.md. Links to vision points are
+# checked both ways against requirements/points.yaml.
 level: L1
 requirements:
+  - id: TER-ANL-010
+    pattern: ubiquitous
+    text: >-
+      TER shall produce an incremental session report that is identical to
+      the batch report for the same event stream.
+    level: L1
+    source_points: [107, 108, 109]
+    rationale: >-
+      Live equals batch: a number shown during a session never changes when
+      the session is analysed again afterwards.
+    status: planned
+
+  - id: TER-ANL-011
+    pattern: event-driven
+    text: >-
+      When TER applies one new event to a live session, TER shall update the
+      session state without reprocessing earlier events.
+    level: L1
+    source_points: [110]
+    rationale: >-
+      Incremental state keeps live analysis cheap enough to run on every
+      hook.
+    status: planned
+
+  - id: TER-OBS-001
+    pattern: ubiquitous
+    text: >-
+      TER shall accept every live and recorded observation through the
+      EventIngest port as ter.event/0.1 events.
+    level: L1
+    port: EventIngest
+    source_points: [101, 102, 198]
+    rationale: >-
+      One ingest boundary makes live and post-hoc analysis the same
+      pipeline.
+    status: planned
+
+  - id: TER-OBS-002
+    pattern: event-driven
+    text: >-
+      When Claude Code runs a PreToolUse, PostToolUse, Stop or SubagentStop
+      hook, the hook adapter shall translate the hook payload into
+      ter.event/0.1 events.
+    level: L1
+    port: EventIngest
+    source_points: [111, 112, 113, 114, 115, 116]
+    rationale: >-
+      Hooks are the live observation channel for Claude Code.
+    status: planned
+
   - id: TER-OBS-003
     pattern: event-driven
     text: >-
-      When Claude Code runs the PostToolUse hook, the hook adapter shall append
-      one tool.completed event to the session event store within 50 ms at the
-      95th percentile.
+      When Claude Code runs the PostToolUse hook, the hook adapter shall
+      append one tool.completed event to the session event store within 50
+      ms at the 95th percentile.
     level: L1
     port: EventStore
-    source_points: []
+    source_points: [114, 120]
     rationale: >-
-      Observation must not slow the agent down noticeably; 50 ms at p95 keeps
-      the hook below human-perceptible latency.
+      Observation must not slow the agent down noticeably; 50 ms at p95
+      keeps the hook below human-perceptible latency.
     status: planned
 
   - id: TER-OBS-004
     pattern: unwanted
     text: >-
-      If the event store receives an event whose id it already holds, then the
-      event store shall discard the duplicate without changing stored state.
+      If the event store receives an event whose id it already holds, then
+      the event store shall discard the duplicate without changing stored
+      state.
     level: L1
     port: EventStore
-    source_points: []
+    source_points: [119]
     rationale: >-
       Hooks can fire twice and replays overlap live capture; idempotent
       ingestion keeps counts exact.
     status: planned
 
-  - id: TER-ANL-010
+  - id: TER-OBS-005
+    pattern: event-driven
+    text: >-
+      When Claude Code runs the Stop hook, the hook adapter shall append one
+      task.completed event whose id equals the id the session source derives
+      for the same stop.
+    level: L1
+    port: EventIngest
+    source_points: [115, 117]
+    rationale: >-
+      Issue #35: task completion must be observable live and correlate with
+      the recorded session.
+    status: planned
+
+  - id: TER-OBS-006
+    pattern: event-driven
+    text: >-
+      When Claude Code runs the SubagentStop hook, the hook adapter shall
+      append one subagent.completed event that carries the parent session
+      id.
+    level: L1
+    port: EventIngest
+    source_points: [116]
+    rationale: >-
+      Issue #35: subagent activity must be attributable to its parent
+      session.
+    status: planned
+
+  - id: TER-OBS-007
     pattern: ubiquitous
     text: >-
-      TER shall produce an incremental session report that is identical to the
-      batch report for the same event stream.
+      The hook adapter shall assign each hook event the event id that the
+      session source assigns to the same record.
     level: L1
-    source_points: []
+    port: EventIngest
+    source_points: [117, 118]
     rationale: >-
-      Live equals batch: a number shown during a session never changes when
-      the session is analysed again afterwards.
+      Stable identities across live and recorded observation let the two be
+      correlated and deduplicated.
+    status: planned
+
+  - id: TER-OBS-008
+    pattern: state-driven
+    text: >-
+      While the maturity ceiling is L1 Observed, the hook adapter shall
+      return an empty hook response to Claude Code.
+    level: L1
+    source_points: [122]
+    rationale: >-
+      Passive observation is the safe default; an observe-only hook cannot
+      change agent behaviour.
+    status: planned
+
+  - id: TER-SRC-005
+    pattern: ubiquitous
+    text: >-
+      The session source shall map at least 99 percent of records in every
+      session of the reference corpus to events.
+    level: L1
+    port: SessionSource
+    source_points: [92]
+    rationale: >-
+      Issue #34: real sessions contain record types the synthetic corpus
+      never produced.
+    status: planned
+
+  - id: TER-SRC-006
+    pattern: event-driven
+    text: >-
+      When the corpus importer writes a session, the corpus importer shall
+      run the redaction step before writing.
+    level: L1
+    source_points: [87, 95]
+    rationale: >-
+      Issue #34: real sessions hold secrets and paths; nothing is analysed
+      or shared unredacted.
     status: planned

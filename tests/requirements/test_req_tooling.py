@@ -240,11 +240,11 @@ def test_cli_reports_missing_catalogue(
     assert code == 2 and "not found" in err
 
 
-def test_cli_points(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    code, out, _ = _run(capsys, "--catalogue", str(_catalogue(tmp_path)), "points")
-    assert code == 0
-    assert "1/200 vision points cite a requirement" in out
-    assert "uncovered: 2, 3" in out
+def test_cli_points_needs_a_points_file(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    code, _, err = _run(capsys, "--catalogue", str(_catalogue(tmp_path)), "points")
+    assert code == 2 and "no points.yaml" in err
 
 
 def test_cli_report_to_stdout_and_file(

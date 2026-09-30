@@ -18,7 +18,7 @@ tests/golden/          # Golden snapshots freezing TER 3 scores (TER_UPDATE_GOLD
 tests/contract/        # One suite per port; real adapters and fakes must both pass
 tests/architecture/    # Import-contract fitness tests
 tests/requirements/    # EARS catalogue lint, trace and ter-req tooling tests
-requirements/          # EARS requirement catalogue (YAML, one file per maturity level)
+requirements/          # EARS requirement catalogue (YAML per maturity level) + points.yaml (200 vision points)
 docs/                  # Architecture, user guide, context orchestrator reference
 sample_sessions/       # Sample JSONL files for testing
 ```
@@ -33,7 +33,8 @@ lint-imports                              # Hexagon dependency rules
 pytest tests/golden tests/contract tests/architecture  # L0 gate
 ter-req lint --tests tests                # EARS grammar + every req marker cites a known id
 pytest --req-trace=req-trace.json && ter-req trace --results req-trace.json --gate L0  # traceability gate
-ter-req report --results req-trace.json   # Markdown coverage per level; `ter-req points` for vision points
+ter-req report --results req-trace.json   # Markdown coverage per level
+ter-req points                            # regenerate docs/ter4/points.md (CI runs --check)
 ```
 
 ## Code Style
@@ -47,6 +48,7 @@ Python 3.11+: Follow standard conventions. Dataclasses for models, enums for dom
 - Model prices are data in `src/ter/data/price_book.json`, read through the `PriceBook` port (ADR 0003). Never hard-code rates.
 - Scoring changes must show up as a golden snapshot diff, committed on purpose.
 - Tag tests with `@pytest.mark.req("TER-XXX-NNN")` for the requirement they verify. Every behaviour is an EARS requirement in `requirements/*.yaml` (see `docs/ter4/requirements.md`); new ones start `status: planned` and become `verified` once a passing test cites them.
+- Every TER 4 change names the vision point ids it advances (`P044`, …) in its commit message and PR body, and updates those points' `status` and `verification` in `requirements/points.yaml` in the same PR (then `ter-req points`). A point is `done` only when its rules are verified by tests. Index: `docs/ter4/points.md`.
 - New `ter` code is strictly typed (mypy overrides in pyproject.toml).
 - See `docs/ter4/architecture.md` and `docs/decisions/`.
 

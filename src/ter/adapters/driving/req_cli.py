@@ -2,14 +2,16 @@
 
 Usage::
 
-    ter-req lint   [--catalogue requirements] [--tests tests]
+    ter-req lint   [--catalogue requirements] [--tests tests] [--strict]
     ter-req trace  --results req-trace.json [--gate L0] [--summary PATH]
-    ter-req points [--catalogue requirements]
+    ter-req points [--out docs/ter4/points.md] [--check]
     ter-req report [--results req-trace.json] [--gate L0] [--out PATH]
 
-``lint`` checks EARS grammar and, with ``--tests``, that every
-``@pytest.mark.req`` in the test tree cites a known id (a static backward
-trace). ``trace`` is the CI gate: it fails when a verified requirement at or
+``lint`` checks EARS grammar, the vision points in ``points.yaml`` (definition
+of done, rules, two-way links, verification of done points) and, with
+``--tests``, that every ``@pytest.mark.req`` in the test tree cites a known id
+(a static backward trace). ``points`` writes the living points index, or with
+``--check`` fails when the committed index is stale. ``trace`` is the CI gate: it fails when a verified requirement at or
 below the gate level has no passing test, or a test cites an unknown id.
 Exit status is 0 on success, 1 when a check fails and 2 on bad input.
 """
@@ -26,20 +28,22 @@ from pathlib import Path
 from ter.adapters.driven.requirements_yaml import (
     Catalogue,
     CatalogueError,
+    RepositoryChecks,
     load_catalogue,
 )
 from ter.domain.maturity import Maturity
+from ter.domain.points import lint_points, summarise
 from ter.domain.requirements import (
-    VISION_POINTS,
     TestOutcome,
     backward_trace,
     lint_catalogue,
     trace,
 )
 
-from .req_report import point_grid, render_markdown
+from .req_report import render_markdown, render_points_index
 
 DEFAULT_CATALOGUE = Path("requirements")
+DEFAULT_INDEX = Path("docs/ter4/points.md")
 MARKER = re.compile(r"mark\.req\(\s*((?:[\"'][^\"']*[\"']\s*,?\s*)+)\)")
 MARKER_ID = re.compile(r"[\"']([^\"']*)[\"']")
 
@@ -89,11 +93,16 @@ def load_results(path: Path) -> Results:
 
 def _cmd_lint(args: argparse.Namespace, catalogue: Catalogue) -> int:
     issues = lint_catalogue(catalogue.requirements, catalogue.vocabulary)
+    if catalogue.points:
+        checks = RepositoryChecks(args.root)
+        issues += lint_points(catalogue.points, catalogue.requirements, checks)
     for issue in issues:
         source = catalogue.sources.get(issue.requirement_id)
         prefix = f"{source}: " if source else ""
         print(f"{prefix}{issue}")
-    failed = bool(issues)
+    errors = [i for i in issues if args.strict or not i.warning]
+    warnings = len(issues) - len(errors)
+    failed = bool(errors)
     if args.tests is not None:
         unknown = backward_trace(catalogue.requirements, scan_citations(args.tests))
         for rid, where in unknown:
@@ -101,9 +110,9 @@ def _cmd_lint(args: argparse.Namespace, catalogue: Catalogue) -> int:
                 f"{rid}: [TRACE-UNKNOWN] cited but not in the catalogue: {', '.join(where)}"
             )
         failed = failed or bool(unknown)
-    count = len(catalogue.requirements)
     print(
-        f"{'FAIL' if failed else 'OK'}: {count} requirements, {len(issues)} grammar issues"
+        f"{'FAIL' if failed else 'OK'}: {len(catalogue.requirements)} requirements, "
+        f"{len(catalogue.points)} points, {len(errors)} errors, {warnings} warnings"
     )
     return 1 if failed else 0
 
@@ -135,12 +144,21 @@ def _cmd_trace(args: argparse.Namespace, catalogue: Catalogue) -> int:
 
 
 def _cmd_points(args: argparse.Namespace, catalogue: Catalogue) -> int:
-    report = trace(catalogue.requirements, {}, Maturity.MEASURED)
-    covered = VISION_POINTS - len(report.uncovered_points)
-    print(point_grid(report.uncovered_points))
-    print(f"{covered}/{VISION_POINTS} vision points cite a requirement")
-    if report.uncovered_points:
-        print("uncovered: " + ", ".join(str(p) for p in report.uncovered_points))
+    if not catalogue.points:
+        raise InputError(f"{args.catalogue}: no points.yaml in the catalogue")
+    text = render_points_index(catalogue.points, catalogue.requirements)
+    summary = summarise(catalogue.points)
+    counts = ", ".join(f"{n} {s.value}" for s, n in summary.by_status.items())
+    if args.check:
+        current = args.out.read_text(encoding="utf-8") if args.out.is_file() else ""
+        if current != text:
+            print(f"FAIL: {args.out} is stale; run `ter-req points` and commit it")
+            return 1
+        print(f"OK: {args.out} is up to date ({counts})")
+        return 0
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(text, encoding="utf-8")
+    print(f"wrote {args.out} ({counts})")
     return 0
 
 
@@ -165,11 +183,22 @@ def build_parser() -> argparse.ArgumentParser:
         description="Lint, trace and report on the TER EARS requirement catalogue.",
     )
     parser.add_argument("--catalogue", type=Path, default=DEFAULT_CATALOGUE)
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=Path("."),
+        help="repository root for test/ci checks",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     lint = sub.add_parser("lint", help="check EARS grammar and catalogue invariants")
     lint.add_argument(
         "--tests", type=Path, default=None, help="also scan this tree for req markers"
+    )
+    lint.add_argument(
+        "--strict",
+        action="store_true",
+        help="treat warnings (pending merges) as errors",
     )
     lint.set_defaults(handler=_cmd_lint)
 
@@ -183,7 +212,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     gate.set_defaults(handler=_cmd_trace)
 
-    points = sub.add_parser("points", help="list vision points with no requirement")
+    points = sub.add_parser("points", help="write the vision points index")
+    points.add_argument("--out", type=Path, default=DEFAULT_INDEX)
+    points.add_argument(
+        "--check", action="store_true", help="fail when the committed index is stale"
+    )
     points.set_defaults(handler=_cmd_points)
 
     report = sub.add_parser(
