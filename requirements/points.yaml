@@ -1,0 +1,2911 @@
+# Leigh's 200-point TER 4 vision: definition of done, enforcing rules and
+# verification for every point. Checked by `ter-req lint` (see
+# docs/ter4/requirements.md); docs/ter4/points.md is generated from this file
+# by `ter-req points`.
+#
+# verification entries: 'test: <pytest node id>', 'ci: <CI step name>',
+# 'branch: <branch> <what>' (proof on an unmerged branch) or 'planned: <what>'.
+#
+# issue / real_data: points that need real session data link the GitHub issue
+# that collects it (#34 to #46, tracked in #47). A real_data point cannot be
+# done until real_data_verified: true is set in the change that closes it.
+points:
+  - id: P001
+    text: >-
+      Evolve TER from a Token Efficiency Ratio calculator into a
+      software-centric Lean analysis platform for agentic software
+      engineering.
+    level: L2
+    kind: principle
+    status: partial
+    definition_of_done:
+      - >-
+        The ter package ships the Lean model (activity classes, value
+        stream, waste taxonomy) in ter.domain.
+      - ter analyze reports Lean measures next to TER for every session.
+    rules: [TER-LEN-001, TER-LEN-007]
+    verification:
+      - 'planned: passing tests tagged req for TER-LEN-001, TER-LEN-007'
+
+  - id: P002
+    text: >-
+      Treat an AI coding session as an observable software-development
+      process rather than merely a sequence of model tokens.
+    level: L2
+    kind: principle
+    status: partial
+    definition_of_done:
+      - >-
+        Every session is represented as an ordered value stream of ter.event
+        events from intent to verified change.
+    rules: [TER-LEN-007]
+    verification:
+      - 'test: tests/golden/test_event_stream_snapshot.py'
+      - 'planned: value stream model tests'
+
+  - id: P003
+    text: >-
+      Make value, waste, flow, quality, cost, risk, and outcome first-class
+      analytical concepts.
+    level: L2
+    kind: principle
+    status: partial
+    definition_of_done:
+      - >-
+        The scorecard has value, waste, flow, quality, cost, risk and
+        outcome as named fields.
+      - >-
+        Each field is computed from recorded events and documented in
+        docs/ter4.
+    rules: [TER-SCR-001, TER-LEN-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-SCR-001, TER-LEN-002'
+
+  - id: P004
+    text: >-
+      Preserve TER as the foundational efficiency metric while building a
+      broader analytical model around it.
+    level: L0
+    kind: principle
+    status: done
+    definition_of_done:
+      - >-
+        TER 3 scores on the golden corpus are unchanged by every TER 4
+        change.
+      - Every TER 4 scorecard still reports the Token Efficiency Ratio.
+    rules: [TER-ANL-000, TER-ANL-002, TER-SCR-003]
+    verification:
+      - 'test: tests/golden/test_ter3_characterisation.py'
+      - 'ci: L0 gate (golden TER 3 parity, port contracts, architecture)'
+
+  - id: P005
+    text: >-
+      Separate measurement of agent behaviour from judgment about whether
+      the resulting software is correct.
+    level: L2
+    kind: principle
+    status: partial
+    definition_of_done:
+      - >-
+        Behaviour measures and outcome judgements are separate scorecard
+        dimensions computed by separate modules.
+      - No behaviour measure reads an outcome verdict.
+    rules: [TER-SCR-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-SCR-001'
+
+  - id: P006
+    text: >-
+      Define value in relation to the developer's requested software
+      outcome.
+    level: L2
+    kind: principle
+    status: not-started
+    definition_of_done:
+      - >-
+        Value classification takes the current intent's requested outcome as
+        input.
+      - >-
+        A test shows the same event classified differently under two
+        intents.
+    rules: [TER-LEN-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-LEN-003'
+
+  - id: P007
+    text: >-
+      Define waste as activity consuming resources without proportionately
+      advancing that outcome.
+    level: L2
+    kind: principle
+    status: not-started
+    definition_of_done:
+      - >-
+        The waste definition (resource use without proportionate progress
+        toward the outcome) is in the Lean model docs.
+      - >-
+        Each waste class names the resource it consumes and the progress
+        signal it lacks.
+    rules: [TER-LEN-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-LEN-003'
+
+  - id: P008
+    text: >-
+      Recognise that additional reasoning is not automatically waste.
+    level: L2
+    kind: principle
+    status: not-started
+    definition_of_done:
+      - >-
+        A reasoning span that introduces new evidence or a decision is never
+        labelled waste, shown by tests.
+    rules: [TER-LEN-004]
+    verification:
+      - 'planned: passing tests tagged req for TER-LEN-004'
+
+  - id: P009
+    text: >-
+      Recognise that fewer tokens are not automatically more efficient.
+    level: L2
+    kind: principle
+    status: not-started
+    definition_of_done:
+      - >-
+        No efficiency score improves from token reduction alone; a test
+        holds value constant and cuts tokens without changing the verdict.
+    rules: [TER-LEN-005]
+    verification:
+      - 'planned: passing tests tagged req for TER-LEN-005'
+
+  - id: P010
+    text: >-
+      Optimise for effective software delivery rather than token
+      minimisation.
+    level: L2
+    kind: principle
+    status: not-started
+    definition_of_done:
+      - >-
+        Efficiency is reported as value delivered per resource, and the
+        report names token minimisation as a non-goal.
+    rules: [TER-LEN-005]
+    verification:
+      - 'planned: passing tests tagged req for TER-LEN-005'
+
+  - id: P011
+    text: >-
+      Establish a formal Lean model for agentic software development.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        docs/ter4 contains the formal Lean model: concepts, definitions and
+        their measures.
+      - Each concept in the model maps to code in ter.domain.
+    rules: [TER-LEN-001, TER-LEN-006]
+    verification:
+      - 'planned: passing tests tagged req for TER-LEN-001, TER-LEN-006'
+
+  - id: P012
+    text: >-
+      Map Lean concepts such as value, flow, pull, WIP, queues, rework,
+      defects, waiting, over-processing, and motion onto agent behaviour.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Each of value, flow, pull, WIP, queues, rework, defects, waiting,
+        over-processing and motion has a named measure.
+      - >-
+        A table in the Lean model docs links each concept to its detector or
+        metric.
+    rules: [TER-LEN-006]
+    verification:
+      - 'planned: passing tests tagged req for TER-LEN-006'
+
+  - id: P013
+    text: >-
+      Define an Agentic Value Stream representing the path from developer
+      intent to verified software change.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        An AgenticValueStream domain type spans stated intent to verified
+        change.
+      - Reports show the stream as ordered stages.
+    rules: [TER-LEN-007]
+    verification:
+      - 'planned: passing tests tagged req for TER-LEN-007'
+
+  - id: P014
+    text: >-
+      Model prompts, reasoning, tool calls, repository reads, edits, tests,
+      validation, and responses as events within that value stream.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Prompts, reasoning, tool calls, reads, edits, tests, validation and
+        responses each have an event kind in the stream.
+    rules: [TER-LEN-007]
+    verification:
+      - 'planned: passing tests tagged req for TER-LEN-007'
+
+  - id: P015
+    text: >-
+      Identify value-adding, necessary non-value-adding, and avoidable
+      activities.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Every scored event carries exactly one of value-adding, necessary
+        non-value-adding or avoidable.
+    rules: [TER-LEN-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-LEN-001'
+
+  - id: P016
+    text: >-
+      Measure the proportion of agent activity associated with each activity
+      class.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Reports show the token and time share of each activity class,
+        summing to 100%.
+    rules: [TER-LEN-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-LEN-002'
+
+  - id: P017
+    text: >-
+      Detect repeated reasoning that does not introduce new evidence or
+      decisions.
+    level: L2
+    kind: capability
+    status: partial
+    definition_of_done:
+      - >-
+        A detector flags reasoning that repeats earlier reasoning with no
+        new evidence or decision.
+      - Findings cite the repeated and the original event ids.
+    rules: [TER-DET-002, TER-LEN-004]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-002, TER-LEN-004'
+
+  - id: P018
+    text: >-
+      Detect repeated repository exploration that does not improve
+      understanding.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        A detector flags repeated repository exploration that adds no new
+        files or facts.
+    rules: [TER-DET-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-002'
+
+  - id: P019
+    text: >-
+      Detect repeated tool calls whose inputs and outputs are materially
+      unchanged.
+    level: L2
+    kind: capability
+    status: partial
+    definition_of_done:
+      - >-
+        A detector flags tool calls whose inputs and outputs repeat an
+        earlier call above the similarity threshold.
+    rules: [TER-DET-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-002'
+
+  - id: P020
+    text: >-
+      Detect unnecessary regeneration or rewriting of already satisfactory
+      work.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        A detector flags regeneration of output that an earlier event
+        already delivered and nothing rejected.
+    rules: [TER-DET-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-002'
+
+  - id: P021
+    text: >-
+      Detect excessive context acquisition.
+    level: L2
+    kind: capability
+    status: partial
+    definition_of_done:
+      - >-
+        A detector flags context acquisition above the configured band
+        before an edit.
+    rules: [TER-DET-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-003'
+
+  - id: P022
+    text: >-
+      Detect insufficient context acquisition before implementation.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - A detector flags edits made with context below the configured band.
+    rules: [TER-DET-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-003'
+
+  - id: P023
+    text: >-
+      Detect premature implementation before relevant evidence has been
+      collected.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        A phase rule flags implementation that starts before the evidence
+        the task needs has been read.
+    rules: [TER-DET-005]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-005'
+
+  - id: P024
+    text: >-
+      Detect excessive planning without transition to implementation.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        A phase rule flags planning that exceeds its configured length
+        without an edit.
+    rules: [TER-DET-005]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-005'
+
+  - id: P025
+    text: >-
+      Detect excessive implementation without validation.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        A phase rule flags implementation that exceeds its configured length
+        without a test or validation event.
+    rules: [TER-DET-005]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-005'
+
+  - id: P026
+    text: >-
+      Detect repeated edit-test-fail cycles indicative of rework.
+    level: L2
+    kind: capability
+    status: partial
+    definition_of_done:
+      - >-
+        A detector flags repeated edit, test, failure cycles on the same
+        files as rework.
+    rules: [TER-DET-006]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-006'
+
+  - id: P027
+    text: >-
+      Detect fragmented edits where a coherent change is unnecessarily
+      decomposed.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        A detector flags a logical change split into more edits than the
+        configured limit.
+    rules: [TER-DET-007]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-007'
+
+  - id: P028
+    text: >-
+      Detect unnecessary file traversal as agentic motion waste.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        A detector flags file traversals whose content no later event uses,
+        as motion waste.
+    rules: [TER-DET-007]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-007'
+
+  - id: P029
+    text: >-
+      Detect unnecessary handoffs between subagents or models.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        A detector flags subagent handoffs that return no evidence the
+        parent uses.
+    rules: [TER-DET-008]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-008'
+
+  - id: P030
+    text: >-
+      Detect waiting caused by avoidable external-model escalation.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        A detector flags external-model escalations whose waiting time
+        bought no new evidence.
+    rules: [TER-DET-008]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-008'
+
+  - id: P031
+    text: >-
+      Model work-in-progress within an agent session.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        The domain models open work items (hypotheses, tasks, edits,
+        failures) per session.
+    rules: [TER-WIP-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-WIP-001'
+
+  - id: P032
+    text: >-
+      Measure concurrent unresolved hypotheses, tasks, edits, and failures.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Reports show WIP over the session and its peak.
+    rules: [TER-WIP-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-WIP-001'
+
+  - id: P033
+    text: >-
+      Investigate whether excessive agentic WIP correlates with lower
+      efficiency or poorer outcomes.
+    level: L6
+    kind: research
+    status: not-started
+    issue: 44
+    real_data: true
+    definition_of_done:
+      - >-
+        A study reports the correlation between WIP and efficiency and
+        outcomes on the value stream dataset.
+    rules: [TER-RSH-001, TER-EXP-010]
+    verification:
+      - 'planned: study notebook over the TER-RSH-001 dataset'
+      - 'planned: real-data verification in issue #44'
+
+  - id: P034
+    text: >-
+      Detect context inventory accumulating without subsequent use.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Reports list retrieved context that no later event used.
+    rules: [TER-DET-004]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-004'
+
+  - id: P035
+    text: >-
+      Quantify the cost of unused retrieved context.
+    level: L2
+    kind: capability
+    status: not-started
+    issue: 40
+    real_data: true
+    definition_of_done:
+      - Reports give the token cost of unused context.
+    rules: [TER-DET-004, TER-ANL-040, TER-ANL-041]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-004, TER-ANL-040, TER-ANL-041'
+      - 'planned: real-data verification in issue #40'
+
+  - id: P036
+    text: >-
+      Quantify the cost of context repeatedly re-read because useful
+      knowledge was not retained.
+    level: L2
+    kind: capability
+    status: not-started
+    issue: 40
+    real_data: true
+    definition_of_done:
+      - Reports give the token cost of context read more than once.
+    rules: [TER-DET-004, TER-ANL-040, TER-ANL-041]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-004, TER-ANL-040, TER-ANL-041'
+      - 'planned: real-data verification in issue #40'
+
+  - id: P037
+    text: >-
+      Distinguish productive iteration from rework.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Iteration that changes approach or adds evidence is labelled
+        productive; same-surface repeats are labelled rework, shown by tests
+        on both.
+    rules: [TER-DET-006]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-006'
+
+  - id: P038
+    text: >-
+      Distinguish exploration required by uncertainty from aimless
+      exploration.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Exploration linked to a recorded open question is labelled
+        uncertainty-driven; other exploration is labelled aimless.
+    rules: [TER-DET-009]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-009'
+
+  - id: P039
+    text: >-
+      Distinguish validation activity from duplicated validation.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        A second validation with no intervening change is labelled
+        duplicated validation.
+    rules: [TER-DET-010]
+    verification:
+      - 'planned: passing tests tagged req for TER-DET-010'
+
+  - id: P040
+    text: >-
+      Make every waste classification traceable to observable evidence.
+    level: L2
+    kind: principle
+    status: partial
+    definition_of_done:
+      - Every waste finding cites at least one event id.
+      - >-
+        A lint or test fails for any detector that emits a finding without
+        evidence.
+    rules: [TER-ANL-020, TER-DET-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-ANL-020, TER-DET-001'
+
+  - id: P041
+    text: >-
+      Retain TER's span-level provenance and stable identities as core
+      architectural primitives.
+    level: L0
+    kind: principle
+    status: done
+    definition_of_done:
+      - Event ids are content-derived and stable across runs and versions.
+    rules: [TER-SRC-004]
+    verification:
+      - 'test: tests/unit/test_ter4_domain.py::TestEventIds::test_ids_are_frozen_across_versions'
+
+  - id: P042
+    text: >-
+      Preserve deterministic reconstruction of Claude Code JSONL sessions.
+    level: L0
+    kind: capability
+    status: done
+    definition_of_done:
+      - >-
+        The same JSONL yields an identical event stream, frozen by a golden
+        snapshot.
+    rules: [TER-SRC-004, TER-SRC-002]
+    verification:
+      - 'test: tests/golden/test_event_stream_snapshot.py'
+
+  - id: P043
+    text: >-
+      Continue scoring assistant activity separately from user input.
+    level: L0
+    kind: principle
+    status: done
+    definition_of_done:
+      - >-
+        User-authored tokens never enter the scored total, on the golden
+        corpus and the port contract.
+    rules: [TER-ANL-001]
+    verification:
+      - 'test: tests/contract/test_session_source.py::test_generated_events_exclude_user_input_and_tool_output'
+
+  - id: P044
+    text: >-
+      Use user input as evidence for intent without incorrectly counting it
+      as generated work.
+    level: L0
+    kind: capability
+    status: done
+    definition_of_done:
+      - >-
+        User prompts become intent.stated events with the user as actor, and
+        are not scored.
+    rules: [TER-ANL-001, TER-SRC-007]
+    verification:
+      - 'test: tests/unit/test_ter4_adapters.py::TestClaudeCodeJsonlSource::test_user_prompts_are_intent_not_generated_work'
+
+  - id: P045
+    text: >-
+      Construct a persistent representation of developer intent.
+    level: L2
+    kind: capability
+    status: partial
+    definition_of_done:
+      - >-
+        Each session has one intent record in ter.domain, persisted with the
+        session state.
+    rules: [TER-ITN-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-ITN-001'
+
+  - id: P046
+    text: >-
+      Allow intent to evolve during a session.
+    level: L2
+    kind: capability
+    status: partial
+    definition_of_done:
+      - >-
+        Every intent.stated event updates the intent record, keeping its
+        history.
+    rules: [TER-ITN-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-ITN-001'
+
+  - id: P047
+    text: >-
+      Detect explicit changes in developer intent.
+    level: L2
+    kind: capability
+    status: partial
+    definition_of_done:
+      - An intent change is recorded with the prompt event that caused it.
+    rules: [TER-ITN-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-ITN-002'
+
+  - id: P048
+    text: >-
+      Distinguish legitimate intent changes from agent drift.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Departures without a recorded intent change are labelled drift;
+        departures after one are not, shown by tests.
+    rules: [TER-ITN-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-ITN-003'
+
+  - id: P049
+    text: >-
+      Measure distance between current agent activity and current developer
+      intent.
+    level: L2
+    kind: capability
+    status: partial
+    definition_of_done:
+      - Every agent event has an alignment score to the current intent.
+    rules: [TER-ITN-004]
+    verification:
+      - 'planned: passing tests tagged req for TER-ITN-004'
+
+  - id: P050
+    text: >-
+      Detect prolonged periods of low intent alignment.
+    level: L2
+    kind: capability
+    status: partial
+    definition_of_done:
+      - >-
+        Runs of low alignment above the configured length are reported as
+        low-alignment periods.
+    rules: [TER-ITN-005]
+    verification:
+      - 'planned: passing tests tagged req for TER-ITN-005'
+
+  - id: P051
+    text: >-
+      Extend intent analysis with software-repository evidence.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Intent analysis takes repository evidence as an input through the
+        RepositoryEvidence port.
+    rules: [TER-EVD-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-001'
+
+  - id: P052
+    text: >-
+      Understand which files, symbols, tests, modules, and architectural
+      components relate to the requested task.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        For a task, TER lists the related files, symbols, tests, modules and
+        components with the evidence for each.
+    rules: [TER-EVD-012]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-012'
+
+  - id: P053
+    text: >-
+      Incorporate TGV-style repository intelligence into TER's analytical
+      model.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        TGV-style repository intelligence is available as a
+        RepositoryEvidence adapter.
+    rules: [TER-EVD-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-001'
+
+  - id: P054
+    text: >-
+      Build a repository evidence layer independent of individual model
+      providers.
+    level: L3
+    kind: principle
+    status: not-started
+    definition_of_done:
+      - >-
+        The repository evidence layer imports no model-provider SDK,
+        enforced by an import-linter contract.
+    rules: [TER-EVD-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-001'
+
+  - id: P055
+    text: >-
+      Support lexical repository analysis as a deterministic baseline.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        A lexical adapter returns deterministic results, frozen by a golden
+        test.
+    rules: [TER-EVD-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-002'
+
+  - id: P056
+    text: >-
+      Add AST-aware analysis for supported programming languages.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - At least Python is supported with AST-derived evidence.
+    rules: [TER-EVD-012]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-012'
+
+  - id: P057
+    text: >-
+      Add symbol-aware repository navigation.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Symbol definitions and references can be navigated from evidence
+        queries.
+    rules: [TER-EVD-012]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-012'
+
+  - id: P058
+    text: >-
+      Add import and dependency relationship analysis.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - The adapter returns import and dependency edges between modules.
+    rules: [TER-EVD-012]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-012'
+
+  - id: P059
+    text: >-
+      Add call-graph evidence where practical.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - The adapter returns call edges for supported languages.
+    rules: [TER-EVD-012]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-012'
+
+  - id: P060
+    text: >-
+      Add test-to-source relationships.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        For any source module, the adapter returns every test module that
+        imports it.
+    rules: [TER-EVD-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-003'
+
+  - id: P061
+    text: >-
+      Add Git history and change-awareness as optional evidence.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Git history per file is available when the repository is a Git
+        working tree, and absent otherwise without error.
+    rules: [TER-EVD-013]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-013'
+
+  - id: P062
+    text: >-
+      Understand the current Git diff during live analysis.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Live analysis reads the current diff on each relevant event.
+    rules: [TER-EVD-013]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-013'
+
+  - id: P063
+    text: >-
+      Determine whether agent activity remains within the expected change
+      surface.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Each task has a computed expected change surface, and edits are
+        marked inside or outside it.
+    rules: [TER-EVD-006]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-006'
+
+  - id: P064
+    text: >-
+      Detect unnecessary expansion of the change surface.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Growth of the change surface beyond the expected one is reported.
+    rules: [TER-EVD-006]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-006'
+
+  - id: P065
+    text: >-
+      Detect architectural boundary violations introduced during
+      implementation.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        An edit that breaks a declared architecture contract is reported as
+        a boundary violation.
+    rules: [TER-EVD-007]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-007'
+
+  - id: P066
+    text: >-
+      Detect unrelated modifications made during a focused task.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Edits unrelated to the task are reported as unrelated modifications.
+    rules: [TER-EVD-006]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-006'
+
+  - id: P067
+    text: >-
+      Measure repository exploration against the eventual files changed.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Reports compare files explored with files eventually changed.
+    rules: [TER-EVD-008]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-008'
+
+  - id: P068
+    text: >-
+      Measure how much retrieved evidence contributes to subsequent actions.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Reports give the share of retrieved evidence that later actions
+        used.
+    rules: [TER-EVD-008]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-008'
+
+  - id: P069
+    text: >-
+      Identify repository reads that materially influence implementation.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Reads that later decisions, edits or tests used are marked
+        influential.
+    rules: [TER-EVD-008]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-008'
+
+  - id: P070
+    text: >-
+      Identify repository reads that appear to have produced no downstream
+      value.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Reads with no downstream use are marked and costed.
+    rules: [TER-EVD-008]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-008'
+
+  - id: P071
+    text: >-
+      Create an Evidence Graph connecting intent, observations, decisions,
+      actions, changes, and validation.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        An evidence graph type links intent, observations, decisions,
+        actions, changes and validation.
+    rules: [TER-GRF-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-GRF-001'
+
+  - id: P072
+    text: >-
+      Represent every significant agent decision as evidence-backed where
+      observable.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Every observable decision node in the graph has at least one
+        evidence edge.
+    rules: [TER-GRF-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-GRF-001'
+
+  - id: P073
+    text: >-
+      Connect tool calls to the evidence that motivated them.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Tool call nodes link to the evidence that motivated them.
+    rules: [TER-GRF-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-GRF-002'
+
+  - id: P074
+    text: >-
+      Connect edits to the requirements or evidence they address.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Edit nodes link to the requirements or evidence they address.
+    rules: [TER-GRF-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-GRF-002'
+
+  - id: P075
+    text: >-
+      Connect tests to the edits they validate.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Test nodes link to the edits they validate.
+    rules: [TER-GRF-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-GRF-002'
+
+  - id: P076
+    text: >-
+      Connect failures to subsequent corrective actions.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Failure nodes link to the corrective actions that follow them.
+    rules: [TER-GRF-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-GRF-002'
+
+  - id: P077
+    text: >-
+      Use this graph to reconstruct how a software change emerged.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        TER can print the reconstruction of how a change emerged from the
+        graph.
+    rules: [TER-GRF-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-GRF-001'
+
+  - id: P078
+    text: >-
+      Make the reconstruction suitable for both engineering analysis and
+      research datasets.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        The graph exports to a versioned, documented schema usable as a
+        research dataset.
+    rules: [TER-GRF-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-GRF-003'
+
+  - id: P079
+    text: >-
+      Introduce the concept of Agentic Flow Efficiency.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Agentic Flow Efficiency is defined in the Lean model docs and
+        computed per session.
+    rules: [TER-FLW-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-FLW-001'
+
+  - id: P080
+    text: >-
+      Measure time and tokens spent progressing versus waiting, repeating,
+      recovering, or reworking.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Reports split time and tokens into progressing, waiting, repeating,
+        recovering and reworking.
+    rules: [TER-FLW-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-FLW-001'
+
+  - id: P081
+    text: >-
+      Introduce Software Value Efficiency alongside Token Efficiency Ratio.
+    level: L2
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Software Value Efficiency is defined, computed and shown next to
+        TER.
+    rules: [TER-SCR-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-SCR-003'
+
+  - id: P082
+    text: >-
+      Avoid collapsing all dimensions into a single opaque score.
+    level: L2
+    kind: principle
+    status: partial
+    definition_of_done:
+      - No report shows a single score without its dimensions.
+    rules: [TER-SCR-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-SCR-001'
+
+  - id: P083
+    text: >-
+      Maintain a multidimensional scorecard covering efficiency, flow,
+      quality, cost, risk, and outcome.
+    level: L2
+    kind: capability
+    status: partial
+    definition_of_done:
+      - >-
+        The scorecard covers efficiency, flow, quality, cost, risk and
+        outcome.
+    rules: [TER-SCR-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-SCR-001'
+
+  - id: P084
+    text: >-
+      Allow an aggregate indicator only where its composition remains
+      explainable.
+    level: L2
+    kind: principle
+    status: partial
+    definition_of_done:
+      - >-
+        Any aggregate shows the weight and value of each dimension beside
+        it.
+    rules: [TER-SCR-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-SCR-002'
+
+  - id: P085
+    text: >-
+      Report confidence and uncertainty for heuristic classifications.
+    level: L2
+    kind: capability
+    status: done
+    definition_of_done:
+      - Session reports show a 95% interval for TER.
+      - Heuristic classifications carry a confidence value.
+    rules: [TER-ANL-003, TER-ANL-021]
+    verification:
+      - 'test: tests/unit/test_explainability_uncertainty_v11.py::test_result_formatters_expose_uncertainty_and_explanations'
+
+  - id: P086
+    text: >-
+      Make low-confidence classifications visible rather than silently
+      treating them as facts.
+    level: L2
+    kind: capability
+    status: done
+    definition_of_done:
+      - >-
+        Reports show low-confidence tokens and label low-confidence findings
+        as uncertain.
+    rules: [TER-ANL-003, TER-ANL-021]
+    verification:
+      - 'test: tests/unit/test_explainability_uncertainty_v11.py::test_result_formatters_expose_uncertainty_and_explanations'
+      - 'test: tests/unit/test_formatter_html.py::test_format_html_is_standalone_and_interactive'
+
+  - id: P087
+    text: >-
+      Build calibration datasets from real software-engineering sessions.
+    level: L5
+    kind: research
+    status: not-started
+    issue: 34
+    real_data: true
+    definition_of_done:
+      - >-
+        A calibration dataset of real sessions exists with its collection
+        protocol documented.
+    rules: [TER-CAL-001, TER-SRC-006]
+    verification:
+      - 'planned: passing tests tagged req for TER-CAL-001, TER-SRC-006'
+      - 'planned: real-data verification in issue #34'
+
+  - id: P088
+    text: >-
+      Support expert annotation of agent behaviours.
+    level: L5
+    kind: capability
+    status: not-started
+    issue: 36
+    real_data: true
+    definition_of_done:
+      - >-
+        An annotation tool or format lets experts label event ids with
+        behaviours.
+    rules: [TER-CAL-001, TER-EVD-010]
+    verification:
+      - 'planned: passing tests tagged req for TER-CAL-001, TER-EVD-010'
+      - 'planned: real-data verification in issue #36'
+
+  - id: P089
+    text: >-
+      Measure inter-rater agreement for Lean waste classifications.
+    level: L5
+    kind: research
+    status: not-started
+    issue: 36
+    real_data: true
+    definition_of_done:
+      - >-
+        Inter-rater agreement (for example Cohen's kappa) is reported per
+        waste category.
+    rules: [TER-CAL-002, TER-EVD-011]
+    verification:
+      - 'planned: passing tests tagged req for TER-CAL-002, TER-EVD-011'
+      - 'planned: real-data verification in issue #36'
+
+  - id: P090
+    text: >-
+      Evaluate precision and recall independently for each waste category.
+    level: L5
+    kind: research
+    status: not-started
+    issue: 41
+    real_data: true
+    definition_of_done:
+      - Precision and recall are reported per waste category.
+    rules: [TER-ANL-025]
+    verification:
+      - 'planned: passing tests tagged req for TER-ANL-025'
+      - 'planned: real-data verification in issue #41'
+
+  - id: P091
+    text: >-
+      Prioritise precision where false intervention would disrupt productive
+      agent behaviour.
+    level: L5
+    kind: principle
+    status: not-started
+    issue: 41
+    real_data: true
+    definition_of_done:
+      - Categories below the precision floor cannot trigger interventions.
+    rules: [TER-INT-010]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-010'
+      - 'planned: real-data verification in issue #41'
+
+  - id: P092
+    text: >-
+      Establish reproducible benchmark corpora.
+    level: L5
+    kind: capability
+    status: partial
+    issue: 34
+    real_data: true
+    definition_of_done:
+      - >-
+        Benchmark corpora are versioned in the repository or a pinned
+        dataset, and re-runnable with one command.
+    rules: [TER-BEN-001, TER-SRC-005]
+    verification:
+      - 'planned: passing tests tagged req for TER-BEN-001, TER-SRC-005'
+      - 'planned: real-data verification in issue #34'
+
+  - id: P093
+    text: >-
+      Include synthetic sessions for deterministic regression testing.
+    level: L5
+    kind: capability
+    status: done
+    definition_of_done:
+      - A synthetic corpus runs in CI as a deterministic regression test.
+    rules: [TER-BEN-001, TER-ANL-000]
+    verification:
+      - 'test: tests/golden/test_ter3_characterisation.py'
+
+  - id: P094
+    text: >-
+      Include controlled software tasks with known expected outcomes.
+    level: L5
+    kind: capability
+    status: not-started
+    issue: 37
+    real_data: true
+    definition_of_done:
+      - The corpus contains controlled tasks with known expected outcomes.
+    rules: [TER-BEN-001, TER-ANL-030]
+    verification:
+      - 'planned: passing tests tagged req for TER-BEN-001, TER-ANL-030'
+      - 'planned: real-data verification in issue #37'
+
+  - id: P095
+    text: >-
+      Include real-world sessions where privacy and licensing permit.
+    level: L5
+    kind: capability
+    status: partial
+    issue: 34
+    real_data: true
+    definition_of_done:
+      - >-
+        The corpus contains real sessions with recorded privacy and licence
+        clearance.
+    rules: [TER-BEN-001, TER-SRC-006]
+    verification:
+      - 'planned: passing tests tagged req for TER-BEN-001, TER-SRC-006'
+      - 'planned: real-data verification in issue #34'
+
+  - id: P096
+    text: >-
+      Compare different models performing equivalent tasks.
+    level: L5
+    kind: research
+    status: not-started
+    issue: 38
+    real_data: true
+    definition_of_done:
+      - A comparison report shows models on the same benchmark tasks.
+    rules: [TER-BEN-002, TER-ANL-031]
+    verification:
+      - 'planned: passing tests tagged req for TER-BEN-002, TER-ANL-031'
+      - 'planned: real-data verification in issue #38'
+
+  - id: P097
+    text: >-
+      Compare different prompting strategies performing equivalent tasks.
+    level: L5
+    kind: research
+    status: not-started
+    issue: 38
+    real_data: true
+    definition_of_done:
+      - A comparison report shows prompting strategies on the same tasks.
+    rules: [TER-BEN-002, TER-ANL-031]
+    verification:
+      - 'planned: passing tests tagged req for TER-BEN-002, TER-ANL-031'
+      - 'planned: real-data verification in issue #38'
+
+  - id: P098
+    text: >-
+      Compare different context strategies performing equivalent tasks.
+    level: L5
+    kind: research
+    status: not-started
+    issue: 42
+    real_data: true
+    definition_of_done:
+      - A comparison report shows context strategies on the same tasks.
+    rules: [TER-BEN-002, TER-ANL-031]
+    verification:
+      - 'planned: passing tests tagged req for TER-BEN-002, TER-ANL-031'
+      - 'planned: real-data verification in issue #42'
+
+  - id: P099
+    text: >-
+      Compare agent sessions with and without TER intervention.
+    level: L5
+    kind: research
+    status: not-started
+    issue: 45
+    real_data: true
+    definition_of_done:
+      - >-
+        A comparison report shows sessions with and without TER intervention
+        on the same tasks.
+    rules: [TER-BEN-002, TER-ANL-032]
+    verification:
+      - 'planned: passing tests tagged req for TER-BEN-002, TER-ANL-032'
+      - 'planned: real-data verification in issue #45'
+
+  - id: P100
+    text: >-
+      Make empirical validation a prerequisite for strong efficiency claims.
+    level: L0
+    kind: principle
+    status: partial
+    issue: 41
+    real_data: true
+    definition_of_done:
+      - >-
+        Every behaviour is an EARS requirement traced to tests and gated in
+        CI.
+      - Every efficiency claim in a report links to benchmark evidence.
+    rules: [TER-BEN-003, TER-ANL-025, TER-REQ-001, TER-REQ-002, TER-REQ-003, TER-REQ-004, TER-REQ-006]
+    verification:
+      - 'ci: Requirements traceability gate (L0)'
+      - 'planned: TER-BEN-003 claim-to-benchmark links'
+      - 'planned: real-data verification in issue #41'
+
+  - id: P101
+    text: >-
+      Introduce a real-time event stream as a core architectural boundary.
+    level: L1
+    kind: capability
+    status: partial
+    definition_of_done:
+      - An EventIngest port is the only way events enter analysis.
+    rules: [TER-OBS-001]
+    verification:
+      - 'planned: EventIngest port contract tests (lands with the L1 PR, work/l1-observed)'
+
+  - id: P102
+    text: >-
+      Convert Claude Code activity into normalised TER events.
+    level: L0
+    kind: capability
+    status: done
+    definition_of_done:
+      - The Claude Code adapter converts JSONL to ter.event/0.1 events.
+    rules: [TER-SRC-001, TER-OBS-001]
+    verification:
+      - 'test: tests/unit/test_ter4_adapters.py::TestClaudeCodeJsonlSource::test_tool_results_inherit_their_request_kind'
+
+  - id: P103
+    text: >-
+      Design the event model so other coding agents can eventually be
+      supported.
+    level: L0
+    kind: principle
+    status: done
+    definition_of_done:
+      - The event model uses provider-neutral tool kinds.
+      - A second harness adapter passes the SessionSource contract suite.
+    rules: [TER-SRC-003, TER-SRC-010]
+    verification:
+      - 'test: tests/unit/test_ter4_adapters.py::TestToolMap::test_every_kind_except_other_has_a_claude_tool'
+      - 'planned: second harness adapter in tests/contract'
+
+  - id: P104
+    text: >-
+      Avoid coupling the analytical core directly to Claude-specific JSONL
+      structures.
+    level: L0
+    kind: principle
+    status: done
+    definition_of_done:
+      - >-
+        The domain, ports and use cases never import the JSONL adapter,
+        enforced by import-linter.
+    rules: [TER-ARC-001]
+    verification:
+      - 'ci: Architecture import contracts'
+
+  - id: P105
+    text: >-
+      Create provider adapters around a provider-neutral domain model.
+    level: L0
+    kind: principle
+    status: done
+    definition_of_done:
+      - >-
+        Provider adapters implement ports around the neutral domain,
+        enforced by the hexagon contracts.
+    rules: [TER-ARC-001]
+    verification:
+      - 'test: tests/architecture/test_import_contracts.py'
+
+  - id: P106
+    text: >-
+      Support post-hoc static analysis from completed sessions.
+    level: L0
+    kind: capability
+    status: done
+    definition_of_done:
+      - ter analyze scores completed sessions, frozen by golden snapshots.
+    rules: [TER-ANL-000]
+    verification:
+      - 'test: tests/golden/test_ter3_characterisation.py'
+
+  - id: P107
+    text: >-
+      Support incremental analysis while a session is active.
+    level: L1
+    kind: capability
+    status: partial
+    definition_of_done:
+      - >-
+        Analysis runs incrementally, one event at a time, while a session is
+        active.
+    rules: [TER-ANL-010]
+    verification:
+      - 'planned: AnalysisEngine.apply tests (lands with the L1 PR, work/l1-observed)'
+
+  - id: P108
+    text: >-
+      Ensure static and live analysis use the same fundamental analytical
+      semantics.
+    level: L1
+    kind: principle
+    status: partial
+    definition_of_done:
+      - Live and batch analysis share one fold over events.
+    rules: [TER-ANL-010]
+    verification:
+      - 'planned: shared fold equivalence tests (lands with the L1 PR, work/l1-observed)'
+
+  - id: P109
+    text: >-
+      Avoid separate implementations that produce contradictory offline and
+      live results.
+    level: L1
+    kind: principle
+    status: partial
+    definition_of_done:
+      - >-
+        An equivalence test proves incremental and batch reports are
+        identical on the corpus.
+    rules: [TER-ANL-010]
+    verification:
+      - 'planned: live = batch equivalence tests (lands with the L1 PR, work/l1-observed)'
+
+  - id: P110
+    text: >-
+      Maintain incremental state so live analysis does not repeatedly
+      recompute entire sessions.
+    level: L1
+    kind: capability
+    status: partial
+    definition_of_done:
+      - >-
+        Applying one event updates state without reprocessing earlier
+        events, shown by an operation-count test.
+    rules: [TER-ANL-011]
+    verification:
+      - 'planned: incremental engine state tests (lands with the L1 PR, work/l1-observed)'
+
+  - id: P111
+    text: >-
+      Establish a TER hook subsystem for Claude Code.
+    level: L1
+    kind: capability
+    status: partial
+    definition_of_done:
+      - A claude_hooks adapter is installable into Claude Code settings.
+    rules: [TER-OBS-002]
+    verification:
+      - 'planned: claude_hooks adapter tests (lands with the L1 PR, work/l1-observed)'
+
+  - id: P112
+    text: >-
+      Observe appropriate Claude lifecycle and tool events through hooks.
+    level: L1
+    kind: capability
+    status: partial
+    definition_of_done:
+      - >-
+        A documented table maps each supported Claude hook to the events it
+        emits.
+    rules: [TER-OBS-002]
+    verification:
+      - 'planned: hook to event table tests (lands with the L1 PR, work/l1-observed)'
+
+  - id: P113
+    text: >-
+      Capture tool-use events before execution where supported.
+    level: L1
+    kind: capability
+    status: partial
+    definition_of_done:
+      - PreToolUse hooks emit tool.requested events.
+    rules: [TER-OBS-002]
+    verification:
+      - 'planned: PreToolUse tests (lands with the L1 PR, work/l1-observed)'
+
+  - id: P114
+    text: >-
+      Capture tool outcomes after execution where supported.
+    level: L1
+    kind: capability
+    status: partial
+    definition_of_done:
+      - PostToolUse hooks emit tool.completed events.
+    rules: [TER-OBS-002, TER-OBS-003]
+    verification:
+      - 'planned: PostToolUse tests (lands with the L1 PR, work/l1-observed)'
+
+  - id: P115
+    text: >-
+      Capture task completion events.
+    level: L1
+    kind: capability
+    status: partial
+    issue: 35
+    real_data: true
+    definition_of_done:
+      - Stop hooks emit a task completion event.
+    rules: [TER-OBS-002, TER-OBS-005]
+    verification:
+      - 'planned: Stop hook emits a task.completed event (TER-OBS-005)'
+      - 'planned: real-data verification in issue #35'
+
+  - id: P116
+    text: >-
+      Capture subagent activity where supported.
+    level: L1
+    kind: capability
+    status: partial
+    issue: 35
+    real_data: true
+    definition_of_done:
+      - >-
+        SubagentStop and subagent tool hooks emit events attributed to the
+        subagent.
+    rules: [TER-OBS-002, TER-OBS-006]
+    verification:
+      - 'planned: subagent hook events with subagent attribution'
+      - 'planned: real-data verification in issue #35'
+
+  - id: P117
+    text: >-
+      Correlate hook events with persisted session records.
+    level: L1
+    kind: capability
+    status: partial
+    issue: 35
+    real_data: true
+    definition_of_done:
+      - >-
+        Every hook event correlates with its JSONL record by event id,
+        including prompts.
+    rules: [TER-OBS-007, TER-OBS-005]
+    verification:
+      - 'planned: prompt correlation test across hook and JSONL'
+      - 'planned: real-data verification in issue #35'
+
+  - id: P118
+    text: >-
+      Assign stable identities across static and live observations.
+    level: L1
+    kind: capability
+    status: partial
+    definition_of_done:
+      - >-
+        Static and live observation of the same record produce the same
+        event id.
+    rules: [TER-OBS-007, TER-SRC-004]
+    verification:
+      - 'planned: same-id static and live tests (lands with the L1 PR, work/l1-observed)'
+
+  - id: P119
+    text: >-
+      Ensure duplicate events do not distort analysis.
+    level: L1
+    kind: capability
+    status: partial
+    definition_of_done:
+      - Re-delivered events are discarded without changing analysis state.
+    rules: [TER-OBS-004]
+    verification:
+      - 'planned: re-delivery tests (lands with the L1 PR, work/l1-observed)'
+
+  - id: P120
+    text: >-
+      Make hook processing sufficiently lightweight that TER does not become
+      a source of development waste.
+    level: L1
+    kind: capability
+    status: partial
+    definition_of_done:
+      - >-
+        Hook processing completes within 50 ms at p95 in a benchmark run in
+        CI.
+    rules: [TER-OBS-003]
+    verification:
+      - 'planned: hook latency benchmark (lands with the L1 PR, work/l1-observed)'
+
+  - id: P121
+    text: >-
+      Separate observation from intervention.
+    level: L4
+    kind: principle
+    status: partial
+    definition_of_done:
+      - >-
+        Observation and intervention live in separate engines with no import
+        from analysis to intervention.
+    rules: [TER-INT-006, TER-INT-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-006, TER-INT-001'
+
+  - id: P122
+    text: >-
+      Make passive observation the safest default operating mode.
+    level: L1
+    kind: principle
+    status: partial
+    definition_of_done:
+      - >-
+        The default ceiling observes only; the hook returns an empty
+        response.
+    rules: [TER-INT-001, TER-OBS-008]
+    verification:
+      - 'test: tests/unit/test_ter4_domain.py::TestMaturity::test_ceiling_permits_only_levels_at_or_below_it'
+      - 'planned: observe-only hook tests (lands with the L1 PR, work/l1-observed)'
+
+  - id: P123
+    text: >-
+      Introduce advisory interventions as the first active-control level.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - At the L4 ceiling TER delivers advice that changes no agent input.
+    rules: [TER-INT-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-002'
+
+  - id: P124
+    text: >-
+      Allow TER to warn when repeated work is detected.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - A policy warns on repetition findings.
+    rules: [TER-INT-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-003'
+
+  - id: P125
+    text: >-
+      Allow TER to warn when context growth appears disproportionate to
+      progress.
+    level: L4
+    kind: capability
+    status: partial
+    definition_of_done:
+      - A policy warns when context growth outpaces progress.
+    rules: [TER-INT-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-003'
+
+  - id: P126
+    text: >-
+      Allow TER to warn when the agent appears to drift from intent.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - A policy warns on drift findings.
+    rules: [TER-INT-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-003'
+
+  - id: P127
+    text: >-
+      Allow TER to warn when repeated failures indicate a strategy should
+      change.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - A policy warns when repeated failures suggest a change of strategy.
+    rules: [TER-INT-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-003'
+
+  - id: P128
+    text: >-
+      Allow TER to recommend validation when significant edits have not been
+      tested.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - A policy recommends validation after significant untested edits.
+    rules: [TER-INT-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-003'
+
+  - id: P129
+    text: >-
+      Allow TER to recommend reducing WIP when multiple unresolved branches
+      accumulate.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - A policy recommends reducing WIP when open items exceed the limit.
+    rules: [TER-INT-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-003'
+
+  - id: P130
+    text: >-
+      Allow TER to recommend context compaction when evidence indicates
+      context bloat.
+    level: L4
+    kind: capability
+    status: partial
+    definition_of_done:
+      - A policy recommends compaction when context bloat is evidenced.
+    rules: [TER-INT-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-003'
+
+  - id: P131
+    text: >-
+      Introduce corrective interventions as an explicitly configurable
+      control level.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Corrective interventions are off by default and enabled only in
+        policy configuration.
+    rules: [TER-INT-004]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-004'
+
+  - id: P132
+    text: >-
+      Permit a hook to inject concise evidence or guidance when intervention
+      thresholds are met.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        A hook injects concise evidence or guidance only when policy
+        thresholds are met.
+    rules: [TER-INT-004]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-004'
+
+  - id: P133
+    text: >-
+      Permit TER to recommend reconsideration before an apparently duplicate
+      tool call.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Before an apparently duplicate tool call, TER can recommend
+        reconsideration.
+    rules: [TER-INT-005]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-005'
+
+  - id: P134
+    text: >-
+      Permit TER to provide a compact summary of already acquired evidence.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - TER can provide a compact summary of evidence already acquired.
+    rules: [TER-INT-005]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-005'
+
+  - id: P135
+    text: >-
+      Permit TER to redirect the agent toward unresolved requirements.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - TER can point the agent at unresolved requirements.
+    rules: [TER-INT-005]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-005'
+
+  - id: P136
+    text: >-
+      Permit TER to recommend a smaller change surface.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - TER can recommend a smaller change surface.
+    rules: [TER-INT-005]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-005'
+
+  - id: P137
+    text: >-
+      Permit TER to recommend targeted tests based on changed components.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - TER can recommend targeted tests for the changed components.
+    rules: [TER-INT-005]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-005'
+
+  - id: P138
+    text: >-
+      Permit TER to recommend escalation when task complexity exceeds the
+      current execution strategy.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        TER recommends escalation only with evidence that complexity exceeds
+        the current strategy.
+    rules: [TER-INT-005, TER-RTE-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-005, TER-RTE-003'
+
+  - id: P139
+    text: >-
+      Never make an intervention solely because a fixed token threshold has
+      been exceeded.
+    level: L4
+    kind: principle
+    status: not-started
+    definition_of_done:
+      - >-
+        No policy can trigger on token count alone; policy validation
+        rejects such a policy.
+    rules: [TER-INT-007]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-007'
+
+  - id: P140
+    text: >-
+      Require contextual evidence before intervention.
+    level: L4
+    kind: principle
+    status: not-started
+    definition_of_done:
+      - Every intervention cites contextual evidence.
+    rules: [TER-INT-007]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-007'
+
+  - id: P141
+    text: >-
+      Borrow TGV's concept of explainable routing as part of TER's control
+      plane.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Routing decisions carry an explanation of the task classification
+        behind them.
+    rules: [TER-RTE-005]
+    verification:
+      - 'planned: passing tests tagged req for TER-RTE-005'
+
+  - id: P142
+    text: >-
+      Classify software tasks by complexity, ambiguity, risk, repository
+      scope, and validation requirements.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Tasks are classified by complexity, ambiguity, risk, repository
+        scope and validation needs.
+    rules: [TER-RTE-005]
+    verification:
+      - 'planned: passing tests tagged req for TER-RTE-005'
+
+  - id: P143
+    text: >-
+      Determine whether the current agent strategy is appropriate for the
+      observed task.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - TER reports whether the current strategy fits the classified task.
+    rules: [TER-RTE-005]
+    verification:
+      - 'planned: passing tests tagged req for TER-RTE-005'
+
+  - id: P144
+    text: >-
+      Support configurable execution profiles rather than hard-coded model
+      names.
+    level: L3
+    kind: capability
+    status: partial
+    definition_of_done:
+      - Code and policies reference execution profiles, never model names.
+    rules: [TER-RTE-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-RTE-001'
+
+  - id: P145
+    text: >-
+      Allow profiles such as local-fast, local-code, frontier-standard, and
+      frontier-deep.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        local-fast, local-code, frontier-standard and frontier-deep profiles
+        ship as defaults.
+    rules: [TER-RTE-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-RTE-001'
+
+  - id: P146
+    text: >-
+      Treat model selection as one possible Lean optimisation rather than
+      TER's central purpose.
+    level: L3
+    kind: principle
+    status: not-started
+    definition_of_done:
+      - >-
+        Model selection is one optimisation among others in the Lean model,
+        not a separate product surface.
+    rules: [TER-RTE-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-RTE-001'
+
+  - id: P147
+    text: >-
+      Investigate whether routine analysis and retrieval can remain local.
+    level: L3
+    kind: research
+    status: not-started
+    issue: 39
+    real_data: true
+    definition_of_done:
+      - >-
+        A study reports which analysis and retrieval steps keep their
+        quality on local models.
+    rules: [TER-RTE-003, TER-RTE-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-RTE-003, TER-RTE-002'
+      - 'planned: real-data verification in issue #39'
+
+  - id: P148
+    text: >-
+      Escalate difficult reasoning only when evidence supports escalation.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Escalation happens only with a supporting detector signal.
+    rules: [TER-RTE-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-RTE-003'
+
+  - id: P149
+    text: >-
+      Measure whether escalation actually improves software outcomes.
+    level: L3
+    kind: capability
+    status: not-started
+    issue: 39
+    real_data: true
+    definition_of_done:
+      - Every escalation records the outcome change it produced.
+    rules: [TER-RTE-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-RTE-002'
+      - 'planned: real-data verification in issue #39'
+
+  - id: P150
+    text: >-
+      Measure the cost and latency introduced by escalation.
+    level: L3
+    kind: capability
+    status: not-started
+    issue: 39
+    real_data: true
+    definition_of_done:
+      - Every escalation records its cost and latency.
+    rules: [TER-RTE-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-RTE-002'
+      - 'planned: real-data verification in issue #39'
+
+  - id: P151
+    text: >-
+      Adopt TGV-style deterministic context bundles.
+    level: L3
+    kind: capability
+    status: partial
+    definition_of_done:
+      - The same inputs produce the same context bundle, byte for byte.
+    rules: [TER-CTX-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-CTX-001'
+
+  - id: P152
+    text: >-
+      Construct compact evidence packages containing only information
+      relevant to the next decision.
+    level: L3
+    kind: capability
+    status: partial
+    definition_of_done:
+      - Bundles hold only evidence selected for the next decision.
+    rules: [TER-CTX-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-CTX-001'
+
+  - id: P153
+    text: >-
+      Compare full-context approaches with evidence-selected context.
+    level: L3
+    kind: research
+    status: not-started
+    issue: 42
+    real_data: true
+    definition_of_done:
+      - >-
+        A benchmark compares full-context and evidence-selected context on
+        the same tasks.
+    rules: [TER-CTX-003, TER-ANL-031]
+    verification:
+      - 'planned: passing tests tagged req for TER-CTX-003, TER-ANL-031'
+      - 'planned: real-data verification in issue #42'
+
+  - id: P154
+    text: >-
+      Measure context precision: the proportion of supplied context
+      subsequently used.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Context precision is reported per bundle.
+    rules: [TER-CTX-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-CTX-003'
+
+  - id: P155
+    text: >-
+      Measure context recall: whether critical repository evidence was
+      available when needed.
+    level: L3
+    kind: capability
+    status: not-started
+    issue: 42
+    real_data: true
+    definition_of_done:
+      - Context recall is reported per bundle.
+    rules: [TER-CTX-003, TER-EVD-005]
+    verification:
+      - 'planned: passing tests tagged req for TER-CTX-003, TER-EVD-005'
+      - 'planned: real-data verification in issue #42'
+
+  - id: P156
+    text: >-
+      Investigate context selection as a Lean inventory problem.
+    level: L3
+    kind: research
+    status: not-started
+    issue: 42
+    real_data: true
+    definition_of_done:
+      - >-
+        The Lean model docs treat context selection as an inventory problem
+        with measures.
+    rules: [TER-CTX-004]
+    verification:
+      - 'planned: passing tests tagged req for TER-CTX-004'
+      - 'planned: real-data verification in issue #42'
+
+  - id: P157
+    text: >-
+      Treat excessive context as inventory carrying cost.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Unused context is costed as inventory carrying cost.
+    rules: [TER-CTX-004]
+    verification:
+      - 'planned: passing tests tagged req for TER-CTX-004'
+
+  - id: P158
+    text: >-
+      Treat missing context as a potential defect source.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Missing context is reported as defect risk.
+    rules: [TER-CTX-004]
+    verification:
+      - 'planned: passing tests tagged req for TER-CTX-004'
+
+  - id: P159
+    text: >-
+      Optimise context for sufficient evidence rather than minimum size.
+    level: L3
+    kind: principle
+    status: not-started
+    definition_of_done:
+      - >-
+        Context selection targets sufficient evidence, and tests show a
+        bundle is not shrunk below the evidence needed.
+    rules: [TER-CTX-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-CTX-001'
+
+  - id: P160
+    text: >-
+      Record why each context fragment was selected.
+    level: L3
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Every context fragment records why it was selected.
+    rules: [TER-EVD-004]
+    verification:
+      - 'planned: passing tests tagged req for TER-EVD-004'
+
+  - id: P161
+    text: >-
+      Introduce an Intervention Engine separate from the Analysis Engine.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        An Intervention Engine exists as a separate module from the Analysis
+        Engine.
+    rules: [TER-INT-006]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-006'
+
+  - id: P162
+    text: >-
+      Feed the Intervention Engine structured analytical signals rather than
+      raw heuristics.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        The Intervention Engine consumes typed detector signals, not raw
+        heuristics.
+    rules: [TER-INT-006]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-006'
+
+  - id: P163
+    text: >-
+      Define intervention policies declaratively.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Intervention policies are declarative files.
+    rules: [TER-INT-008]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-008'
+
+  - id: P164
+    text: >-
+      Allow policies to specify evidence requirements, confidence
+      thresholds, cooldowns, and permitted actions.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Policies state evidence requirements, confidence thresholds,
+        cooldowns and permitted actions.
+    rules: [TER-INT-008]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-008'
+
+  - id: P165
+    text: >-
+      Prevent repeated warnings from becoming their own form of waste.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Repeated warnings from one policy are suppressed during its
+        cooldown.
+    rules: [TER-INT-016]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-016'
+
+  - id: P166
+    text: >-
+      Add intervention cooldown and hysteresis mechanisms.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - Cooldown and hysteresis are configurable per policy.
+    rules: [TER-INT-016]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-016'
+
+  - id: P167
+    text: >-
+      Measure whether users or agents accept, ignore, or reject
+      interventions.
+    level: L4
+    kind: capability
+    status: not-started
+    issue: 43
+    real_data: true
+    definition_of_done:
+      - >-
+        The ledger records whether each intervention was accepted, ignored
+        or rejected.
+    rules: [TER-INT-011]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-011'
+      - 'planned: real-data verification in issue #43'
+
+  - id: P168
+    text: >-
+      Measure whether accepted interventions improve subsequent flow.
+    level: L4
+    kind: capability
+    status: not-started
+    issue: 43
+    real_data: true
+    definition_of_done:
+      - The ledger records the flow change after each accepted intervention.
+    rules: [TER-INT-011]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-011'
+      - 'planned: real-data verification in issue #43'
+
+  - id: P169
+    text: >-
+      Automatically evaluate intervention effectiveness.
+    level: L4
+    kind: capability
+    status: not-started
+    issue: 43
+    real_data: true
+    definition_of_done:
+      - Policy effectiveness is computed automatically from the ledger.
+    rules: [TER-INT-012]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-012'
+      - 'planned: real-data verification in issue #43'
+
+  - id: P170
+    text: >-
+      Remove or recalibrate interventions that consistently fail to improve
+      outcomes.
+    level: L4
+    kind: capability
+    status: not-started
+    issue: 43
+    real_data: true
+    definition_of_done:
+      - >-
+        Policies that do not improve outcomes are flagged for removal or
+        recalibration.
+    rules: [TER-INT-012, TER-INT-020]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-012, TER-INT-020'
+      - 'planned: real-data verification in issue #43'
+
+  - id: P171
+    text: >-
+      Create a feedback loop of Observe, Analyse, Decide, Intervene,
+      Measure, and Learn.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - >-
+        Observe, Analyse, Decide, Intervene, Measure and Learn are named
+        stages in code.
+    rules: [TER-INT-013]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-013'
+
+  - id: P172
+    text: >-
+      Position this feedback loop as the central architecture of TER.
+    level: L4
+    kind: principle
+    status: not-started
+    definition_of_done:
+      - The architecture docs place the feedback loop at the centre of TER.
+    rules: [TER-INT-013]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-013'
+
+  - id: P173
+    text: >-
+      Preserve human control over intervention policy.
+    level: L4
+    kind: principle
+    status: not-started
+    definition_of_done:
+      - Policy changes apply only from human-approved policy files.
+    rules: [TER-INT-015]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-015'
+
+  - id: P174
+    text: >-
+      Make every intervention explainable.
+    level: L4
+    kind: principle
+    status: not-started
+    definition_of_done:
+      - Every intervention shows its signal and evidence.
+    rules: [TER-INT-014]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-014'
+
+  - id: P175
+    text: >-
+      Record the signal that triggered each intervention.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - The ledger records the triggering signal of each intervention.
+    rules: [TER-INT-009]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-009'
+
+  - id: P176
+    text: >-
+      Record the evidence supporting that signal.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - The ledger records the evidence behind each signal.
+    rules: [TER-INT-009]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-009'
+
+  - id: P177
+    text: >-
+      Record the action TER proposed or performed.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - The ledger records the action proposed or performed.
+    rules: [TER-INT-009]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-009'
+
+  - id: P178
+    text: >-
+      Record the subsequent outcome.
+    level: L4
+    kind: capability
+    status: not-started
+    definition_of_done:
+      - The ledger records the outcome after each intervention.
+    rules: [TER-INT-009]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-009'
+
+  - id: P179
+    text: >-
+      Use intervention outcomes for future calibration.
+    level: L4
+    kind: capability
+    status: not-started
+    issue: 43
+    real_data: true
+    definition_of_done:
+      - Ledger outcomes feed calibration of thresholds and policies.
+    rules: [TER-INT-012]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-012'
+      - 'planned: real-data verification in issue #43'
+
+  - id: P180
+    text: >-
+      Never silently optimise agent behaviour without producing an auditable
+      record.
+    level: L4
+    kind: principle
+    status: not-started
+    definition_of_done:
+      - No behaviour change is made without a ledger record.
+    rules: [TER-INT-009]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-009'
+
+  - id: P181
+    text: >-
+      Create a research dataset describing software-agent value streams.
+    level: L6
+    kind: research
+    status: not-started
+    issue: 34
+    real_data: true
+    definition_of_done:
+      - A versioned value stream dataset with a data card is published.
+    rules: [TER-RSH-001, TER-GRF-003]
+    verification:
+      - 'planned: passing tests tagged req for TER-RSH-001, TER-GRF-003'
+      - 'planned: real-data verification in issue #34'
+
+  - id: P182
+    text: >-
+      Investigate whether classical Lean wastes meaningfully predict
+      inefficiency in agentic development.
+    level: L6
+    kind: research
+    status: not-started
+    issue: 44
+    real_data: true
+    definition_of_done:
+      - >-
+        A study reports whether each classical Lean waste predicts
+        inefficiency.
+    rules: [TER-RSH-002, TER-EXP-010]
+    verification:
+      - 'planned: passing tests tagged req for TER-RSH-002, TER-EXP-010'
+      - 'planned: real-data verification in issue #44'
+
+  - id: P183
+    text: >-
+      Determine which Lean concepts require adaptation for non-human
+      software agents.
+    level: L6
+    kind: research
+    status: not-started
+    issue: 44
+    real_data: true
+    definition_of_done:
+      - >-
+        The study names which Lean concepts need adapting for agents, and
+        why.
+    rules: [TER-RSH-002, TER-EXP-010]
+    verification:
+      - 'planned: passing tests tagged req for TER-RSH-002, TER-EXP-010'
+      - 'planned: real-data verification in issue #44'
+
+  - id: P184
+    text: >-
+      Define new agent-specific wastes where empirical evidence supports
+      them.
+    level: L6
+    kind: research
+    status: not-started
+    issue: 44
+    real_data: true
+    definition_of_done:
+      - >-
+        Any new agent-specific waste is defined only with supporting
+        empirical evidence.
+    rules: [TER-RSH-002, TER-EXP-010]
+    verification:
+      - 'planned: passing tests tagged req for TER-RSH-002, TER-EXP-010'
+      - 'planned: real-data verification in issue #44'
+
+  - id: P185
+    text: >-
+      Investigate the relationship between token efficiency and software
+      outcome quality.
+    level: L6
+    kind: research
+    status: not-started
+    issue: 44
+    real_data: true
+    definition_of_done:
+      - A study reports the relationship between TER and outcome quality.
+    rules: [TER-RSH-001, TER-EXP-010]
+    verification:
+      - 'planned: passing tests tagged req for TER-RSH-001, TER-EXP-010'
+      - 'planned: real-data verification in issue #44'
+
+  - id: P186
+    text: >-
+      Investigate the relationship between context size and task success.
+    level: L6
+    kind: research
+    status: not-started
+    issue: 42
+    real_data: true
+    definition_of_done:
+      - >-
+        A study reports the relationship between context size and task
+        success.
+    rules: [TER-RSH-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-RSH-001'
+      - 'planned: real-data verification in issue #42'
+
+  - id: P187
+    text: >-
+      Investigate the relationship between repository exploration and
+      implementation accuracy.
+    level: L6
+    kind: research
+    status: not-started
+    issue: 44
+    real_data: true
+    definition_of_done:
+      - >-
+        A study reports the relationship between exploration and
+        implementation accuracy.
+    rules: [TER-RSH-001, TER-EXP-010]
+    verification:
+      - 'planned: passing tests tagged req for TER-RSH-001, TER-EXP-010'
+      - 'planned: real-data verification in issue #44'
+
+  - id: P188
+    text: >-
+      Investigate the relationship between reasoning repetition and defect
+      rates.
+    level: L6
+    kind: research
+    status: not-started
+    issue: 44
+    real_data: true
+    definition_of_done:
+      - >-
+        A study reports the relationship between reasoning repetition and
+        defect rates.
+    rules: [TER-RSH-001, TER-EXP-010]
+    verification:
+      - 'planned: passing tests tagged req for TER-RSH-001, TER-EXP-010'
+      - 'planned: real-data verification in issue #44'
+
+  - id: P189
+    text: >-
+      Investigate whether real-time Lean interventions reduce rework.
+    level: L6
+    kind: research
+    status: not-started
+    issue: 45
+    real_data: true
+    definition_of_done:
+      - >-
+        A controlled experiment reports rework with and without real-time
+        interventions.
+    rules: [TER-RSH-003, TER-ANL-032]
+    verification:
+      - 'planned: passing tests tagged req for TER-RSH-003, TER-ANL-032'
+      - 'planned: real-data verification in issue #45'
+
+  - id: P190
+    text: >-
+      Investigate whether evidence-based intervention outperforms
+      fixed-budget controls.
+    level: L6
+    kind: research
+    status: not-started
+    issue: 45
+    real_data: true
+    definition_of_done:
+      - >-
+        A controlled experiment compares evidence-based interventions with
+        fixed-budget controls.
+    rules: [TER-RSH-003, TER-ANL-032]
+    verification:
+      - 'planned: passing tests tagged req for TER-RSH-003, TER-ANL-032'
+      - 'planned: real-data verification in issue #45'
+
+  - id: P191
+    text: >-
+      Produce a first paper defining a Lean analytical model for agentic
+      software engineering.
+    level: L6
+    kind: research
+    status: not-started
+    issue: 46
+    real_data: true
+    definition_of_done:
+      - Paper 1 defining the Lean analytical model is submitted.
+    rules: [TER-RSH-005, TER-EXP-010]
+    verification:
+      - 'planned: passing tests tagged req for TER-RSH-005, TER-EXP-010'
+      - 'planned: real-data verification in issue #46'
+
+  - id: P192
+    text: >-
+      Use TER as the reference implementation and experimental instrument
+      for that model.
+    level: L6
+    kind: research
+    status: not-started
+    issue: 46
+    real_data: true
+    definition_of_done:
+      - >-
+        Each paper cites the TER version used as its reference
+        implementation.
+    rules: [TER-RSH-005, TER-EXP-010]
+    verification:
+      - 'planned: passing tests tagged req for TER-RSH-005, TER-EXP-010'
+      - 'planned: real-data verification in issue #46'
+
+  - id: P193
+    text: >-
+      Produce a second empirical study evaluating static TER analysis
+      against expert-labelled coding sessions.
+    level: L6
+    kind: research
+    status: not-started
+    issue: 46
+    real_data: true
+    definition_of_done:
+      - >-
+        Paper 2 evaluating static TER against expert-labelled sessions is
+        submitted.
+    rules: [TER-RSH-004, TER-EXP-010]
+    verification:
+      - 'planned: passing tests tagged req for TER-RSH-004, TER-EXP-010'
+      - 'planned: real-data verification in issue #46'
+
+  - id: P194
+    text: >-
+      Produce a third study evaluating hook-based real-time interventions
+      through controlled experiments.
+    level: L6
+    kind: research
+    status: not-started
+    issue: 46
+    real_data: true
+    definition_of_done:
+      - >-
+        Paper 3 evaluating hook-based interventions in controlled
+        experiments is submitted.
+    rules: [TER-RSH-003, TER-EXP-010]
+    verification:
+      - 'planned: passing tests tagged req for TER-RSH-003, TER-EXP-010'
+      - 'planned: real-data verification in issue #46'
+
+  - id: P195
+    text: >-
+      Make all reported metrics reproducible from recorded event and
+      evidence data.
+    level: L2
+    kind: principle
+    status: partial
+    definition_of_done:
+      - >-
+        Every reported metric can be recomputed from recorded events and
+        evidence, shown by a recompute test.
+    rules: [TER-EXP-001]
+    verification:
+      - 'test: tests/golden/test_ter3_characterisation.py'
+      - 'planned: TER-EXP-001 recompute test over the event store'
+
+  - id: P196
+    text: >-
+      Maintain TER as an open, inspectable research platform rather than an
+      opaque agent supervisor.
+    level: L6
+    kind: principle
+    status: partial
+    definition_of_done:
+      - >-
+        Code, requirements, points index and reports are open and
+        inspectable.
+      - The points index is regenerated and checked in CI.
+    rules: [TER-EXP-001, TER-REQ-005]
+    verification:
+      - 'ci: Vision points index is up to date'
+
+  - id: P197
+    text: >-
+      Design the architecture so new analysers, waste detectors, repository
+      engines, policies, and agent adapters are plugins.
+    level: L2
+    kind: principle
+    status: partial
+    definition_of_done:
+      - >-
+        Analysers, detectors, repository engines, policies and adapters
+        register through a plugin registry.
+    rules: [TER-ARC-002]
+    verification:
+      - 'planned: passing tests tagged req for TER-ARC-002'
+
+  - id: P198
+    text: >-
+      Establish TER as an observability and control layer between developer
+      intent, coding agents, repositories, tools, and validation systems.
+    level: L6
+    kind: principle
+    status: partial
+    definition_of_done:
+      - >-
+        TER observes and controls between intent, agents, repositories,
+        tools and validation through ports.
+    rules: [TER-INT-013, TER-OBS-001]
+    verification:
+      - 'planned: passing tests tagged req for TER-INT-013, TER-OBS-001'
+
+  - id: P199
+    text: >-
+      Demonstrate that Lean principles can be operationalised as measurable
+      feedback mechanisms for AI-assisted software engineering.
+    level: L6
+    kind: research
+    status: not-started
+    issue: 46
+    real_data: true
+    definition_of_done:
+      - >-
+        The experiments show Lean feedback mechanisms that measurably change
+        outcomes.
+    rules: [TER-RSH-003, TER-EXP-010]
+    verification:
+      - 'planned: passing tests tagged req for TER-RSH-003, TER-EXP-010'
+      - 'planned: real-data verification in issue #46'
+
+  - id: P200
+    text: >-
+      Ultimately answer one question: can we make agentic software
+      development measurably better by identifying waste and intervening at
+      the moment it occurs, without constraining the useful reasoning
+      required to produce high-quality software?
+    level: L6
+    kind: research
+    status: not-started
+    issue: 45
+    real_data: true
+    definition_of_done:
+      - >-
+        The experiments answer, with effect sizes, whether waste detection
+        with real-time intervention improves delivery without harming useful
+        reasoning.
+    rules: [TER-RSH-003, TER-ANL-032]
+    verification:
+      - 'planned: passing tests tagged req for TER-RSH-003, TER-ANL-032'
+      - 'planned: real-data verification in issue #45'

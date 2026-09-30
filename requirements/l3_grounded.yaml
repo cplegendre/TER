@@ -1,0 +1,250 @@
+# L3 Grounded: repository evidence, evidence graph, routing and context bundles.
+# Schema and controls: docs/ter4/requirements.md. Links to vision points are
+# checked both ways against requirements/points.yaml.
+level: L3
+requirements:
+  - id: TER-CTX-001
+    pattern: ubiquitous
+    text: >-
+      TER shall build deterministic context bundles that hold only the
+      evidence selected for the next decision.
+    level: L3
+    source_points: [151, 152, 159]
+    rationale: >-
+      Evidence-selected context aims at sufficiency, not minimum size.
+    status: planned
+
+  - id: TER-CTX-003
+    pattern: ubiquitous
+    text: >-
+      TER shall report context precision and context recall for each context
+      bundle.
+    level: L3
+    source_points: [153, 154, 155]
+    rationale: >-
+      Precision and recall compare full-context and selected-context
+      strategies.
+    status: planned
+
+  - id: TER-CTX-004
+    pattern: ubiquitous
+    text: >-
+      TER shall report unused context as inventory carrying cost and missing
+      context as defect risk.
+    level: L3
+    source_points: [156, 157, 158]
+    rationale: >-
+      Context selection is a Lean inventory problem.
+    status: planned
+
+  - id: TER-EVD-001
+    pattern: ubiquitous
+    text: >-
+      TER shall obtain repository evidence only through the provider-neutral
+      RepositoryEvidence port.
+    level: L3
+    port: RepositoryEvidence
+    source_points: [51, 53, 54]
+    rationale: >-
+      Repository intelligence must not depend on a model provider.
+    status: planned
+
+  - id: TER-EVD-002
+    pattern: ubiquitous
+    text: >-
+      The lexical repository evidence adapter shall return identical results
+      for identical repository content.
+    level: L3
+    port: RepositoryEvidence
+    source_points: [55]
+    rationale: >-
+      A deterministic lexical baseline makes richer engines measurable
+      against it.
+    status: planned
+
+  - id: TER-EVD-003
+    pattern: event-driven
+    text: >-
+      When a detector requests repository evidence for a source module, the
+      repository evidence adapter shall return every test module that
+      imports that source module.
+    level: L3
+    port: RepositoryEvidence
+    source_points: [60]
+    rationale: >-
+      Detectors judge whether an edit was verified by knowing which tests
+      exercise the edited code.
+    status: planned
+
+  - id: TER-EVD-004
+    pattern: event-driven
+    text: >-
+      When TER supplies a context fragment to the agent, TER shall append
+      one context.supplied event holding the fragment id, its source and the
+      reason it was selected.
+    level: L3
+    source_points: [160]
+    rationale: >-
+      Issue #42: bundle contents and reads are scored the same way, and
+      selection reasons are auditable.
+    status: planned
+
+  - id: TER-EVD-005
+    pattern: event-driven
+    text: >-
+      When a critical evidence list is given for a session, TER shall report
+      context recall as the share of listed items present in context before
+      the first dependent edit.
+    level: L3
+    source_points: [155]
+    rationale: >-
+      Issue #42: recall needs a human-authored ground truth of the evidence
+      a task cannot do without.
+    status: planned
+
+  - id: TER-EVD-006
+    pattern: ubiquitous
+    text: >-
+      TER shall compute the expected change surface of each task and report
+      every edit outside it.
+    level: L3
+    source_points: [63, 64, 66]
+    rationale: >-
+      Edits outside the change surface are expansion or unrelated
+      modification.
+    status: planned
+
+  - id: TER-EVD-007
+    pattern: event-driven
+    text: >-
+      When an edit adds an import that breaks a declared architecture
+      contract, TER shall report an architectural boundary violation.
+    level: L3
+    source_points: [65]
+    rationale: >-
+      Boundary violations are defects the agent introduces during
+      implementation.
+    status: planned
+
+  - id: TER-EVD-008
+    pattern: ubiquitous
+    text: >-
+      TER shall report, for each repository read, whether a later decision,
+      edit or test used its content.
+    level: L3
+    source_points: [67, 68, 69, 70]
+    rationale: >-
+      Reads with downstream use are value; reads without it are waste.
+    status: planned
+
+  - id: TER-EVD-012
+    pattern: optional
+    text: >-
+      Where a programming language is supported, the repository evidence
+      adapter shall return the symbols, imports and call edges of each
+      source file from its syntax tree.
+    level: L3
+    port: RepositoryEvidence
+    source_points: [52, 56, 57, 58, 59]
+    rationale: >-
+      AST, symbol, import and call evidence tell TER which code relates to
+      the task.
+    status: planned
+
+  - id: TER-EVD-013
+    pattern: optional
+    text: >-
+      Where the repository is a Git working tree, the repository evidence
+      adapter shall return the current diff and the history of each file.
+    level: L3
+    port: RepositoryEvidence
+    source_points: [61, 62]
+    rationale: >-
+      Change awareness is optional evidence that grounds live analysis.
+    status: planned
+
+  - id: TER-GRF-001
+    pattern: ubiquitous
+    text: >-
+      TER shall build an evidence graph that links the intent, observations,
+      decisions, actions, changes and validation events of each session.
+    level: L3
+    source_points: [71, 72, 77]
+    rationale: >-
+      The evidence graph reconstructs how a change emerged.
+    status: planned
+
+  - id: TER-GRF-002
+    pattern: ubiquitous
+    text: >-
+      TER shall link each tool call, edit, test and corrective action in the
+      evidence graph to the events that motivated it.
+    level: L3
+    source_points: [73, 74, 75, 76]
+    rationale: >-
+      Edges from actions to their motivating evidence make decisions
+      explainable.
+    status: planned
+
+  - id: TER-GRF-003
+    pattern: ubiquitous
+    text: >-
+      TER shall export the evidence graph in a versioned, documented schema.
+    level: L3
+    source_points: [78, 181]
+    rationale: >-
+      A stable export serves both engineering analysis and research
+      datasets.
+    status: planned
+
+  - id: TER-RTE-001
+    pattern: ubiquitous
+    text: >-
+      TER shall reference language models only through the role names
+      defined in the active routing profile.
+    level: L3
+    port: ModelRouter
+    source_points: [144, 145, 146]
+    rationale: >-
+      Model ids change often; routing by role keeps policies and code stable
+      when a model is replaced.
+    status: planned
+
+  - id: TER-RTE-002
+    pattern: event-driven
+    text: >-
+      When the model router escalates a request, the model router shall
+      append one route.escalated event holding the triggering signal, the
+      source role, the target role, the latency and the token usage.
+    level: L3
+    port: ModelRouter
+    source_points: [147, 149, 150]
+    rationale: >-
+      Issue #39: escalation must prove its outcome gain against its recorded
+      cost and latency.
+    status: planned
+
+  - id: TER-RTE-003
+    pattern: unwanted
+    text: >-
+      If no detector signal with evidence supports escalation, then TER
+      shall keep the current execution profile.
+    level: L3
+    port: ModelRouter
+    source_points: [138, 147, 148]
+    rationale: >-
+      Escalation is a cost; it needs evidence, and routine work stays local.
+    status: planned
+
+  - id: TER-RTE-005
+    pattern: ubiquitous
+    text: >-
+      TER shall classify each task by complexity, ambiguity, risk,
+      repository scope and validation needs, and record the evidence for
+      each class.
+    level: L3
+    port: ModelRouter
+    source_points: [141, 142, 143]
+    rationale: >-
+      Explainable routing starts from an explained task classification.
+    status: planned

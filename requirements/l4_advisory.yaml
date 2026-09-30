@@ -1,0 +1,190 @@
+# L4 Advisory: the intervention engine, policies and the intervention ledger.
+# Schema and controls: docs/ter4/requirements.md. Links to vision points are
+# checked both ways against requirements/points.yaml.
+level: L4
+requirements:
+  - id: TER-INT-002
+    pattern: state-driven
+    text: >-
+      While the maturity ceiling is L4 Advisory, TER shall deliver
+      interventions only as advice that changes no agent input.
+    level: L4
+    port: InterventionChannel
+    source_points: [123]
+    rationale: >-
+      Advice is the first and least disruptive active-control level.
+    status: planned
+
+  - id: TER-INT-003
+    pattern: event-driven
+    text: >-
+      When a detector signal meets an advisory policy, TER shall issue the
+      warning or recommendation that the policy names.
+    level: L4
+    port: InterventionChannel
+    source_points: [124, 125, 126, 127, 128, 129, 130]
+    rationale: >-
+      Each advisory warning is a policy over a detector signal, not bespoke
+      code.
+    status: planned
+
+  - id: TER-INT-004
+    pattern: optional
+    text: >-
+      Where corrective interventions are enabled in the active policy, TER
+      shall inject evidence or guidance into the agent session only when the
+      policy thresholds are met.
+    level: L4
+    port: InterventionChannel
+    source_points: [131, 132]
+    rationale: >-
+      Corrective control is explicit, configurable and threshold-bound.
+    status: planned
+
+  - id: TER-INT-005
+    pattern: event-driven
+    text: >-
+      When a corrective policy fires, TER shall propose the corrective
+      action that the policy names from the configured action catalogue.
+    level: L4
+    port: InterventionChannel
+    source_points: [133, 134, 135, 136, 137, 138]
+    rationale: >-
+      Corrective actions come from a closed, reviewable catalogue.
+    status: planned
+
+  - id: TER-INT-006
+    pattern: ubiquitous
+    text: >-
+      TER shall run interventions in an Intervention Engine that receives
+      only structured detector signals from the Analysis Engine.
+    level: L4
+    source_points: [121, 161, 162]
+    rationale: >-
+      Separating analysis from intervention keeps observation safe and
+      decisions testable.
+    status: planned
+
+  - id: TER-INT-007
+    pattern: unwanted
+    text: >-
+      If a detector signal cites no contextual evidence beyond token counts,
+      then TER shall deliver no intervention for that signal.
+    level: L4
+    port: InterventionChannel
+    source_points: [139, 140]
+    rationale: >-
+      Token volume alone is not waste; an intervention needs a reason the
+      agent and the user can inspect.
+    status: planned
+
+  - id: TER-INT-008
+    pattern: ubiquitous
+    text: >-
+      TER shall read intervention policies from declarative files that state
+      evidence requirements, confidence thresholds, cooldowns and permitted
+      actions.
+    level: L4
+    source_points: [163, 164]
+    rationale: >-
+      Declarative policies are reviewable and keep humans in control.
+    status: planned
+
+  - id: TER-INT-009
+    pattern: event-driven
+    text: >-
+      When TER delivers an intervention, TER shall write one ledger record
+      that holds the triggering signal, its evidence, the action taken and
+      the observed outcome.
+    level: L4
+    port: InterventionLedger
+    source_points: [175, 176, 177, 178, 180]
+    rationale: >-
+      The ledger is how interventions are audited and how L6 learns which
+      ones help.
+    status: planned
+
+  - id: TER-INT-010
+    pattern: unwanted
+    text: >-
+      If a waste category is not marked intervention-eligible in the
+      calibration policy, then TER shall deliver no intervention for that
+      category.
+    level: L4
+    source_points: [91]
+    rationale: >-
+      Issue #41: false interventions disrupt productive agents, so
+      calibrated precision gates intervention.
+    status: planned
+
+  - id: TER-INT-011
+    pattern: event-driven
+    text: >-
+      When an intervention has been delivered and 10 further tool events
+      have been observed, TER shall record the intervention response and the
+      before-after flow measures in the ledger record.
+    level: L4
+    port: InterventionLedger
+    source_points: [167, 168]
+    rationale: >-
+      Issue #43: acceptance and flow change are the raw material for
+      evaluating interventions.
+    status: planned
+
+  - id: TER-INT-012
+    pattern: ubiquitous
+    text: >-
+      TER shall score the effectiveness of each policy from ledger outcomes
+      and flag every policy that does not improve outcomes for
+      recalibration.
+    level: L4
+    port: InterventionLedger
+    source_points: [169, 170, 179]
+    rationale: >-
+      Interventions that do not help are removed or recalibrated.
+    status: planned
+
+  - id: TER-INT-013
+    pattern: ubiquitous
+    text: >-
+      TER shall run the Observe, Analyse, Decide, Intervene, Measure and
+      Learn loop as its central control flow.
+    level: L4
+    source_points: [171, 172, 198]
+    rationale: >-
+      The feedback loop is TER's central architecture.
+    status: planned
+
+  - id: TER-INT-014
+    pattern: ubiquitous
+    text: >-
+      TER shall show the triggering signal and its evidence with every
+      intervention.
+    level: L4
+    port: InterventionChannel
+    source_points: [174]
+    rationale: >-
+      Every intervention is explainable to the agent and the developer.
+    status: planned
+
+  - id: TER-INT-015
+    pattern: unwanted
+    text: >-
+      If an intervention policy changes, then TER shall apply the change
+      only from a policy file that a human has approved.
+    level: L4
+    source_points: [173]
+    rationale: >-
+      Humans keep control over intervention policy.
+    status: planned
+
+  - id: TER-INT-016
+    pattern: state-driven
+    text: >-
+      While the cooldown of a policy is active, TER shall suppress further
+      interventions from that policy.
+    level: L4
+    source_points: [165, 166]
+    rationale: >-
+      Repeated warnings are their own form of waste.
+    status: planned

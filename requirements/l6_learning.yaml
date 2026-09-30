@@ -1,0 +1,116 @@
+# L6 Learning: research protocols, closed loop and a second agent harness.
+# Schema and controls: docs/ter4/requirements.md. Links to vision points are
+# checked both ways against requirements/points.yaml.
+level: L6
+requirements:
+  - id: TER-ANL-032
+    pattern: ubiquitous
+    text: >-
+      The experiment runner shall assign each run to an arm from a recorded
+      random seed and record the assignment before the run starts.
+    level: L6
+    source_points: [99, 189, 190, 200]
+    rationale: >-
+      Issue #45: randomised, pre-recorded assignment makes the intervention
+      experiment causal.
+    status: planned
+
+  - id: TER-EXP-010
+    pattern: ubiquitous
+    text: >-
+      The research analysis script shall reproduce every figure in the
+      findings report from the recorded event and evidence data with no
+      other input.
+    level: L6
+    source_points: [33, 182, 183, 184, 185, 187, 188, 191, 192, 193, 194, 199]
+    rationale: >-
+      Issues #44 and #46: every published number is reproducible by script.
+    status: planned
+
+  - id: TER-INT-020
+    pattern: unwanted
+    text: >-
+      If a policy has 30 or more delivered interventions and no flow measure
+      improves after acceptance, then TER shall mark the policy suspended
+      and record the evidence.
+    level: L6
+    source_points: [170]
+    rationale: >-
+      Issue #43: interventions that do not help are removed until a human
+      re-enables them.
+    status: planned
+
+  - id: TER-RSH-001
+    pattern: ubiquitous
+    text: >-
+      TER shall produce a value stream dataset with event ids, activity
+      classes, waste findings, WIP counts, context sizes, outcomes and
+      interventions for each session.
+    level: L6
+    source_points: [33, 181, 185, 186, 187, 188]
+    rationale: >-
+      One dataset answers the correlation questions about WIP, context,
+      exploration, repetition and quality.
+    status: planned
+
+  - id: TER-RSH-002
+    pattern: ubiquitous
+    text: >-
+      TER shall produce a Lean waste study dataset that links each detector
+      finding to the measured inefficiency of its session.
+    level: L6
+    source_points: [182, 183, 184]
+    rationale: >-
+      Tests whether classical Lean wastes predict inefficiency and which
+      need adapting.
+    status: planned
+
+  - id: TER-RSH-003
+    pattern: ubiquitous
+    text: >-
+      TER shall produce a controlled experiment dataset that compares
+      sessions with evidence-based interventions, fixed-budget controls and
+      no intervention.
+    level: L6
+    source_points: [189, 190, 194, 199, 200]
+    rationale: >-
+      Answers the central question: do real-time Lean interventions make
+      agentic development measurably better.
+    status: planned
+
+  - id: TER-RSH-004
+    pattern: ubiquitous
+    text: >-
+      TER shall produce an expert-labelled session dataset with the static
+      analysis results for the same sessions.
+    level: L6
+    source_points: [193]
+    rationale: >-
+      The second study evaluates static TER analysis against expert labels.
+    status: planned
+
+  - id: TER-RSH-005
+    pattern: ubiquitous
+    text: >-
+      TER shall publish, with each paper, the Lean model definition and the
+      TER version used as its reference implementation.
+    level: L6
+    source_points: [191, 192]
+    rationale: >-
+      TER is the reference implementation and instrument for the published
+      model.
+    status: planned
+
+  - id: TER-SRC-010
+    pattern: optional
+    text: >-
+      Where a second agent harness adapter is installed, TER shall read the
+      sessions of that harness into event streams that pass the session
+      source contract suite.
+    level: L6
+    port: SessionSource
+    source_points: [103]
+    rationale: >-
+      The event contract is proven provider-neutral only when a second
+      harness passes the same contract tests as Claude Code.
+    status: planned

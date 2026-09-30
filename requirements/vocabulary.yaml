@@ -1,0 +1,7 @@
+# Controlled vocabulary (optional lint). Each key is a discouraged term; its
+# value is the term requirements use instead.
+terms:
+  transcript: session
+  chat log: session
+  LLM: language model
+  nudge: intervention

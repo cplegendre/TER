@@ -1,0 +1,404 @@
+# L2 Explained: the Lean model, detectors, intent, scorecard, evidence and confidence.
+# Schema and controls: docs/ter4/requirements.md. Links to vision points are
+# checked both ways against requirements/points.yaml.
+level: L2
+requirements:
+  - id: TER-ANL-020
+    pattern: event-driven
+    text: >-
+      When TER classifies a span as avoidable waste, TER shall attach at
+      least one evidence reference and a confidence value between 0 and 1 to
+      the classification.
+    level: L2
+    source_points: [40]
+    rationale: >-
+      A waste claim without evidence cannot be checked or acted on.
+    status: planned
+
+  - id: TER-ANL-021
+    pattern: unwanted
+    text: >-
+      If the confidence of a waste classification is below the configured
+      confidence threshold, then TER shall report the classification as
+      uncertain.
+    level: L2
+    source_points: [85, 86]
+    rationale: >-
+      Low-confidence findings are shown as such instead of being presented
+      as fact.
+    status: planned
+
+  - id: TER-ANL-025
+    pattern: ubiquitous
+    text: >-
+      The calibration reporter shall report precision and recall with 95
+      percent confidence intervals for every waste category.
+    level: L2
+    source_points: [90, 100]
+    rationale: >-
+      Issue #41: each detector is judged on its own error profile against
+      gold labels.
+    status: planned
+
+  - id: TER-ANL-040
+    pattern: event-driven
+    text: >-
+      When TER prices a session, TER shall use the price book whose date is
+      the latest that is not after the session date.
+    level: L2
+    source_points: [35, 36]
+    rationale: >-
+      Issue #40: prices change; a session is valued at the prices in force
+      when it ran.
+    status: planned
+
+  - id: TER-ANL-041
+    pattern: unwanted
+    text: >-
+      If a session has no cache usage fields, then TER shall mark its cost
+      figures as estimated.
+    level: L2
+    source_points: [35, 36]
+    rationale: >-
+      Issue #40: cache pricing decides which re-reads are expensive; without
+      it costs are estimates.
+    status: planned
+
+  - id: TER-ARC-002
+    pattern: ubiquitous
+    text: >-
+      TER shall load analysers, waste detectors, repository engines,
+      policies and agent adapters through a plugin registry.
+    level: L2
+    source_points: [197]
+    rationale: >-
+      Plugins let the platform grow without changing the core.
+    status: planned
+
+  - id: TER-DET-001
+    pattern: event-driven
+    text: >-
+      When a detector reports a waste finding, the detector shall cite the
+      ids of the events that show the waste.
+    level: L2
+    source_points: [40]
+    rationale: >-
+      Every waste classification is traceable to observable evidence.
+    status: planned
+
+  - id: TER-DET-002
+    pattern: event-driven
+    text: >-
+      When an event repeats an earlier event of the same kind at or above
+      the configured similarity threshold with no new evidence, TER shall
+      report a repetition waste finding.
+    level: L2
+    source_points: [17, 18, 19, 20]
+    rationale: >-
+      Repeated reasoning, exploration, tool calls and regeneration share one
+      detection rule.
+    status: planned
+
+  - id: TER-DET-003
+    pattern: event-driven
+    text: >-
+      When the context acquired before an edit falls outside the configured
+      band for the task, TER shall report an excessive or insufficient
+      context finding.
+    level: L2
+    source_points: [21, 22]
+    rationale: >-
+      Both too much and too little context acquisition are waste or defect
+      sources.
+    status: planned
+
+  - id: TER-DET-004
+    pattern: ubiquitous
+    text: >-
+      TER shall report the tokens of retrieved context that no later event
+      uses and the tokens of context read more than once.
+    level: L2
+    source_points: [34, 35, 36]
+    rationale: >-
+      Unused and re-read context is inventory with a measurable carrying
+      cost.
+    status: planned
+
+  - id: TER-DET-005
+    pattern: event-driven
+    text: >-
+      When the order or length of planning, implementation and validation
+      phases breaks a configured phase rule, TER shall report a
+      phase-sequence finding that names the broken rule.
+    level: L2
+    source_points: [23, 24, 25]
+    rationale: >-
+      Premature implementation, endless planning and unvalidated
+      implementation are sequence faults.
+    status: planned
+
+  - id: TER-DET-006
+    pattern: event-driven
+    text: >-
+      When an edit, test and failure cycle repeats on the same change
+      surface, TER shall classify the repeated cycle as rework.
+    level: L2
+    source_points: [26, 37]
+    rationale: >-
+      Rework must be told apart from productive iteration.
+    status: planned
+
+  - id: TER-DET-007
+    pattern: ubiquitous
+    text: >-
+      TER shall report fragmented edits to one logical change and file
+      traversals that no later event uses as motion waste.
+    level: L2
+    source_points: [27, 28]
+    rationale: >-
+      Motion waste in agents is traversal and fragmentation without
+      downstream use.
+    status: planned
+
+  - id: TER-DET-008
+    pattern: ubiquitous
+    text: >-
+      TER shall report subagent handoffs and model escalations that add
+      waiting time without adding new evidence.
+    level: L2
+    source_points: [29, 30]
+    rationale: >-
+      Handoffs and escalations create queues; only evidence justifies them.
+    status: planned
+
+  - id: TER-DET-009
+    pattern: event-driven
+    text: >-
+      When TER classifies an exploration event, TER shall label it
+      uncertainty-driven only if it addresses an open question recorded in
+      the session.
+    level: L2
+    source_points: [38]
+    rationale: >-
+      Exploration required by uncertainty is value; aimless exploration is
+      waste.
+    status: planned
+
+  - id: TER-DET-010
+    pattern: unwanted
+    text: >-
+      If a validation step repeats an earlier validation with no intervening
+      change, then TER shall classify the repeat as duplicated validation.
+    level: L2
+    source_points: [39]
+    rationale: >-
+      Validation is valuable once per change; repeats add no information.
+    status: planned
+
+  - id: TER-EXP-001
+    pattern: ubiquitous
+    text: >-
+      TER shall recompute every reported metric from the recorded events of
+      the session, with no other input.
+    level: L2
+    source_points: [195, 196]
+    rationale: >-
+      Every number in a report is reproducible and explainable from the
+      event stream alone.
+    status: planned
+
+  - id: TER-FLW-001
+    pattern: ubiquitous
+    text: >-
+      TER shall report Agentic Flow Efficiency as the share of session time
+      and tokens spent progressing rather than waiting, repeating,
+      recovering or reworking.
+    level: L2
+    source_points: [79, 80]
+    rationale: >-
+      Flow efficiency is the Lean measure of how much of the session moved
+      the work forward.
+    status: planned
+
+  - id: TER-ITN-001
+    pattern: ubiquitous
+    text: >-
+      TER shall keep one persistent intent record per session, updated by
+      every intent.stated event.
+    level: L2
+    source_points: [45, 46]
+    rationale: >-
+      Intent is a first-class, evolving object rather than the first prompt.
+    status: planned
+
+  - id: TER-ITN-002
+    pattern: event-driven
+    text: >-
+      When the user states a goal that differs from the current intent, TER
+      shall record an intent change with the prompt that caused it.
+    level: L2
+    source_points: [47]
+    rationale: >-
+      Explicit intent changes reset what counts as value.
+    status: planned
+
+  - id: TER-ITN-003
+    pattern: unwanted
+    text: >-
+      If agent activity departs from the current intent without a recorded
+      intent change, then TER shall classify the departure as drift.
+    level: L2
+    source_points: [48]
+    rationale: >-
+      Drift is departure without the user's say-so.
+    status: planned
+
+  - id: TER-ITN-004
+    pattern: ubiquitous
+    text: >-
+      TER shall compute an alignment score between each agent event and the
+      current intent.
+    level: L2
+    source_points: [49]
+    rationale: >-
+      Distance to intent is the basic alignment signal.
+    status: planned
+
+  - id: TER-ITN-005
+    pattern: state-driven
+    text: >-
+      While the alignment score stays below the configured threshold for the
+      configured number of events, TER shall report a low-alignment period.
+    level: L2
+    source_points: [50]
+    rationale: >-
+      Sustained low alignment matters more than a single off-topic event.
+    status: planned
+
+  - id: TER-LEN-001
+    pattern: ubiquitous
+    text: >-
+      TER shall classify every scored event as value-adding, necessary
+      non-value-adding or avoidable.
+    level: L2
+    source_points: [1, 11, 15]
+    rationale: >-
+      The three Lean activity classes are the base of every other Lean
+      measure.
+    status: planned
+
+  - id: TER-LEN-002
+    pattern: ubiquitous
+    text: >-
+      TER shall report the token share and time share of each activity class
+      for every session.
+    level: L2
+    source_points: [3, 16]
+    rationale: >-
+      Shares make the Lean classification comparable across sessions.
+    status: planned
+
+  - id: TER-LEN-003
+    pattern: ubiquitous
+    text: >-
+      TER shall judge the value of each event against the software outcome
+      stated in the current intent.
+    level: L2
+    source_points: [6, 7]
+    rationale: >-
+      Value is defined by the developer's requested outcome, not by activity
+      volume.
+    status: planned
+
+  - id: TER-LEN-004
+    pattern: unwanted
+    text: >-
+      If a reasoning span adds new evidence or a new decision, then TER
+      shall not classify that span as waste.
+    level: L2
+    source_points: [8, 17]
+    rationale: >-
+      Additional reasoning is not automatically waste.
+    status: planned
+
+  - id: TER-LEN-005
+    pattern: ubiquitous
+    text: >-
+      TER shall base every efficiency judgement on value delivered per unit
+      of resource, never on token count alone.
+    level: L2
+    source_points: [9, 10]
+    rationale: >-
+      Fewer tokens are not automatically more efficient; delivery is the
+      goal.
+    status: planned
+
+  - id: TER-LEN-006
+    pattern: ubiquitous
+    text: >-
+      TER shall map each Lean concept of value, flow, pull, WIP, queues,
+      rework, defects, waiting, over-processing and motion to named
+      agent-behaviour measures.
+    level: L2
+    source_points: [11, 12]
+    rationale: >-
+      A formal Lean model needs an explicit mapping from each concept to
+      something measurable.
+    status: planned
+
+  - id: TER-LEN-007
+    pattern: ubiquitous
+    text: >-
+      TER shall model each session as an Agentic Value Stream of events from
+      stated intent to verified software change.
+    level: L2
+    source_points: [1, 2, 13, 14]
+    rationale: >-
+      The session is a development process, not a token sequence.
+    status: planned
+
+  - id: TER-SCR-001
+    pattern: ubiquitous
+    text: >-
+      TER shall report efficiency, flow, quality, cost, risk and outcome as
+      separate scorecard dimensions.
+    level: L2
+    source_points: [3, 5, 82, 83]
+    rationale: >-
+      A multidimensional scorecard avoids one opaque score and keeps
+      measurement apart from outcome judgement.
+    status: planned
+
+  - id: TER-SCR-002
+    pattern: optional
+    text: >-
+      Where the scorecard shows an aggregate indicator, TER shall show the
+      weight and value of every dimension that forms it.
+    level: L2
+    source_points: [84]
+    rationale: >-
+      An aggregate is allowed only when its composition stays explainable.
+    status: planned
+
+  - id: TER-SCR-003
+    pattern: ubiquitous
+    text: >-
+      TER shall report Software Value Efficiency next to the Token
+      Efficiency Ratio in every session scorecard.
+    level: L2
+    source_points: [4, 81]
+    rationale: >-
+      TER remains the foundation; value efficiency adds the outcome view.
+    status: planned
+
+  - id: TER-WIP-001
+    pattern: ubiquitous
+    text: >-
+      TER shall report, after every event, the number of unresolved
+      hypotheses, tasks, edits and failures in the session.
+    level: L2
+    source_points: [31, 32]
+    rationale: >-
+      WIP is measurable in agent sessions and is a candidate predictor of
+      inefficiency.
+    status: planned

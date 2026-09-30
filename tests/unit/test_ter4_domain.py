@@ -36,7 +36,6 @@ class TestMaturity:
         with pytest.raises(ValueError):
             Maturity.parse(value)
 
-    @pytest.mark.req("TER-INT-001")
     def test_ceiling_permits_only_levels_at_or_below_it(self) -> None:
         ceiling = Maturity.EXPLAINED
         assert ceiling.permits(Maturity.MEASURED)

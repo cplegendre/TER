@@ -1,0 +1,216 @@
+# L0 Measured: TER 3 parity inside the TER 4 hexagon.
+# Schema and controls: docs/ter4/requirements.md. Links to vision points are
+# checked both ways against requirements/points.yaml.
+level: L0
+requirements:
+  - id: TER-ANL-000
+    pattern: ubiquitous
+    text: >-
+      TER shall produce TER 3 scores that equal the committed golden
+      snapshots for every session in the golden corpus.
+    level: L0
+    source_points: [4, 93, 106]
+    rationale: >-
+      The strangler-fig rebuild must not change scores by accident; every
+      scoring change appears as a snapshot diff committed on purpose (ADR
+      0002).
+    status: verified
+
+  - id: TER-ANL-001
+    pattern: ubiquitous
+    text: >-
+      TER shall exclude user-authored tokens from the scored token total of
+      every session.
+    level: L0
+    source_points: [43, 44]
+    rationale: >-
+      TER measures the agent's output; the user's own prompts are input and
+      never count as aligned or wasted work.
+    status: verified
+
+  - id: TER-ANL-002
+    pattern: ubiquitous
+    text: >-
+      TER shall report aligned tokens plus waste tokens equal to the total
+      scored tokens, and a TER value between 0 and 1 inclusive.
+    level: L0
+    source_points: [4]
+    rationale: >-
+      The ratio is only meaningful when the token accounting is closed and
+      bounded.
+    status: verified
+
+  - id: TER-ANL-003
+    pattern: ubiquitous
+    text: >-
+      TER shall report a 95% interval for the session TER value and the
+      count of low-confidence tokens.
+    level: L0
+    source_points: [85, 86]
+    rationale: >-
+      TER 3 already reports uncertainty; TER 4 keeps it as a floor for L2
+      confidence work.
+    status: verified
+
+  - id: TER-ARC-001
+    pattern: ubiquitous
+    text: >-
+      The TER codebase shall keep every package dependency pointing inward,
+      from bootstrap to adapters to application to ports to domain.
+    level: L0
+    source_points: [104, 105]
+    rationale: >-
+      The hexagon keeps analysis independent of harnesses, vendors and IO,
+      so a second harness needs only new adapters (ADR 0001).
+    status: verified
+
+  - id: TER-INT-001
+    pattern: state-driven
+    text: >-
+      While the maturity ceiling is below L4 Advisory, TER shall deliver no
+      intervention to the agent session.
+    level: L0
+    source_points: [121, 122]
+    rationale: >-
+      An installation that only observes never acts on the session; the
+      ceiling is a runtime guarantee, not a convention.
+    status: planned
+
+  - id: TER-REQ-001
+    pattern: ubiquitous
+    text: >-
+      The requirements linter shall reject every requirement whose text does
+      not match the EARS template of its declared pattern.
+    level: L0
+    source_points: [100]
+    rationale: >-
+      Requirements written in one of six fixed templates are testable and
+      comparable; free prose drifts.
+    status: verified
+
+  - id: TER-REQ-002
+    pattern: event-driven
+    text: >-
+      When the traceability gate runs at a maturity level, the traceability
+      gate shall fail for every verified requirement at or below that level
+      that has no passing citing test.
+    level: L0
+    source_points: [100]
+    rationale: >-
+      A level is claimed only when every requirement at that level is
+      demonstrably met by a passing test.
+    status: verified
+
+  - id: TER-REQ-003
+    pattern: unwanted
+    text: >-
+      If a test cites a requirement id that is absent from the catalogue,
+      then the traceability gate shall fail and name the citing test.
+    level: L0
+    source_points: [100]
+    rationale: >-
+      Backward trace keeps test tags honest when requirements are renamed or
+      removed.
+    status: verified
+
+  - id: TER-REQ-004
+    pattern: ubiquitous
+    text: >-
+      The requirements linter shall reject every vision point without a rule
+      and every requirement without a vision point.
+    level: L0
+    source_points: [100]
+    rationale: >-
+      Points and rules linked both ways keep the 200-point vision navigable
+      as the code grows.
+    status: verified
+
+  - id: TER-REQ-005
+    pattern: ubiquitous
+    text: >-
+      The points index check shall fail CI for every difference between
+      docs/ter4/points.md and the index generated from the catalogue.
+    level: L0
+    source_points: [196]
+    rationale: >-
+      The living index is only trustworthy when it cannot drift from the
+      catalogue.
+    status: verified
+
+  - id: TER-REQ-006
+    pattern: unwanted
+    text: >-
+      If a vision point needs real session data and is not marked
+      real_data_verified, then the requirements linter shall reject status
+      done for that point.
+    level: L0
+    source_points: [100]
+    rationale: >-
+      Synthetic sessions are written to trigger each pattern, so they cannot
+      prove claims about real agent behaviour (issues #34 to #46).
+    status: verified
+
+  - id: TER-SRC-001
+    pattern: ubiquitous
+    text: >-
+      The Claude Code session source shall translate every mapped Claude
+      Code JSONL record into ter.event/0.1 events.
+    level: L0
+    port: SessionSource
+    source_points: [102]
+    rationale: >-
+      The analytical core reads one neutral event stream, never
+      Claude-specific JSONL.
+    status: verified
+
+  - id: TER-SRC-002
+    pattern: unwanted
+    text: >-
+      If a session source reads a record that it cannot map to an event,
+      then the session source shall count that record by record type in the
+      trace coverage.
+    level: L0
+    port: SessionSource
+    source_points: [42]
+    rationale: >-
+      Silent drops hide format drift; every trace states how much of the
+      session it understood.
+    status: verified
+
+  - id: TER-SRC-003
+    pattern: ubiquitous
+    text: >-
+      The session source shall label every tool call with a provider-neutral
+      tool kind.
+    level: L0
+    port: SessionSource
+    source_points: [103]
+    rationale: >-
+      Detectors reason about tool kinds, so a second harness needs only a
+      new mapping.
+    status: verified
+
+  - id: TER-SRC-004
+    pattern: ubiquitous
+    text: >-
+      The session source shall produce an identical event stream, including
+      event ids, on every read of the same session file.
+    level: L0
+    port: SessionSource
+    source_points: [41, 42, 118]
+    rationale: >-
+      Deterministic reconstruction lets live and batch analysis, snapshots
+      and ledgers refer to the same event ids.
+    status: verified
+
+  - id: TER-SRC-007
+    pattern: ubiquitous
+    text: >-
+      The session source shall emit every user prompt as an intent.stated
+      event with the user as actor.
+    level: L0
+    port: SessionSource
+    source_points: [44]
+    rationale: >-
+      User input is evidence of intent, kept apart from generated work.
+    status: verified

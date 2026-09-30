@@ -122,3 +122,4 @@ priority.csv
 *.tar
 *.tar.gz
 *.7z
+req-trace.json

@@ -26,6 +26,10 @@ jobs:
         run: mypy src/
       - name: Architecture import contracts
         run: lint-imports
+      - name: EARS requirements and vision points lint
+        run: ter-req lint --strict --tests tests
+      - name: Vision points index is up to date
+        run: ter-req points --check
 
   test:
     name: Python ${{ matrix.python-version }}
@@ -52,12 +56,22 @@ jobs:
           --cov-branch
           --cov-report=term-missing
           --cov-report=xml
+          --req-trace=req-trace.json
+      - name: Requirements traceability gate (L0)
+        if: matrix.python-version == '3.11'
+        run: ter-req trace --results req-trace.json --gate L0 --summary "$GITHUB_STEP_SUMMARY"
       - name: Upload coverage XML
         if: matrix.python-version == '3.11'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-xml
           path: coverage.xml
+      - name: Upload requirements trace
+        if: matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: req-trace
+          path: req-trace.json
 
   package:
     name: Build and smoke-test package
