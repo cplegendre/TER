@@ -99,13 +99,20 @@ class PriceSchedule:
     Each model may have several dated entries; the latest one whose
     ``effective_from`` is on or before the requested date wins. With no date,
     the latest entry wins.
+
+    Aliases belong to dated entries, not to models. An alias names the model
+    whose entry in effect on the requested date carries it; when several do
+    (a family alias such as ``sonnet`` moving to a successor model), the most
+    recently effective entry wins. So an alias can move to a new model on its
+    effective date, and an alias added or dropped in a later entry only
+    resolves while an entry carrying it is in effect.
     """
 
     def __init__(self, entries: Iterable[PriceEntry]) -> None:
         self._entries: dict[str, list[PriceEntry]] = {}
-        self._aliases: dict[str, str] = {}
         for entry in entries:
             self._entries.setdefault(entry.model, []).append(entry)
+        claims: dict[str, dict[date, str]] = {}
         for model, dated in self._entries.items():
             dated.sort(key=lambda e: e.effective_from)
             days = [e.effective_from for e in dated]
@@ -113,31 +120,62 @@ class PriceSchedule:
                 raise ValueError(f"Duplicate effective_from dates for {model}")
             for entry in dated:
                 for alias in entry.aliases:
-                    owner = self._aliases.setdefault(alias, model)
-                    if owner != model or alias in self._entries:
-                        raise ValueError(f"Alias {alias!r} names more than one model")
+                    if alias in self._entries:
+                        raise ValueError(f"Alias {alias!r} is also a model name")
+                    owner = claims.setdefault(alias, {}).setdefault(
+                        entry.effective_from, model
+                    )
+                    if owner != model:
+                        raise ValueError(
+                            f"Alias {alias!r} names both {owner} and {model} "
+                            f"from {entry.effective_from}"
+                        )
+        self._alias_models: dict[str, tuple[str, ...]] = {
+            alias: tuple(sorted(set(by_day.values())))
+            for alias, by_day in claims.items()
+        }
+        self._latest = max(
+            (e.effective_from for dated in self._entries.values() for e in dated),
+            default=date.min,
+        )
 
     def models(self) -> tuple[str, ...]:
         """Canonical model names with at least one price, sorted."""
         return tuple(sorted(self._entries))
 
-    def resolve(self, model: str) -> str:
-        """Return the canonical model name for a name or alias."""
+    def _in_effect(self, model: str, at: date) -> PriceEntry | None:
+        in_effect = [e for e in self._entries[model] if e.effective_from <= at]
+        return in_effect[-1] if in_effect else None
+
+    def resolve(self, model: str, at: date | None = None) -> str:
+        """Return the canonical model name for a name or alias on ``at``.
+
+        With no date, an alias resolves as of the book's latest entry.
+        """
         if model in self._entries:
             return model
-        if model in self._aliases:
-            return self._aliases[model]
-        raise UnknownModelError(model)
+        if model not in self._alias_models:
+            raise UnknownModelError(model)
+        when = self._latest if at is None else at
+        carriers = [
+            entry
+            for candidate in self._alias_models[model]
+            if (entry := self._in_effect(candidate, when)) is not None
+            and model in entry.aliases
+        ]
+        if not carriers:
+            raise UnknownModelError(f"{model} names no priced model on {when}")
+        return max(carriers, key=lambda e: e.effective_from).model
 
     def entry(self, model: str, at: date | None = None) -> PriceEntry:
         """Return the price entry in effect for ``model`` on ``at``."""
-        dated = self._entries[self.resolve(model)]
+        canonical = self.resolve(model, at)
         if at is None:
-            return dated[-1]
-        in_effect = [e for e in dated if e.effective_from <= at]
-        if not in_effect:
+            return self._entries[canonical][-1]
+        found = self._in_effect(canonical, at)
+        if found is None:
             raise UnknownModelError(f"{model} has no price in effect on {at}")
-        return in_effect[-1]
+        return found
 
     def rate(self, model: str, at: date | None = None) -> Rates:
         """Return the rates in effect for ``model`` on ``at`` (latest if None)."""

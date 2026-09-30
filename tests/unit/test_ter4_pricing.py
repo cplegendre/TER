@@ -80,7 +80,7 @@ class TestSchedule:
         assert schedule.rate("m", date(2025, 3, 1)).input == 1.0
         assert schedule.rate("m", date(2025, 6, 1)).input == 2.0
         assert schedule.rate("alias", date(2025, 1, 1)).input == 1.0
-        assert schedule.resolve("alias") == "m"
+        assert schedule.resolve("alias", date(2025, 3, 1)) == "m"
         assert schedule.models() == ("m",)
 
     def test_before_first_price_is_unknown(self) -> None:
@@ -97,6 +97,39 @@ class TestSchedule:
             PriceSchedule(
                 [_entry("m", "2025-01-01", 1.0), _entry("m", "2025-01-01", 2.0)]
             )
+
+    def test_alias_moves_to_a_successor_on_its_effective_date(self) -> None:
+        schedule = PriceSchedule(
+            [
+                _entry("sonnet-4", "2025-01-01", 3.0, "sonnet"),
+                _entry("sonnet-5", "2026-01-01", 4.0, "sonnet"),
+            ]
+        )
+        assert schedule.resolve("sonnet", date(2025, 12, 31)) == "sonnet-4"
+        assert schedule.resolve("sonnet", date(2026, 1, 1)) == "sonnet-5"
+        assert schedule.resolve("sonnet") == "sonnet-5"
+        assert schedule.rate("sonnet", date(2025, 6, 1)).input == 3.0
+        assert schedule.rate("sonnet").input == 4.0
+        # The old model keeps its own price under its canonical name.
+        assert schedule.rate("sonnet-4").input == 3.0
+
+    def test_alias_added_later_does_not_resolve_earlier(self) -> None:
+        schedule = PriceSchedule(
+            [_entry("m", "2025-01-01", 1.0), _entry("m", "2025-06-01", 2.0, "new")]
+        )
+        assert schedule.rate("new", date(2025, 6, 1)).input == 2.0
+        with pytest.raises(UnknownModelError, match="no priced model"):
+            schedule.rate("new", date(2025, 3, 1))
+
+    def test_alias_dropped_later_does_not_resolve_after(self) -> None:
+        schedule = PriceSchedule(
+            [_entry("m", "2025-01-01", 1.0, "old"), _entry("m", "2025-06-01", 2.0)]
+        )
+        assert schedule.rate("old", date(2025, 3, 1)).input == 1.0
+        with pytest.raises(UnknownModelError, match="no priced model"):
+            schedule.rate("old", date(2025, 6, 1))
+        with pytest.raises(UnknownModelError):
+            schedule.rate("old")
 
     @pytest.mark.parametrize(
         "entries",
@@ -160,6 +193,12 @@ class TestJsonPriceBook:
             (_book(prices=["x"]), "must be an object"),
             (_price(effective_from="soon"), "malformed"),
             (_price(rates={"input": 1}), "malformed"),
+            (_price(rates={**_book()["prices"][0]["rates"], "input": True}), "number"),
+            (
+                _price(rates={**_book()["prices"][0]["rates"], "output": False}),
+                "number",
+            ),
+            (_price(rates={**_book()["prices"][0]["rates"], "input": "3"}), "number"),
             (_price(model=""), "model"),
             (_price(source=""), "source"),
             (_price(aliases="sonnet"), "aliases"),

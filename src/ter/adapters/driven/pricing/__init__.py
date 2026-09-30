@@ -60,7 +60,12 @@ def _parse_entry(raw: Any, index: int) -> PriceEntry:
         model = raw["model"]
         effective_from = date.fromisoformat(raw["effective_from"])
         rates_raw = raw["rates"]
-        rates = Rates(**{key: float(rates_raw[key]) for key in _RATE_KEYS})
+        values = {key: rates_raw[key] for key in _RATE_KEYS}
+        for key, value in values.items():
+            # bool is an int subclass; a true/false rate is a typo, not $1/$0.
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise TypeError(f"rates.{key} must be a number, not {value!r}")
+        rates = Rates(**{key: float(value) for key, value in values.items()})
     except (KeyError, TypeError, ValueError) as exc:
         raise ValueError(f"{where} is malformed: {exc}") from exc
     source = raw.get("source", "")

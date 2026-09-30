@@ -24,6 +24,11 @@ a price meant a code release.
   (schema `ter.price_book/1`, package data). Each entry carries a model id,
   aliases, an `effective_from` date and a mandatory `source` note.
   `InMemoryPriceBook` is the fake; both pass `tests/contract/test_price_book.py`.
+- Aliases belong to dated entries, not to models. A family alias such as
+  `sonnet` names the most recently effective entry that carries it, so it
+  moves to a successor model on that model's `effective_from` date, and an
+  alias added or dropped in a later entry only resolves while an entry
+  carrying it is in effect. TER 3's pricing tiers are these family aliases.
 - TER 3 reads its rates through the adapter. The initial book holds exactly
   the TER 3.0.0 rates, so behaviour is unchanged; the golden snapshots and
   `tests/unit/test_ter4_pricing.py` prove it.

@@ -118,29 +118,24 @@ class PricingTier:
         return rates[category] / self.input_per_mtok
 
 
-#: TER 3's pricing tiers and the model each one prices. The rates themselves
-#: are data, read from TER's shipped price book (``ter/data/price_book.json``).
-_TIER_MODELS: dict[str, str] = {
-    "haiku": "claude-haiku-4-5",
-    "sonnet": "claude-sonnet-4-6",
-    "opus": "claude-opus-4-6",
-}
+#: TER 3's pricing tiers. Each tier is a model-family alias in TER's shipped
+#: price book (``ter/data/price_book.json``), so a tier follows its family to
+#: a successor model on that model's effective date.
+_TIERS: tuple[str, ...] = ("haiku", "sonnet", "opus")
 
 
-def _tier_from_price_book(model: str) -> PricingTier:
-    rates = default_price_book().rate(model)
+def _tier_from_price_book(alias: str) -> PricingTier:
+    entry = default_price_book().entry(alias)
     return PricingTier(
-        name=model,
-        input_per_mtok=rates.input,
-        output_per_mtok=rates.output,
-        cached_read_per_mtok=rates.cache_read,
-        cached_write_per_mtok=rates.cache_write,
+        name=entry.model,
+        input_per_mtok=entry.rates.input,
+        output_per_mtok=entry.rates.output,
+        cached_read_per_mtok=entry.rates.cache_read,
+        cached_write_per_mtok=entry.rates.cache_write,
     )
 
 
-PRICING: dict[str, PricingTier] = {
-    tier: _tier_from_price_book(model) for tier, model in _TIER_MODELS.items()
-}
+PRICING: dict[str, PricingTier] = {tier: _tier_from_price_book(tier) for tier in _TIERS}
 
 
 # ---------------------------------------------------------------------------
