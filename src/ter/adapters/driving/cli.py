@@ -44,10 +44,18 @@ __all__ = [
     "main",
 ]
 
+#: The built-in tokenizers; any installed ``Tokenizer.<name>`` capability is
+#: accepted too, validated through ``CliServices.tokenizers``.
 TOKENIZERS = ("regex", "tiktoken")
+TOKENIZER_HELP = (
+    "Tokenizer capability: regex (default), tiktoken or any installed "
+    "Tokenizer.<name> (see `capabilities`)"
+)
 #: How the A3 obtains TER: offline (deterministic, lexical embedder), with the
 #: TER 3 sentence-transformers model, or not at all.
 TER_MODES = ("offline", "model", "off")
+#: Checks listed under the outcome verdict in text output.
+OUTCOME_ROWS = 12
 OUTCOME_HELP = (
     "test results of the run (JUnit XML, e.g. from pytest --junitxml): judge "
     "the outcome and show the verdict beside the measures"
@@ -71,6 +79,9 @@ class CliServices:
         Callable[[], tuple[tuple[Capability, ...], tuple[CapabilityProblem, ...]]]
         | None
     ) = None
+    #: Names of the registered ``Tokenizer`` capabilities, to validate
+    #: ``--tokenizer``; ``None`` accepts the built-ins only.
+    tokenizers: Callable[[], tuple[str, ...]] | None = None
 
 
 def main(
@@ -97,6 +108,14 @@ def main(
             # (Claude Code shows it in verbose mode and debug logs).
             err.write(f"ter hook: event not recorded: {result.reason}\n")
         return 0
+    if args.command in ("observe", "explain", "a3"):
+        known = TOKENIZERS if services.tokenizers is None else services.tokenizers()
+        if args.tokenizer not in known:
+            err.write(
+                f"Unknown tokenizer {args.tokenizer!r} "
+                f"(available: {', '.join(known) or 'none'})\n"
+            )
+            return 2
     if args.command in ("explain", "a3"):
         return _explain(args, services, out, err)
     if args.command == "capabilities":
@@ -183,8 +202,10 @@ def _capabilities(services: CliServices, out: IO[str], err: IO[str]) -> int:
 def format_capabilities(
     found: Sequence[Capability], problems: Sequence[CapabilityProblem]
 ) -> str:
-    broken = {p.key for p in problems}
-    usable = [c for c in found if c.key not in broken]
+    # A problem names the entry it rejected: a plugin clashing with a
+    # built-in's key must not hide the built-in that keeps working.
+    broken = {(p.key, p.target) for p in problems}
+    usable = [c for c in found if (c.key, c.target) not in broken]
     lines = [f"TER capabilities · {len(usable)} usable, {len(problems)} problem(s)"]
     if usable:
         port_w = max(len(c.port) for c in usable)
@@ -257,7 +278,7 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
         "--limit", type=int, default=None, help="timeline rows to print"
     )
     observe.add_argument("--json", action="store_true", help="print the report as JSON")
-    observe.add_argument("--tokenizer", choices=TOKENIZERS, default="regex")
+    observe.add_argument("--tokenizer", default="regex", help=TOKENIZER_HELP)
 
     explain = commands.add_parser(
         "explain", help="L2: Lean findings, value stream and scorecard of a session"
@@ -269,7 +290,7 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
     explain.add_argument(
         "--graph", type=Path, metavar="FILE", help="write the evidence graph as JSON"
     )
-    explain.add_argument("--tokenizer", choices=TOKENIZERS, default="regex")
+    explain.add_argument("--tokenizer", default="regex", help=TOKENIZER_HELP)
     explain.add_argument("--outcome", type=Path, metavar="FILE", help=OUTCOME_HELP)
 
     a3 = commands.add_parser("a3", help="L2: a one-page Lean A3 report of a session")
@@ -293,7 +314,7 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
         help="how to compute TER: offline (deterministic, default), model "
         "(TER 3 sentence-transformers, may download) or off",
     )
-    a3.add_argument("--tokenizer", choices=TOKENIZERS, default="regex")
+    a3.add_argument("--tokenizer", default="regex", help=TOKENIZER_HELP)
     a3.add_argument("--outcome", type=Path, metavar="FILE", help=OUTCOME_HELP)
 
     commands.add_parser(
@@ -390,17 +411,26 @@ def format_outcome(verdict: OutcomeVerdict | None, path: Path | None) -> str:
     lines = [
         f"  outcome          {verdict.verdict.value}: {'; '.join(verdict.reasons)}"
     ]
-    shown = [
-        r
-        for r in verdict.results
-        if r.check.required and (r.status is None or r.status.value != "passed")
-    ]
-    for r in shown[:8]:
+    # Every check, open ones first, with its status and evidence source, so an
+    # accepted verdict shows what it rests on too.
+    ordered = sorted(
+        verdict.results,
+        key=lambda r: r.status is not None and r.status.value == "passed",
+    )
+    for r in ordered[:OUTCOME_ROWS]:
         status = "no evidence" if r.status is None else r.status.value
+        optional = "" if r.check.required else " (optional)"
         detail = next((e.detail for e in r.evidence if e.detail), "")
-        lines.append(f"  - {status}: {r.check.id}" + (f" · {detail}" if detail else ""))
-    if len(shown) > 8:
-        lines.append(f"  … {len(shown) - 8} more")
+        sources = ", ".join(e.source for e in r.evidence)
+        lines.append(
+            f"  - {status}: {r.check.id}{optional}"
+            + (f" · {detail}" if detail else "")
+            + (f" [{sources}]" if sources else "")
+        )
+    if len(ordered) > OUTCOME_ROWS:
+        lines.append(
+            f"  … {len(ordered) - OUTCOME_ROWS} more (--json lists every check)"
+        )
     return "\n".join(lines) + "\n"
 
 

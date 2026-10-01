@@ -122,6 +122,23 @@ def _members(port: type[object]) -> tuple[str, ...]:
     )
 
 
+def _undeclared(cls: type[object], port: type[object]) -> tuple[str, ...]:
+    """Port members a class neither defines, annotates nor assigns in ``__init__``.
+
+    A static check: nothing is instantiated, so no adapter does IO. An
+    attribute set in ``__init__`` or ``__post_init__`` (``self.name = ...``)
+    counts as declared, so only a member the class never mentions is reported.
+    """
+    declared: set[str] = set()
+    for klass in cls.__mro__:
+        declared |= set(vars(klass).get("__annotations__", {}))
+        for method in ("__init__", "__post_init__"):
+            code = getattr(vars(klass).get(method), "__code__", None)
+            if code is not None:
+                declared |= set(code.co_names)
+    return tuple(m for m in _members(port) if not hasattr(cls, m) and m not in declared)
+
+
 @dataclass
 class _Slot:
     capability: Capability
@@ -283,13 +300,26 @@ class CapabilityRegistry:
     def check(self) -> tuple[CapabilityProblem, ...]:
         """Load every registered capability and return every problem found.
 
-        Never raises; nothing is instantiated, so no adapter does IO.
+        Besides loading, a class is checked for every attribute of its port
+        that :meth:`create` would demand of the instance (see
+        :func:`_undeclared`). Never raises; nothing is instantiated, so no
+        adapter does IO. A plain factory function can only be checked by
+        :meth:`create`.
         """
         for cap in self.capabilities():
             try:
-                self.factory(cap.port, cap.name)
+                loaded = self.factory(cap.port, cap.name)
             except CapabilityError:
-                pass  # recorded as a problem
+                continue  # recorded as a problem
+            if isinstance(loaded, type):
+                missing = _undeclared(loaded, self._ports[cap.port])
+                if missing:
+                    self._problem(
+                        cap.key,
+                        cap.target,
+                        f"does not satisfy the {cap.port} port: "
+                        f"missing {', '.join(missing)}",
+                    )
         return self.problems
 
 

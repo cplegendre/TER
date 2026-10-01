@@ -384,3 +384,69 @@ def test_cli_outcome_option_reports_missing_and_unreadable_files(
     bad.write_text("<html/>", encoding="utf-8")
     code, _, err = _run(["a3", str(SESSION), "--ter", "off", "--outcome", str(bad)])
     assert code == 2 and "Cannot read outcome" in err and "root element <html>" in err
+
+
+@pytest.mark.req("TER-OUT-007")
+@pytest.mark.parametrize(
+    ("raw", "seconds"),
+    [
+        ("0.25", 0.25),
+        ("1,234.5", 1234.5),  # comma with a point: thousands separator
+        ("0,010", 0.01),  # lone comma: decimal comma
+        ("Infinity", None),
+        ("-inf", None),
+        ("nan", None),
+        ("abc", None),
+        ("-1", None),
+    ],
+)
+def test_junit_durations_are_finite_and_read_decimal_commas(
+    tmp_path: Path, raw: str, seconds: float | None
+) -> None:
+    path = tmp_path / "r.xml"
+    path.write_text(
+        f'<testsuite><testcase name="t" time="{raw}"/></testsuite>', encoding="utf-8"
+    )
+    evidence = JUnitOutcomeSource().outcome(path)
+    assert evidence is not None
+    assert evidence.checks[0].seconds == seconds
+    assert json.loads(json.dumps(evidence.checks[0].as_dict(), allow_nan=False))
+
+
+@pytest.mark.req("TER-SCR-004", "TER-OUT-004")
+def test_an_accepted_verdict_shows_its_passing_checks_and_their_sources() -> None:
+    from ter.adapters.driving.cli import format_outcome
+
+    green = OutcomeEvidence(
+        "run-1",
+        "test",
+        (CheckEvidence("a", P, "r.xml#testcase-1"), CheckEvidence("b", P, "r.xml#2")),
+    )
+    judged = _explain("run-1", {"run-1": green})
+    assert judged.outcome is not None and judged.outcome.accepted
+    text = format_outcome(judged.outcome, Path("r.xml"))
+    assert "  - passed: a [r.xml#testcase-1]\n" in text
+    assert "  - passed: b [r.xml#2]\n" in text
+    page = render_a3_html(judged.a3)
+    assert (
+        "<td>passed</td><td><code>a</code></td><td><code>r.xml#testcase-1</code>"
+        in page
+    )
+
+
+@pytest.mark.req("TER-SCR-004", "TER-OUT-004")
+def test_outcome_lists_open_checks_first_and_folds_the_rest() -> None:
+    from ter.adapters.driving.cli import OUTCOME_ROWS, format_outcome
+
+    checks = [(f"ok{i:02}", P) for i in range(20)] + [("broken", F)]
+    judged = _explain("run-1", {"run-1": _ev(*checks)})
+    assert judged.outcome is not None
+    text = format_outcome(judged.outcome, Path("r.xml"))
+    rows = [line for line in text.splitlines() if line.startswith("  - ")]
+    assert rows[0] == "  - failed: broken [r#20]"
+    assert len(rows) == OUTCOME_ROWS
+    assert f"… {21 - OUTCOME_ROWS} more (--json lists every check)" in text
+    page = render_a3_html(judged.a3)
+    assert "Show the other 13 checks</summary>" in page
+    assert page.index("<code>broken</code>") < page.index("<code>ok00</code>")
+    assert "<code>ok19</code>" in page  # every check is on the page

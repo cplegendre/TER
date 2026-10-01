@@ -133,8 +133,12 @@ def cli_services() -> CliServices:
         problems = registry.check()
         return registry.capabilities(), problems
 
+    def tokenizers() -> tuple[str, ...]:
+        return default_registry().names("Tokenizer")
+
     return CliServices(
         capabilities=capabilities,
+        tokenizers=tokenizers,
         analyse_transcript=analyse_transcript,
         log_sessions=log_sessions,
         analyse_log=analyse_log,

@@ -18,6 +18,7 @@ fetched. Test-result files never need one.
 
 from __future__ import annotations
 
+import math
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import NoReturn
@@ -73,13 +74,20 @@ def _detail(element: ET.Element) -> str:
 
 
 def _seconds(raw: str | None) -> float | None:
+    """A test duration, or None when it is absent, unreadable or not finite.
+
+    With a ``.`` present a comma is a thousands separator (``1,234.5``);
+    alone it is a decimal comma (``0,010`` is 0.01 seconds).
+    """
     if raw is None:
         return None
+    text = raw.strip()
+    text = text.replace(",", "") if "." in text else text.replace(",", ".")
     try:
-        value = float(raw.replace(",", ""))
+        value = float(text)
     except ValueError:
         return None
-    return value if value >= 0 else None
+    return value if math.isfinite(value) and value >= 0 else None
 
 
 class JUnitOutcomeSource:
