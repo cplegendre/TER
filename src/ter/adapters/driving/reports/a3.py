@@ -22,6 +22,7 @@ from ter.domain.lean import (
 )
 from ter.domain.lean.model import UNCERTAIN_BELOW, Stage
 from ter.domain.report import WasteByType
+from ter.domain.outcome import CheckResult
 
 from .palette import stylesheet
 from .svg import (
@@ -540,24 +541,42 @@ def _outcome(report: A3Report) -> str:
         f'<div class="kpi"><span>{esc(label)}</span><b>{esc(value)}</b><small>{esc(sub)}</small></div>'
         for label, value, sub in tiles
     )
-    open_checks = [
-        r for r in required if r.status is None or r.status.value != "passed"
-    ]
-    rows = "".join(
-        f"<li><code>{esc(r.check.id)}</code>: "
-        f"{esc('no evidence' if r.status is None else r.status.value)}"
-        + "".join(f" · {esc(e.detail)}" for e in r.evidence[:1] if e.detail)
-        + "</li>"
-        for r in open_checks[:8]
+    # Every check with its status and evidence source, open checks first, so
+    # an accepted verdict shows what it rests on too.
+    ordered = sorted(
+        verdict.results,
+        key=lambda r: r.status is not None and r.status.value == "passed",
     )
-    more = (
-        f'<p class="fine">… and {len(open_checks) - 8} more.</p>'
-        if len(open_checks) > 8
+    head = (
+        '<thead><tr><th scope="col">Status</th><th scope="col">Check</th>'
+        '<th scope="col">Evidence</th></tr></thead>'
+    )
+
+    def row(r: CheckResult) -> str:
+        status = "no evidence" if r.status is None else r.status.value
+        optional = "" if r.check.required else " (optional)"
+        sources = ", ".join(e.source for e in r.evidence) or "-"
+        detail = next((e.detail for e in r.evidence if e.detail), "")
+        return (
+            f"<tr><td>{esc(status)}</td><td><code>{esc(r.check.id)}</code>{esc(optional)}"
+            + (f"<br><small>{esc(detail)}</small>" if detail else "")
+            + f"</td><td><code>{esc(sources)}</code></td></tr>"
+        )
+
+    shown, rest = ordered[:8], ordered[8:]
+    checks = (
+        f'<div class="chart"><table>{head}<tbody>{"".join(row(r) for r in shown)}</tbody></table></div>'
+        if shown
         else ""
     )
+    if rest:
+        checks += (
+            f"<details><summary>Show the other {len(rest)} checks</summary>"
+            f'<div class="chart"><table>{head}<tbody>{"".join(row(r) for r in rest)}</tbody></table></div></details>'
+        )
     return (
         f'<div class="kpis" role="list" aria-label="Outcome">{cards}</div>'
-        + (f"<ul>{rows}</ul>{more}" if rows else "")
+        + checks
         + f'<p class="fine" style="margin-top:8px">Judged from <code>{esc(verdict.run_ref)}</code> '
         f"({esc(verdict.source)}), separately from the scorecard: no measure on this page "
         "reads the verdict.</p>"

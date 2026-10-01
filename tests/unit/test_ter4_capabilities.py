@@ -291,3 +291,128 @@ def test_capabilities_command_lists_adapters_and_reports_broken_ones() -> None:
     assert "fragile  " not in text  # broken ones are not listed as usable
     code, _ = _cli(CapabilityRegistry(discover=None).capabilities(), ())
     assert code == 0
+
+
+@pytest.mark.req("TER-ARC-005")
+def test_capabilities_command_reports_a_class_missing_a_port_attribute() -> None:
+    reg = _registry(_entry("Tokenizer.anon", NoName))
+    problems = reg.check()  # static: the class is never instantiated
+    assert [(p.key, p.reason) for p in problems] == [
+        ("Tokenizer.anon", "does not satisfy the Tokenizer port: missing name")
+    ]
+    code, text = _cli(reg.capabilities(), problems)
+    assert code == 1
+    assert "! Tokenizer.anon (plugin.module:Thing): does not satisfy" in text
+    assert "anon  " not in text
+
+
+@pytest.mark.req("TER-ARC-005")
+def test_check_accepts_attributes_set_in_init() -> None:
+    class InitName:
+        exact = False
+
+        def __init__(self) -> None:
+            self.name = "init"
+
+        def count(self, text: str) -> int:
+            return 0
+
+    reg = _registry(_entry("Tokenizer.init", InitName))
+    assert reg.check() == ()
+    assert CapabilityRegistry(discover=None).check() == ()  # every built-in
+
+
+@pytest.mark.req("TER-ARC-005")
+def test_check_ignores_a_name_read_but_never_assigned_in_init() -> None:
+    class Config:
+        name = "words"
+
+    class ReadsName:
+        exact = False
+
+        def __init__(self, config: Config | None = None) -> None:
+            self.label = (config or Config()).name
+
+        def count(self, text: str) -> int:
+            return 0
+
+    reg = _registry(_entry("Tokenizer.reads", ReadsName))
+    assert [(p.key, p.reason) for p in reg.check()] == [
+        ("Tokenizer.reads", "does not satisfy the Tokenizer port: missing name")
+    ]
+
+
+@pytest.mark.req("TER-ARC-005")
+def test_capabilities_command_keeps_a_built_in_a_plugin_tried_to_hijack() -> None:
+    hijack = _entry("Tokenizer.regex", WordTokenizer, "evil.module:Tokenizer")
+    reg = _registry(hijack)
+    problems = reg.check()
+    assert [(p.key, p.target) for p in problems] == [
+        ("Tokenizer.regex", "evil.module:Tokenizer")
+    ]
+    code, text = _cli(reg.capabilities(), problems)
+    assert code == 1
+    usable = text.split("\n  !")[0]
+    assert "8 usable, 1 problem(s)" in usable  # every built-in still counts
+    assert any(
+        line.split()[:3]
+        == ["Tokenizer", "regex", "ter.adapters.driven.tokenizers:RegexTokenizer"]
+        for line in usable.splitlines()
+    )
+    assert "evil.module" not in usable
+    assert (
+        "! Tokenizer.regex (evil.module:Tokenizer): Tokenizer.regex is already" in text
+    )
+
+
+@pytest.mark.req("TER-ARC-004")
+def test_cli_tokenizer_accepts_a_registered_external_tokenizer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from ter import bootstrap
+    from ter.bootstrap import capabilities as caps
+
+    reg = _registry(_entry("Tokenizer.words", WordTokenizer))
+    monkeypatch.setattr(caps, "default_registry", lambda: reg)
+    monkeypatch.setattr(bootstrap, "default_registry", lambda: reg)
+    session = Path(__file__).resolve().parents[1] / "golden" / "sessions"
+    path = next(iter(sorted(session.glob("*.jsonl"))))
+    for command in (["observe"], ["explain"], ["a3", "--ter", "off"]):
+        out, err = io.StringIO(), io.StringIO()
+        argv = [*command, str(path), "--tokenizer", "words"]
+        code = main(argv, bootstrap.cli_services(), stdout=out, stderr=err)
+        assert code == 0, err.getvalue()
+    out, err = io.StringIO(), io.StringIO()
+    argv = ["observe", str(path), "--json", "--tokenizer", "words"]
+    code = main(argv, bootstrap.cli_services(), stdout=out, stderr=err)
+    assert code == 0 and '"words"' in out.getvalue()
+    err = io.StringIO()
+    argv = ["observe", str(path), "--tokenizer", "nope"]
+    code = main(argv, bootstrap.cli_services(), stdout=io.StringIO(), stderr=err)
+    assert code == 2
+    assert err.getvalue() == (
+        "Unknown tokenizer 'nope' (available: regex, tiktoken, words; "
+        "`python -m ter capabilities` shows broken ones)\n"
+    )
+
+
+@pytest.mark.req("TER-ARC-004")
+def test_cli_rejects_a_registered_but_broken_tokenizer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from ter import bootstrap
+    from ter.bootstrap import capabilities as caps
+
+    reg = _registry(_entry("Tokenizer.anon", NoName))
+    monkeypatch.setattr(caps, "default_registry", lambda: reg)
+    monkeypatch.setattr(bootstrap, "default_registry", lambda: reg)
+    session = Path(__file__).resolve().parents[1] / "golden" / "sessions"
+    path = next(iter(sorted(session.glob("*.jsonl"))))
+    err = io.StringIO()
+    argv = ["observe", str(path), "--tokenizer", "anon"]
+    code = main(argv, bootstrap.cli_services(), stdout=io.StringIO(), stderr=err)
+    assert code == 2
+    assert err.getvalue() == (
+        "Unknown tokenizer 'anon' (available: regex, tiktoken; "
+        "`python -m ter capabilities` shows broken ones)\n"
+    )
