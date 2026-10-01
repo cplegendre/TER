@@ -79,6 +79,7 @@ python -m ter a3 session.jsonl --html a3.html --ter model
 | `--ter model` | TER 3 with its sentence-transformers model (may download on first use) |
 | `--ter off` | No TER in the scorecard |
 | `--tokenizer regex\|tiktoken` | How event text is counted (`regex` is offline) |
+| `--outcome FILE` | Judge the run's test results (JUnit XML, e.g. `pytest --junitxml`) and show the verdict in an Outcome box beside the scorecard; also on `explain` ([outcome.md](../ter4/outcome.md)) |
 
 The page is self-contained (no scripts, no requests), follows light and dark
 themes, and prints on one A3 landscape sheet. Every number in it is in the

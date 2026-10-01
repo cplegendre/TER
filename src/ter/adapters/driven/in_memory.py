@@ -12,6 +12,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from ...domain.events import Event, SessionTrace
+from ...domain.outcome import OutcomeEvidence, OutcomeFormatError
 from ...domain.pricing import PriceEntry, PriceSchedule, Rates
 
 
@@ -97,3 +98,27 @@ class FixedTerScorer:
         if key not in self._scores:
             raise FileNotFoundError(f"No fixed TER for {key!r}")
         return self._scores[key]
+
+
+class InMemoryOutcomeSource:
+    """An :class:`~ter.ports.driven.OutcomeSource` serving evidence built in code.
+
+    ``malformed`` names references whose record exists but cannot be read,
+    so the format-error obligation is testable without files.
+    """
+
+    name = "in-memory"
+
+    def __init__(
+        self,
+        records: Mapping[str, OutcomeEvidence],
+        malformed: Iterable[str] = (),
+    ) -> None:
+        self._records = dict(records)
+        self._malformed = frozenset(malformed)
+
+    def outcome(self, ref: str | Path) -> OutcomeEvidence | None:
+        key = str(ref)
+        if key in self._malformed:
+            raise OutcomeFormatError(f"{key}: in-memory record marked malformed")
+        return self._records.get(key)

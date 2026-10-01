@@ -511,6 +511,59 @@ def _scorecard(report: A3Report) -> str:
     )
 
 
+def _outcome(report: A3Report) -> str:
+    """The verdict, judged apart from the scorecard (no measure reads it)."""
+    verdict = report.outcome
+    if verdict is None:
+        return ""
+    required = [r for r in verdict.results if r.check.required]
+    passed = sum(
+        1 for r in required if r.status is not None and r.status.value == "passed"
+    )
+    per = report.tokens_per_verified_outcome
+    tiles = [
+        ("Verdict", verdict.verdict.value, "; ".join(verdict.reasons)),
+        (
+            "Required checks",
+            f"{passed} / {len(required)}",
+            f"passed, against “{verdict.contract.name}”",
+        ),
+        (
+            "Tokens per verified outcome",
+            "n/a" if per is None else fmt_tokens(round(per)),
+            "generated tokens / accepted outcomes"
+            if per is not None
+            else "no accepted outcome to divide by",
+        ),
+    ]
+    cards = "".join(
+        f'<div class="kpi"><span>{esc(label)}</span><b>{esc(value)}</b><small>{esc(sub)}</small></div>'
+        for label, value, sub in tiles
+    )
+    open_checks = [
+        r for r in required if r.status is None or r.status.value != "passed"
+    ]
+    rows = "".join(
+        f"<li><code>{esc(r.check.id)}</code>: "
+        f"{esc('no evidence' if r.status is None else r.status.value)}"
+        + "".join(f" · {esc(e.detail)}" for e in r.evidence[:1] if e.detail)
+        + "</li>"
+        for r in open_checks[:8]
+    )
+    more = (
+        f'<p class="fine">… and {len(open_checks) - 8} more.</p>'
+        if len(open_checks) > 8
+        else ""
+    )
+    return (
+        f'<div class="kpis" role="list" aria-label="Outcome">{cards}</div>'
+        + (f"<ul>{rows}</ul>{more}" if rows else "")
+        + f'<p class="fine" style="margin-top:8px">Judged from <code>{esc(verdict.run_ref)}</code> '
+        f"({esc(verdict.source)}), separately from the scorecard: no measure on this page "
+        "reads the verdict.</p>"
+    )
+
+
 def _current_state(report: A3Report) -> str:
     return _figure(
         value_stream_map(report.analysis.value_stream),
@@ -683,6 +736,7 @@ def render_a3_html(report: A3Report) -> str:
         '<div class="sheet">',
         _box(1, "Background", _background(report)),
         _box(None, "Scorecard", _scorecard(report)),
+        *([_box(None, "Outcome", _outcome(report))] if report.outcome else []),
         _box(2, "Current state", _current_state(report), "full"),
         _box(3, "Analysis", _analysis(report)),
         _box(4, "Root causes", _root_causes(report)),

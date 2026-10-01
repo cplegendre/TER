@@ -62,10 +62,11 @@ points:
       - >-
         Each field is computed from recorded events and documented in
         docs/ter4.
-    rules: [TER-SCR-001, TER-LEN-002]
+    rules: [TER-SCR-001, TER-LEN-002, TER-SCR-004]
     verification:
       - 'test: tests/unit/test_ter4_lean_analysis.py::test_scorecard_dimensions_and_explained_composite'
-      - 'planned: quality, risk and outcome dimensions need L3 evidence (TER-SCR-001)'
+      - 'test: tests/unit/test_ter4_outcome.py::test_the_verdict_sits_beside_an_unchanged_scorecard'
+      - 'planned: quality dimension, and risk beyond the risk-finding count (TER-SCR-001)'
 
   - id: P004
     text: >-
@@ -90,15 +91,29 @@ points:
       the resulting software is correct.
     level: L2
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Behaviour measures and outcome judgements are separate scorecard
         dimensions computed by separate modules.
       - No behaviour measure reads an outcome verdict.
-    rules: [TER-SCR-001]
+    rules:
+      - TER-SCR-001
+      - TER-SCR-004
+      - TER-SCR-005
+      - TER-OUT-001
+      - TER-OUT-002
+      - TER-OUT-003
+      - TER-OUT-004
+      - TER-OUT-005
+      - TER-OUT-006
+      - TER-OUT-007
+      - TER-OUT-008
     verification:
-      - 'planned: passing tests tagged req for TER-SCR-001'
+      - 'test: tests/unit/test_ter4_outcome.py::test_behaviour_measures_are_blind_to_the_outcome_module'
+      - 'test: tests/unit/test_ter4_outcome.py::test_the_verdict_sits_beside_an_unchanged_scorecard'
+      - 'test: tests/contract/test_outcome_source.py'
+      - 'ci: Architecture import contracts'
 
   - id: P006
     text: >-
@@ -1209,10 +1224,11 @@ points:
     status: partial
     definition_of_done:
       - No report shows a single score without its dimensions.
-    rules: [TER-SCR-001]
+    rules: [TER-SCR-001, TER-OUT-004]
     verification:
       - 'test: tests/unit/test_ter4_lean_analysis.py::test_scorecard_dimensions_and_explained_composite'
-      - 'planned: every scorecard dimension, including quality, risk and outcome (TER-SCR-001)'
+      - 'test: tests/unit/test_ter4_outcome.py::test_the_verdict_carries_no_weighted_score'
+      - 'planned: every scorecard dimension, including quality and risk (TER-SCR-001)'
 
   - id: P083
     text: >-
@@ -1225,10 +1241,11 @@ points:
       - >-
         The scorecard covers efficiency, flow, quality, cost, risk and
         outcome.
-    rules: [TER-SCR-001]
+    rules: [TER-SCR-001, TER-SCR-004, TER-SCR-006]
     verification:
       - 'test: tests/unit/test_ter4_lean_analysis.py::test_scorecard_dimensions_and_explained_composite'
-      - 'planned: quality, risk and outcome dimensions (TER-SCR-001, L3)'
+      - 'test: tests/unit/test_ter4_outcome.py::test_an_accepted_outcome_reports_tokens_per_verified_outcome'
+      - 'planned: quality and risk dimensions (TER-SCR-001, L3)'
 
   - id: P084
     text: >-
@@ -2921,6 +2938,7 @@ points:
     rules: [TER-ARC-002, TER-ARC-003, TER-ARC-004, TER-ARC-005, TER-ARC-006]
     verification:
       - 'test: tests/unit/test_ter4_capabilities.py'
+      - 'test: tests/contract/test_outcome_source.py'
       - >-
         planned: TER-ARC-002 once repository engines, policies and the
         analysers load through the capability registry (ports for them do not

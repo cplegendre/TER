@@ -55,6 +55,7 @@ __all__ = [
 BUILTIN_CAPABILITIES: dict[str, str] = {
     "Embedder.hashing": "ter.adapters.driven.embedders:HashingEmbedder",
     "EventLog.jsonl": "ter.adapters.driven.event_log:JsonlEventLog",
+    "OutcomeSource.junit": "ter.adapters.driven.junit:JUnitOutcomeSource",
     "PriceBook.json": "ter.adapters.driven.pricing:JsonPriceBook",
     "SessionSource.claude-code": "ter.adapters.driven.claude_code:ClaudeCodeJsonlSource",
     "TerScorer.ter3": "ter.adapters.driven.ter3:Ter3Scorer",

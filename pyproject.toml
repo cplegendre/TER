@@ -45,6 +45,7 @@ ter-req = "ter.adapters.driving.req_cli:main"
 [project.entry-points."ter.capabilities"]
 "Embedder.hashing" = "ter.adapters.driven.embedders:HashingEmbedder"
 "EventLog.jsonl" = "ter.adapters.driven.event_log:JsonlEventLog"
+"OutcomeSource.junit" = "ter.adapters.driven.junit:JUnitOutcomeSource"
 "PriceBook.json" = "ter.adapters.driven.pricing:JsonPriceBook"
 "SessionSource.claude-code" = "ter.adapters.driven.claude_code:ClaudeCodeJsonlSource"
 "TerScorer.ter3" = "ter.adapters.driven.ter3:Ter3Scorer"
@@ -189,6 +190,29 @@ source_modules = [
 forbidden_modules = ["ter_calculator"]
 
 [[tool.importlinter.contracts]]
+id = "behaviour-blind-to-outcome"
+name = "No behaviour measure reads the outcome verdict (point 5)"
+type = "forbidden"
+# Measurement of agent behaviour and judgement of the result stay apart: the
+# modules that compute behaviour never import ter.domain.outcome. Reports (the
+# A3 view-model) and use cases show the verdict beside the measures.
+source_modules = [
+    "ter.domain.events",
+    "ter.domain.pricing",
+    "ter.domain.report",
+    "ter.domain.scoring",
+    "ter.domain.stream",
+    "ter.domain.lean.analysis",
+    "ter.domain.lean.countermeasures",
+    "ter.domain.lean.detectors",
+    "ter.domain.lean.facts",
+    "ter.domain.lean.graph",
+    "ter.domain.lean.model",
+    "ter.domain.lean.steps",
+]
+forbidden_modules = ["ter.domain.outcome"]
+
+[[tool.importlinter.contracts]]
 id = "independent-adapters"
 name = "Driven adapters do not import each other"
 type = "independence"
@@ -198,6 +222,7 @@ modules = [
     "ter.adapters.driven.event_log",
     "ter.adapters.driven.tokenizers",
     "ter.adapters.driven.in_memory",
+    "ter.adapters.driven.junit",
     "ter.adapters.driven.pricing",
     "ter.adapters.driven.requirements_yaml",
     "ter.adapters.driven.ter3",

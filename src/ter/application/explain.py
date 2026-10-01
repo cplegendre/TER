@@ -12,8 +12,13 @@ from pathlib import Path
 
 from ..domain.events import EventKind, SessionTrace
 from ..domain.lean import A3Report, LeanAnalysis, TerMeasure, build_a3
+from ..domain.outcome import (
+    AcceptanceContract,
+    OutcomeVerdict,
+    judge,
+)
 from ..domain.stream import explain_batch
-from ..ports.driven import SessionSource, TerScorer, Tokenizer
+from ..ports.driven import OutcomeSource, SessionSource, TerScorer, Tokenizer
 
 __all__ = ["ExplainSession", "ExplainedSession"]
 
@@ -23,22 +28,36 @@ class ExplainedSession:
     trace: SessionTrace
     analysis: LeanAnalysis
     a3: A3Report
+    outcome: OutcomeVerdict | None = None
 
 
 class ExplainSession:
-    """Read a session, explain it, and build its A3. TER is optional."""
+    """Read a session, explain it, and build its A3. TER is optional.
+
+    With an outcome source and a run reference, the run's outcome is judged
+    against the acceptance contract (default: every recorded check passes)
+    after the analysis is complete, and shown beside it. The analysis never
+    sees the verdict (point 5).
+    """
 
     def __init__(
         self,
         source: SessionSource,
         tokenizer: Tokenizer,
         scorer: TerScorer | None = None,
+        outcomes: OutcomeSource | None = None,
     ) -> None:
         self._source = source
         self._tokenizer = tokenizer
         self._scorer = scorer
+        self._outcomes = outcomes
 
-    def __call__(self, ref: str | Path) -> ExplainedSession:
+    def __call__(
+        self,
+        ref: str | Path,
+        outcome_ref: str | Path | None = None,
+        contract: AcceptanceContract | None = None,
+    ) -> ExplainedSession:
         trace = self._source.read(ref)
         ter = (
             TerMeasure(self._scorer.score(ref), self._scorer.method)
@@ -46,5 +65,20 @@ class ExplainSession:
             else None
         )
         analysis = explain_batch(trace.events, self._tokenizer, ter=ter)
+        verdict = self._judge(outcome_ref, contract)
         intents = tuple(e.text for e in trace.events if e.kind is EventKind.PROMPT)
-        return ExplainedSession(trace, analysis, build_a3(analysis, intents))
+        return ExplainedSession(
+            trace, analysis, build_a3(analysis, intents, verdict), verdict
+        )
+
+    def _judge(
+        self, outcome_ref: str | Path | None, contract: AcceptanceContract | None
+    ) -> OutcomeVerdict | None:
+        if outcome_ref is None:
+            return None
+        if self._outcomes is None:
+            raise ValueError(
+                f"{outcome_ref}: an outcome was asked for but no outcome source is wired"
+            )
+        evidence = self._outcomes.outcome(outcome_ref)
+        return None if evidence is None else judge(evidence, contract)

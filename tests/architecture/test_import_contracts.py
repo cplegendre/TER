@@ -22,6 +22,7 @@ EXPECTED_CONTRACTS = {
     "independent-adapters",
     "ter3-uses-hexagon-edges",
     "report-renderers",
+    "behaviour-blind-to-outcome",
 }
 
 

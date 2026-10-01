@@ -523,6 +523,147 @@ requirements:
       TER remains the foundation; value efficiency adds the outcome view.
     status: planned
 
+  - id: TER-SCR-004
+    pattern: optional
+    text: >-
+      Where outcome evidence is supplied, TER shall show the outcome verdict
+      beside the scorecard without changing any behaviour measure.
+    level: L2
+    source_points: [3, 5, 83]
+    rationale: >-
+      Outcome is its own dimension: it sits next to the measures of agent
+      behaviour and never alters them.
+    status: verified
+
+  - id: TER-SCR-005
+    pattern: ubiquitous
+    text: >-
+      TER shall compute every behaviour measure without reading the outcome
+      verdict.
+    level: L2
+    source_points: [5]
+    rationale: >-
+      Point 5 separates measuring behaviour from judging the result; an
+      import contract keeps the behaviour modules blind to ter.domain.outcome.
+    status: verified
+
+  - id: TER-SCR-006
+    pattern: optional
+    text: >-
+      Where an outcome verdict is shown, TER shall report the generated
+      tokens per accepted outcome, with no figure when no outcome is
+      accepted.
+    level: L2
+    source_points: [83]
+    rationale: >-
+      Tokens per verified outcome joins cost and outcome without folding the
+      verdict into a behaviour measure.
+    status: verified
+
+  - id: TER-OUT-001
+    pattern: ubiquitous
+    text: >-
+      The outcome source shall return equal evidence on every call for the
+      same run reference, with one check result per recorded result in
+      record order, each keeping its recorded status.
+    level: L2
+    port: OutcomeSource
+    source_points: [5]
+    rationale: >-
+      Outcome evidence is replayable and complete: failing, erroring and
+      skipped results are never dropped.
+    status: verified
+
+  - id: TER-OUT-002
+    pattern: unwanted
+    text: >-
+      If no outcome is recorded for a run reference, then the outcome source
+      shall return no outcome instead of failing evidence.
+    level: L2
+    port: OutcomeSource
+    source_points: [5]
+    rationale: >-
+      A missing outcome is unknown, not a failure; reading it as one would
+      bias every comparison against runs without recorded checks.
+    status: verified
+
+  - id: TER-OUT-003
+    pattern: unwanted
+    text: >-
+      If an outcome record exists but cannot be read, then the outcome source
+      shall raise an outcome format error that names the record.
+    level: L2
+    port: OutcomeSource
+    source_points: [5]
+    rationale: >-
+      An unreadable record must not pass silently as no outcome.
+    status: verified
+
+  - id: TER-OUT-004
+    pattern: event-driven
+    text: >-
+      When TER judges outcome evidence against an acceptance contract, TER
+      shall return a verdict of accepted, rejected or incomplete together
+      with the evidence of every check, without a weighted outcome score.
+    level: L2
+    source_points: [5, 82]
+    rationale: >-
+      Hand-set outcome weights hide which check decided the result; a
+      verdict with per-check evidence stays explainable.
+    status: verified
+
+  - id: TER-OUT-005
+    pattern: unwanted
+    text: >-
+      If a required check of the acceptance contract has failing evidence,
+      then TER shall judge the outcome rejected.
+    level: L2
+    source_points: [5]
+    rationale: >-
+      One failed required check is enough to refuse the change, whatever
+      else passed.
+    status: verified
+
+  - id: TER-OUT-006
+    pattern: unwanted
+    text: >-
+      If a required check of the acceptance contract has neither failing nor
+      passing evidence, then TER shall judge the outcome incomplete.
+    level: L2
+    source_points: [5]
+    rationale: >-
+      A check that was skipped or never run proves nothing; accepting it
+      would claim an outcome nobody verified.
+    status: verified
+
+  - id: TER-OUT-007
+    pattern: event-driven
+    text: >-
+      When the JUnit outcome source reads a test result file, the JUnit
+      outcome source shall map each testcase to one check result of passed,
+      failed, error or skipped.
+    level: L2
+    port: OutcomeSource
+    source_points: [5]
+    rationale: >-
+      JUnit XML is what pytest and most test runners write, so the reference
+      outcome adapter depends on no agent harness.
+    status: verified
+
+  - id: TER-OUT-008
+    pattern: unwanted
+    text: >-
+      If a test result file declares a document type or an entity, then the
+      JUnit outcome source shall reject the file without expanding any
+      entity.
+    level: L2
+    port: OutcomeSource
+    source_points: [5]
+    rationale: >-
+      Test results come from outside TER; refusing DTDs blocks entity
+      expansion and external fetches without a defusedxml dependency.
+    status: verified
+
   - id: TER-WIP-001
     pattern: ubiquitous
     text: >-

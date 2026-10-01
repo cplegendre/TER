@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="1" skipped="1" tests="5" time="0.010" timestamp="2026-10-01T09:00:00.000000+00:00" hostname="ci"><testcase classname="test_sample" name="test_parses_header" time="0.010" /><testcase classname="test_sample" name="test_rejects_empty_input" time="0.010"><failure message="AssertionError: empty input was accepted&#10;assert '' == 'x'&#10;  &#10;  - x">def test_rejects_empty_input():
+&gt;       assert "".strip() == "x", "empty input was accepted"
+E       AssertionError: empty input was accepted
+E       assert '' == 'x'
+E         
+E         - x
+
+test_sample.py:7: AssertionError</failure></testcase><testcase classname="test_sample" name="test_fetches_remote" time="0.010"><skipped type="pytest.skip" message="needs network">test_sample.py:9: needs network</skipped></testcase><testcase classname="test_sample" name="test_uses_fixture" time="0.010"><error message="failed on setup with &quot;RuntimeError: fixture exploded&quot;">@pytest.fixture
+    def broken():
+&gt;       raise RuntimeError("fixture exploded")
+E       RuntimeError: fixture exploded
+
+test_sample.py:15: RuntimeError</error></testcase><testcase classname="test_sample.TestParser" name="test_round_trip" time="0.010" /></testsuite></testsuites>

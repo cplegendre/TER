@@ -55,14 +55,14 @@ flowchart LR
 
 | Package | Holds | May import |
 |---|---|---|
-| `ter.domain` | Event model, maturity levels, TER scoring (`scoring`: phase scores, weighted aggregate, raw ratio, aligned/waste accounting), pricing (`pricing`: `Rates`, dated `PriceSchedule`, cost arithmetic), the incremental `AnalysisEngine` (L1), the `SessionReport` view-model (`report`), the Lean model, detectors, evidence graph, scorecard and A3 view-model (`ter.domain.lean`, L2) | stdlib, numpy |
-| `ter.ports` | Driven: `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `PriceBook`, `EventLog`, `TerScorer`. Driving: `EventIngest` | `ter.domain` |
+| `ter.domain` | Event model, maturity levels, TER scoring (`scoring`: phase scores, weighted aggregate, raw ratio, aligned/waste accounting), pricing (`pricing`: `Rates`, dated `PriceSchedule`, cost arithmetic), the incremental `AnalysisEngine` (L1), the `SessionReport` view-model (`report`), the Lean model, detectors, evidence graph, scorecard and A3 view-model (`ter.domain.lean`, L2), outcome and acceptance verdicts (`outcome`, see [outcome.md](outcome.md)), capability value types (`capabilities`) | stdlib, numpy |
+| `ter.ports` | Driven: `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `PriceBook`, `EventLog`, `TerScorer`, `OutcomeSource`. Driving: `EventIngest` | `ter.domain` |
 | `ter.application` | Use cases: `ObserveEvent`, `RecordEvent`, `AnalyseTrace`, `AnalyseEventLog` (L1), `ExplainSession` (L2) | ports, domain |
 | `ter.adapters` | Everything that knows a vendor, format or IO | anything inward, plus `ter_calculator` |
 | `ter.bootstrap` | Wiring, the capability registry (`ter.capabilities` entry points, ADR 0005) and the maturity ceiling | everything |
 
 The rules are enforced, not described. `[tool.importlinter]` in
-`pyproject.toml` declares six contracts, and both the `lint-imports` CI step
+`pyproject.toml` declares seven contracts, and both the `lint-imports` CI step
 and `tests/architecture` fail when one breaks:
 
 1. **hexagon-layers**: bootstrap → adapters → application → ports → domain, never outward.
@@ -75,6 +75,7 @@ and `tests/architecture` fail when one breaks:
    is the TER 3 CLI entry point handing `ter a3` and `ter explain` to
    `ter.bootstrap.main`.
 6. **report-renderers**: the SVG, HTML and A3 renderers read only their view-models (`SessionReport`, `A3Report`), never TER 3 types (see [reports.md](reports.md), [l2-explained.md](l2-explained.md)).
+7. **behaviour-blind-to-outcome**: the modules that compute behaviour measures (events, pricing, scoring, the L1 engine, the Lean analysis, detectors, steps, graph and countermeasures) never import `ter.domain.outcome`, so no measure reads the outcome verdict (point 5, [outcome.md](outcome.md)).
 
 ## Strangler moves so far
 

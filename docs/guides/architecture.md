@@ -33,7 +33,7 @@ flowchart LR
     subgraph core["Core"]
         APP["application<br/>ObserveEvent · RecordEvent ·<br/>AnalyseTrace · AnalyseEventLog ·<br/>ExplainSession"]
         PORTS["ports<br/>Protocols only"]
-        DOM(["domain<br/>events · scoring · pricing ·<br/>stream · lean · report · requirements"])
+        DOM(["domain<br/>events · scoring · pricing ·<br/>stream · lean · outcome · report · requirements"])
     end
     subgraph driven["Driven adapters (ter.adapters.driven)"]
         CC["claude_code"]
@@ -43,6 +43,7 @@ flowchart LR
         LOG["event_log"]
         T3["ter3"]
         RY["requirements_yaml"]
+        JU["junit"]
         MEM["in_memory (fakes)"]
     end
     BOOT["bootstrap<br/>composition root"] --> driving
@@ -72,8 +73,11 @@ domain**. Concretely:
   hands `ter a3` and `ter explain` to `ter.bootstrap.main`).
 - The report renderers read only view-models (`SessionReport`, `A3Report`),
   never TER 3 types.
+- No behaviour measure imports `ter.domain.outcome`: the outcome verdict is
+  shown beside the measures, never read by them
+  ([outcome.md](../ter4/outcome.md)).
 
-These are six import-linter contracts in `[tool.importlinter]` in
+These are seven import-linter contracts in `[tool.importlinter]` in
 `pyproject.toml`. `lint-imports` in CI and
 `tests/architecture/test_import_contracts.py` both enforce them:
 
@@ -97,6 +101,7 @@ add an exemption.
 | `PriceBook` | driven | `JsonPriceBook` (reads `src/ter/data/price_book.json`) | `InMemoryPriceBook` | `tests/contract/test_price_book.py` |
 | `EventLog` | driven | `JsonlEventLog` | `InMemoryEventLog` | `tests/contract/test_event_log.py` |
 | `TerScorer` | driven | `Ter3Scorer` (wraps TER 3) | `FixedTerScorer` | `tests/contract/test_ter_scorer.py` |
+| `OutcomeSource` | driven | `JUnitOutcomeSource` (JUnit XML test results, [outcome.md](../ter4/outcome.md)) | `InMemoryOutcomeSource` | `tests/contract/test_outcome_source.py` |
 | `EventIngest` | driving | `ObserveEvent` (long-lived process), `RecordEvent` (append-only, one hook process) | n/a | `tests/contract/test_event_ingest.py` |
 
 Ports are `typing.Protocol` classes in `src/ter/ports/driven.py` and
@@ -235,7 +240,7 @@ Current state (from `ter-req report` and [points.md](../ter4/points.md)):
 |---|---|---|---|
 | L0 Measured | 23 of 24 | 10 / 1 / 0 | `ter-req trace --gate L0` |
 | L1 Observed | 4 of 12 | 10 / 6 / 0 | `ter-req trace --gate L1` |
-| L2 Explained | 19 of 41 | 25 / 24 / 5 | `ter-req trace --gate L2` |
+| L2 Explained | 33 of 55 | 26 / 23 / 5 | `ter-req trace --gate L2` |
 | L3 Grounded | 2 of 20 | 3 / 8 / 37 | none yet |
 | L4 Advisory | 0 of 15 | 0 / 4 / 35 | none yet |
 | L5 Corrective | 0 of 9 | 1 / 3 / 9 | none yet |
