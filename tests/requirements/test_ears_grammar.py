@@ -184,7 +184,7 @@ def test_from_mapping_normalises_fields() -> None:
         ({"level": "L9"}, "Unknown maturity level"),
         ({"source_points": "1"}, "list of integers"),
         ({"source_points": [True]}, "list of integers"),
-        ({"source_points": [0, 201]}, "outside 1..200"),
+        ({"source_points": [0, 10000]}, "outside 1..9999"),
         ({"port": 3}, "port must be a string"),
     ],
 )

@@ -137,6 +137,11 @@ forbidden_modules = [
     "http",
     "yaml",
     "pytest",
+    # External capabilities (ADR 0005): adapters read their files by schema
+    # name; the core never imports their packages or their stacks.
+    "gare",
+    "pydantic",
+    "httpx",
 ]
 
 [[tool.importlinter.contracts]]
@@ -153,6 +158,10 @@ forbidden_modules = [
     "sqlite3",
     "yaml",
     "pytest",
+    # External capabilities (ADR 0005), as in pure-domain.
+    "gare",
+    "pydantic",
+    "httpx",
 ]
 
 [[tool.importlinter.contracts]]

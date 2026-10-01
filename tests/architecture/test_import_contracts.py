@@ -50,3 +50,22 @@ def test_hexagon_contracts_are_declared() -> None:
         if c["id"] == "hexagon-layers"
     )
     assert layers[-1] == "ter.domain", "the domain must be the innermost layer"
+
+
+EXTERNAL_CAPABILITY_PACKAGES = {"gare", "pydantic", "httpx"}
+
+
+@pytest.mark.req("TER-ARC-003")
+def test_core_never_imports_external_capability_packages() -> None:
+    # ADR 0005: an adapter reads an outside system's files by schema name;
+    # the domain, ports and use cases never import its package or stack.
+    config = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
+    contracts = {c["id"]: c for c in config["tool"]["importlinter"]["contracts"]}
+    for contract_id in ("pure-domain", "vendor-free-core"):
+        forbidden = set(contracts[contract_id]["forbidden_modules"])
+        missing = EXTERNAL_CAPABILITY_PACKAGES - forbidden
+        assert not missing, f"{contract_id} does not forbid {sorted(missing)}"
+    assert {"ter.ports", "ter.application"} <= set(
+        contracts["vendor-free-core"]["source_modules"]
+    )
+    assert contracts["pure-domain"]["source_modules"] == ["ter.domain"]

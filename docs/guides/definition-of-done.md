@@ -7,7 +7,7 @@ means, when a point is done, and what every change must record.
 
 | File | Role |
 |---|---|
-| [requirements/points.yaml](../../requirements/points.yaml) | The source: all 200 points, hand-edited |
+| [requirements/points.yaml](../../requirements/points.yaml) | The source: all 200 points (and any contributed ones past P200), hand-edited |
 | [docs/ter4/points.md](../ter4/points.md) | The generated index; never edit it by hand |
 | `requirements/l*.yaml` | The EARS rules that points cite (see the [EARS guide](ears.md)) |
 
@@ -35,6 +35,28 @@ Points that need real session data also carry:
     # real_data_verified: true # ... until this is set, when the issue closes
 ```
 
+### Points from other sources
+
+P001 to P200 are Leigh's list and keep its text verbatim. When an external
+capability (GARE is the first, see
+[ADR 0005](../decisions/0005-admitting-external-capabilities.md)) brings a
+goal those points do not already state, it becomes a **contributed point**,
+numbered past the last one (P201, P202, …), with an `origin`:
+
+```yaml
+  - id: P201
+    text: Read the usage records GARE writes, by schema name.
+    origin: {source: GARE, ref: "docs/ter-integration.md#usage", author: "Leigh Griffin"}
+    # level, kind, status, definition_of_done, rules, verification as above
+```
+
+`source` names the project, `ref` the document, path or commit the point is
+taken from, and `author` who wrote it; all three are required. Prefer citing
+an existing point over adding one: a contributed point is for a goal Leigh's
+list does not cover. A contributed point follows every other rule here (done
+criteria, two-way links, statuses, the real-data rule), and its rules follow
+the [capability pack](contributing.md#adding-a-capability-pack) workflow.
+
 **Kinds.** 136 *capabilities* (something TER does), 37 *principles* (a rule the
 design keeps, usually enforced by an architectural check) and 27 *research*
 points (a question answered with data, enforced by a protocol requirement such
@@ -45,10 +67,13 @@ as "TER shall produce dataset X with fields Y").
 [points.md](../ter4/points.md) opens with totals and a progress bar, then:
 
 - **By level**: done, partial and not started per maturity level.
-- **Map**: a 10 × 20 grid, one symbol per point (`●` done, `◐` partial,
+- **Origins**: how many points are Leigh's and how many each source
+  contributed.
+- **Map**: a 10 × 20 grid (longer once points are contributed), one symbol per point (`●` done, `◐` partial,
   `○` not started), rows starting at P001, P021, … so you can see which parts
   of the vision are moving.
-- **Points**: one row per point with its level, status, issue link,
+- **Points**: one row per point with its origin (`vision` for P001 to P200,
+  otherwise the source, reference and author), level, status, issue link,
   definition of done, rules (`✓` verified, `·` planned) and verification.
 
 To find a point, search points.md for a word from the vision (`WIP`,
@@ -146,7 +171,9 @@ current.
 
 | Code | Rule |
 |---|---|
-| `POINT-MISSING`, `POINT-DUPLICATE` | P001 to P200 each appear exactly once |
+| `POINT-MISSING`, `POINT-DUPLICATE` | P001 to P200 each appear exactly once; no point id repeats |
+| `POINT-ORIGIN` | P001 to P200 record no origin; every point past P200 records one with `source`, `ref` and `author` (TER-REQ-009, TER-REQ-010) |
+| `POINT-UNKNOWN` | every point a requirement cites in `source_points` is catalogued (TER-REQ-012) |
 | `POINT-DOD` | 1 to 3 non-empty definition-of-done statements |
 | `POINT-RULES`, `POINT-VERIFY` | at least one rule and one verification entry |
 | `POINT-RULE-UNKNOWN` | every rule id exists in the catalogue |
@@ -176,6 +203,8 @@ current.
    `tests/docs/test_docs.py` checks the same thing in the test suite.
 
 4. **Never mark a real-data point done** from synthetic tests.
+5. **Number a new goal past P200 with its origin**; never edit the text of
+   P001 to P200 or give them an origin.
 
 A commit message that follows the rule:
 

@@ -27,7 +27,11 @@ from enum import Enum
 from .maturity import Maturity
 
 VISION_POINTS = 200
-"""Size of the owner's numbered vision list that ``source_points`` refer to."""
+"""Size of the owner's numbered vision list (P001..P200)."""
+
+MAX_POINT = 9999
+"""Highest point number. Points past :data:`VISION_POINTS` are contributed
+from another source and record their origin (ADR 0005)."""
 
 REQUIREMENT_ID = re.compile(r"^TER-[A-Z]{3}-\d{3}$")
 
@@ -152,10 +156,10 @@ class Requirement:
             isinstance(p, int) and not isinstance(p, bool) for p in points_raw
         ):
             raise RequirementError(f"{ident}: source_points must be a list of integers")
-        bad = [p for p in points_raw if not 1 <= p <= VISION_POINTS]
+        bad = [p for p in points_raw if not 1 <= p <= MAX_POINT]
         if bad:
             raise RequirementError(
-                f"{ident}: source_points {bad} outside 1..{VISION_POINTS}"
+                f"{ident}: source_points {bad} outside 1..{MAX_POINT}"
             )
         port = data.get("port")
         if port is not None and not isinstance(port, str):

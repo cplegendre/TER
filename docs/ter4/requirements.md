@@ -9,6 +9,9 @@ Above the requirements sit Leigh's 200 vision points (`requirements/points.yaml`
 Each point has a definition of done, the EARS requirements (rules) that
 enforce it and its verification, and every requirement names the points it
 serves. [points.md](points.md) is the generated, always-current index.
+Points past P200 are contributed from another source (an external capability
+such as GARE) and record an `origin`
+([ADR 0005](../decisions/0005-admitting-external-capabilities.md)).
 
 ## Working rule for every TER 4 change
 
@@ -37,7 +40,7 @@ requirements:
       event store shall discard the duplicate without changing stored state.
     level: L1                    # L0..L6
     port: EventStore             # optional: the port the behaviour belongs to
-    source_points: [119]         # vision points (1-200) this realises; must match points.yaml
+    source_points: [119]         # vision points this realises (P001-P200, or a contributed one); must match points.yaml
     rationale: Hooks can fire twice; idempotent ingestion keeps counts exact.
     status: planned              # planned | verified
 ```
@@ -178,11 +181,15 @@ When `points.yaml` is present, `ter-req lint` also checks that:
 - a `done` point has all its rules verified, or a `test:`/`ci:` entry that
   exists. Proof only on another branch is a warning (`POINT-PENDING`);
 - a point with an `issue` has `real_data: true`, and a `real_data` point is
-  `done` only with `real_data_verified: true` (`POINT-REAL-DATA`).
+  `done` only with `real_data_verified: true` (`POINT-REAL-DATA`);
+- P001-P200 record no `origin`, and every point past P200 records one with
+  `source`, `ref` and `author` (`POINT-ORIGIN`, TER-REQ-009 and TER-REQ-010);
+- every point a requirement cites is catalogued (`POINT-UNKNOWN`,
+  TER-REQ-012).
 
 `ter-req points` writes [points.md](points.md): counts by status and level
 with bars, a 10 × 20 map (● done, ◐ partial, ○ not started) and one row per
-point with its issue link, definition of done, rules (✓ verified, · planned) and
+point with its origin, issue link, definition of done, rules (✓ verified, · planned) and
 verification. `ter-req points --check` fails CI when the committed file is
 stale.
 

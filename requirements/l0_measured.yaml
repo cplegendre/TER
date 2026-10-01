@@ -64,6 +64,19 @@ requirements:
       so a second harness needs only new adapters (ADR 0001).
     status: verified
 
+  - id: TER-ARC-003
+    pattern: ubiquitous
+    text: >-
+      The import contracts shall forbid the domain, the ports and the use
+      cases from importing the gare, pydantic and httpx packages.
+    level: L0
+    source_points: [197]
+    rationale: >-
+      An external capability enters TER as a capability pack whose adapter
+      reads the outside system's files by schema name; the core never
+      depends on that system's package or its stack (ADR 0005).
+    status: verified
+
   - id: TER-INT-001
     pattern: state-driven
     text: >-
@@ -174,6 +187,56 @@ requirements:
     rationale: >-
       Guides are followed by copying their commands; an example for a
       command or flag that does not exist teaches the wrong thing.
+    status: verified
+
+  - id: TER-REQ-009
+    pattern: unwanted
+    text: >-
+      If a vision point numbered past P200 has no origin naming its source,
+      reference and author, then the requirements linter shall reject that
+      point.
+    level: L0
+    source_points: [196]
+    rationale: >-
+      Points contributed from outside Leigh's list (an external capability
+      such as GARE, ADR 0005) stay traceable to where they came from and
+      credited to who wrote them.
+    status: verified
+
+  - id: TER-REQ-010
+    pattern: unwanted
+    text: >-
+      If a vision point numbered P001 to P200 records an origin, then the
+      requirements linter shall reject that point.
+    level: L0
+    source_points: [196]
+    rationale: >-
+      P001 to P200 are Leigh's vision list, kept verbatim; a contributed
+      point is numbered past it rather than replacing or relabelling one.
+    status: verified
+
+  - id: TER-REQ-011
+    pattern: event-driven
+    text: >-
+      When the points index is generated, the points index generator shall
+      show the origin of every vision point.
+    level: L0
+    source_points: [196]
+    rationale: >-
+      A reader of docs/ter4/points.md sees which points are Leigh's and which
+      were contributed, and from where, without opening the catalogue.
+    status: verified
+
+  - id: TER-REQ-012
+    pattern: unwanted
+    text: >-
+      If a requirement cites a vision point that is absent from the points
+      catalogue, then the requirements linter shall reject that requirement.
+    level: L0
+    source_points: [196]
+    rationale: >-
+      Point numbers past P200 are open, so a typo in source_points would
+      otherwise point at nothing.
     status: verified
 
   - id: TER-SRC-001

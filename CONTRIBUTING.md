@@ -1,127 +1,139 @@
-# Contributing to TER Calculator
+# Contributing to TER
 
-Thanks for your interest in contributing! This page is the short version.
-For TER 4 work, read the [contributing guide](docs/guides/contributing.md):
-it covers the hexagon's rules, the gates to run before pushing, and the
-commit and PR conventions (vision point ids, requirement ids, golden
-snapshot diffs on purpose, strict typing for `ter` code). The other
+TER is being rebuilt as TER 4: a Lean analysis platform for agentic software
+engineering, grown inside a hexagon around the TER 3 calculator. This page is
+the short version of how to contribute. The full workflow, with examples, is
+the [contributing guide](docs/guides/contributing.md); the other
 [guides](docs/guides/README.md) cover testing, EARS requirements, the
 definition of done, Lean, hooks and the A3.
 
-## Getting Started
+## Setup
 
 ```bash
-# Fork and clone the repo
-git clone https://github.com/<your-username>/TER.git
+git clone https://github.com/lgriffin/TER.git
 cd TER
-
-# Install in development mode
-python -m pip install -c constraints/dev.txt -e ".[dev,embeddings]"
-
-# Install pre-commit hooks
-pip install pre-commit
+python -m venv .venv && source .venv/bin/activate
+python -m pip install -c constraints/dev.txt -e ".[dev]"
 pre-commit install
 ```
 
-Supported Python versions: 3.11, 3.12, and 3.13.
+Python 3.11, 3.12 and 3.13 are supported. Add `embeddings` to the extras to
+run TER 3 with its sentence-transformers model. Without network access to the
+tiktoken and Hugging Face hosts about 39 TER 3 tests fail with download
+errors; everything else, including every golden test, runs offline.
 
-## Development Workflow
+## The hexagon and its dependency rule
 
-### Running Tests
+New behaviour goes in `src/ter`, in one of five layers. Dependencies point
+inward only:
+
+```text
+ter.bootstrap → ter.adapters → ter.application → ter.ports → ter.domain
+```
+
+- `ter.domain` is pure: no TER 3 (`ter_calculator`), no vendor SDK, no IO.
+- `ter.ports` and `ter.application` know no vendors.
+- Driven adapters do not import each other; only `ter.bootstrap` picks
+  concrete adapters.
+- TER 3 changes only to delegate inward (the strangler plan in
+  [ADR 0001](docs/decisions/0001-hexagonal-strangler-rebuild.md)).
+
+`lint-imports` enforces these contracts from `pyproject.toml`, and
+`tests/architecture` checks the same rules. See the
+[architecture guide](docs/guides/architecture.md).
+
+## Capability packs
+
+Work from another project (GARE is the first) enters TER as a **capability
+pack**, never as a dependency or vendored code
+([ADR 0005](docs/decisions/0005-admitting-external-capabilities.md)):
+
+- a **port** in `ter.ports` with its obligations in the docstring;
+- a **contract suite** in `tests/contract/` that every adapter and the fake
+  pass;
+- **EARS requirements** in `requirements/`, each linked to a vision point;
+- an **in-memory fake**;
+- one **reference adapter**, registered through an entry point and shipped as
+  an optional extra. It reads the outside system's files by schema name (for
+  example `gare.ter.usage.v2`) and never imports its package.
+
+The domain, ports and use cases may not import `gare`, `pydantic` or `httpx`
+(TER-ARC-003). The
+[contributing guide](docs/guides/contributing.md#adding-a-capability-pack)
+walks through adding one.
+
+## Requirements and vision points
+
+- **Every behaviour is an EARS requirement** in `requirements/*.yaml`, one
+  file per maturity level, written in one of six templates. A new one starts
+  `status: planned` and becomes `verified` once a passing test cites it with
+  `@pytest.mark.req("TER-XXX-NNN")`. See the [EARS guide](docs/guides/ears.md).
+- **Every requirement serves a vision point** in `requirements/points.yaml`,
+  linked both ways (`source_points` on the requirement, `rules` on the
+  point). P001 to P200 are Leigh's vision, verbatim. A point contributed from
+  elsewhere is numbered past P200 and records its `origin` (`source`, `ref`,
+  `author`). A point is `done` only when its rules are verified by tests, and
+  never on synthetic data alone when it needs real sessions. See the
+  [definition of done](docs/guides/definition-of-done.md); the living index
+  is [docs/ter4/points.md](docs/ter4/points.md).
 
 ```bash
-python -m pytest                                    # All tests
-python -m pytest tests/unit/test_classifier.py -v   # Specific module
-python -m pytest --cov=ter_calculator --cov-branch  # With coverage
+ter-req lint --strict --tests tests       # EARS grammar, points, links, test markers
+ter-req points                            # regenerate docs/ter4/points.md
+ter-req report --results req-trace.json   # coverage per maturity level
 ```
 
-### Linting and Type Checking
+## Gates to run before pushing
 
 ```bash
-ruff check src/                           # Lint
-ruff format src/ tests/                   # Format
-mypy src/                                 # Type check
+ruff format --check src tests
+ruff check src tests
+mypy src/
+lint-imports
+ter-req lint --strict --tests tests
+ter-req points --check
+python -m pytest --req-trace=req-trace.json
+ter-req trace --results req-trace.json --gate L0
+ter-req trace --results req-trace.json --gate L1
+ter-req trace --results req-trace.json --gate L2
 ```
 
-Pre-commit hooks run ruff automatically on staged files.
+Two rules the gates rely on you to keep:
 
-### Branch Naming
+- **Golden snapshot diffs are on purpose.** A scoring change shows up as a
+  diff in `tests/golden`, regenerated with `TER_UPDATE_GOLDEN=1` and
+  explained in the commit. See the
+  [testing guide](docs/guides/testing.md#changing-a-snapshot-on-purpose).
+- **`ter` code is strictly typed.** `mypy src/` applies the strict overrides
+  in `pyproject.toml` to every `ter` module.
 
-- `feature/<description>` -- new functionality
-- `fix/<description>` -- bug fixes
-- `docs/<description>` -- documentation changes
-- `refactor/<description>` -- code restructuring
-- `test/<description>` -- test additions or fixes
+Model prices are data in `src/ter/data/price_book.json`
+([ADR 0003](docs/decisions/0003-price-book-as-data.md)); never hard-code a
+rate.
 
-### Commit Messages
+## Commits and pull requests
 
-Use [Conventional Commits](https://www.conventionalcommits.org/):
+A TER 4 commit message says what changed and why, then names:
 
-```
-feat: add rolling window size option to watch command
-fix: correct token count for merged reasoning spans
-docs: add context orchestrator usage examples
-test: add unit tests for waste_detectors module
-refactor: extract shared CLI argument definitions
-```
+- the **vision point ids** it advances (`P044`, …) and how their status
+  changed, with their `status` and `verification` updated in
+  `requirements/points.yaml` in the same change;
+- the **requirement ids** it adds, verifies or changes;
+- any **golden snapshot diff** and why the numbers moved, or that snapshots
+  are unchanged.
 
-## Pull Request Process
+The PR body repeats the point and requirement ids and lists the gates you
+ran. Keep one feature or fix per PR. Branch names: `feature/…`, `fix/…`,
+`docs/…`, `refactor/…`, `test/…`.
 
-1. Create a feature branch from `main`
-2. Make your changes with tests
-3. Ensure all checks pass (the full list is in the
-   [contributing guide](docs/guides/contributing.md#gates-to-run-before-pushing))
-4. Open a PR against `main` with a clear description
-5. One approval required for merge
+## Reporting bugs and requesting features
 
-### PR Guidelines
-
-- One feature or fix per PR
-- Include tests for new functionality
-- Update documentation if behavior changes
-- Keep PRs focused -- separate unrelated changes into different PRs
-
-## Code Style
-
-- Python 3.11+ -- use modern syntax (type unions with `|`, match statements where appropriate)
-- Dataclasses for models (see `models.py`)
-- Lazy imports in CLI handlers for fast startup
-- Ruff handles formatting and linting -- don't fight the formatter
-
-## Project Structure
-
-```
-src/ter/               # TER 4 hexagon: domain/ ports/ application/ adapters/ bootstrap/
-src/ter_calculator/    # TER 3 modules
-requirements/          # EARS requirements (one file per level) and points.yaml
-tests/unit/            # Unit tests
-tests/features/        # BDD feature files
-tests/integration/     # Integration tests
-tests/golden/          # Golden snapshots (TER_UPDATE_GOLDEN=1 to regenerate)
-tests/contract/        # One suite per port
-tests/architecture/    # Import-contract fitness tests
-tests/docs/            # Link, command-example and points-index checks
-docs/                  # Architecture and user documentation
-sample_sessions/       # Sample JSONL files for testing
-```
-
-## Reporting Bugs
-
-Open a [GitHub Issue](https://github.com/lgriffin/TER/issues) with:
-
-- Steps to reproduce
-- Expected vs actual behavior
-- Python version and OS
-- Sample session file (if applicable, redact sensitive content)
-
-## Requesting Features
-
-Open a [GitHub Issue](https://github.com/lgriffin/TER/issues) with the `enhancement` label describing:
-
-- The problem you're trying to solve
-- Your proposed solution
-- Any alternatives you've considered
+Open a [GitHub issue](https://github.com/lgriffin/TER/issues) with steps to
+reproduce, expected and actual behaviour, Python version and OS, and a
+redacted session file if one is involved. Work that needs real session data
+belongs under the tracker issue #47.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the [Apache License 2.0](LICENSE).
+By contributing you agree your contributions are licensed under the
+[Apache License 2.0](LICENSE).

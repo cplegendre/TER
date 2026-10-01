@@ -63,6 +63,9 @@ domain**. Concretely:
   vendor SDK, no IO module (`sqlite3`, `subprocess`, `socket`, `urllib`,
   `http`), no `yaml`, no `pytest`.
 - `ter.ports` and `ter.application` know no vendors and no TER 3.
+- None of the three imports an external capability's package or stack
+  (`gare`, `pydantic`, `httpx`): outside systems are read by adapters at a
+  file boundary ([ADR 0005](../decisions/0005-admitting-external-capabilities.md)).
 - Driven adapters never import each other.
 - TER 3 may use TER 4's domain, ports and adapters, but never
   `ter.application` or `ter.bootstrap` (one named exemption: the TER 3 CLI
@@ -116,6 +119,13 @@ Moves so far: TER scoring arithmetic (`ter_calculator.compute` delegates to
 [ADR 0003](../decisions/0003-price-book-as-data.md)). The L2 Lean model is
 new code with no TER 3 predecessor ([ADR 0004](../decisions/0004-lean-waste-model.md)).
 The current table is in [docs/ter4/architecture.md](../ter4/architecture.md#strangler-moves-so-far).
+
+Work from other projects enters the same way, as **capability packs**: a
+port, its contract suite, EARS requirements, a fake and one reference adapter
+that reads the outside system's files by schema name, with no code vendored
+and no package imported ([ADR 0005](../decisions/0005-admitting-external-capabilities.md);
+how to add one is in the
+[contributing guide](contributing.md#adding-a-capability-pack)).
 
 Two rules follow from the strangler approach:
 
@@ -197,7 +207,7 @@ Current state (from `ter-req report` and [points.md](../ter4/points.md)):
 
 | Level | Requirements verified | Vision points done / partial / not started | CI gate |
 |---|---|---|---|
-| L0 Measured | 18 of 19 | 10 / 1 / 0 | `ter-req trace --gate L0` |
+| L0 Measured | 23 of 24 | 10 / 1 / 0 | `ter-req trace --gate L0` |
 | L1 Observed | 4 of 12 | 10 / 6 / 0 | `ter-req trace --gate L1` |
 | L2 Explained | 19 of 41 | 25 / 24 / 5 | `ter-req trace --gate L2` |
 | L3 Grounded | 2 of 20 | 3 / 8 / 37 | none yet |

@@ -52,7 +52,7 @@ L2 today.
 
 | Level | Name | Adds | Status | Requirements verified | Points done / partial / not started |
 |---|---|---|---|---:|---:|
-| L0 | Measured | TER 3 parity inside the hexagon: event contract, scoring, dated prices | Gate passing; the runtime maturity ceiling (TER-INT-001) is planned | 18 of 19 | 10 / 1 / 0 |
+| L0 | Measured | TER 3 parity inside the hexagon: event contract, scoring, dated prices | Gate passing; the runtime maturity ceiling (TER-INT-001) is planned | 23 of 24 | 10 / 1 / 0 |
 | L1 | Observed | Event stream as the core boundary, Claude Code hooks, live = batch | Gate passing; Stop and SubagentStop hooks wait on real data (#35) | 4 of 12 | 10 / 6 / 0 |
 | L2 | Explained | Lean model, waste detectors, evidence graph, scorecard, A3 | Built, gate passing; more detectors planned | 19 of 41 | 25 / 24 / 5 |
 | L3 | Grounded | Repository evidence: symbols, tests, git diff, change surface | Started: session evidence-graph edges only | 2 of 20 | 3 / 8 / 37 |

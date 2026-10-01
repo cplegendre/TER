@@ -28,6 +28,6 @@ The guides explain and link; they do not duplicate the reference pages.
 | [docs/ter4/reports.md](../ter4/reports.md) | The visual report layer and `ter report --html` |
 | [docs/ter4/requirements.md](../ter4/requirements.md) | The EARS catalogue schema and the `ter-req` controls |
 | [docs/ter4/points.md](../ter4/points.md) | The generated index of the 200 vision points |
-| [docs/decisions/](../decisions/) | Architecture decision records (ADRs 0001 to 0004) |
+| [docs/decisions/](../decisions/) | Architecture decision records (ADRs 0001 to 0005) |
 | [docs/user-guide.md](../user-guide.md), [docs/architecture.md](../architecture.md), [docs/context-orchestrator.md](../context-orchestrator.md) | TER 3 reference: every `ter` command, the TER 3 pipeline, the context orchestrator |
 | [tests/golden/README.md](../../tests/golden/README.md) | The golden corpus and what each synthetic session exercises |

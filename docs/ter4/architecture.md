@@ -66,8 +66,8 @@ The rules are enforced, not described. `[tool.importlinter]` in
 and `tests/architecture` fail when one breaks:
 
 1. **hexagon-layers**: bootstrap → adapters → application → ports → domain, never outward.
-2. **pure-domain**: the domain imports no TER 3 internals, no vendor SDKs, no IO modules.
-3. **vendor-free-core**: ports and use cases import no TER 3 internals or vendor SDKs.
+2. **pure-domain**: the domain imports no TER 3 internals, no vendor SDKs, no IO modules, and no external capability package or stack (`gare`, `pydantic`, `httpx`; ADR 0005).
+3. **vendor-free-core**: ports and use cases import no TER 3 internals, vendor SDKs or external capability packages (ADR 0005).
 4. **independent-adapters**: driven adapters never import each other (chains
    through TER 3 to the pricing adapter are exempt: TER 3 is outside the hexagon).
 5. **ter3-uses-hexagon-edges**: TER 3 uses TER 4 only through the domain, ports
