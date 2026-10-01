@@ -18,10 +18,12 @@ tests/golden/          # Golden snapshots freezing TER 3 scores (TER_UPDATE_GOLD
 tests/contract/        # One suite per port; real adapters and fakes must both pass
 tests/architecture/    # Import-contract fitness tests
 tests/requirements/    # EARS catalogue lint, trace and ter-req tooling tests
+tests/docs/            # Doc checks: relative links, command examples, points index
 requirements/          # EARS requirement catalogue (YAML per maturity level) + points.yaml (200 vision points)
 tests/equivalence/     # Live (incremental) analysis and explanation == batch on the golden corpus
 tests/fixtures/hooks/  # Example Claude Code hook payloads pinned by contract tests
 docs/                  # Architecture, user guide, context orchestrator reference
+docs/guides/           # Practical guides: testing, lean, hooks, ears, definition of done, A3, architecture, contributing
 sample_sessions/       # Sample JSONL files for testing
 ```
 

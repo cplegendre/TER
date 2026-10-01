@@ -57,7 +57,7 @@ files) counts once.
 
 | Hook | `ter.event` output | Id key |
 |---|---|---|
-| `UserPromptSubmit` | `intent.stated` (user), text = `prompt` | session + hash of prompt |
+| `UserPromptSubmit` | `intent.stated` (user), text = `prompt` | session + hash of prompt + second received |
 | `PreToolUse` | `tool.requested` (assistant), tool kind from the Claude Code tool map, arguments = `tool_input` | session + `tool_use_id` (else hash of tool name and input) |
 | `PostToolUse` | the same `tool.requested` as PreToolUse, plus `tool.completed` (tool), text = `tool_response` | as above; the completion's `parent_id` is the request |
 | `SessionStart`, `SessionEnd`, `Stop`, `SubagentStart`, `SubagentStop`, `PreCompact`, `Notification` | none (status `lifecycle`) | n/a |
@@ -67,9 +67,9 @@ PostToolUse repeats the request because many installations register only
 PostToolUse. Its request carries the id PreToolUse would produce, so where
 both hooks run the second copy is discarded by TER-OBS-004.
 
-Known limits of hook identity: two identical prompts in one session share an
-id (hooks carry no prompt id), and tool calls without a `tool_use_id` are
-keyed by content. Hook events carry `sequence = 0`; order is the order of the
+Known limits of hook identity: prompts are told apart only by text and the
+second they were received (hooks carry no prompt id), and tool calls without
+a `tool_use_id` are keyed by content. Hook events carry `sequence = 0`; order is the order of the
 log. Hook event ids differ from transcript event ids for the same session;
 equivalence holds per event stream, not across the two sources.
 

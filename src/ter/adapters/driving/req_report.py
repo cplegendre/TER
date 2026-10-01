@@ -225,11 +225,36 @@ def _real_data_line(points: Sequence[VisionPoint]) -> str:
     )
 
 
+VISION_ORIGIN = "vision"
+"""How the index labels P001..P200, which come from Leigh's list."""
+
+
+def _origin(point: VisionPoint) -> str:
+    if point.origin is None:
+        return VISION_ORIGIN
+    origin = point.origin
+    return (
+        f"**{_escape(origin.source)}** {_escape(origin.ref)} ({_escape(origin.author)})"
+    )
+
+
+def _origins_line(points: Sequence[VisionPoint]) -> str:
+    counts: dict[str, int] = {}
+    for point in points:
+        label = VISION_ORIGIN if point.origin is None else point.origin.source
+        counts[label] = counts.get(label, 0) + 1
+    vision = counts.pop(VISION_ORIGIN, 0)
+    parts = [f"Leigh's vision {vision}"] + [
+        f"{source} {n}" for source, n in sorted(counts.items())
+    ]
+    return "Origins: " + " · ".join(parts)
+
+
 def render_points_index(
     points: Sequence[VisionPoint],
     requirements: Sequence[Requirement],
 ) -> str:
-    """Render docs/ter4/points.md, the living index of the 200 points."""
+    """Render docs/ter4/points.md, the living index of the vision points."""
     by_req = {r.id: r for r in requirements}
     summary = summarise(points)
     counts = " · ".join(
@@ -245,7 +270,9 @@ def render_points_index(
         "Leigh's 200-point vision for TER 4, each with its definition of done, the EARS",
         "rules that enforce it and how it is verified. Rules live in",
         "`requirements/*.yaml`; `✓` marks a verified rule and `·` a planned one. See",
-        "[requirements.md](requirements.md) for the controls.",
+        "[requirements.md](requirements.md) for the controls. Points past P200 are",
+        "contributed from another source (an external capability, ADR 0005) and the",
+        "Origin column names that source, its reference and author.",
         "",
         f"**{len(points)} points** · {counts}",
         "",
@@ -271,6 +298,8 @@ def render_points_index(
         "",
         "Kinds: " + " · ".join(f"{k.value} {n}" for k, n in kinds.items()),
         "",
+        _origins_line(points),
+        "",
         _real_data_line(points),
         "",
         "## Map",
@@ -283,8 +312,8 @@ def render_points_index(
         "",
         "## Points",
         "",
-        "| Id | Point | Level | Status | Issue | Definition of done | Rules | Verification |",
-        "|---|---|---|---|---|---|---|---|",
+        "| Id | Point | Origin | Level | Status | Issue | Definition of done | Rules | Verification |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
     for point in sorted(points, key=lambda p: p.number):
         rules = "<br>".join(
@@ -294,7 +323,8 @@ def render_points_index(
         done = "<br>".join(f"• {_escape(d)}" for d in point.definition_of_done)
         verification = "<br>".join(_escape(str(v)) for v in point.verification)
         out.append(
-            f"| {point.id} | {_escape(_short(point.text))} | {point.level.code} | "
+            f"| {point.id} | {_escape(_short(point.text))} | {_origin(point)} | "
+            f"{point.level.code} | "
             f"{STATUS_MARK[point.status]} {STATUS_LABEL[point.status]} | {_issue(point)} | "
             f"{done} | {rules} | {verification} |"
         )

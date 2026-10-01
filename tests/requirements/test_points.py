@@ -108,7 +108,8 @@ def test_point_from_mapping_normalises_fields() -> None:
         ({"id": "P1"}, "does not match"),
         ({"id": 1}, "does not match"),
         ({"id": "P000"}, "outside"),
-        ({"id": "P201"}, "outside"),
+        ({"id": "P0201"}, "outside"),
+        ({"id": "P10000"}, "does not match"),
         ({"extra": 1}, "unknown fields extra"),
         ({"text": " "}, "text is required"),
         ({"level": None}, "level is required"),
@@ -189,7 +190,7 @@ def test_points_and_requirements_link_both_ways() -> None:
     assert by_code == {
         ("P001", "POINT-RULE-UNKNOWN"),
         ("P002", "POINT-LINK"),
-        ("TER-AAA-001", "POINT-LINK"),
+        ("TER-AAA-001", "POINT-UNKNOWN"),
         ("TER-AAA-002", "REQ-ORPHAN"),
     }
 

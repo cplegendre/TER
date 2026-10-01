@@ -9,6 +9,11 @@
 # issue / real_data: points that need real session data link the GitHub issue
 # that collects it (#34 to #46, tracked in #47). A real_data point cannot be
 # done until real_data_verified: true is set in the change that closes it.
+#
+# origin: P001..P200 are Leigh's list, verbatim, and record no origin. A point
+# contributed from another source (an external capability such as GARE, ADR
+# 0005) is numbered past P200 and records where it came from:
+#   origin: {source: GARE, ref: "<document, path or commit>", author: "<name>"}
 points:
   - id: P001
     text: >-
@@ -212,7 +217,7 @@ points:
     rules: [TER-LEN-006]
     verification:
       - 'test: tests/unit/test_ter4_lean_detectors.py'
-      - 'planned: pull, WIP and queue measures at L3 and L4 (TER-LEN-006)'
+      - 'planned: pull, WIP and queue measures at L3 and L4 (TER-LEN-006); the concept-to-measure table is in docs/guides/lean.md'
 
   - id: P013
     text: >-
@@ -2886,9 +2891,17 @@ points:
         Code, requirements, points index and reports are open and
         inspectable.
       - The points index is regenerated and checked in CI.
-    rules: [TER-EXP-001, TER-REQ-005]
+      - >-
+        The README and guides are tested: relative links resolve and every
+        command they show exists.
+    rules: [TER-EXP-001, TER-REQ-005, TER-REQ-007, TER-REQ-008, TER-REQ-009, TER-REQ-010, TER-REQ-011, TER-REQ-012]
     verification:
       - 'ci: Vision points index is up to date'
+      - 'test: tests/docs/test_docs.py::test_committed_points_index_matches_the_catalogue'
+      - 'test: tests/docs/test_docs.py::test_relative_links_resolve'
+      - 'test: tests/docs/test_docs.py::test_shell_examples_name_real_commands_and_options'
+      - 'test: tests/requirements/test_point_origin.py'
+      - 'planned: TER-EXP-001 recompute test over the event store'
 
   - id: P197
     text: >-
@@ -2901,10 +2914,15 @@ points:
       - >-
         Analysers, detectors, repository engines, policies and adapters
         register through a plugin registry.
-    rules: [TER-ARC-002]
+      - >-
+        An external capability enters as a capability pack (port, contract
+        suite, EARS requirements, fake, reference adapter) and the core
+        never imports its package (ADR 0005).
+    rules: [TER-ARC-002, TER-ARC-003]
     verification:
       - 'planned: passing tests tagged req for TER-ARC-002'
       - 'test: tests/unit/test_ter4_lean_analysis.py::test_detectors_are_plugins'
+      - 'test: tests/architecture/test_import_contracts.py::test_core_never_imports_external_capability_packages'
 
   - id: P198
     text: >-

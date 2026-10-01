@@ -3,7 +3,9 @@
 A catalogue is a directory of ``*.yaml`` files. Each file holds a mapping with
 a ``requirements`` list; ``vocabulary.yaml`` (optional) holds a ``terms``
 mapping from a discouraged term to the preferred one; ``points.yaml``
-(optional) holds the vision points. ``RepositoryChecks`` answers whether a
+(optional) holds the vision points: P001..P200 from Leigh's list, then any
+contributed points, each with an ``origin`` mapping (``source``, ``ref``,
+``author``; ADR 0005). ``RepositoryChecks`` answers whether a
 verification entry names a test or CI step that exists in the repository.
 """
 

@@ -2,7 +2,9 @@
 
 Leigh's 200-point vision list is the root of TER 4's requirements. Each point
 carries a definition of done, the EARS requirements (rules) that enforce it,
-and how it is verified. This module holds the model and the lint that keeps
+and how it is verified. P001..P200 are that list, verbatim, and record no
+origin. Points past P200 are contributed from another source (an external
+capability such as GARE, ADR 0005) and must record their origin. This module holds the model and the lint that keeps
 points and requirements linked in both directions. It is pure: whether a
 named test or CI check exists is decided by a callable the caller supplies.
 """
@@ -15,10 +17,10 @@ from dataclasses import dataclass
 from enum import Enum
 
 from .maturity import Maturity
-from .requirements import VISION_POINTS, LintIssue, Requirement
+from .requirements import MAX_POINT, VISION_POINTS, LintIssue, Requirement
 
 MAX_DONE_STATEMENTS = 3
-_POINT_ID = re.compile(r"^P(\d{3})$")
+_POINT_ID = re.compile(r"^P(\d{3,4})$")
 
 
 class PointKind(str, Enum):
@@ -93,8 +95,47 @@ class Verification:
 
 
 @dataclass(frozen=True)
+class PointOrigin:
+    """Where a contributed point (past P200) came from.
+
+    ``source`` names the system or body of work (``GARE``), ``ref`` the
+    document, repository path or commit the point is taken from, and
+    ``author`` who wrote it. All three are required, so every contributed
+    point can be traced back and credited.
+    """
+
+    source: str
+    ref: str
+    author: str
+
+    @classmethod
+    def from_mapping(cls, data: object, ident: str) -> PointOrigin:
+        """Build an origin from a parsed ``origin`` mapping.
+
+        Raises:
+            PointError: If it is not a mapping of the three non-empty strings.
+        """
+        if not isinstance(data, Mapping):
+            raise PointError(f"{ident}: origin must be a mapping")
+        fields = ("source", "ref", "author")
+        unknown = sorted(str(k) for k in set(data) - set(fields))
+        if unknown:
+            raise PointError(f"{ident}: unknown origin fields {', '.join(unknown)}")
+        values: list[str] = []
+        for key in fields:
+            value = data.get(key)
+            if not isinstance(value, str) or not value.strip():
+                raise PointError(f"{ident}: origin {key} is required")
+            values.append(" ".join(value.split()))
+        return cls(*values)
+
+    def __str__(self) -> str:
+        return f"{self.source}: {self.ref} ({self.author})"
+
+
+@dataclass(frozen=True)
 class VisionPoint:
-    """One of the 200 vision points."""
+    """One vision point: P001..P200 from Leigh's list, or a contributed one."""
 
     number: int
     text: str
@@ -107,10 +148,16 @@ class VisionPoint:
     issue: int | None = None
     real_data: bool = False
     real_data_verified: bool = False
+    origin: PointOrigin | None = None
 
     @property
     def id(self) -> str:
         return f"P{self.number:03d}"
+
+    @property
+    def contributed(self) -> bool:
+        """True for a point past P200, which comes from outside Leigh's list."""
+        return self.number > VISION_POINTS
 
     @classmethod
     def from_mapping(cls, data: Mapping[str, object]) -> VisionPoint:
@@ -122,13 +169,11 @@ class VisionPoint:
         ident = data.get("id")
         match = _POINT_ID.fullmatch(ident) if isinstance(ident, str) else None
         if match is None:
-            raise PointError(
-                f"point id {ident!r} does not match P001..P{VISION_POINTS}"
-            )
+            raise PointError(f"point id {ident!r} does not match P001..P{MAX_POINT}")
         number = int(match.group(1))
         ident = match.group(0)
-        if not 1 <= number <= VISION_POINTS:
-            raise PointError(f"{ident}: outside P001..P{VISION_POINTS}")
+        if not 1 <= number <= MAX_POINT or ident != f"P{number:03d}":
+            raise PointError(f"{ident}: outside P001..P{MAX_POINT}")
         known = {
             "id",
             "text",
@@ -141,6 +186,7 @@ class VisionPoint:
             "issue",
             "real_data",
             "real_data_verified",
+            "origin",
         }
         unknown = sorted(set(data) - known)
         if unknown:
@@ -173,6 +219,10 @@ class VisionPoint:
             if not isinstance(value, bool):
                 raise PointError(f"{ident}: {key} must be true or false")
             flags[key] = value
+        origin_raw = data.get("origin")
+        origin = (
+            None if origin_raw is None else PointOrigin.from_mapping(origin_raw, ident)
+        )
         return cls(
             number=number,
             text=" ".join(text.split()),
@@ -185,6 +235,7 @@ class VisionPoint:
             issue=issue,
             real_data=flags["real_data"],
             real_data_verified=flags["real_data_verified"],
+            origin=origin,
         )
 
 
@@ -206,11 +257,14 @@ def lint_points(
     Rules enforced:
 
     * every point 1..total appears exactly once;
+    * points 1..total (Leigh's list) record no origin, and every point past
+      ``total`` (a contributed point) records one;
     * each point has 1..3 definition-of-done statements, at least one rule
       and at least one verification entry;
     * every rule id exists, and links go both ways (a point lists a rule iff
       that rule lists the point in ``source_points``);
-    * every requirement traces to at least one point;
+    * every requirement traces to at least one point, and every point it
+      cites is catalogued;
     * every ``test:`` and ``ci:`` entry names a check that exists;
     * a done point has all its rules verified, or a verification entry that
       names an existing check. A done point whose only proof is on another
@@ -228,15 +282,16 @@ def lint_points(
             issues.append(
                 LintIssue(f"P{number:03d}", "POINT-MISSING", "point is not catalogued")
             )
-        elif seen[number] > 1:
-            issues.append(
-                LintIssue(
-                    f"P{number:03d}", "POINT-DUPLICATE", "point is declared twice"
-                )
-            )
+    for number in sorted(n for n, count in seen.items() if count > 1):
+        issues.append(
+            LintIssue(f"P{number:03d}", "POINT-DUPLICATE", "point is declared twice")
+        )
 
     for point in points:
         issues.extend(_lint_point(point, by_req, check_exists))
+        origin_issue = _lint_origin(point, total)
+        if origin_issue is not None:
+            issues.append(origin_issue)
 
     listed = {(rid, p.number) for p in points for rid in p.rules}
     for requirement in requirements:
@@ -249,7 +304,15 @@ def lint_points(
                 )
             )
         for number in requirement.source_points:
-            if (requirement.id, number) not in listed:
+            if number not in seen:
+                issues.append(
+                    LintIssue(
+                        requirement.id,
+                        "POINT-UNKNOWN",
+                        f"cites P{number:03d}, which is not in the points catalogue",
+                    )
+                )
+            elif (requirement.id, number) not in listed:
                 issues.append(
                     LintIssue(
                         requirement.id,
@@ -258,6 +321,24 @@ def lint_points(
                     )
                 )
     return issues
+
+
+def _lint_origin(point: VisionPoint, total: int) -> LintIssue | None:
+    """Leigh's points keep their verbatim text; contributed ones say where from."""
+    if point.number <= total and point.origin is not None:
+        return LintIssue(
+            point.id,
+            "POINT-ORIGIN",
+            f"P001..P{total:03d} are the owner's vision list and record no origin; "
+            "number a contributed point past it",
+        )
+    if point.number > total and point.origin is None:
+        return LintIssue(
+            point.id,
+            "POINT-ORIGIN",
+            f"is past P{total:03d}, so it records an origin (source, ref, author)",
+        )
+    return None
 
 
 def _lint_real_data(point: VisionPoint) -> list[LintIssue]:
