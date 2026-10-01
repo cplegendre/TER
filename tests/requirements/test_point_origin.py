@@ -113,6 +113,15 @@ def test_contributed_point_with_origin_passes() -> None:
     assert lint_points(points, reqs, _always, total=1) == []
 
 
+@pytest.mark.req("TER-REQ-009")
+def test_duplicate_contributed_point_is_rejected() -> None:
+    contributed = _point(id="P201", rules=["TER-AAA-201"], origin=GARE)
+    points = [_point(), contributed, contributed]
+    reqs = [_req("TER-AAA-001", [1]), _req("TER-AAA-201", [201])]
+    issues = lint_points(points, reqs, _always, total=1)
+    assert ("P201", "POINT-DUPLICATE") in _found(issues)
+
+
 @pytest.mark.req("TER-REQ-010")
 def test_vision_point_with_origin_is_rejected() -> None:
     points = [_point(origin=GARE)]

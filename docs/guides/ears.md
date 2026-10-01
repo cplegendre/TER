@@ -251,7 +251,7 @@ ter-req report --results req-trace.json --gate L2
 ```text
 | Level | Coverage | Traced | Verified | Planned |
 |---|---|---:|---:|---:|
-| L0 Measured (gate) | `████████████████████` 100% | 19/19 | 19 | 0 |
+| L0 Measured (gate) | `███████████████████░` 96% | 23/24 | 23 | 1 |
 | L1 Observed | `███████░░░░░░░░░░░░░` 33% | 4/12 | 4 | 8 |
 | L2 Explained | `█████████░░░░░░░░░░░` 46% | 19/41 | 19 | 22 |
 ```

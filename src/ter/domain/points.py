@@ -282,12 +282,10 @@ def lint_points(
             issues.append(
                 LintIssue(f"P{number:03d}", "POINT-MISSING", "point is not catalogued")
             )
-        elif seen[number] > 1:
-            issues.append(
-                LintIssue(
-                    f"P{number:03d}", "POINT-DUPLICATE", "point is declared twice"
-                )
-            )
+    for number in sorted(n for n, count in seen.items() if count > 1):
+        issues.append(
+            LintIssue(f"P{number:03d}", "POINT-DUPLICATE", "point is declared twice")
+        )
 
     for point in points:
         issues.extend(_lint_point(point, by_req, check_exists))
