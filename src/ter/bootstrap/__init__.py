@@ -14,12 +14,19 @@ from pathlib import Path
 from ..adapters.driving.cli import CliServices
 from ..adapters.driving.cli import main as cli_main
 from ..adapters.driven.in_memory import SystemClock
+from ..application.explain import ExplainedSession, ExplainSession
 from ..application.observe import AnalyseEventLog, AnalyseTrace, RecordEvent
 from ..domain.stream import StreamReport
-from ..ports.driven import Tokenizer
+from ..ports.driven import TerScorer, Tokenizer
 from ..ports.driving import EventIngest
 
-__all__ = ["cli_services", "default_event_log_dir", "main", "make_tokenizer"]
+__all__ = [
+    "cli_services",
+    "default_event_log_dir",
+    "main",
+    "make_ter_scorer",
+    "make_tokenizer",
+]
 
 #: Environment variable that relocates the live event log.
 EVENT_LOG_ENV = "TER_EVENT_LOG_DIR"
@@ -51,6 +58,23 @@ def make_tokenizer(name: str = "regex") -> Tokenizer:
     raise ValueError(f"Unknown tokenizer {name!r}")
 
 
+def make_ter_scorer(mode: str) -> TerScorer | None:
+    """``offline`` pins TER 3 to the deterministic adapters; ``model`` uses its
+    sentence-transformers model; ``off`` skips TER."""
+    if mode == "off":
+        return None
+    from ..adapters.driven.ter3 import Ter3Scorer
+
+    if mode == "model":
+        return Ter3Scorer()
+    if mode == "offline":
+        from ..adapters.driven.embedders import HashingEmbedder
+        from ..adapters.driven.tokenizers import RegexTokenizer
+
+        return Ter3Scorer(RegexTokenizer(), HashingEmbedder())
+    raise ValueError(f"Unknown TER mode {mode!r}")
+
+
 def cli_services() -> CliServices:
     """Wire the CLI's use cases. Heavy adapters are imported on first use."""
 
@@ -76,6 +100,14 @@ def cli_services() -> CliServices:
         # Append-only: a hook's cost must not grow with the session.
         return RecordEvent(make_tokenizer("regex"), JsonlEventLog(directory))
 
+    def explain_transcript(path: Path, tokenizer: str, ter: str) -> ExplainedSession:
+        from ..adapters.driven.claude_code import ClaudeCodeJsonlSource
+
+        use_case = ExplainSession(
+            ClaudeCodeJsonlSource(), make_tokenizer(tokenizer), make_ter_scorer(ter)
+        )
+        return use_case(path)
+
     return CliServices(
         analyse_transcript=analyse_transcript,
         log_sessions=log_sessions,
@@ -83,6 +115,7 @@ def cli_services() -> CliServices:
         hook_ingest=hook_ingest,
         default_log_dir=default_event_log_dir(),
         hook_clock=SystemClock(),
+        explain_transcript=explain_transcript,
     )
 
 

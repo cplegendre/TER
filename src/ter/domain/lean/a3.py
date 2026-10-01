@@ -1,0 +1,159 @@
+"""The A3 view-model: one page, in the order of a Toyota A3 report.
+
+Background (the developer's intent) → Current state (value stream map) →
+Analysis (waste Pareto, activity classes, flow) → Root causes (findings with
+their evidence) → Countermeasures → Follow-up. Renderers read this model and
+nothing else, so the HTML and the JSON of one report always agree.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Sequence
+from dataclasses import dataclass
+
+from .analysis import LeanAnalysis, apportion
+from .countermeasures import Countermeasure, FollowUp, build_countermeasures, follow_ups
+from .model import ActivityClass, Finding, FindingKind, LeanWaste
+
+__all__ = ["A3_SCHEMA", "A3Report", "ParetoBar", "build_a3"]
+
+A3_SCHEMA = "ter.a3/0.1"
+
+#: Root causes shown on the page; the JSON keeps every finding.
+ROOT_CAUSES_SHOWN = 6
+
+
+@dataclass(frozen=True)
+class ParetoBar:
+    waste: LeanWaste
+    tokens: int
+    findings: int
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "waste": self.waste.value,
+            "tokens": self.tokens,
+            "findings": self.findings,
+        }
+
+
+@dataclass(frozen=True)
+class A3Report:
+    title: str
+    session_id: str | None
+    intents: tuple[str, ...]
+    problem: str
+    analysis: LeanAnalysis
+    pareto: tuple[ParetoBar, ...]
+    root_causes: tuple[Finding, ...]
+    countermeasures: tuple[Countermeasure, ...]
+    follow_up: tuple[FollowUp, ...]
+
+    def as_dict(self) -> dict[str, object]:
+        a = self.analysis
+        return {
+            "schema": A3_SCHEMA,
+            "title": self.title,
+            "session_id": self.session_id,
+            "background": {"intents": list(self.intents), "events": a.events},
+            "problem": self.problem,
+            "current_state": {"value_stream": [s.as_dict() for s in a.value_stream]},
+            "analysis": {
+                "scorecard": a.scorecard.as_dict(),
+                "pareto": [p.as_dict() for p in self.pareto],
+                "cycles": [c.as_dict() for c in a.cycles],
+            },
+            "root_causes": [f.as_dict() for f in self.root_causes],
+            "findings": [f.as_dict() for f in a.findings],
+            "countermeasures": [c.as_dict() for c in self.countermeasures],
+            "follow_up": [f.as_dict() for f in self.follow_up],
+            "detectors": [
+                {"id": i, "waste": w, "kind": k, "confidence_rule": r}
+                for i, w, k, r in a.detectors
+            ],
+        }
+
+
+def _title(intents: Sequence[str]) -> str:
+    if not intents:
+        return "Agent session"
+    first = " ".join(intents[0].split())
+    return first if len(first) <= 120 else first[:119].rstrip() + "…"
+
+
+def _problem(analysis: LeanAnalysis) -> str:
+    sc = analysis.scorecard
+    if sc.generated_tokens == 0:
+        return "The session generated no agent activity to analyse."
+    avoidable = sc.activity_share(ActivityClass.AVOIDABLE)
+    parts = [
+        f"{avoidable:.0%} of the {sc.generated_tokens:,} tokens the agent generated went to "
+        f"avoidable work across {sc.findings} confident finding(s)"
+    ]
+    if sc.uncertain_findings:
+        parts.append(
+            f"{sc.uncertain_findings} further finding(s) covering "
+            f"{sc.uncertain_waste_tokens:,} tokens are uncertain"
+        )
+    if sc.flow_efficiency_tokens is not None:
+        flow = f"flow efficiency is {sc.flow_efficiency_tokens:.0%} of tokens"
+        if sc.flow_efficiency_time is not None:
+            flow += f" and {sc.flow_efficiency_time:.0%} of agent time"
+        parts.append(flow)
+    if sc.risks:
+        parts.append(f"{sc.risks} risk(s) to the outcome were flagged")
+    return "; ".join(parts) + "."
+
+
+def _pareto(analysis: LeanAnalysis) -> tuple[ParetoBar, ...]:
+    """Generated waste tokens by waste type, reconciling with the scorecard.
+
+    Each event's avoidable tokens count once, under the finding the scorecard
+    charged them to, so the bars add up to ``scorecard.waste_tokens``.
+    """
+    allocated = analysis.allocated_waste_tokens()
+    parts: dict[str, float] = {}
+    counts: dict[LeanWaste, int] = {}
+    for f in analysis.findings:
+        if f.kind is not FindingKind.WASTE or f.uncertain:
+            continue
+        parts[f.waste.value] = parts.get(f.waste.value, 0.0) + allocated.get(f.id, 0.0)
+        counts[f.waste] = counts.get(f.waste, 0) + 1
+    rounded = apportion(parts, analysis.scorecard.waste_tokens)
+    tokens = {w: rounded[w.value] for w in counts}
+    return tuple(
+        ParetoBar(w, tokens[w], counts[w])
+        for w in sorted(tokens, key=lambda w: (-tokens[w], w.value))
+    )
+
+
+def build_a3(analysis: LeanAnalysis, intents: Sequence[str] = ()) -> A3Report:
+    """Assemble the A3 from an analysis and the developer's prompts."""
+    findings = analysis.findings
+    ranked = sorted(
+        findings,
+        key=lambda f: (
+            f.uncertain,
+            -(f.tokens + f.context_tokens),
+            -f.confidence,
+            f.id,
+        ),
+    )
+    sc = analysis.scorecard
+    return A3Report(
+        title=_title(intents),
+        session_id=analysis.session_id,
+        intents=tuple(intents),
+        problem=_problem(analysis),
+        analysis=analysis,
+        pareto=_pareto(analysis),
+        root_causes=tuple(ranked[:ROOT_CAUSES_SHOWN]),
+        countermeasures=build_countermeasures(
+            findings, analysis.steps, analysis.allocated_waste_tokens()
+        ),
+        follow_up=follow_ups(
+            findings,
+            flow_efficiency=sc.flow_efficiency_tokens,
+            avoidable_share=sc.activity_share(ActivityClass.AVOIDABLE),
+        ),
+    )

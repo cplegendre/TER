@@ -55,17 +55,14 @@ flowchart LR
 
 | Package | Holds | May import |
 |---|---|---|
-| `ter.domain` | Event model, maturity levels, TER scoring (`scoring`: phase scores, weighted aggregate, raw ratio, aligned/waste accounting), pricing (`pricing`: `Rates`, dated `PriceSchedule`, cost arithmetic); later the Lean model, detectors, evidence graph, scorecard | stdlib, numpy |
-| `ter.ports` | `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `PriceBook` | `ter.domain` |
-| `ter.application` | Use cases (empty at L0) | ports, domain |
-| `ter.domain` | Event model, maturity levels, the incremental `AnalysisEngine` (L1); later the Lean model, detectors, evidence graph, scorecard | stdlib, numpy |
-| `ter.ports` | Driven: `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `EventLog`. Driving: `EventIngest` | `ter.domain` |
-| `ter.application` | Use cases: `ObserveEvent`, `RecordEvent`, `AnalyseTrace`, `AnalyseEventLog` (L1) | ports, domain |
+| `ter.domain` | Event model, maturity levels, TER scoring (`scoring`: phase scores, weighted aggregate, raw ratio, aligned/waste accounting), pricing (`pricing`: `Rates`, dated `PriceSchedule`, cost arithmetic), the incremental `AnalysisEngine` (L1), the `SessionReport` view-model (`report`), the Lean model, detectors, evidence graph, scorecard and A3 view-model (`ter.domain.lean`, L2) | stdlib, numpy |
+| `ter.ports` | Driven: `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `PriceBook`, `EventLog`, `TerScorer`. Driving: `EventIngest` | `ter.domain` |
+| `ter.application` | Use cases: `ObserveEvent`, `RecordEvent`, `AnalyseTrace`, `AnalyseEventLog` (L1), `ExplainSession` (L2) | ports, domain |
 | `ter.adapters` | Everything that knows a vendor, format or IO | anything inward, plus `ter_calculator` |
 | `ter.bootstrap` | Wiring, and the maturity ceiling | everything |
 
 The rules are enforced, not described. `[tool.importlinter]` in
-`pyproject.toml` declares five contracts, and both the `lint-imports` CI step
+`pyproject.toml` declares six contracts, and both the `lint-imports` CI step
 and `tests/architecture` fail when one breaks:
 
 1. **hexagon-layers**: bootstrap → adapters → application → ports → domain, never outward.
@@ -74,7 +71,10 @@ and `tests/architecture` fail when one breaks:
 4. **independent-adapters**: driven adapters never import each other (chains
    through TER 3 to the pricing adapter are exempt: TER 3 is outside the hexagon).
 5. **ter3-uses-hexagon-edges**: TER 3 uses TER 4 only through the domain, ports
-   or adapters, never `ter.application` or `ter.bootstrap`.
+   or adapters, never `ter.application` or `ter.bootstrap`. The one exemption
+   is the TER 3 CLI entry point handing `ter a3` and `ter explain` to
+   `ter.bootstrap.main`.
+6. **report-renderers**: the SVG, HTML and A3 renderers read only their view-models (`SessionReport`, `A3Report`), never TER 3 types (see [reports.md](reports.md), [l2-explained.md](l2-explained.md)).
 
 ## Strangler moves so far
 
@@ -116,8 +116,8 @@ reports its coverage.
 
 ```mermaid
 flowchart LR
-    L0["L0 Measured<br/>TER 3 parity"]:::done --> L1["L1 Observed<br/>event stream, live = batch"]:::now
-    L1 --> L2["L2 Explained<br/>Lean classes, evidence, A3"]
+    L0["L0 Measured<br/>TER 3 parity"]:::done --> L1["L1 Observed<br/>event stream, live = batch"]:::done
+    L1 --> L2["L2 Explained<br/>Lean classes, evidence, A3"]:::now
     L2 --> L3["L3 Grounded<br/>repository evidence"]
     L3 --> L4["L4 Advisory<br/>policies, ledger"]
     L4 --> L5["L5 Corrective<br/>routing, opt-in actions"]
@@ -126,7 +126,7 @@ flowchart LR
     classDef now fill:#fff4d6,stroke:#9a6b00,color:#16212a
 ```
 
-L0 is complete; L1 is built and its gate is below. `ter.domain.Maturity` models the levels. A level is both a build gate (every
+L0 and L1 are complete; L2 is built and its gate is below. `ter.domain.Maturity` models the levels. A level is both a build gate (every
 requirement at that level verified) and a runtime ceiling
 (`Maturity.permits`).
 
@@ -155,6 +155,22 @@ the hook-to-event table and a sequence diagram are in
 | Incremental = batch on every corpus session | `tests/equivalence/test_live_static.py`, `tests/golden/test_stream_report_snapshot.py` | TER-ANL-010 |
 | Hook payload shapes pinned | `tests/contract/test_hook_payloads.py`, `tests/fixtures/hooks/` | TER-OBS-003 |
 | `EventLog` adapters meet one contract | `tests/contract/test_event_log.py` | TER-OBS-004 |
+
+### L2 gate, as built
+
+Every event is classified on an agentic value stream, eleven plugin
+detectors cite the events behind each finding, and the A3 turns findings into
+countermeasures. Details, the detector catalogue and the per-point definition
+of done are in [l2-explained.md](l2-explained.md); the model is ADR 0004.
+
+| Check | Where | Requirement |
+|---|---|---|
+| Every finding cites existing events; confidence bounded; uncertain never counted | `tests/unit/test_ter4_lean_properties.py` | TER-DET-001, TER-ANL-020, TER-ANL-021 |
+| Each detector: positive, negative, iteration-vs-rework boundary | `tests/unit/test_ter4_lean_detectors.py` | TER-DET-002, 005, 006, 010 (004, 007, 008 planned) |
+| Live explanation = batch explanation | `tests/equivalence/test_live_static.py` | TER-ANL-010 |
+| Findings, scorecard, A3 JSON and HTML frozen | `tests/golden/test_lean_snapshots.py` | TER-LEN-008, TER-RPT-003, TER-RPT-004 |
+| A3 self-contained and accessible; countermeasures from findings only | `tests/unit/test_ter4_a3.py`, `test_ter4_lean_analysis.py` | TER-RPT-004, TER-RPT-005 |
+| `TerScorer` adapters meet one contract | `tests/contract/test_ter_scorer.py` | TER-ANL-012 |
 
 Tests carry `@pytest.mark.req("<id>")`. The EARS requirement catalogue and
 the CI traceability gate that checks these links are described in

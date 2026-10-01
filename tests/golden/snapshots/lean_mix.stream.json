@@ -1,0 +1,378 @@
+{
+  "by_class": {
+    "generated": 16,
+    "tool": 12,
+    "user": 1
+  },
+  "by_kind": {
+    "intent.stated": 1,
+    "reasoning": 3,
+    "response": 1,
+    "tool.completed": 12,
+    "tool.requested": 12
+  },
+  "by_tool": {
+    "exec.shell": 4,
+    "fs.edit": 3,
+    "fs.read": 1,
+    "fs.write": 2,
+    "plan.todo": 2
+  },
+  "duplicate_tool_calls": [
+    "d3419f3fcdb0f607",
+    "c546d6039402b9c4"
+  ],
+  "edits_since_validation": 0,
+  "open_requests": [],
+  "orphan_results": [],
+  "peak_edits_without_validation": 5,
+  "repeated_reads": {},
+  "session_id": "golden-lean-mix",
+  "timeline": [
+    [
+      0,
+      "f6592a7c2b8b29cd",
+      "intent.stated",
+      "user",
+      null,
+      null,
+      26,
+      null,
+      []
+    ],
+    [
+      1,
+      "11dd3be920e41229",
+      "reasoning",
+      "assistant",
+      null,
+      null,
+      19,
+      40,
+      []
+    ],
+    [
+      2,
+      "62fcd90f604b8a22",
+      "reasoning",
+      "assistant",
+      null,
+      null,
+      20,
+      40,
+      []
+    ],
+    [
+      3,
+      "afa62c3fc87da043",
+      "tool.requested",
+      "assistant",
+      "plan.todo",
+      "TodoWrite",
+      29,
+      40,
+      []
+    ],
+    [
+      4,
+      "885640dbc628de1c",
+      "tool.completed",
+      "tool",
+      "plan.todo",
+      "TodoWrite",
+      2,
+      null,
+      []
+    ],
+    [
+      5,
+      "787b76f5878f0c56",
+      "tool.requested",
+      "assistant",
+      "plan.todo",
+      "TodoWrite",
+      51,
+      40,
+      []
+    ],
+    [
+      6,
+      "4c20d65d717bf537",
+      "tool.completed",
+      "tool",
+      "plan.todo",
+      "TodoWrite",
+      2,
+      null,
+      []
+    ],
+    [
+      7,
+      "f7059ba8a701f037",
+      "reasoning",
+      "assistant",
+      null,
+      null,
+      23,
+      40,
+      []
+    ],
+    [
+      8,
+      "dc771e57dc3ec0aa",
+      "tool.requested",
+      "assistant",
+      "exec.shell",
+      "Bash",
+      11,
+      40,
+      []
+    ],
+    [
+      9,
+      "caff931cda4b3075",
+      "tool.completed",
+      "tool",
+      "exec.shell",
+      "Bash",
+      15,
+      null,
+      []
+    ],
+    [
+      10,
+      "26d689fc6e48e582",
+      "tool.requested",
+      "assistant",
+      "fs.read",
+      "Read",
+      15,
+      40,
+      []
+    ],
+    [
+      11,
+      "04fb1b1d585306b6",
+      "tool.completed",
+      "tool",
+      "fs.read",
+      "Read",
+      40,
+      null,
+      []
+    ],
+    [
+      12,
+      "d3419f3fcdb0f607",
+      "tool.requested",
+      "assistant",
+      "exec.shell",
+      "Bash",
+      11,
+      40,
+      [
+        "tool.duplicate_call"
+      ]
+    ],
+    [
+      13,
+      "e815b1e3c3bd3d9a",
+      "tool.completed",
+      "tool",
+      "exec.shell",
+      "Bash",
+      15,
+      null,
+      []
+    ],
+    [
+      14,
+      "23e8557e97c5cf7b",
+      "tool.requested",
+      "assistant",
+      "fs.write",
+      "Write",
+      130,
+      40,
+      []
+    ],
+    [
+      15,
+      "3f1b4d7739855dfc",
+      "tool.completed",
+      "tool",
+      "fs.write",
+      "Write",
+      10,
+      null,
+      []
+    ],
+    [
+      16,
+      "bbef9c623af73c14",
+      "tool.requested",
+      "assistant",
+      "fs.write",
+      "Write",
+      151,
+      40,
+      [
+        "fs.unvalidated_edit"
+      ]
+    ],
+    [
+      17,
+      "c25006b6c17cfaae",
+      "tool.completed",
+      "tool",
+      "fs.write",
+      "Write",
+      9,
+      null,
+      []
+    ],
+    [
+      18,
+      "201a5b895ab673e9",
+      "tool.requested",
+      "assistant",
+      "fs.edit",
+      "Edit",
+      49,
+      40,
+      [
+        "fs.unvalidated_edit"
+      ]
+    ],
+    [
+      19,
+      "b1b25b79327612cc",
+      "tool.completed",
+      "tool",
+      "fs.edit",
+      "Edit",
+      11,
+      null,
+      []
+    ],
+    [
+      20,
+      "afd57e70643ee1c4",
+      "tool.requested",
+      "assistant",
+      "fs.edit",
+      "Edit",
+      54,
+      40,
+      [
+        "fs.unvalidated_edit"
+      ]
+    ],
+    [
+      21,
+      "0c363a14eea9043e",
+      "tool.completed",
+      "tool",
+      "fs.edit",
+      "Edit",
+      11,
+      null,
+      []
+    ],
+    [
+      22,
+      "12eb3429dc69e478",
+      "tool.requested",
+      "assistant",
+      "fs.edit",
+      "Edit",
+      51,
+      40,
+      [
+        "fs.unvalidated_edit"
+      ]
+    ],
+    [
+      23,
+      "8529cea01d42b188",
+      "tool.completed",
+      "tool",
+      "fs.edit",
+      "Edit",
+      11,
+      null,
+      []
+    ],
+    [
+      24,
+      "3a6966ef0e054a01",
+      "tool.requested",
+      "assistant",
+      "exec.shell",
+      "Bash",
+      18,
+      40,
+      []
+    ],
+    [
+      25,
+      "63a58bc98af34062",
+      "tool.completed",
+      "tool",
+      "exec.shell",
+      "Bash",
+      35,
+      null,
+      []
+    ],
+    [
+      26,
+      "c546d6039402b9c4",
+      "tool.requested",
+      "assistant",
+      "exec.shell",
+      "Bash",
+      18,
+      40,
+      [
+        "tool.duplicate_call"
+      ]
+    ],
+    [
+      27,
+      "d0a9e677d00c3c13",
+      "tool.completed",
+      "tool",
+      "exec.shell",
+      "Bash",
+      35,
+      null,
+      []
+    ],
+    [
+      28,
+      "4fa7eec5e701db40",
+      "response",
+      "assistant",
+      null,
+      null,
+      47,
+      40,
+      []
+    ]
+  ],
+  "tokenizer": "regex-v1",
+  "tokens_by_class": {
+    "generated": 697,
+    "tool": 196,
+    "user": 26
+  },
+  "tokens_exact": false,
+  "total_events": 29,
+  "usage": {
+    "cache_creation": 0,
+    "cache_read": 27200,
+    "input": 8000,
+    "output": 640
+  }
+}

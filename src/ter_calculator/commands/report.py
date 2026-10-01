@@ -23,8 +23,24 @@ def _cmd_report(args) -> int:
     from ..session_report import format_session_report_markdown
 
     result = analyze_session(args)
-    md = format_session_report_markdown(result)
+    html_out = getattr(args, "report_html", None)
+    if html_out:
+        from ter.adapters.driving.reports import render_report_html
+        from ter.adapters.driving.reports.ter3 import from_ter_result
+
+        html_path = Path(html_out)
+        if html_path.parent != Path():
+            html_path.parent.mkdir(parents=True, exist_ok=True)
+        html_path.write_text(
+            render_report_html(from_ter_result(result)), encoding="utf-8"
+        )
+        if not args.quiet:
+            print(f"Wrote {html_path}", file=sys.stderr)
+
     out = getattr(args, "report_output", None)
+    if html_out and not out:
+        return 0
+    md = format_session_report_markdown(result)
     if out:
         Path(out).write_text(md, encoding="utf-8")
         if not args.quiet:

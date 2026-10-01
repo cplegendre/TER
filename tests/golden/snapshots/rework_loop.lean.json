@@ -1,0 +1,784 @@
+{
+  "classifications": [
+    [
+      "e2450187ade21441",
+      "intent",
+      null,
+      0.0,
+      0.0,
+      "progressing",
+      "stage:developer input is not scored"
+    ],
+    [
+      "85ed37b31edb7b93",
+      "plan",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:plan is necessary but adds no value itself"
+    ],
+    [
+      "f2873718c65cddef",
+      "explore",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:explore is necessary but adds no value itself"
+    ],
+    [
+      "031f35117637cfd7",
+      "explore",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:explore is necessary but adds no value itself"
+    ],
+    [
+      "77dbe291b043466d",
+      "plan",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:plan is necessary but adds no value itself"
+    ],
+    [
+      "b5dc801f9ba2fcf1",
+      "implement",
+      "value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:implement edits change the software"
+    ],
+    [
+      "ee00dc2afae9406b",
+      "implement",
+      "value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:implement edits change the software"
+    ],
+    [
+      "1c91989c08c0ed50",
+      "validate",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:validate is necessary but adds no value itself"
+    ],
+    [
+      "67f5fdb471aa600f",
+      "validate",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:validate is necessary but adds no value itself"
+    ],
+    [
+      "b79c917cdfc846b5",
+      "plan",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:plan is necessary but adds no value itself"
+    ],
+    [
+      "d149692b66de4b4b",
+      "implement",
+      "avoidable",
+      1.0,
+      0.0,
+      "reworking",
+      "rework_cycle:d149692b66de4b4b"
+    ],
+    [
+      "7bb0cb9e49bf57ce",
+      "implement",
+      "avoidable",
+      1.0,
+      0.0,
+      "reworking",
+      "rework_cycle:d149692b66de4b4b"
+    ],
+    [
+      "763dc8c817be8d49",
+      "validate",
+      "avoidable",
+      1.0,
+      0.0,
+      "reworking",
+      "rework_cycle:d149692b66de4b4b"
+    ],
+    [
+      "672962215503debc",
+      "validate",
+      "avoidable",
+      1.0,
+      0.0,
+      "reworking",
+      "rework_cycle:d149692b66de4b4b"
+    ],
+    [
+      "c502b1c166401b3c",
+      "plan",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:plan is necessary but adds no value itself"
+    ],
+    [
+      "f32c8aba5faf2655",
+      "implement",
+      "value_adding",
+      0.0,
+      0.0,
+      "recovering",
+      "stage:implement edits change the software; productive iteration"
+    ],
+    [
+      "72c60d4bd7b11dc4",
+      "implement",
+      "value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:implement edits change the software"
+    ],
+    [
+      "1721cb31e33a6b9b",
+      "validate",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "recovering",
+      "stage:validate is necessary but adds no value itself; productive iteration"
+    ],
+    [
+      "41eddab414314d4f",
+      "validate",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "recovering",
+      "stage:validate is necessary but adds no value itself; productive iteration"
+    ],
+    [
+      "ee6a5952b4a08820",
+      "respond",
+      "value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:final response delivers the outcome"
+    ]
+  ],
+  "cycles": [
+    {
+      "command": "pytest tests/test_parser.py -q",
+      "failed_run": "1c91989c08c0ed50",
+      "failure": "67f5fdb471aa600f",
+      "fixes": [
+        "d149692b66de4b4b"
+      ],
+      "next_outcome": "failed",
+      "next_result": "672962215503debc",
+      "next_run": "763dc8c817be8d49",
+      "reason": "the next run failed identically",
+      "verdict": "rework"
+    },
+    {
+      "command": "pytest tests/test_parser.py -q",
+      "failed_run": "763dc8c817be8d49",
+      "failure": "672962215503debc",
+      "fixes": [
+        "f32c8aba5faf2655"
+      ],
+      "next_outcome": "passed",
+      "next_result": "41eddab414314d4f",
+      "next_run": "1721cb31e33a6b9b",
+      "reason": "the next run passed",
+      "verdict": "iteration"
+    }
+  ],
+  "detectors": [
+    {
+      "confidence_rule": "0.90 when input and output are identical and nothing was edited in between; 0.85 for a validation re-run with no edit in between; 0.75 when edits happened in between but the output is still identical; 0.50 (uncertain) when an output was not observed. Different output: no finding. File reads and searches are left to repeated_exploration; a validation re-run after edits is left to rework_cycle.",
+      "id": "repeated_tool_call",
+      "kind": "waste",
+      "waste": "over_processing"
+    },
+    {
+      "confidence_rule": "0.85 when the same read or search (same arguments) returned identical output and the file was not edited in between; 0.55 (uncertain) when either output was not observed. A read after an edit of that file, a read of a different range, or a changed output is not a finding.",
+      "id": "repeated_exploration",
+      "kind": "waste",
+      "waste": "motion"
+    },
+    {
+      "confidence_rule": "Only cycles of the same validation command with edits in between. 0.80 when the next run fails with the same failure signature (timings and addresses ignored); 0.90 when that is the second or later identical failure in a row. A cycle whose next run passes or fails differently is productive iteration and is not a finding.",
+      "id": "rework_cycle",
+      "kind": "waste",
+      "waste": "rework"
+    },
+    {
+      "confidence_rule": "Judged per prompt, once the agent has responded after its edits. 0.85 when no validation ran in the whole session; 0.75 when validation ran earlier but not after these edits; 0.50 (uncertain) when every unvalidated edit is documentation. 0.85 when the last validation before the response failed.",
+      "id": "unvalidated_implementation",
+      "kind": "risk",
+      "waste": "defects"
+    },
+    {
+      "confidence_rule": "0.75 for an in-place edit of a file never read, written or named in an earlier search or shell output; 0.45 (uncertain) for writing a new file before any exploration at all in the session. One finding per file.",
+      "id": "premature_implementation",
+      "kind": "risk",
+      "waste": "defects"
+    },
+    {
+      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary; the rest as waste.",
+      "id": "excessive_planning",
+      "kind": "waste",
+      "waste": "over_processing"
+    },
+    {
+      "confidence_rule": "At least 3 consecutive edit calls to one file with only reasoning and their results in between. 0.70 for 3, plus 0.05 per extra edit, capped at 0.85. Only the round-trip overhead (results and waiting of edits after the first) is counted as waste, never the change itself.",
+      "id": "fragmented_edits",
+      "kind": "waste",
+      "waste": "over_processing"
+    },
+    {
+      "confidence_rule": "Judged only once the agent has responded after the read. A read counts as used when a later reasoning, response or tool call names the file, or names something the file defines, or edits it. Otherwise 0.65 when the file defined names that were never used, 0.55 when it defined none. Always uncertain: reading to rule something out is legitimate, and only repository evidence (L3) can tell.",
+      "id": "unused_context",
+      "kind": "waste",
+      "waste": "inventory"
+    },
+    {
+      "confidence_rule": "A later tool call by the agent itself shares at least 3 content words and at least half of the smaller word set with the handoff's task. Confidence 0.45 + 0.40 × overlap, capped at 0.85. The handoff (and its waiting time) is the waste; the agent's own call is kept.",
+      "id": "unnecessary_handoff",
+      "kind": "waste",
+      "waste": "handoffs"
+    },
+    {
+      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, and at most 25% of its content words are new (in neither the earlier block nor the prompt). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
+      "id": "repeated_reasoning",
+      "kind": "waste",
+      "waste": "over_processing"
+    },
+    {
+      "confidence_rule": "A whole-file write of a file the agent had itself written, keeping at least 80% of its lines: 0.80. A whole-file write of a file it had read (3+ lines), keeping at least 60% of them: 0.60 (uncertain; small files are often rewritten on purpose). The retained share of the write is waste.",
+      "id": "regeneration",
+      "kind": "waste",
+      "waste": "overproduction"
+    }
+  ],
+  "events": 20,
+  "evidence_graph": {
+    "edges": [
+      {
+        "source": "85ed37b31edb7b93",
+        "target": "e2450187ade21441",
+        "type": "motivated_by"
+      },
+      {
+        "source": "f2873718c65cddef",
+        "target": "e2450187ade21441",
+        "type": "motivated_by"
+      },
+      {
+        "source": "031f35117637cfd7",
+        "target": "f2873718c65cddef",
+        "type": "completes"
+      },
+      {
+        "source": "77dbe291b043466d",
+        "target": "031f35117637cfd7",
+        "type": "motivated_by"
+      },
+      {
+        "source": "b5dc801f9ba2fcf1",
+        "target": "e2450187ade21441",
+        "type": "motivated_by"
+      },
+      {
+        "source": "b5dc801f9ba2fcf1",
+        "target": "031f35117637cfd7",
+        "type": "motivated_by"
+      },
+      {
+        "source": "ee00dc2afae9406b",
+        "target": "b5dc801f9ba2fcf1",
+        "type": "completes"
+      },
+      {
+        "source": "1c91989c08c0ed50",
+        "target": "b5dc801f9ba2fcf1",
+        "type": "validates"
+      },
+      {
+        "source": "1c91989c08c0ed50",
+        "target": "ee00dc2afae9406b",
+        "type": "motivated_by"
+      },
+      {
+        "source": "67f5fdb471aa600f",
+        "target": "1c91989c08c0ed50",
+        "type": "completes"
+      },
+      {
+        "source": "b79c917cdfc846b5",
+        "target": "67f5fdb471aa600f",
+        "type": "motivated_by"
+      },
+      {
+        "source": "d149692b66de4b4b",
+        "target": "e2450187ade21441",
+        "type": "motivated_by"
+      },
+      {
+        "source": "d149692b66de4b4b",
+        "target": "031f35117637cfd7",
+        "type": "motivated_by"
+      },
+      {
+        "source": "d149692b66de4b4b",
+        "target": "67f5fdb471aa600f",
+        "type": "corrects"
+      },
+      {
+        "source": "d149692b66de4b4b",
+        "target": "67f5fdb471aa600f",
+        "type": "motivated_by"
+      },
+      {
+        "source": "7bb0cb9e49bf57ce",
+        "target": "d149692b66de4b4b",
+        "type": "completes"
+      },
+      {
+        "source": "763dc8c817be8d49",
+        "target": "d149692b66de4b4b",
+        "type": "validates"
+      },
+      {
+        "source": "763dc8c817be8d49",
+        "target": "7bb0cb9e49bf57ce",
+        "type": "motivated_by"
+      },
+      {
+        "source": "672962215503debc",
+        "target": "763dc8c817be8d49",
+        "type": "completes"
+      },
+      {
+        "source": "c502b1c166401b3c",
+        "target": "672962215503debc",
+        "type": "motivated_by"
+      },
+      {
+        "source": "f32c8aba5faf2655",
+        "target": "e2450187ade21441",
+        "type": "motivated_by"
+      },
+      {
+        "source": "f32c8aba5faf2655",
+        "target": "031f35117637cfd7",
+        "type": "motivated_by"
+      },
+      {
+        "source": "f32c8aba5faf2655",
+        "target": "672962215503debc",
+        "type": "corrects"
+      },
+      {
+        "source": "f32c8aba5faf2655",
+        "target": "672962215503debc",
+        "type": "motivated_by"
+      },
+      {
+        "source": "72c60d4bd7b11dc4",
+        "target": "f32c8aba5faf2655",
+        "type": "completes"
+      },
+      {
+        "source": "1721cb31e33a6b9b",
+        "target": "f32c8aba5faf2655",
+        "type": "validates"
+      },
+      {
+        "source": "1721cb31e33a6b9b",
+        "target": "72c60d4bd7b11dc4",
+        "type": "motivated_by"
+      },
+      {
+        "source": "41eddab414314d4f",
+        "target": "1721cb31e33a6b9b",
+        "type": "completes"
+      },
+      {
+        "source": "ee6a5952b4a08820",
+        "target": "41eddab414314d4f",
+        "type": "motivated_by"
+      }
+    ],
+    "nodes": [
+      {
+        "activity_class": null,
+        "id": "e2450187ade21441",
+        "index": 0,
+        "kind": "intent.stated",
+        "label": "intent.stated",
+        "stage": "intent",
+        "tool": null
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "85ed37b31edb7b93",
+        "index": 1,
+        "kind": "reasoning",
+        "label": "reasoning",
+        "stage": "plan",
+        "tool": null
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "f2873718c65cddef",
+        "index": 2,
+        "kind": "tool.requested",
+        "label": "Read src/parser.py",
+        "stage": "explore",
+        "tool": "fs.read"
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "031f35117637cfd7",
+        "index": 3,
+        "kind": "tool.completed",
+        "label": "result: Read src/parser.py",
+        "stage": "explore",
+        "tool": "fs.read"
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "77dbe291b043466d",
+        "index": 4,
+        "kind": "reasoning",
+        "label": "reasoning",
+        "stage": "plan",
+        "tool": null
+      },
+      {
+        "activity_class": "value_adding",
+        "id": "b5dc801f9ba2fcf1",
+        "index": 5,
+        "kind": "tool.requested",
+        "label": "Edit src/parser.py",
+        "stage": "implement",
+        "tool": "fs.edit"
+      },
+      {
+        "activity_class": "value_adding",
+        "id": "ee00dc2afae9406b",
+        "index": 6,
+        "kind": "tool.completed",
+        "label": "result: Edit src/parser.py",
+        "stage": "implement",
+        "tool": "fs.edit"
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "1c91989c08c0ed50",
+        "index": 7,
+        "kind": "tool.requested",
+        "label": "Bash pytest tests/test_parser.py -q",
+        "stage": "validate",
+        "tool": "exec.shell"
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "67f5fdb471aa600f",
+        "index": 8,
+        "kind": "tool.completed",
+        "label": "result: Bash pytest tests/test_parser.py -q (failed)",
+        "stage": "validate",
+        "tool": "exec.shell"
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "b79c917cdfc846b5",
+        "index": 9,
+        "kind": "reasoning",
+        "label": "reasoning",
+        "stage": "plan",
+        "tool": null
+      },
+      {
+        "activity_class": "avoidable",
+        "id": "d149692b66de4b4b",
+        "index": 10,
+        "kind": "tool.requested",
+        "label": "Edit src/parser.py",
+        "stage": "implement",
+        "tool": "fs.edit"
+      },
+      {
+        "activity_class": "avoidable",
+        "id": "7bb0cb9e49bf57ce",
+        "index": 11,
+        "kind": "tool.completed",
+        "label": "result: Edit src/parser.py",
+        "stage": "implement",
+        "tool": "fs.edit"
+      },
+      {
+        "activity_class": "avoidable",
+        "id": "763dc8c817be8d49",
+        "index": 12,
+        "kind": "tool.requested",
+        "label": "Bash pytest tests/test_parser.py -q",
+        "stage": "validate",
+        "tool": "exec.shell"
+      },
+      {
+        "activity_class": "avoidable",
+        "id": "672962215503debc",
+        "index": 13,
+        "kind": "tool.completed",
+        "label": "result: Bash pytest tests/test_parser.py -q (failed)",
+        "stage": "validate",
+        "tool": "exec.shell"
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "c502b1c166401b3c",
+        "index": 14,
+        "kind": "reasoning",
+        "label": "reasoning",
+        "stage": "plan",
+        "tool": null
+      },
+      {
+        "activity_class": "value_adding",
+        "id": "f32c8aba5faf2655",
+        "index": 15,
+        "kind": "tool.requested",
+        "label": "Edit src/parser.py",
+        "stage": "implement",
+        "tool": "fs.edit"
+      },
+      {
+        "activity_class": "value_adding",
+        "id": "72c60d4bd7b11dc4",
+        "index": 16,
+        "kind": "tool.completed",
+        "label": "result: Edit src/parser.py",
+        "stage": "implement",
+        "tool": "fs.edit"
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "1721cb31e33a6b9b",
+        "index": 17,
+        "kind": "tool.requested",
+        "label": "Bash pytest tests/test_parser.py -q",
+        "stage": "validate",
+        "tool": "exec.shell"
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "41eddab414314d4f",
+        "index": 18,
+        "kind": "tool.completed",
+        "label": "result: Bash pytest tests/test_parser.py -q (passed)",
+        "stage": "validate",
+        "tool": "exec.shell"
+      },
+      {
+        "activity_class": "value_adding",
+        "id": "ee6a5952b4a08820",
+        "index": 19,
+        "kind": "response",
+        "label": "response",
+        "stage": "respond",
+        "tool": null
+      }
+    ],
+    "schema": "ter.evidence/0.1",
+    "session_id": "golden-rework"
+  },
+  "findings": [
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.8,
+      "context_tokens": 38,
+      "detector": "rework_cycle",
+      "evidence": [
+        "1c91989c08c0ed50",
+        "67f5fdb471aa600f",
+        "d149692b66de4b4b",
+        "7bb0cb9e49bf57ce",
+        "763dc8c817be8d49",
+        "672962215503debc"
+      ],
+      "explanation": "1 edit(s) to src/parser.py after `pytest tests/test_parser.py -q` failed, then the same command failed with the same failure. The attempt was rework: it did not move the check.",
+      "id": "rework_cycle:d149692b66de4b4b",
+      "kind": "waste",
+      "seconds": 9.0,
+      "share": 1.0,
+      "subject": "pytest tests/test_parser.py -q",
+      "title": "Fix attempt did not change the failure of pytest tests/test_parser.py -q",
+      "tokens": 92,
+      "uncertain": false,
+      "waste": "rework",
+      "waste_events": [
+        "d149692b66de4b4b",
+        "7bb0cb9e49bf57ce",
+        "763dc8c817be8d49",
+        "672962215503debc"
+      ]
+    }
+  ],
+  "schema": "ter.lean/0.1",
+  "scorecard": {
+    "activity_seconds": {
+      "avoidable": 9.0,
+      "necessary_non_value_adding": 27.0,
+      "uncertain": 0.0,
+      "value_adding": 9.0
+    },
+    "activity_tokens": {
+      "avoidable": 92,
+      "necessary_non_value_adding": 154,
+      "uncertain": 0,
+      "value_adding": 150
+    },
+    "agent_seconds": 45.0,
+    "composite": {
+      "components": [
+        {
+          "name": "Flow efficiency (tokens)",
+          "value": 0.7677,
+          "weight": 0.3333
+        },
+        {
+          "name": "Flow efficiency (time)",
+          "value": 0.8,
+          "weight": 0.3333
+        },
+        {
+          "name": "TER",
+          "value": 0.8049,
+          "weight": 0.3333
+        }
+      ],
+      "formula": "Unweighted mean of Flow efficiency (tokens), Flow efficiency (time), TER.",
+      "value": 0.7909
+    },
+    "context_tokens": 151,
+    "developer_seconds": 0.0,
+    "findings": 1,
+    "flow_efficiency_time": 0.8,
+    "flow_efficiency_tokens": 0.7677,
+    "flow_seconds": {
+      "inventory": 0.0,
+      "progressing": 27.0,
+      "recovering": 9.0,
+      "repeating": 0.0,
+      "reworking": 9.0,
+      "waiting": 0.0
+    },
+    "flow_tokens": {
+      "inventory": 0,
+      "progressing": 237,
+      "recovering": 67,
+      "repeating": 0,
+      "reworking": 92,
+      "waiting": 0
+    },
+    "generated_tokens": 396,
+    "iterations": 1,
+    "rework_cycles": 1,
+    "risks": 0,
+    "ter": {
+      "method": "TER 3, offline (regex-v1 tokens, lexical-hash-384 embeddings)",
+      "value": 0.8049
+    },
+    "uncertain_findings": 0,
+    "uncertain_waste_tokens": 0,
+    "waste_context_tokens": 38,
+    "waste_seconds": 9.0,
+    "waste_tokens": 92
+  },
+  "session_id": "golden-rework",
+  "value_stream": [
+    {
+      "avoidable_tokens": 0,
+      "context_tokens": 0,
+      "findings": [],
+      "seconds": 0.0,
+      "stage": "intent",
+      "steps": 1,
+      "tokens": 0,
+      "uncertain_tokens": 0
+    },
+    {
+      "avoidable_tokens": 0,
+      "context_tokens": 57,
+      "findings": [],
+      "seconds": 3.0,
+      "stage": "explore",
+      "steps": 1,
+      "tokens": 15,
+      "uncertain_tokens": 0
+    },
+    {
+      "avoidable_tokens": 0,
+      "context_tokens": 0,
+      "findings": [],
+      "seconds": 12.0,
+      "stage": "plan",
+      "steps": 4,
+      "tokens": 103,
+      "uncertain_tokens": 0
+    },
+    {
+      "avoidable_tokens": 74,
+      "context_tokens": 33,
+      "findings": [
+        "rework_cycle:d149692b66de4b4b"
+      ],
+      "seconds": 9.0,
+      "stage": "implement",
+      "steps": 3,
+      "tokens": 185,
+      "uncertain_tokens": 0
+    },
+    {
+      "avoidable_tokens": 18,
+      "context_tokens": 61,
+      "findings": [
+        "rework_cycle:d149692b66de4b4b"
+      ],
+      "seconds": 18.0,
+      "stage": "validate",
+      "steps": 3,
+      "tokens": 54,
+      "uncertain_tokens": 0
+    },
+    {
+      "avoidable_tokens": 0,
+      "context_tokens": 0,
+      "findings": [],
+      "seconds": 3.0,
+      "stage": "respond",
+      "steps": 1,
+      "tokens": 39,
+      "uncertain_tokens": 0
+    }
+  ]
+}

@@ -108,3 +108,16 @@ class EventLog(Protocol):
     def events(self, session_id: str) -> tuple[Event, ...]: ...
 
     def sessions(self) -> tuple[str, ...]: ...
+
+
+@runtime_checkable
+class TerScorer(Protocol):
+    """Scores a recorded session with the TER 3 ratio (point 4: TER is retained).
+
+    ``method`` names how the score was computed (tokenizer and embedder), so
+    a report can say how far to trust it next to the Lean scorecard.
+    """
+
+    method: str
+
+    def score(self, ref: str | Path) -> float: ...

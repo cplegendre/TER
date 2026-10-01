@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 152" width="360" height="152" role="img" class="ter-chart-svg" aria-labelledby="phase-scores-title phase-scores-desc" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+<title id="phase-scores-title">TER by phase</title>
+<desc id="phase-scores-desc">TER by phase. Reasoning: 0.462; Tool use: 0.919; Generation: 1.000</desc>
+<rect width="360" height="152" rx="8" fill="#fcfcfb" class="ter-f-surface"/>
+<text x="16.0" y="24.0" fill="#0b0b0b" class="ter-f-ink" font-size="15" font-weight="600">TER by phase</text>
+<text x="132.0" y="54.0" fill="#52514e" class="ter-f-ink-2" font-size="12" text-anchor="end">Reasoning</text>
+<rect x="140" y="36" width="69.2" height="28" rx="4" fill="#2a78d6" class="ter-f-series-1"><title>Reasoning: 0.462</title></rect>
+<text x="215.2" y="54.0" fill="#0b0b0b" class="ter-f-ink" font-size="12" font-weight="500">0.462</text>
+<text x="132.0" y="90.0" fill="#52514e" class="ter-f-ink-2" font-size="12" text-anchor="end">Tool use</text>
+<rect x="140" y="72" width="137.8" height="28" rx="4" fill="#eb6834" class="ter-f-series-2"><title>Tool use: 0.919</title></rect>
+<text x="283.8" y="90.0" fill="#0b0b0b" class="ter-f-ink" font-size="12" font-weight="500">0.919</text>
+<text x="132.0" y="126.0" fill="#52514e" class="ter-f-ink-2" font-size="12" text-anchor="end">Generation</text>
+<rect x="140" y="108" width="150.0" height="28" rx="4" fill="#1baf7a" class="ter-f-series-3"><title>Generation: 1.000</title></rect>
+<text x="296.0" y="126.0" fill="#0b0b0b" class="ter-f-ink" font-size="12" font-weight="500">1.000</text>
+</svg>

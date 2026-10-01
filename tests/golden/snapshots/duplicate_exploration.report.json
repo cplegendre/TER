@@ -1,0 +1,192 @@
+{
+  "classifier_version": "v11",
+  "composition": [
+    {
+      "label": "aligned_response",
+      "tokens": 67
+    },
+    {
+      "label": "aligned_tool_call",
+      "tokens": 233
+    },
+    {
+      "label": "redundant_reasoning",
+      "tokens": 55
+    },
+    {
+      "label": "unnecessary_tool_call",
+      "tokens": 34
+    }
+  ],
+  "economics": {
+    "cache_hit_rate": 0.0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.0194,
+    "input_tokens": 4000,
+    "output_tokens": 496,
+    "waste_cost_usd": 0.0013
+  },
+  "metrics": {
+    "aligned_tokens": 300,
+    "raw_ratio": 0.7712,
+    "ter": 0.6491,
+    "total_tokens": 389,
+    "waste_tokens": 89
+  },
+  "phases": [
+    {
+      "phase": "reasoning",
+      "score": 0.0,
+      "tokens": 55
+    },
+    {
+      "phase": "tool_use",
+      "score": 0.8727,
+      "tokens": 267
+    },
+    {
+      "phase": "generation",
+      "score": 1.0,
+      "tokens": 67
+    }
+  ],
+  "positional": {
+    "early": 0.8475,
+    "early_spans": 4,
+    "late": 0.8897,
+    "late_spans": 5,
+    "mid": 0.2388,
+    "mid_spans": 4
+  },
+  "sections": [],
+  "session_id": "golden-explore",
+  "spans": [
+    {
+      "confidence": 0.6,
+      "label": "redundant_reasoning",
+      "phase": "reasoning",
+      "position": 0,
+      "tokens": 9
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 1,
+      "tokens": 18
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 2,
+      "tokens": 16
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 3,
+      "tokens": 16
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 4,
+      "tokens": 16
+    },
+    {
+      "confidence": 0.6,
+      "label": "redundant_reasoning",
+      "phase": "reasoning",
+      "position": 5,
+      "tokens": 17
+    },
+    {
+      "confidence": 1.0,
+      "label": "unnecessary_tool_call",
+      "phase": "tool_use",
+      "position": 6,
+      "tokens": 18
+    },
+    {
+      "confidence": 1.0,
+      "label": "unnecessary_tool_call",
+      "phase": "tool_use",
+      "position": 7,
+      "tokens": 16
+    },
+    {
+      "confidence": 0.6,
+      "label": "redundant_reasoning",
+      "phase": "reasoning",
+      "position": 8,
+      "tokens": 29
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 9,
+      "tokens": 88
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 10,
+      "tokens": 55
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 11,
+      "tokens": 24
+    },
+    {
+      "confidence": 0.688275,
+      "label": "aligned_response",
+      "phase": "generation",
+      "position": 12,
+      "tokens": 67
+    }
+  ],
+  "uncertainty": {
+    "confidence_level": 0.95,
+    "low_confidence_share": 0.7404,
+    "low_confidence_tokens": 288,
+    "lower": 0.5323,
+    "mean_confidence": 0.6683,
+    "method": "deterministic_span_bootstrap",
+    "reliability": "moderate",
+    "upper": 0.9375
+  },
+  "waste_by_type": [
+    {
+      "occurrences": 2,
+      "pattern_type": "duplicate_tool_call",
+      "tokens": 34
+    }
+  ],
+  "waste_patterns": [
+    {
+      "description": "Duplicate tool call: Grep {\"pattern\":\"argparse\",\"path\":\"src\"}",
+      "end_position": 6,
+      "pattern_type": "duplicate_tool_call",
+      "spans_involved": 2,
+      "start_position": 1,
+      "tokens_wasted": 18
+    },
+    {
+      "description": "Duplicate tool call: Read {\"file_path\":\"src/cli.py\"}",
+      "end_position": 7,
+      "pattern_type": "duplicate_tool_call",
+      "spans_involved": 2,
+      "start_position": 2,
+      "tokens_wasted": 16
+    }
+  ]
+}

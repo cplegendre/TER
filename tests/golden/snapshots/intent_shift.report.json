@@ -1,0 +1,149 @@
+{
+  "classifier_version": "v11",
+  "composition": [
+    {
+      "label": "aligned_reasoning",
+      "tokens": 44
+    },
+    {
+      "label": "aligned_response",
+      "tokens": 36
+    },
+    {
+      "label": "aligned_tool_call",
+      "tokens": 332
+    },
+    {
+      "label": "redundant_reasoning",
+      "tokens": 13
+    }
+  ],
+  "economics": {
+    "cache_hit_rate": 0.0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "cost_usd": 0.012,
+    "input_tokens": 2000,
+    "output_tokens": 403,
+    "waste_cost_usd": 0.0002
+  },
+  "metrics": {
+    "aligned_tokens": 412,
+    "raw_ratio": 0.9694,
+    "ter": 0.9316,
+    "total_tokens": 425,
+    "waste_tokens": 13
+  },
+  "phases": [
+    {
+      "phase": "reasoning",
+      "score": 0.7719,
+      "tokens": 57
+    },
+    {
+      "phase": "tool_use",
+      "score": 1.0,
+      "tokens": 332
+    },
+    {
+      "phase": "generation",
+      "score": 1.0,
+      "tokens": 36
+    }
+  ],
+  "positional": {
+    "early": 0.8632,
+    "early_spans": 2,
+    "late": 1.0,
+    "late_spans": 4,
+    "mid": 1.0,
+    "mid_spans": 2
+  },
+  "sections": [],
+  "session_id": "golden-shift",
+  "spans": [
+    {
+      "confidence": 0.6,
+      "label": "redundant_reasoning",
+      "phase": "reasoning",
+      "position": 0,
+      "tokens": 13
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 1,
+      "tokens": 82
+    },
+    {
+      "confidence": 0.5,
+      "label": "aligned_reasoning",
+      "phase": "reasoning",
+      "position": 2,
+      "tokens": 25
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 3,
+      "tokens": 111
+    },
+    {
+      "confidence": 0.5,
+      "label": "aligned_reasoning",
+      "phase": "reasoning",
+      "position": 4,
+      "tokens": 19
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 5,
+      "tokens": 101
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 6,
+      "tokens": 38
+    },
+    {
+      "confidence": 0.502519,
+      "label": "aligned_response",
+      "phase": "generation",
+      "position": 7,
+      "tokens": 36
+    }
+  ],
+  "uncertainty": {
+    "confidence_level": 0.95,
+    "low_confidence_share": 1.0,
+    "low_confidence_tokens": 425,
+    "lower": 0.7,
+    "mean_confidence": 0.5628,
+    "method": "deterministic_span_bootstrap",
+    "reliability": "low",
+    "upper": 1.0
+  },
+  "waste_by_type": [
+    {
+      "occurrences": 1,
+      "pattern_type": "edit_fragmentation",
+      "tokens": 0
+    }
+  ],
+  "waste_patterns": [
+    {
+      "description": "3 consecutive edits to stats.py (0 fragmented tokens)",
+      "end_position": 0,
+      "pattern_type": "edit_fragmentation",
+      "spans_involved": 3,
+      "start_position": 0,
+      "tokens_wasted": 0
+    }
+  ]
+}

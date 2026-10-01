@@ -33,7 +33,7 @@ points:
       process rather than merely a sequence of model tokens.
     level: L2
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Every session is represented as an ordered value stream of ter.event
@@ -41,7 +41,7 @@ points:
     rules: [TER-LEN-007]
     verification:
       - 'test: tests/golden/test_event_stream_snapshot.py'
-      - 'planned: value stream model tests'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_value_stream_has_every_stage_in_order'
 
   - id: P003
     text: >-
@@ -59,7 +59,8 @@ points:
         docs/ter4.
     rules: [TER-SCR-001, TER-LEN-002]
     verification:
-      - 'planned: passing tests tagged req for TER-SCR-001, TER-LEN-002'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_scorecard_dimensions_and_explained_composite'
+      - 'planned: quality, risk and outcome dimensions need L3 evidence (TER-SCR-001)'
 
   - id: P004
     text: >-
@@ -73,7 +74,7 @@ points:
         TER 3 scores on the golden corpus are unchanged by every TER 4
         change.
       - Every TER 4 scorecard still reports the Token Efficiency Ratio.
-    rules: [TER-ANL-000, TER-ANL-002, TER-SCR-003]
+    rules: [TER-ANL-000, TER-ANL-002, TER-SCR-003, TER-ANL-012]
     verification:
       - 'test: tests/golden/test_ter3_characterisation.py'
       - 'ci: L0 gate (golden TER 3 parity, port contracts, architecture)'
@@ -118,7 +119,7 @@ points:
       advancing that outcome.
     level: L2
     kind: principle
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         The waste definition (resource use without proportionate progress
@@ -128,35 +129,38 @@ points:
         signal it lacks.
     rules: [TER-LEN-003]
     verification:
-      - 'planned: passing tests tagged req for TER-LEN-003'
+      - 'test: tests/unit/test_ter4_lean_properties.py::test_findings_are_traceable_and_bounded'
+      - 'planned: judge value against the outcome stated in the intent (TER-LEN-003)'
 
   - id: P008
     text: >-
       Recognise that additional reasoning is not automatically waste.
     level: L2
     kind: principle
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         A reasoning span that introduces new evidence or a decision is never
         labelled waste, shown by tests.
     rules: [TER-LEN-004]
     verification:
-      - 'planned: passing tests tagged req for TER-LEN-004'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestRepeatedReasoning::test_new_decision_is_not_a_restatement'
+      - 'planned: excessive_planning counts planning steps beyond the second as waste even when they add a decision (TER-LEN-004)'
 
   - id: P009
     text: >-
       Recognise that fewer tokens are not automatically more efficient.
     level: L2
     kind: principle
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         No efficiency score improves from token reduction alone; a test
         holds value constant and cuts tokens without changing the verdict.
     rules: [TER-LEN-005]
     verification:
-      - 'planned: passing tests tagged req for TER-LEN-005'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_scorecard_dimensions_and_explained_composite'
+      - 'planned: test that holds value constant, cuts tokens and keeps the verdict (TER-LEN-005)'
 
   - id: P010
     text: >-
@@ -164,21 +168,22 @@ points:
       minimisation.
     level: L2
     kind: principle
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Efficiency is reported as value delivered per resource, and the
         report names token minimisation as a non-goal.
     rules: [TER-LEN-005]
     verification:
-      - 'planned: passing tests tagged req for TER-LEN-005'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_scorecard_dimensions_and_explained_composite'
+      - 'planned: report names token minimisation as a non-goal (TER-LEN-005)'
 
   - id: P011
     text: >-
       Establish a formal Lean model for agentic software development.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         docs/ter4 contains the formal Lean model: concepts, definitions and
@@ -186,7 +191,9 @@ points:
       - Each concept in the model maps to code in ter.domain.
     rules: [TER-LEN-001, TER-LEN-006]
     verification:
-      - 'planned: passing tests tagged req for TER-LEN-001, TER-LEN-006'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_every_event_gets_a_stage_and_classified_basis'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_detectors_are_plugins'
+      - 'planned: pull, WIP and queue measures (TER-LEN-006, see P012)'
 
   - id: P012
     text: >-
@@ -194,7 +201,7 @@ points:
       defects, waiting, over-processing, and motion onto agent behaviour.
     level: L2
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Each of value, flow, pull, WIP, queues, rework, defects, waiting,
@@ -204,7 +211,8 @@ points:
         metric.
     rules: [TER-LEN-006]
     verification:
-      - 'planned: passing tests tagged req for TER-LEN-006'
+      - 'test: tests/unit/test_ter4_lean_detectors.py'
+      - 'planned: pull, WIP and queue measures at L3 and L4 (TER-LEN-006)'
 
   - id: P013
     text: >-
@@ -212,15 +220,16 @@ points:
       intent to verified software change.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         An AgenticValueStream domain type spans stated intent to verified
         change.
       - Reports show the stream as ordered stages.
-    rules: [TER-LEN-007]
+    rules: [TER-LEN-007, TER-RPT-003, TER-RPT-004]
     verification:
-      - 'planned: passing tests tagged req for TER-LEN-007'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_value_stream_has_every_stage_in_order'
+      - 'test: tests/unit/test_ter4_a3.py::test_charts_and_empty_states'
 
   - id: P014
     text: >-
@@ -228,14 +237,15 @@ points:
       validation, and responses as events within that value stream.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Prompts, reasoning, tool calls, reads, edits, tests, validation and
         responses each have an event kind in the stream.
     rules: [TER-LEN-007]
     verification:
-      - 'planned: passing tests tagged req for TER-LEN-007'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_every_event_gets_a_stage_and_classified_basis'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_shell_intent'
 
   - id: P015
     text: >-
@@ -243,14 +253,14 @@ points:
       activities.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Every scored event carries exactly one of value-adding, necessary
         non-value-adding or avoidable.
     rules: [TER-LEN-001]
     verification:
-      - 'planned: passing tests tagged req for TER-LEN-001'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_every_event_gets_a_stage_and_classified_basis'
 
   - id: P016
     text: >-
@@ -258,14 +268,15 @@ points:
       class.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Reports show the token and time share of each activity class,
         summing to 100%.
     rules: [TER-LEN-002]
     verification:
-      - 'planned: passing tests tagged req for TER-LEN-002'
+      - 'test: tests/unit/test_ter4_lean_properties.py::test_findings_are_traceable_and_bounded'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_confident_waste_is_avoidable_and_uncertain_is_kept_apart'
 
   - id: P017
     text: >-
@@ -273,7 +284,7 @@ points:
       decisions.
     level: L2
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         A detector flags reasoning that repeats earlier reasoning with no
@@ -281,7 +292,7 @@ points:
       - Findings cite the repeated and the original event ids.
     rules: [TER-DET-002, TER-LEN-004]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-002, TER-LEN-004'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestRepeatedReasoning'
 
   - id: P018
     text: >-
@@ -289,14 +300,14 @@ points:
       understanding.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         A detector flags repeated repository exploration that adds no new
         files or facts.
     rules: [TER-DET-002]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-002'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestRepeatedExploration'
 
   - id: P019
     text: >-
@@ -304,14 +315,14 @@ points:
       unchanged.
     level: L2
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         A detector flags tool calls whose inputs and outputs repeat an
         earlier call above the similarity threshold.
     rules: [TER-DET-002]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-002'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestRepeatedToolCall'
 
   - id: P020
     text: >-
@@ -319,14 +330,14 @@ points:
       work.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         A detector flags regeneration of output that an earlier event
         already delivered and nothing rejected.
     rules: [TER-DET-002]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-002'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestRegeneration'
 
   - id: P021
     text: >-
@@ -340,19 +351,21 @@ points:
         before an edit.
     rules: [TER-DET-003]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-003'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestUnusedContext'
+      - 'planned: context band before an edit needs repository scope (TER-DET-003, L3)'
 
   - id: P022
     text: >-
       Detect insufficient context acquisition before implementation.
     level: L2
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - A detector flags edits made with context below the configured band.
     rules: [TER-DET-003]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-003'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestPrematureImplementation'
+      - 'planned: context sufficiency band needs repository scope (TER-DET-003, L3)'
 
   - id: P023
     text: >-
@@ -360,56 +373,56 @@ points:
       collected.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         A phase rule flags implementation that starts before the evidence
         the task needs has been read.
     rules: [TER-DET-005]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-005'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestPrematureImplementation'
 
   - id: P024
     text: >-
       Detect excessive planning without transition to implementation.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         A phase rule flags planning that exceeds its configured length
         without an edit.
     rules: [TER-DET-005]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-005'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestExcessivePlanning'
 
   - id: P025
     text: >-
       Detect excessive implementation without validation.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         A phase rule flags implementation that exceeds its configured length
         without a test or validation event.
     rules: [TER-DET-005]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-005'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestUnvalidatedImplementation'
 
   - id: P026
     text: >-
       Detect repeated edit-test-fail cycles indicative of rework.
     level: L2
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         A detector flags repeated edit, test, failure cycles on the same
         files as rework.
     rules: [TER-DET-006]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-006'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestReworkVersusIteration'
 
   - id: P027
     text: >-
@@ -417,56 +430,58 @@ points:
       decomposed.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         A detector flags a logical change split into more edits than the
         configured limit.
     rules: [TER-DET-007]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-007'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestFragmentedEdits'
 
   - id: P028
     text: >-
       Detect unnecessary file traversal as agentic motion waste.
     level: L2
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         A detector flags file traversals whose content no later event uses,
         as motion waste.
     rules: [TER-DET-007]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-007'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestUnusedContext'
+      - 'planned: unused traversals are reported as uncertain inventory, not motion; motion needs L3 evidence (TER-DET-007)'
 
   - id: P029
     text: >-
       Detect unnecessary handoffs between subagents or models.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         A detector flags subagent handoffs that return no evidence the
         parent uses.
     rules: [TER-DET-008]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-008'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestUnnecessaryHandoff'
 
   - id: P030
     text: >-
       Detect waiting caused by avoidable external-model escalation.
     level: L2
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         A detector flags external-model escalations whose waiting time
         bought no new evidence.
     rules: [TER-DET-008]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-008'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestUnnecessaryHandoff'
+      - 'planned: model escalation waiting needs routing (TER-DET-008, L5)'
 
   - id: P031
     text: >-
@@ -517,26 +532,27 @@ points:
       Detect context inventory accumulating without subsequent use.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - Reports list retrieved context that no later event used.
     rules: [TER-DET-004]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-004'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestUnusedContext'
 
   - id: P035
     text: >-
       Quantify the cost of unused retrieved context.
     level: L2
     kind: capability
-    status: not-started
+    status: partial
     issue: 40
     real_data: true
     definition_of_done:
       - Reports give the token cost of unused context.
     rules: [TER-DET-004, TER-ANL-040, TER-ANL-041]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-004, TER-ANL-040, TER-ANL-041'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestUnusedContext'
+      - 'planned: token cost of unused context (TER-DET-004, TER-ANL-040, TER-ANL-041)'
       - 'planned: real-data verification in issue #40'
 
   - id: P036
@@ -545,14 +561,15 @@ points:
       knowledge was not retained.
     level: L2
     kind: capability
-    status: not-started
+    status: partial
     issue: 40
     real_data: true
     definition_of_done:
       - Reports give the token cost of context read more than once.
     rules: [TER-DET-004, TER-ANL-040, TER-ANL-041]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-004, TER-ANL-040, TER-ANL-041'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestRepeatedExploration::test_rereading_unchanged_file'
+      - 'planned: dated price book for context cost (TER-ANL-040, TER-ANL-041)'
       - 'planned: real-data verification in issue #40'
 
   - id: P037
@@ -560,7 +577,7 @@ points:
       Distinguish productive iteration from rework.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Iteration that changes approach or adds evidence is labelled
@@ -568,7 +585,8 @@ points:
         on both.
     rules: [TER-DET-006]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-006'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestReworkVersusIteration'
+      - 'test: tests/golden/test_lean_snapshots.py'
 
   - id: P038
     text: >-
@@ -576,35 +594,36 @@ points:
       exploration.
     level: L2
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Exploration linked to a recorded open question is labelled
         uncertainty-driven; other exploration is labelled aimless.
     rules: [TER-DET-009]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-009'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_every_event_gets_a_stage_and_classified_basis'
+      - 'planned: uncertainty-driven exploration linked to open questions (TER-DET-009, L3)'
 
   - id: P039
     text: >-
       Distinguish validation activity from duplicated validation.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         A second validation with no intervening change is labelled
         duplicated validation.
     rules: [TER-DET-010]
     verification:
-      - 'planned: passing tests tagged req for TER-DET-010'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestRepeatedToolCall::test_timing_noise_does_not_make_output_different'
 
   - id: P040
     text: >-
       Make every waste classification traceable to observable evidence.
     level: L2
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - Every waste finding cites at least one event id.
       - >-
@@ -612,7 +631,7 @@ points:
         evidence.
     rules: [TER-ANL-020, TER-DET-001]
     verification:
-      - 'planned: passing tests tagged req for TER-ANL-020, TER-DET-001'
+      - 'test: tests/unit/test_ter4_lean_properties.py::test_findings_are_traceable_and_bounded'
 
   - id: P041
     text: >-
@@ -1027,14 +1046,15 @@ points:
       actions, changes, and validation.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         An evidence graph type links intent, observations, decisions,
         actions, changes and validation.
     rules: [TER-GRF-001]
     verification:
-      - 'planned: passing tests tagged req for TER-GRF-001'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_evidence_graph_edges_and_export'
+      - 'planned: decision and repository nodes (TER-GRF-001, L3)'
 
   - id: P072
     text: >-
@@ -1042,76 +1062,79 @@ points:
       observable.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Every observable decision node in the graph has at least one
         evidence edge.
     rules: [TER-GRF-001]
     verification:
-      - 'planned: passing tests tagged req for TER-GRF-001'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_evidence_graph_edges_and_export'
+      - 'planned: decisions as graph nodes (TER-GRF-001, L3)'
 
   - id: P073
     text: >-
       Connect tool calls to the evidence that motivated them.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - Tool call nodes link to the evidence that motivated them.
     rules: [TER-GRF-002]
     verification:
-      - 'planned: passing tests tagged req for TER-GRF-002'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_evidence_graph_edges_and_export'
 
   - id: P074
     text: >-
       Connect edits to the requirements or evidence they address.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - Edit nodes link to the requirements or evidence they address.
     rules: [TER-GRF-002]
     verification:
-      - 'planned: passing tests tagged req for TER-GRF-002'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_evidence_graph_edges_and_export'
+      - 'planned: links from edits to requirements (L3)'
 
   - id: P075
     text: >-
       Connect tests to the edits they validate.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - Test nodes link to the edits they validate.
     rules: [TER-GRF-002]
     verification:
-      - 'planned: passing tests tagged req for TER-GRF-002'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_evidence_graph_edges_and_export'
 
   - id: P076
     text: >-
       Connect failures to subsequent corrective actions.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - Failure nodes link to the corrective actions that follow them.
     rules: [TER-GRF-002]
     verification:
-      - 'planned: passing tests tagged req for TER-GRF-002'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_evidence_graph_edges_and_export'
 
   - id: P077
     text: >-
       Use this graph to reconstruct how a software change emerged.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         TER can print the reconstruction of how a change emerged from the
         graph.
     rules: [TER-GRF-001]
     verification:
-      - 'planned: passing tests tagged req for TER-GRF-001'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_evidence_graph_edges_and_export'
+      - 'planned: a command that prints the reconstruction of a change (TER-GRF-001)'
 
   - id: P078
     text: >-
@@ -1119,28 +1142,29 @@ points:
       research datasets.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         The graph exports to a versioned, documented schema usable as a
         research dataset.
     rules: [TER-GRF-003]
     verification:
-      - 'planned: passing tests tagged req for TER-GRF-003'
+      - 'test: tests/unit/test_ter4_a3.py::test_a3_command_writes_html_json_and_graph'
+      - 'planned: data card for the graph export as a research dataset'
 
   - id: P079
     text: >-
       Introduce the concept of Agentic Flow Efficiency.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Agentic Flow Efficiency is defined in the Lean model docs and
         computed per session.
     rules: [TER-FLW-001]
     verification:
-      - 'planned: passing tests tagged req for TER-FLW-001'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_scorecard_dimensions_and_explained_composite'
 
   - id: P080
     text: >-
@@ -1148,14 +1172,15 @@ points:
       recovering, or reworking.
     level: L2
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Reports split time and tokens into progressing, waiting, repeating,
         recovering and reworking.
-    rules: [TER-FLW-001]
+    rules: [TER-FLW-001, TER-RPT-003, TER-RPT-004]
     verification:
-      - 'planned: passing tests tagged req for TER-FLW-001'
+      - 'test: tests/unit/test_ter4_lean_properties.py::test_findings_are_traceable_and_bounded'
+      - 'test: tests/unit/test_ter4_a3.py::test_charts_and_empty_states'
 
   - id: P081
     text: >-
@@ -1181,7 +1206,8 @@ points:
       - No report shows a single score without its dimensions.
     rules: [TER-SCR-001]
     verification:
-      - 'planned: passing tests tagged req for TER-SCR-001'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_scorecard_dimensions_and_explained_composite'
+      - 'planned: every scorecard dimension, including quality, risk and outcome (TER-SCR-001)'
 
   - id: P083
     text: >-
@@ -1196,7 +1222,8 @@ points:
         outcome.
     rules: [TER-SCR-001]
     verification:
-      - 'planned: passing tests tagged req for TER-SCR-001'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_scorecard_dimensions_and_explained_composite'
+      - 'planned: quality, risk and outcome dimensions (TER-SCR-001, L3)'
 
   - id: P084
     text: >-
@@ -1204,14 +1231,14 @@ points:
       explainable.
     level: L2
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Any aggregate shows the weight and value of each dimension beside
         it.
     rules: [TER-SCR-002]
     verification:
-      - 'planned: passing tests tagged req for TER-SCR-002'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_scorecard_dimensions_and_explained_composite'
 
   - id: P085
     text: >-
@@ -1222,9 +1249,12 @@ points:
     definition_of_done:
       - Session reports show a 95% interval for TER.
       - Heuristic classifications carry a confidence value.
-    rules: [TER-ANL-003, TER-ANL-021]
+    rules: [TER-ANL-003, TER-ANL-021, TER-RPT-001, TER-RPT-002]
     verification:
       - 'test: tests/unit/test_explainability_uncertainty_v11.py::test_result_formatters_expose_uncertainty_and_explanations'
+      - 'test: tests/golden/test_report_snapshots.py'
+      - 'test: tests/unit/test_ter4_reports.py::TestHtmlReport::test_uncertainty_note'
+      - 'test: tests/unit/test_ter4_lean_properties.py::test_findings_are_traceable_and_bounded'
 
   - id: P086
     text: >-
@@ -1237,10 +1267,13 @@ points:
       - >-
         Reports show low-confidence tokens and label low-confidence findings
         as uncertain.
-    rules: [TER-ANL-003, TER-ANL-021]
+    rules: [TER-ANL-003, TER-ANL-021, TER-RPT-001, TER-RPT-002]
     verification:
       - 'test: tests/unit/test_explainability_uncertainty_v11.py::test_result_formatters_expose_uncertainty_and_explanations'
       - 'test: tests/unit/test_formatter_html.py::test_format_html_is_standalone_and_interactive'
+      - 'test: tests/golden/test_report_snapshots.py'
+      - 'test: tests/unit/test_ter4_reports.py::TestHtmlReport::test_uncertainty_note'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_confident_waste_is_avoidable_and_uncertain_is_kept_apart'
 
   - id: P087
     text: >-
@@ -1314,14 +1347,15 @@ points:
       agent behaviour.
     level: L5
     kind: principle
-    status: not-started
+    status: partial
     issue: 41
     real_data: true
     definition_of_done:
       - Categories below the precision floor cannot trigger interventions.
     rules: [TER-INT-010]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-010'
+      - 'test: tests/unit/test_ter4_lean_properties.py::test_findings_are_traceable_and_bounded'
+      - 'planned: precision floor per category before interventions (TER-INT-010)'
       - 'planned: real-data verification in issue #41'
 
   - id: P092
@@ -2000,14 +2034,15 @@ points:
       been exceeded.
     level: L4
     kind: principle
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         No policy can trigger on token count alone; policy validation
         rejects such a policy.
-    rules: [TER-INT-007]
+    rules: [TER-INT-007, TER-RPT-005]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-007'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_countermeasures_are_derived_from_findings'
+      - 'planned: policy validation rejects token-count-only policies (TER-INT-007)'
 
   - id: P140
     text: >-
@@ -2833,9 +2868,10 @@ points:
       - >-
         Every reported metric can be recomputed from recorded events and
         evidence, shown by a recompute test.
-    rules: [TER-EXP-001]
+    rules: [TER-EXP-001, TER-LEN-008]
     verification:
       - 'test: tests/golden/test_ter3_characterisation.py'
+      - 'test: tests/unit/test_ter4_lean_properties.py::test_explanation_is_deterministic'
       - 'planned: TER-EXP-001 recompute test over the event store'
 
   - id: P196
@@ -2868,6 +2904,7 @@ points:
     rules: [TER-ARC-002]
     verification:
       - 'planned: passing tests tagged req for TER-ARC-002'
+      - 'test: tests/unit/test_ter4_lean_analysis.py::test_detectors_are_plugins'
 
   - id: P198
     text: >-

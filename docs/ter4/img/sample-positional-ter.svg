@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 176" width="360" height="176" role="img" class="ter-chart-svg" aria-labelledby="positional-ter-title positional-ter-desc" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+<title id="positional-ter-title">TER across the session</title>
+<desc id="positional-ter-desc">TER by session third. Early: 0.707 over 3 spans; Mid: 0.395 over 3 spans; Late: 1.000 over 3 spans. Session TER 0.806.</desc>
+<rect width="360" height="176" rx="8" fill="#fcfcfb" class="ter-f-surface"/>
+<text x="16.0" y="24.0" fill="#0b0b0b" class="ter-f-ink" font-size="15" font-weight="600">TER across the session</text>
+<line x1="40" y1="142.0" x2="304" y2="142.0" stroke-width="1" stroke="#c3c2b7" class="ter-s-baseline"/>
+<text x="34.0" y="146.0" fill="#6f6d68" class="ter-f-muted" font-size="11" text-anchor="end">0.0</text>
+<line x1="40" y1="94.0" x2="304" y2="94.0" stroke-width="1" stroke="#e1e0d9" class="ter-s-grid"/>
+<text x="34.0" y="98.0" fill="#6f6d68" class="ter-f-muted" font-size="11" text-anchor="end">0.5</text>
+<line x1="40" y1="46.0" x2="304" y2="46.0" stroke-width="1" stroke="#e1e0d9" class="ter-s-grid"/>
+<text x="34.0" y="50.0" fill="#6f6d68" class="ter-f-muted" font-size="11" text-anchor="end">1.0</text>
+<line x1="40" y1="64.6" x2="304" y2="64.6" stroke-width="1" stroke-dasharray="4 3" stroke="#6f6d68" class="ter-s-muted"/>
+<text x="310.0" y="62.6" fill="#6f6d68" class="ter-f-muted" font-size="10">session</text>
+<text x="310.0" y="74.6" fill="#6f6d68" class="ter-f-muted" font-size="10">0.81</text>
+<path d="M84.0,74.1 L172.0,104.1 L260.0,46.0" fill="none" stroke-width="2" stroke-linejoin="round" stroke="#2a78d6" class="ter-s-series-1"/>
+<circle cx="84.0" cy="74.1" r="4.5" fill="#2a78d6" class="ter-f-series-1"><title>Early: TER 0.707 over 3 spans</title></circle>
+<text x="84.0" y="65.1" font-size="11" font-weight="600" text-anchor="middle" stroke-width="3" paint-order="stroke" fill="#0b0b0b" stroke="#fcfcfb" class="ter-f-ink ter-s-surface">0.71</text>
+<text x="84.0" y="158.0" fill="#52514e" class="ter-f-ink-2" font-size="11" text-anchor="middle">Early</text>
+<circle cx="172.0" cy="104.1" r="4.5" fill="#2a78d6" class="ter-f-series-1"><title>Mid: TER 0.395 over 3 spans</title></circle>
+<text x="172.0" y="95.1" font-size="11" font-weight="600" text-anchor="middle" stroke-width="3" paint-order="stroke" fill="#0b0b0b" stroke="#fcfcfb" class="ter-f-ink ter-s-surface">0.39</text>
+<text x="172.0" y="158.0" fill="#52514e" class="ter-f-ink-2" font-size="11" text-anchor="middle">Mid</text>
+<circle cx="260.0" cy="46.0" r="4.5" fill="#2a78d6" class="ter-f-series-1"><title>Late: TER 1.000 over 3 spans</title></circle>
+<text x="260.0" y="64.0" font-size="11" font-weight="600" text-anchor="middle" stroke-width="3" paint-order="stroke" fill="#0b0b0b" stroke="#fcfcfb" class="ter-f-ink ter-s-surface">1.00</text>
+<text x="260.0" y="158.0" fill="#52514e" class="ter-f-ink-2" font-size="11" text-anchor="middle">Late</text>
+</svg>

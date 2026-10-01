@@ -1,0 +1,1124 @@
+{
+  "classifications": [
+    [
+      "f6592a7c2b8b29cd",
+      "intent",
+      null,
+      0.0,
+      0.0,
+      "progressing",
+      "stage:developer input is not scored"
+    ],
+    [
+      "11dd3be920e41229",
+      "plan",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:plan is necessary but adds no value itself"
+    ],
+    [
+      "62fcd90f604b8a22",
+      "plan",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:plan is necessary but adds no value itself"
+    ],
+    [
+      "afa62c3fc87da043",
+      "plan",
+      "avoidable",
+      1.0,
+      0.0,
+      "repeating",
+      "excessive_planning:afa62c3fc87da043"
+    ],
+    [
+      "885640dbc628de1c",
+      "plan",
+      "avoidable",
+      1.0,
+      0.0,
+      "repeating",
+      "excessive_planning:afa62c3fc87da043"
+    ],
+    [
+      "787b76f5878f0c56",
+      "plan",
+      "avoidable",
+      1.0,
+      0.0,
+      "repeating",
+      "excessive_planning:afa62c3fc87da043"
+    ],
+    [
+      "4c20d65d717bf537",
+      "plan",
+      "avoidable",
+      1.0,
+      0.0,
+      "repeating",
+      "excessive_planning:afa62c3fc87da043"
+    ],
+    [
+      "f7059ba8a701f037",
+      "plan",
+      "avoidable",
+      1.0,
+      0.0,
+      "repeating",
+      "excessive_planning:afa62c3fc87da043"
+    ],
+    [
+      "dc771e57dc3ec0aa",
+      "explore",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:explore is necessary but adds no value itself"
+    ],
+    [
+      "caff931cda4b3075",
+      "explore",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:explore is necessary but adds no value itself"
+    ],
+    [
+      "26d689fc6e48e582",
+      "explore",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:explore is necessary but adds no value itself"
+    ],
+    [
+      "04fb1b1d585306b6",
+      "explore",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:explore is necessary but adds no value itself"
+    ],
+    [
+      "d3419f3fcdb0f607",
+      "explore",
+      "avoidable",
+      1.0,
+      0.0,
+      "repeating",
+      "repeated_tool_call:d3419f3fcdb0f607"
+    ],
+    [
+      "e815b1e3c3bd3d9a",
+      "explore",
+      "avoidable",
+      1.0,
+      0.0,
+      "repeating",
+      "repeated_tool_call:d3419f3fcdb0f607"
+    ],
+    [
+      "23e8557e97c5cf7b",
+      "implement",
+      "value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:implement edits change the software"
+    ],
+    [
+      "3f1b4d7739855dfc",
+      "implement",
+      "value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:implement edits change the software"
+    ],
+    [
+      "bbef9c623af73c14",
+      "implement",
+      "value_adding",
+      0.9167,
+      0.0,
+      "reworking",
+      "regeneration:bbef9c623af73c14"
+    ],
+    [
+      "c25006b6c17cfaae",
+      "implement",
+      "value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:implement edits change the software"
+    ],
+    [
+      "201a5b895ab673e9",
+      "implement",
+      "value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:implement edits change the software"
+    ],
+    [
+      "b1b25b79327612cc",
+      "implement",
+      "value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:implement edits change the software"
+    ],
+    [
+      "afd57e70643ee1c4",
+      "implement",
+      "value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:implement edits change the software"
+    ],
+    [
+      "0c363a14eea9043e",
+      "implement",
+      "avoidable",
+      1.0,
+      0.0,
+      "repeating",
+      "fragmented_edits:0c363a14eea9043e"
+    ],
+    [
+      "12eb3429dc69e478",
+      "implement",
+      "value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:implement edits change the software"
+    ],
+    [
+      "8529cea01d42b188",
+      "implement",
+      "avoidable",
+      1.0,
+      0.0,
+      "repeating",
+      "fragmented_edits:0c363a14eea9043e"
+    ],
+    [
+      "3a6966ef0e054a01",
+      "validate",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:validate is necessary but adds no value itself"
+    ],
+    [
+      "63a58bc98af34062",
+      "validate",
+      "necessary_non_value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:validate is necessary but adds no value itself"
+    ],
+    [
+      "c546d6039402b9c4",
+      "validate",
+      "avoidable",
+      1.0,
+      0.0,
+      "repeating",
+      "repeated_tool_call:c546d6039402b9c4"
+    ],
+    [
+      "d0a9e677d00c3c13",
+      "validate",
+      "avoidable",
+      1.0,
+      0.0,
+      "repeating",
+      "repeated_tool_call:c546d6039402b9c4"
+    ],
+    [
+      "4fa7eec5e701db40",
+      "respond",
+      "value_adding",
+      0.0,
+      0.0,
+      "progressing",
+      "stage:final response delivers the outcome"
+    ]
+  ],
+  "cycles": [],
+  "detectors": [
+    {
+      "confidence_rule": "0.90 when input and output are identical and nothing was edited in between; 0.85 for a validation re-run with no edit in between; 0.75 when edits happened in between but the output is still identical; 0.50 (uncertain) when an output was not observed. Different output: no finding. File reads and searches are left to repeated_exploration; a validation re-run after edits is left to rework_cycle.",
+      "id": "repeated_tool_call",
+      "kind": "waste",
+      "waste": "over_processing"
+    },
+    {
+      "confidence_rule": "0.85 when the same read or search (same arguments) returned identical output and the file was not edited in between; 0.55 (uncertain) when either output was not observed. A read after an edit of that file, a read of a different range, or a changed output is not a finding.",
+      "id": "repeated_exploration",
+      "kind": "waste",
+      "waste": "motion"
+    },
+    {
+      "confidence_rule": "Only cycles of the same validation command with edits in between. 0.80 when the next run fails with the same failure signature (timings and addresses ignored); 0.90 when that is the second or later identical failure in a row. A cycle whose next run passes or fails differently is productive iteration and is not a finding.",
+      "id": "rework_cycle",
+      "kind": "waste",
+      "waste": "rework"
+    },
+    {
+      "confidence_rule": "Judged per prompt, once the agent has responded after its edits. 0.85 when no validation ran in the whole session; 0.75 when validation ran earlier but not after these edits; 0.50 (uncertain) when every unvalidated edit is documentation. 0.85 when the last validation before the response failed.",
+      "id": "unvalidated_implementation",
+      "kind": "risk",
+      "waste": "defects"
+    },
+    {
+      "confidence_rule": "0.75 for an in-place edit of a file never read, written or named in an earlier search or shell output; 0.45 (uncertain) for writing a new file before any exploration at all in the session. One finding per file.",
+      "id": "premature_implementation",
+      "kind": "risk",
+      "waste": "defects"
+    },
+    {
+      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary; the rest as waste.",
+      "id": "excessive_planning",
+      "kind": "waste",
+      "waste": "over_processing"
+    },
+    {
+      "confidence_rule": "At least 3 consecutive edit calls to one file with only reasoning and their results in between. 0.70 for 3, plus 0.05 per extra edit, capped at 0.85. Only the round-trip overhead (results and waiting of edits after the first) is counted as waste, never the change itself.",
+      "id": "fragmented_edits",
+      "kind": "waste",
+      "waste": "over_processing"
+    },
+    {
+      "confidence_rule": "Judged only once the agent has responded after the read. A read counts as used when a later reasoning, response or tool call names the file, or names something the file defines, or edits it. Otherwise 0.65 when the file defined names that were never used, 0.55 when it defined none. Always uncertain: reading to rule something out is legitimate, and only repository evidence (L3) can tell.",
+      "id": "unused_context",
+      "kind": "waste",
+      "waste": "inventory"
+    },
+    {
+      "confidence_rule": "A later tool call by the agent itself shares at least 3 content words and at least half of the smaller word set with the handoff's task. Confidence 0.45 + 0.40 × overlap, capped at 0.85. The handoff (and its waiting time) is the waste; the agent's own call is kept.",
+      "id": "unnecessary_handoff",
+      "kind": "waste",
+      "waste": "handoffs"
+    },
+    {
+      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, and at most 25% of its content words are new (in neither the earlier block nor the prompt). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
+      "id": "repeated_reasoning",
+      "kind": "waste",
+      "waste": "over_processing"
+    },
+    {
+      "confidence_rule": "A whole-file write of a file the agent had itself written, keeping at least 80% of its lines: 0.80. A whole-file write of a file it had read (3+ lines), keeping at least 60% of them: 0.60 (uncertain; small files are often rewritten on purpose). The retained share of the write is waste.",
+      "id": "regeneration",
+      "kind": "waste",
+      "waste": "overproduction"
+    }
+  ],
+  "events": 29,
+  "evidence_graph": {
+    "edges": [
+      {
+        "source": "11dd3be920e41229",
+        "target": "f6592a7c2b8b29cd",
+        "type": "motivated_by"
+      },
+      {
+        "source": "62fcd90f604b8a22",
+        "target": "f6592a7c2b8b29cd",
+        "type": "motivated_by"
+      },
+      {
+        "source": "afa62c3fc87da043",
+        "target": "f6592a7c2b8b29cd",
+        "type": "motivated_by"
+      },
+      {
+        "source": "885640dbc628de1c",
+        "target": "afa62c3fc87da043",
+        "type": "completes"
+      },
+      {
+        "source": "787b76f5878f0c56",
+        "target": "885640dbc628de1c",
+        "type": "motivated_by"
+      },
+      {
+        "source": "4c20d65d717bf537",
+        "target": "787b76f5878f0c56",
+        "type": "completes"
+      },
+      {
+        "source": "f7059ba8a701f037",
+        "target": "4c20d65d717bf537",
+        "type": "motivated_by"
+      },
+      {
+        "source": "dc771e57dc3ec0aa",
+        "target": "4c20d65d717bf537",
+        "type": "motivated_by"
+      },
+      {
+        "source": "caff931cda4b3075",
+        "target": "dc771e57dc3ec0aa",
+        "type": "completes"
+      },
+      {
+        "source": "26d689fc6e48e582",
+        "target": "caff931cda4b3075",
+        "type": "motivated_by"
+      },
+      {
+        "source": "04fb1b1d585306b6",
+        "target": "26d689fc6e48e582",
+        "type": "completes"
+      },
+      {
+        "source": "d3419f3fcdb0f607",
+        "target": "dc771e57dc3ec0aa",
+        "type": "repeats"
+      },
+      {
+        "source": "d3419f3fcdb0f607",
+        "target": "04fb1b1d585306b6",
+        "type": "motivated_by"
+      },
+      {
+        "source": "e815b1e3c3bd3d9a",
+        "target": "d3419f3fcdb0f607",
+        "type": "completes"
+      },
+      {
+        "source": "23e8557e97c5cf7b",
+        "target": "f6592a7c2b8b29cd",
+        "type": "motivated_by"
+      },
+      {
+        "source": "23e8557e97c5cf7b",
+        "target": "e815b1e3c3bd3d9a",
+        "type": "motivated_by"
+      },
+      {
+        "source": "3f1b4d7739855dfc",
+        "target": "23e8557e97c5cf7b",
+        "type": "completes"
+      },
+      {
+        "source": "bbef9c623af73c14",
+        "target": "f6592a7c2b8b29cd",
+        "type": "motivated_by"
+      },
+      {
+        "source": "bbef9c623af73c14",
+        "target": "3f1b4d7739855dfc",
+        "type": "motivated_by"
+      },
+      {
+        "source": "c25006b6c17cfaae",
+        "target": "bbef9c623af73c14",
+        "type": "completes"
+      },
+      {
+        "source": "201a5b895ab673e9",
+        "target": "f6592a7c2b8b29cd",
+        "type": "motivated_by"
+      },
+      {
+        "source": "201a5b895ab673e9",
+        "target": "04fb1b1d585306b6",
+        "type": "motivated_by"
+      },
+      {
+        "source": "201a5b895ab673e9",
+        "target": "c25006b6c17cfaae",
+        "type": "motivated_by"
+      },
+      {
+        "source": "b1b25b79327612cc",
+        "target": "201a5b895ab673e9",
+        "type": "completes"
+      },
+      {
+        "source": "afd57e70643ee1c4",
+        "target": "f6592a7c2b8b29cd",
+        "type": "motivated_by"
+      },
+      {
+        "source": "afd57e70643ee1c4",
+        "target": "04fb1b1d585306b6",
+        "type": "motivated_by"
+      },
+      {
+        "source": "afd57e70643ee1c4",
+        "target": "b1b25b79327612cc",
+        "type": "motivated_by"
+      },
+      {
+        "source": "0c363a14eea9043e",
+        "target": "afd57e70643ee1c4",
+        "type": "completes"
+      },
+      {
+        "source": "12eb3429dc69e478",
+        "target": "f6592a7c2b8b29cd",
+        "type": "motivated_by"
+      },
+      {
+        "source": "12eb3429dc69e478",
+        "target": "04fb1b1d585306b6",
+        "type": "motivated_by"
+      },
+      {
+        "source": "12eb3429dc69e478",
+        "target": "0c363a14eea9043e",
+        "type": "motivated_by"
+      },
+      {
+        "source": "8529cea01d42b188",
+        "target": "12eb3429dc69e478",
+        "type": "completes"
+      },
+      {
+        "source": "3a6966ef0e054a01",
+        "target": "23e8557e97c5cf7b",
+        "type": "validates"
+      },
+      {
+        "source": "3a6966ef0e054a01",
+        "target": "bbef9c623af73c14",
+        "type": "validates"
+      },
+      {
+        "source": "3a6966ef0e054a01",
+        "target": "201a5b895ab673e9",
+        "type": "validates"
+      },
+      {
+        "source": "3a6966ef0e054a01",
+        "target": "afd57e70643ee1c4",
+        "type": "validates"
+      },
+      {
+        "source": "3a6966ef0e054a01",
+        "target": "12eb3429dc69e478",
+        "type": "validates"
+      },
+      {
+        "source": "3a6966ef0e054a01",
+        "target": "8529cea01d42b188",
+        "type": "motivated_by"
+      },
+      {
+        "source": "63a58bc98af34062",
+        "target": "3a6966ef0e054a01",
+        "type": "completes"
+      },
+      {
+        "source": "c546d6039402b9c4",
+        "target": "3a6966ef0e054a01",
+        "type": "repeats"
+      },
+      {
+        "source": "c546d6039402b9c4",
+        "target": "63a58bc98af34062",
+        "type": "motivated_by"
+      },
+      {
+        "source": "d0a9e677d00c3c13",
+        "target": "c546d6039402b9c4",
+        "type": "completes"
+      },
+      {
+        "source": "4fa7eec5e701db40",
+        "target": "d0a9e677d00c3c13",
+        "type": "motivated_by"
+      }
+    ],
+    "nodes": [
+      {
+        "activity_class": null,
+        "id": "f6592a7c2b8b29cd",
+        "index": 0,
+        "kind": "intent.stated",
+        "label": "intent.stated",
+        "stage": "intent",
+        "tool": null
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "11dd3be920e41229",
+        "index": 1,
+        "kind": "reasoning",
+        "label": "reasoning",
+        "stage": "plan",
+        "tool": null
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "62fcd90f604b8a22",
+        "index": 2,
+        "kind": "reasoning",
+        "label": "reasoning",
+        "stage": "plan",
+        "tool": null
+      },
+      {
+        "activity_class": "avoidable",
+        "id": "afa62c3fc87da043",
+        "index": 3,
+        "kind": "tool.requested",
+        "label": "TodoWrite plan.todo",
+        "stage": "plan",
+        "tool": "plan.todo"
+      },
+      {
+        "activity_class": "avoidable",
+        "id": "885640dbc628de1c",
+        "index": 4,
+        "kind": "tool.completed",
+        "label": "result: TodoWrite plan.todo",
+        "stage": "plan",
+        "tool": "plan.todo"
+      },
+      {
+        "activity_class": "avoidable",
+        "id": "787b76f5878f0c56",
+        "index": 5,
+        "kind": "tool.requested",
+        "label": "TodoWrite plan.todo",
+        "stage": "plan",
+        "tool": "plan.todo"
+      },
+      {
+        "activity_class": "avoidable",
+        "id": "4c20d65d717bf537",
+        "index": 6,
+        "kind": "tool.completed",
+        "label": "result: TodoWrite plan.todo",
+        "stage": "plan",
+        "tool": "plan.todo"
+      },
+      {
+        "activity_class": "avoidable",
+        "id": "f7059ba8a701f037",
+        "index": 7,
+        "kind": "reasoning",
+        "label": "reasoning",
+        "stage": "plan",
+        "tool": null
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "dc771e57dc3ec0aa",
+        "index": 8,
+        "kind": "tool.requested",
+        "label": "Bash ls src tests",
+        "stage": "explore",
+        "tool": "exec.shell"
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "caff931cda4b3075",
+        "index": 9,
+        "kind": "tool.completed",
+        "label": "result: Bash ls src tests",
+        "stage": "explore",
+        "tool": "exec.shell"
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "26d689fc6e48e582",
+        "index": 10,
+        "kind": "tool.requested",
+        "label": "Read src/net.py",
+        "stage": "explore",
+        "tool": "fs.read"
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "04fb1b1d585306b6",
+        "index": 11,
+        "kind": "tool.completed",
+        "label": "result: Read src/net.py",
+        "stage": "explore",
+        "tool": "fs.read"
+      },
+      {
+        "activity_class": "avoidable",
+        "id": "d3419f3fcdb0f607",
+        "index": 12,
+        "kind": "tool.requested",
+        "label": "Bash ls src tests",
+        "stage": "explore",
+        "tool": "exec.shell"
+      },
+      {
+        "activity_class": "avoidable",
+        "id": "e815b1e3c3bd3d9a",
+        "index": 13,
+        "kind": "tool.completed",
+        "label": "result: Bash ls src tests",
+        "stage": "explore",
+        "tool": "exec.shell"
+      },
+      {
+        "activity_class": "value_adding",
+        "id": "23e8557e97c5cf7b",
+        "index": 14,
+        "kind": "tool.requested",
+        "label": "Write src/retry.py",
+        "stage": "implement",
+        "tool": "fs.write"
+      },
+      {
+        "activity_class": "value_adding",
+        "id": "3f1b4d7739855dfc",
+        "index": 15,
+        "kind": "tool.completed",
+        "label": "result: Write src/retry.py",
+        "stage": "implement",
+        "tool": "fs.write"
+      },
+      {
+        "activity_class": "value_adding",
+        "id": "bbef9c623af73c14",
+        "index": 16,
+        "kind": "tool.requested",
+        "label": "Write src/retry.py",
+        "stage": "implement",
+        "tool": "fs.write"
+      },
+      {
+        "activity_class": "value_adding",
+        "id": "c25006b6c17cfaae",
+        "index": 17,
+        "kind": "tool.completed",
+        "label": "result: Write src/retry.py",
+        "stage": "implement",
+        "tool": "fs.write"
+      },
+      {
+        "activity_class": "value_adding",
+        "id": "201a5b895ab673e9",
+        "index": 18,
+        "kind": "tool.requested",
+        "label": "Edit src/net.py",
+        "stage": "implement",
+        "tool": "fs.edit"
+      },
+      {
+        "activity_class": "value_adding",
+        "id": "b1b25b79327612cc",
+        "index": 19,
+        "kind": "tool.completed",
+        "label": "result: Edit src/net.py",
+        "stage": "implement",
+        "tool": "fs.edit"
+      },
+      {
+        "activity_class": "value_adding",
+        "id": "afd57e70643ee1c4",
+        "index": 20,
+        "kind": "tool.requested",
+        "label": "Edit src/net.py",
+        "stage": "implement",
+        "tool": "fs.edit"
+      },
+      {
+        "activity_class": "avoidable",
+        "id": "0c363a14eea9043e",
+        "index": 21,
+        "kind": "tool.completed",
+        "label": "result: Edit src/net.py",
+        "stage": "implement",
+        "tool": "fs.edit"
+      },
+      {
+        "activity_class": "value_adding",
+        "id": "12eb3429dc69e478",
+        "index": 22,
+        "kind": "tool.requested",
+        "label": "Edit src/net.py",
+        "stage": "implement",
+        "tool": "fs.edit"
+      },
+      {
+        "activity_class": "avoidable",
+        "id": "8529cea01d42b188",
+        "index": 23,
+        "kind": "tool.completed",
+        "label": "result: Edit src/net.py",
+        "stage": "implement",
+        "tool": "fs.edit"
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "3a6966ef0e054a01",
+        "index": 24,
+        "kind": "tool.requested",
+        "label": "Bash pytest tests/test_net.py -q",
+        "stage": "validate",
+        "tool": "exec.shell"
+      },
+      {
+        "activity_class": "necessary_non_value_adding",
+        "id": "63a58bc98af34062",
+        "index": 25,
+        "kind": "tool.completed",
+        "label": "result: Bash pytest tests/test_net.py -q (failed)",
+        "stage": "validate",
+        "tool": "exec.shell"
+      },
+      {
+        "activity_class": "avoidable",
+        "id": "c546d6039402b9c4",
+        "index": 26,
+        "kind": "tool.requested",
+        "label": "Bash pytest tests/test_net.py -q",
+        "stage": "validate",
+        "tool": "exec.shell"
+      },
+      {
+        "activity_class": "avoidable",
+        "id": "d0a9e677d00c3c13",
+        "index": 27,
+        "kind": "tool.completed",
+        "label": "result: Bash pytest tests/test_net.py -q (failed)",
+        "stage": "validate",
+        "tool": "exec.shell"
+      },
+      {
+        "activity_class": "value_adding",
+        "id": "4fa7eec5e701db40",
+        "index": 28,
+        "kind": "response",
+        "label": "response",
+        "stage": "respond",
+        "tool": null
+      }
+    ],
+    "schema": "ter.evidence/0.1",
+    "session_id": "golden-lean-mix"
+  },
+  "findings": [
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.8,
+      "context_tokens": 0,
+      "detector": "regeneration",
+      "evidence": [
+        "23e8557e97c5cf7b",
+        "bbef9c623af73c14"
+      ],
+      "explanation": "The agent rewrote src/retry.py, a file it had written itself, keeping 100% of its lines; 92% of the new file repeats existing content. An in-place edit would have produced only the change.",
+      "id": "regeneration:bbef9c623af73c14",
+      "kind": "waste",
+      "seconds": 5.5,
+      "share": 0.9167,
+      "subject": "src/retry.py",
+      "title": "Rewrote src/retry.py in full",
+      "tokens": 138,
+      "uncertain": false,
+      "waste": "overproduction",
+      "waste_events": [
+        "bbef9c623af73c14"
+      ]
+    },
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.8,
+      "context_tokens": 4,
+      "detector": "excessive_planning",
+      "evidence": [
+        "11dd3be920e41229",
+        "62fcd90f604b8a22",
+        "afa62c3fc87da043",
+        "885640dbc628de1c",
+        "787b76f5878f0c56",
+        "4c20d65d717bf537",
+        "f7059ba8a701f037"
+      ],
+      "explanation": "5 reasoning or to-do steps in a row before the agent explored, edited, checked or answered anything.",
+      "id": "excessive_planning:afa62c3fc87da043",
+      "kind": "waste",
+      "seconds": 15.0,
+      "share": 1.0,
+      "subject": "5 planning steps",
+      "title": "5 planning steps without acting",
+      "tokens": 103,
+      "uncertain": false,
+      "waste": "over_processing",
+      "waste_events": [
+        "afa62c3fc87da043",
+        "885640dbc628de1c",
+        "787b76f5878f0c56",
+        "4c20d65d717bf537",
+        "f7059ba8a701f037"
+      ]
+    },
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.85,
+      "context_tokens": 35,
+      "detector": "repeated_tool_call",
+      "evidence": [
+        "3a6966ef0e054a01",
+        "63a58bc98af34062",
+        "c546d6039402b9c4",
+        "d0a9e677d00c3c13"
+      ],
+      "explanation": "Bash was called again with the same input (pytest tests/test_net.py -q). No file was edited between the two runs, so the second could not tell the agent anything new.",
+      "id": "repeated_tool_call:c546d6039402b9c4",
+      "kind": "waste",
+      "seconds": 6.0,
+      "share": 1.0,
+      "subject": "pytest tests/test_net.py -q",
+      "title": "Repeated validation run",
+      "tokens": 18,
+      "uncertain": false,
+      "waste": "over_processing",
+      "waste_events": [
+        "c546d6039402b9c4",
+        "d0a9e677d00c3c13"
+      ]
+    },
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.9,
+      "context_tokens": 15,
+      "detector": "repeated_tool_call",
+      "evidence": [
+        "dc771e57dc3ec0aa",
+        "caff931cda4b3075",
+        "d3419f3fcdb0f607",
+        "e815b1e3c3bd3d9a"
+      ],
+      "explanation": "Bash was called again with the same input (ls src tests). Nothing changed in between and the result was identical.",
+      "id": "repeated_tool_call:d3419f3fcdb0f607",
+      "kind": "waste",
+      "seconds": 6.0,
+      "share": 1.0,
+      "subject": "ls src tests",
+      "title": "Repeated Bash call",
+      "tokens": 11,
+      "uncertain": false,
+      "waste": "over_processing",
+      "waste_events": [
+        "d3419f3fcdb0f607",
+        "e815b1e3c3bd3d9a"
+      ]
+    },
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.7,
+      "context_tokens": 22,
+      "detector": "fragmented_edits",
+      "evidence": [
+        "201a5b895ab673e9",
+        "b1b25b79327612cc",
+        "afd57e70643ee1c4",
+        "0c363a14eea9043e",
+        "12eb3429dc69e478",
+        "8529cea01d42b188"
+      ],
+      "explanation": "3 consecutive edits to src/net.py, each a separate tool round trip, where one multi-edit would do.",
+      "id": "fragmented_edits:0c363a14eea9043e",
+      "kind": "waste",
+      "seconds": 0.0,
+      "share": 1.0,
+      "subject": "src/net.py",
+      "title": "3 separate edits to src/net.py",
+      "tokens": 0,
+      "uncertain": false,
+      "waste": "over_processing",
+      "waste_events": [
+        "0c363a14eea9043e",
+        "8529cea01d42b188"
+      ]
+    },
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.85,
+      "context_tokens": 0,
+      "detector": "unvalidated_implementation",
+      "evidence": [
+        "c546d6039402b9c4",
+        "d0a9e677d00c3c13",
+        "4fa7eec5e701db40"
+      ],
+      "explanation": "The last validation, `pytest tests/test_net.py -q`, failed and the agent responded without fixing or re-running it.",
+      "id": "unvalidated_implementation:c546d6039402b9c4",
+      "kind": "risk",
+      "seconds": 0.0,
+      "share": 0.0,
+      "subject": "pytest tests/test_net.py -q",
+      "title": "Responded after a failing check",
+      "tokens": 0,
+      "uncertain": false,
+      "waste": "defects",
+      "waste_events": []
+    }
+  ],
+  "schema": "ter.lean/0.1",
+  "scorecard": {
+    "activity_seconds": {
+      "avoidable": 32.5,
+      "necessary_non_value_adding": 24.0,
+      "uncertain": 0.0,
+      "value_adding": 27.5
+    },
+    "activity_tokens": {
+      "avoidable": 270,
+      "necessary_non_value_adding": 83,
+      "uncertain": 0,
+      "value_adding": 344
+    },
+    "agent_seconds": 84.0,
+    "composite": {
+      "components": [
+        {
+          "name": "Flow efficiency (tokens)",
+          "value": 0.6126,
+          "weight": 0.3333
+        },
+        {
+          "name": "Flow efficiency (time)",
+          "value": 0.6131,
+          "weight": 0.3333
+        },
+        {
+          "name": "TER",
+          "value": 0.7713,
+          "weight": 0.3333
+        }
+      ],
+      "formula": "Unweighted mean of Flow efficiency (tokens), Flow efficiency (time), TER.",
+      "value": 0.6657
+    },
+    "context_tokens": 196,
+    "developer_seconds": 0.0,
+    "findings": 5,
+    "flow_efficiency_time": 0.6131,
+    "flow_efficiency_tokens": 0.6126,
+    "flow_seconds": {
+      "inventory": 0.0,
+      "progressing": 51.5,
+      "recovering": 0.0,
+      "repeating": 27.0,
+      "reworking": 5.5,
+      "waiting": 0.0
+    },
+    "flow_tokens": {
+      "inventory": 0,
+      "progressing": 427,
+      "recovering": 0,
+      "repeating": 132,
+      "reworking": 138,
+      "waiting": 0
+    },
+    "generated_tokens": 697,
+    "iterations": 0,
+    "rework_cycles": 0,
+    "risks": 1,
+    "ter": {
+      "method": "TER 3, offline (regex-v1 tokens, lexical-hash-384 embeddings)",
+      "value": 0.7713
+    },
+    "uncertain_findings": 0,
+    "uncertain_waste_tokens": 0,
+    "waste_context_tokens": 76,
+    "waste_seconds": 32.5,
+    "waste_tokens": 270
+  },
+  "session_id": "golden-lean-mix",
+  "value_stream": [
+    {
+      "avoidable_tokens": 0,
+      "context_tokens": 0,
+      "findings": [],
+      "seconds": 0.0,
+      "stage": "intent",
+      "steps": 1,
+      "tokens": 0,
+      "uncertain_tokens": 0
+    },
+    {
+      "avoidable_tokens": 11,
+      "context_tokens": 70,
+      "findings": [
+        "repeated_tool_call:d3419f3fcdb0f607"
+      ],
+      "seconds": 18.0,
+      "stage": "explore",
+      "steps": 3,
+      "tokens": 37,
+      "uncertain_tokens": 0
+    },
+    {
+      "avoidable_tokens": 103,
+      "context_tokens": 4,
+      "findings": [
+        "excessive_planning:afa62c3fc87da043"
+      ],
+      "seconds": 21.0,
+      "stage": "plan",
+      "steps": 5,
+      "tokens": 142,
+      "uncertain_tokens": 0
+    },
+    {
+      "avoidable_tokens": 138,
+      "context_tokens": 52,
+      "findings": [
+        "regeneration:bbef9c623af73c14",
+        "fragmented_edits:0c363a14eea9043e"
+      ],
+      "seconds": 30.0,
+      "stage": "implement",
+      "steps": 5,
+      "tokens": 435,
+      "uncertain_tokens": 0
+    },
+    {
+      "avoidable_tokens": 18,
+      "context_tokens": 70,
+      "findings": [
+        "repeated_tool_call:c546d6039402b9c4",
+        "unvalidated_implementation:c546d6039402b9c4"
+      ],
+      "seconds": 12.0,
+      "stage": "validate",
+      "steps": 2,
+      "tokens": 36,
+      "uncertain_tokens": 0
+    },
+    {
+      "avoidable_tokens": 0,
+      "context_tokens": 0,
+      "findings": [
+        "unvalidated_implementation:c546d6039402b9c4"
+      ],
+      "seconds": 3.0,
+      "stage": "respond",
+      "steps": 1,
+      "tokens": 47,
+      "uncertain_tokens": 0
+    }
+  ]
+}

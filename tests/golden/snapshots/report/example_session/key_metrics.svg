@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 80" width="720" height="80" role="img" class="ter-chart-svg" aria-labelledby="key-metrics-title key-metrics-desc" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+<title id="key-metrics-title">Key metrics</title>
+<desc id="key-metrics-desc">TER: 0.81; Scored tokens: 481; Waste: 13.1%; Est. cost: $0.0113; Reliability: low</desc>
+<rect width="720" height="80" rx="8" fill="#fcfcfb" class="ter-f-surface"/>
+<text x="72.0" y="28.0" fill="#6f6d68" class="ter-f-muted" font-size="12" text-anchor="middle">TER</text>
+<text x="72.0" y="58.0" fill="#0b0b0b" class="ter-f-ink" font-size="25" font-weight="700" text-anchor="middle">0.81</text>
+<text x="216.0" y="28.0" fill="#6f6d68" class="ter-f-muted" font-size="12" text-anchor="middle">Scored tokens</text>
+<text x="216.0" y="58.0" fill="#0b0b0b" class="ter-f-ink" font-size="25" font-weight="700" text-anchor="middle">481</text>
+<text x="360.0" y="28.0" fill="#6f6d68" class="ter-f-muted" font-size="12" text-anchor="middle">Waste</text>
+<text x="360.0" y="58.0" fill="#0b0b0b" class="ter-f-ink" font-size="25" font-weight="700" text-anchor="middle">13.1%</text>
+<text x="504.0" y="28.0" fill="#6f6d68" class="ter-f-muted" font-size="12" text-anchor="middle">Est. cost</text>
+<text x="504.0" y="58.0" fill="#0b0b0b" class="ter-f-ink" font-size="25" font-weight="700" text-anchor="middle">$0.0113</text>
+<text x="648.0" y="28.0" fill="#6f6d68" class="ter-f-muted" font-size="12" text-anchor="middle">Reliability</text>
+<text x="648.0" y="58.0" fill="#0b0b0b" class="ter-f-ink" font-size="25" font-weight="700" text-anchor="middle">low</text>
+</svg>

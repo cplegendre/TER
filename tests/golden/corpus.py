@@ -15,6 +15,8 @@ SYNTHETIC_SESSIONS: tuple[str, ...] = (
     "duplicate_exploration",
     "handoff_fetch",
     "intent_shift",
+    "iteration_converges",
+    "lean_mix",
     "rework_loop",
 )
 
@@ -26,4 +28,19 @@ CORPUS: dict[str, Path] = {
 }
 
 #: Snapshot kinds every session must have, as ``<name>.<kind>.json``.
-SNAPSHOT_KINDS: tuple[str, ...] = ("default", "fine", "events", "stream")
+SNAPSHOT_KINDS: tuple[str, ...] = (
+    "default",
+    "fine",
+    "events",
+    "stream",
+    "report",
+    "lean",
+    "a3",
+)
+
+#: Rendered report files every session must have, as ``report/<name>.<kind>``.
+REPORT_KINDS: tuple[str, ...] = ("html", "a3.html")
+
+#: Sessions whose standalone charts are also frozen, as
+#: ``report/<name>/<chart>.svg``.
+CHART_SESSIONS: tuple[str, ...] = ("example_session",)

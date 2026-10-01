@@ -1,50 +1,37 @@
 """Inline SVG chart generation for TER analysis results.
 
-Produces standalone SVG strings with no external dependencies.
-Uses a validated categorical palette following dataviz accessibility guidelines.
+Produces standalone SVG strings with no external dependencies. The drawing
+primitives (stat tiles, stacked bar, horizontal bar) and the colour palette
+now live in TER 4's reports adapter,
+:mod:`ter.adapters.driving.reports`; this module keeps its public API and
+maps a ``TERResult`` onto them.
 """
 
 from __future__ import annotations
 
-import html
 from collections import Counter
+from collections.abc import Callable
+
+from ter.adapters.driving.reports import palette as _palette
+from ter.adapters.driving.reports import svg as _svg
 
 from .models import TERResult
 
-# Validated categorical palette (light mode) — fixed order, CVD-safe adjacent pairs.
-PALETTE = [
-    "#2a78d6",  # blue
-    "#eb6834",  # orange
-    "#1baf7a",  # aqua
-    "#eda100",  # yellow
-    "#e87ba4",  # magenta
-    "#008300",  # green
-    "#4a3aa7",  # violet
-    "#e34948",  # red
-]
-
-_INK_PRIMARY = "#0b0b0b"
-_INK_SECONDARY = "#52514e"
-_INK_MUTED = "#898781"
-_SURFACE = "#fcfcfb"
-_GRIDLINE = "#e1e0d9"
-_BASELINE = "#c3c2b7"
+# Validated categorical palette (light mode): fixed order, CVD-safe adjacent
+# pairs. Defined once in ``ter.adapters.driving.reports.palette``.
+PALETTE = list(_palette.PALETTE)
 
 
 def _esc(text: str) -> str:
-    return html.escape(str(text))
+    return _svg.esc(text)
 
 
 def _fmt_tokens(n: int) -> str:
-    if n >= 1_000_000:
-        return f"{n / 1_000_000:.1f}M"
-    if n >= 1_000:
-        return f"{n / 1_000:.1f}k"
-    return str(n)
+    return _svg.fmt_tokens(n)
 
 
 def _fmt_pct(val: float) -> str:
-    return f"{val * 100:.1f}%"
+    return _svg.fmt_pct(val)
 
 
 def _fmt_cost(val: float) -> str:
@@ -52,7 +39,7 @@ def _fmt_cost(val: float) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Horizontal stacked bar
+# Primitives (delegated to the TER 4 reports adapter)
 # ---------------------------------------------------------------------------
 
 
@@ -63,72 +50,12 @@ def _stacked_bar_svg(
     bar_height: int = 42,
 ) -> str:
     """Horizontal stacked bar chart. segments: [(label, value, color), ...]."""
-    total = sum(v for _, v, _ in segments)
-    if total == 0:
-        return ""
-
-    top_margin = 36
-    bottom_margin = 56
-    left_margin = 16
-    right_margin = 16
-    bar_width = width - left_margin - right_margin
-    height = top_margin + bar_height + bottom_margin
-
-    parts: list[str] = []
-    parts.append(
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}"'
-        f' width="{width}" height="{height}" role="img"'
-        f' aria-label="{_esc(title)}">'
+    return _svg.stacked_bar(
+        title,
+        [(label, float(value), color) for label, value, color in segments],
+        width=width,
+        bar_height=bar_height,
     )
-    parts.append(f'<rect width="{width}" height="{height}" fill="{_SURFACE}" rx="8"/>')
-    parts.append(
-        f'<text x="{left_margin}" y="24" fill="{_INK_PRIMARY}"'
-        f' font-family="system-ui,sans-serif" font-size="15" font-weight="600">'
-        f"{_esc(title)}</text>"
-    )
-
-    x = float(left_margin)
-    gap = 2
-    for i, (label, value, color) in enumerate(segments):
-        w = (value / total) * bar_width - (gap if i < len(segments) - 1 else 0)
-        if w < 1:
-            x += w + gap
-            continue
-        parts.append(
-            f'<rect x="{x:.1f}" y="{top_margin}" width="{max(w, 0):.1f}"'
-            f' height="{bar_height}" rx="4" fill="{color}">'
-            f"<title>{_esc(label)}: {_fmt_tokens(value)}</title></rect>"
-        )
-        if w > 50:
-            parts.append(
-                f'<text x="{x + w / 2:.1f}" y="{top_margin + bar_height / 2 + 5}"'
-                f' text-anchor="middle" fill="#fff"'
-                f' font-family="system-ui,sans-serif" font-size="12" font-weight="500">'
-                f"{_fmt_pct(value / total)}</text>"
-            )
-        x += w + gap
-
-    legend_y = top_margin + bar_height + 18
-    lx = float(left_margin)
-    for label, value, color in segments:
-        parts.append(
-            f'<rect x="{lx:.1f}" y="{legend_y}" width="10" height="10" rx="2"'
-            f' fill="{color}"/>'
-        )
-        text = f"{_esc(label)} ({_fmt_tokens(value)})"
-        parts.append(
-            f'<text x="{lx + 14:.1f}" y="{legend_y + 9}" fill="{_INK_SECONDARY}"'
-            f' font-family="system-ui,sans-serif" font-size="11">{text}</text>'
-        )
-        lx += len(text) * 6.2 + 30
-
-    parts.append("</svg>")
-    return "\n".join(parts)
-
-
-# ---------------------------------------------------------------------------
-# Horizontal bar chart (magnitude comparison)
-# ---------------------------------------------------------------------------
 
 
 def _horizontal_bar_svg(
@@ -136,64 +63,12 @@ def _horizontal_bar_svg(
     items: list[tuple[str, float, str]],
     width: int = 640,
     bar_height: int = 28,
-    format_value=None,
+    format_value: Callable[[float], str] | None = None,
 ) -> str:
     """Horizontal bar chart. items: [(label, value, color), ...]."""
-    if not items:
-        return ""
-
-    format_value = format_value or (lambda v: f"{v:.2f}")
-    max_val = max(v for _, v, _ in items) or 1.0
-
-    top_margin = 36
-    label_width = 140
-    right_margin = 70
-    row_gap = 8
-    chart_width = width - label_width - right_margin
-    bar_area_height = len(items) * (bar_height + row_gap)
-    height = top_margin + bar_area_height + 8
-
-    parts: list[str] = []
-    parts.append(
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}"'
-        f' width="{width}" height="{height}" role="img"'
-        f' aria-label="{_esc(title)}">'
+    return _svg.horizontal_bar(
+        title, items, width=width, bar_height=bar_height, format_value=format_value
     )
-    parts.append(f'<rect width="{width}" height="{height}" fill="{_SURFACE}" rx="8"/>')
-    parts.append(
-        f'<text x="16" y="24" fill="{_INK_PRIMARY}"'
-        f' font-family="system-ui,sans-serif" font-size="15" font-weight="600">'
-        f"{_esc(title)}</text>"
-    )
-
-    for i, (label, value, color) in enumerate(items):
-        y = top_margin + i * (bar_height + row_gap)
-        bar_w = (value / max_val) * chart_width if max_val > 0 else 0
-
-        parts.append(
-            f'<text x="{label_width - 8}" y="{y + bar_height / 2 + 4}"'
-            f' text-anchor="end" fill="{_INK_SECONDARY}"'
-            f' font-family="system-ui,sans-serif" font-size="12">'
-            f"{_esc(label)}</text>"
-        )
-        parts.append(
-            f'<rect x="{label_width}" y="{y}" width="{max(bar_w, 2):.1f}"'
-            f' height="{bar_height}" rx="4" fill="{color}"/>'
-        )
-        parts.append(
-            f'<text x="{label_width + bar_w + 6:.1f}" y="{y + bar_height / 2 + 4}"'
-            f' fill="{_INK_PRIMARY}"'
-            f' font-family="system-ui,sans-serif" font-size="12" font-weight="500">'
-            f"{_esc(format_value(value))}</text>"
-        )
-
-    parts.append("</svg>")
-    return "\n".join(parts)
-
-
-# ---------------------------------------------------------------------------
-# Stat tiles row
-# ---------------------------------------------------------------------------
 
 
 def _stat_tile_svg(
@@ -201,35 +76,7 @@ def _stat_tile_svg(
     width: int = 640,
 ) -> str:
     """Row of stat tiles. metrics: [(label, value_str), ...]."""
-    if not metrics:
-        return ""
-
-    tile_count = len(metrics)
-    tile_w = width // tile_count
-    height = 80
-
-    parts: list[str] = []
-    parts.append(
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}"'
-        f' width="{width}" height="{height}" role="img" aria-label="Key metrics">'
-    )
-    parts.append(f'<rect width="{width}" height="{height}" fill="{_SURFACE}" rx="8"/>')
-
-    for i, (label, value) in enumerate(metrics):
-        x = i * tile_w + tile_w // 2
-        parts.append(
-            f'<text x="{x}" y="28" text-anchor="middle" fill="{_INK_MUTED}"'
-            f' font-family="system-ui,sans-serif" font-size="12">'
-            f"{_esc(label)}</text>"
-        )
-        parts.append(
-            f'<text x="{x}" y="58" text-anchor="middle" fill="{_INK_PRIMARY}"'
-            f' font-family="system-ui,sans-serif" font-size="25" font-weight="700">'
-            f"{_esc(value)}</text>"
-        )
-
-    parts.append("</svg>")
-    return "\n".join(parts)
+    return _svg.stat_tiles(metrics, width=width)
 
 
 # ---------------------------------------------------------------------------

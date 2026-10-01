@@ -11,7 +11,15 @@ as hooks and the CLI.
 
 from __future__ import annotations
 
-from .driven import Clock, Embedder, EventLog, PriceBook, SessionSource, Tokenizer
+from .driven import (
+    Clock,
+    Embedder,
+    EventLog,
+    PriceBook,
+    SessionSource,
+    TerScorer,
+    Tokenizer,
+)
 from .driving import EventIngest
 
 __all__ = [
@@ -21,5 +29,6 @@ __all__ = [
     "EventLog",
     "PriceBook",
     "SessionSource",
+    "TerScorer",
     "Tokenizer",
 ]

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 174" width="720" height="174" role="img" class="ter-chart-svg" aria-labelledby="span-timeline-title span-timeline-desc" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+<title id="span-timeline-title">Span timeline</title>
+<desc id="span-timeline-desc">9 classified spans in session order, one lane per phase. 6 aligned, 3 waste (63 waste tokens).</desc>
+<rect width="720" height="174" rx="8" fill="#fcfcfb" class="ter-f-surface"/>
+<defs><pattern id="span-timeline-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#ffffff" stroke-width="2" stroke-opacity="0.55"/></pattern></defs>
+<text x="16.0" y="24.0" fill="#0b0b0b" class="ter-f-ink" font-size="15" font-weight="600">Span timeline</text>
+<rect x="16.0" y="36.0" width="10" height="10" rx="2" fill="#2a78d6" class="ter-f-aligned"/>
+<text x="30.0" y="45.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Aligned</text>
+<rect x="89.4" y="36.0" width="10" height="10" rx="2" fill="#e34948" class="ter-f-waste"/>
+<text x="103.4" y="45.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Waste (hatched)</text>
+<rect x="89.4" y="36" width="10" height="10" rx="2" fill="url(#span-timeline-hatch)"/>
+<text x="88.0" y="77.0" fill="#52514e" class="ter-f-ink-2" font-size="12" text-anchor="end">Reasoning</text>
+<rect x="96" y="62" width="608" height="22" rx="3" fill="#e1e0d9" class="ter-f-grid" fill-opacity="0.45"/>
+<text x="88.0" y="105.0" fill="#52514e" class="ter-f-ink-2" font-size="12" text-anchor="end">Tool use</text>
+<rect x="96" y="90" width="608" height="22" rx="3" fill="#e1e0d9" class="ter-f-grid" fill-opacity="0.45"/>
+<text x="88.0" y="133.0" fill="#52514e" class="ter-f-ink-2" font-size="12" text-anchor="end">Generation</text>
+<rect x="96" y="118" width="608" height="22" rx="3" fill="#e1e0d9" class="ter-f-grid" fill-opacity="0.45"/>
+<rect x="96.00" y="62" width="66.56" height="22" fill="#e34948" class="ter-f-waste"><title>Span 0: Redundant reasoning, Reasoning, 17 tokens, confidence 0.60</title></rect>
+<rect x="96.00" y="62" width="66.56" height="22" fill="url(#span-timeline-hatch)" pointer-events="none"/>
+<rect x="163.56" y="118" width="66.56" height="22" fill="#2a78d6" class="ter-f-aligned"><title>Span 1: Aligned response, Generation, 13 tokens, confidence 0.50</title></rect>
+<rect x="231.11" y="90" width="66.56" height="22" fill="#2a78d6" class="ter-f-aligned"><title>Span 2: Aligned tool call, Tool use, 28 tokens, confidence 0.60</title></rect>
+<rect x="298.67" y="62" width="66.56" height="22" fill="#2a78d6" class="ter-f-aligned"><title>Span 3: Aligned reasoning, Reasoning, 30 tokens, confidence 0.50</title></rect>
+<rect x="366.22" y="90" width="66.56" height="22" fill="#e34948" class="ter-f-waste"><title>Span 4: Unnecessary tool call, Tool use, 28 tokens, confidence 1.00</title></rect>
+<rect x="366.22" y="90" width="66.56" height="22" fill="url(#span-timeline-hatch)" pointer-events="none"/>
+<rect x="433.78" y="62" width="66.56" height="22" fill="#e34948" class="ter-f-waste"><title>Span 5: Redundant reasoning, Reasoning, 18 tokens, confidence 0.60</title></rect>
+<rect x="433.78" y="62" width="66.56" height="22" fill="url(#span-timeline-hatch)" pointer-events="none"/>
+<rect x="501.33" y="90" width="66.56" height="22" fill="#2a78d6" class="ter-f-aligned"><title>Span 6: Aligned tool call, Tool use, 191 tokens, confidence 0.60</title></rect>
+<rect x="568.89" y="90" width="66.56" height="22" fill="#2a78d6" class="ter-f-aligned"><title>Span 7: Aligned tool call, Tool use, 98 tokens, confidence 0.60</title></rect>
+<rect x="636.44" y="118" width="66.56" height="22" fill="#2a78d6" class="ter-f-aligned"><title>Span 8: Aligned response, Generation, 58 tokens, confidence 0.50</title></rect>
+<text x="96.0" y="158.0" fill="#6f6d68" class="ter-f-muted" font-size="11">span 0</text>
+<text x="704.0" y="158.0" fill="#6f6d68" class="ter-f-muted" font-size="11" text-anchor="end">span 8</text>
+<text x="400.0" y="158.0" fill="#6f6d68" class="ter-f-muted" font-size="11" text-anchor="middle">session order →</text>
+</svg>

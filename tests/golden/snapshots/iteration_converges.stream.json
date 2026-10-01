@@ -1,0 +1,247 @@
+{
+  "by_class": {
+    "generated": 11,
+    "tool": 6,
+    "user": 1
+  },
+  "by_kind": {
+    "intent.stated": 1,
+    "reasoning": 4,
+    "response": 1,
+    "tool.completed": 6,
+    "tool.requested": 6
+  },
+  "by_tool": {
+    "exec.shell": 3,
+    "fs.edit": 2,
+    "fs.read": 1
+  },
+  "duplicate_tool_calls": [
+    "26e6810009a47440",
+    "a0201b2048241360"
+  ],
+  "edits_since_validation": 0,
+  "open_requests": [],
+  "orphan_results": [],
+  "peak_edits_without_validation": 1,
+  "repeated_reads": {},
+  "session_id": "golden-iterate",
+  "timeline": [
+    [
+      0,
+      "22e15f3412d803b0",
+      "intent.stated",
+      "user",
+      null,
+      null,
+      28,
+      null,
+      []
+    ],
+    [
+      1,
+      "e0ec6e71f978fd92",
+      "reasoning",
+      "assistant",
+      null,
+      null,
+      5,
+      40,
+      []
+    ],
+    [
+      2,
+      "859848add6d59788",
+      "tool.requested",
+      "assistant",
+      "fs.read",
+      "Read",
+      15,
+      null,
+      []
+    ],
+    [
+      3,
+      "9528667881123db0",
+      "tool.completed",
+      "tool",
+      "fs.read",
+      "Read",
+      41,
+      null,
+      []
+    ],
+    [
+      4,
+      "24e229083a25898b",
+      "reasoning",
+      "assistant",
+      null,
+      null,
+      9,
+      40,
+      []
+    ],
+    [
+      5,
+      "369f28daa4834090",
+      "tool.requested",
+      "assistant",
+      "exec.shell",
+      "Bash",
+      18,
+      null,
+      []
+    ],
+    [
+      6,
+      "a5c243f6052afc48",
+      "tool.completed",
+      "tool",
+      "exec.shell",
+      "Bash",
+      67,
+      null,
+      []
+    ],
+    [
+      7,
+      "301ea5d00770f42b",
+      "reasoning",
+      "assistant",
+      null,
+      null,
+      11,
+      40,
+      []
+    ],
+    [
+      8,
+      "696b7e17e0df4dbd",
+      "tool.requested",
+      "assistant",
+      "fs.edit",
+      "Edit",
+      90,
+      null,
+      []
+    ],
+    [
+      9,
+      "40c138342748a4ad",
+      "tool.completed",
+      "tool",
+      "fs.edit",
+      "Edit",
+      11,
+      null,
+      []
+    ],
+    [
+      10,
+      "26e6810009a47440",
+      "tool.requested",
+      "assistant",
+      "exec.shell",
+      "Bash",
+      18,
+      40,
+      [
+        "tool.duplicate_call"
+      ]
+    ],
+    [
+      11,
+      "fb1848c1455585d0",
+      "tool.completed",
+      "tool",
+      "exec.shell",
+      "Bash",
+      37,
+      null,
+      []
+    ],
+    [
+      12,
+      "33fd1243654ec8e9",
+      "reasoning",
+      "assistant",
+      null,
+      null,
+      10,
+      40,
+      []
+    ],
+    [
+      13,
+      "520a0393af0ce62e",
+      "tool.requested",
+      "assistant",
+      "fs.edit",
+      "Edit",
+      98,
+      null,
+      []
+    ],
+    [
+      14,
+      "3aa429cc01c64d36",
+      "tool.completed",
+      "tool",
+      "fs.edit",
+      "Edit",
+      11,
+      null,
+      []
+    ],
+    [
+      15,
+      "a0201b2048241360",
+      "tool.requested",
+      "assistant",
+      "exec.shell",
+      "Bash",
+      18,
+      40,
+      [
+        "tool.duplicate_call"
+      ]
+    ],
+    [
+      16,
+      "35e20b6ed4ec5fbc",
+      "tool.completed",
+      "tool",
+      "exec.shell",
+      "Bash",
+      7,
+      null,
+      []
+    ],
+    [
+      17,
+      "057e3f9f09da3e5c",
+      "response",
+      "assistant",
+      null,
+      null,
+      28,
+      40,
+      []
+    ]
+  ],
+  "tokenizer": "regex-v1",
+  "tokens_by_class": {
+    "generated": 320,
+    "tool": 174,
+    "user": 28
+  },
+  "tokens_exact": false,
+  "total_events": 18,
+  "usage": {
+    "cache_creation": 0,
+    "cache_read": 5600,
+    "input": 3500,
+    "output": 280
+  }
+}

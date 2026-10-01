@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:">
+<meta name="color-scheme" content="light dark">
+<title>TER report: golden-handoff</title>
+<style>
+:root{--ter-surface:#fcfcfb;--ter-on-surface:#0b0b0b;--ter-ink:#0b0b0b;--ter-on-ink:#0b0b0b;--ter-ink-2:#52514e;--ter-on-ink-2:#0b0b0b;--ter-muted:#6f6d68;--ter-on-muted:#0b0b0b;--ter-grid:#e1e0d9;--ter-on-grid:#0b0b0b;--ter-baseline:#c3c2b7;--ter-on-baseline:#0b0b0b;--ter-aligned:#2a78d6;--ter-on-aligned:#ffffff;--ter-waste:#e34948;--ter-on-waste:#0b0b0b;--ter-series-1:#2a78d6;--ter-on-series-1:#ffffff;--ter-series-2:#eb6834;--ter-on-series-2:#0b0b0b;--ter-series-3:#1baf7a;--ter-on-series-3:#0b0b0b;--ter-series-4:#eda100;--ter-on-series-4:#0b0b0b;--ter-series-5:#e87ba4;--ter-on-series-5:#0b0b0b;--ter-series-6:#008300;--ter-on-series-6:#ffffff;--ter-series-7:#4a3aa7;--ter-on-series-7:#ffffff;--ter-series-8:#e34948;--ter-on-series-8:#0b0b0b}
+@media (prefers-color-scheme: dark){:root:not([data-theme=light]){--ter-surface:#1a1a19;--ter-on-surface:#ffffff;--ter-ink:#ffffff;--ter-on-ink:#ffffff;--ter-ink-2:#c3c2b7;--ter-on-ink-2:#ffffff;--ter-muted:#a3a19a;--ter-on-muted:#ffffff;--ter-grid:#33332f;--ter-on-grid:#ffffff;--ter-baseline:#52514e;--ter-on-baseline:#ffffff;--ter-aligned:#3987e5;--ter-on-aligned:#ffffff;--ter-waste:#e66767;--ter-on-waste:#0b0b0b;--ter-series-1:#3987e5;--ter-on-series-1:#ffffff;--ter-series-2:#d95926;--ter-on-series-2:#ffffff;--ter-series-3:#199e70;--ter-on-series-3:#ffffff;--ter-series-4:#c98500;--ter-on-series-4:#0b0b0b;--ter-series-5:#d55181;--ter-on-series-5:#ffffff;--ter-series-6:#008300;--ter-on-series-6:#ffffff;--ter-series-7:#9085e9;--ter-on-series-7:#0b0b0b;--ter-series-8:#e66767;--ter-on-series-8:#0b0b0b}}
+:root[data-theme=dark]{--ter-surface:#1a1a19;--ter-on-surface:#ffffff;--ter-ink:#ffffff;--ter-on-ink:#ffffff;--ter-ink-2:#c3c2b7;--ter-on-ink-2:#ffffff;--ter-muted:#a3a19a;--ter-on-muted:#ffffff;--ter-grid:#33332f;--ter-on-grid:#ffffff;--ter-baseline:#52514e;--ter-on-baseline:#ffffff;--ter-aligned:#3987e5;--ter-on-aligned:#ffffff;--ter-waste:#e66767;--ter-on-waste:#0b0b0b;--ter-series-1:#3987e5;--ter-on-series-1:#ffffff;--ter-series-2:#d95926;--ter-on-series-2:#ffffff;--ter-series-3:#199e70;--ter-on-series-3:#ffffff;--ter-series-4:#c98500;--ter-on-series-4:#0b0b0b;--ter-series-5:#d55181;--ter-on-series-5:#ffffff;--ter-series-6:#008300;--ter-on-series-6:#ffffff;--ter-series-7:#9085e9;--ter-on-series-7:#0b0b0b;--ter-series-8:#e66767;--ter-on-series-8:#0b0b0b}
+@media print{:root,:root:not([data-theme=light]),:root[data-theme=dark]{--ter-surface:#fcfcfb;--ter-on-surface:#0b0b0b;--ter-ink:#0b0b0b;--ter-on-ink:#0b0b0b;--ter-ink-2:#52514e;--ter-on-ink-2:#0b0b0b;--ter-muted:#6f6d68;--ter-on-muted:#0b0b0b;--ter-grid:#e1e0d9;--ter-on-grid:#0b0b0b;--ter-baseline:#c3c2b7;--ter-on-baseline:#0b0b0b;--ter-aligned:#2a78d6;--ter-on-aligned:#ffffff;--ter-waste:#e34948;--ter-on-waste:#0b0b0b;--ter-series-1:#2a78d6;--ter-on-series-1:#ffffff;--ter-series-2:#eb6834;--ter-on-series-2:#0b0b0b;--ter-series-3:#1baf7a;--ter-on-series-3:#0b0b0b;--ter-series-4:#eda100;--ter-on-series-4:#0b0b0b;--ter-series-5:#e87ba4;--ter-on-series-5:#0b0b0b;--ter-series-6:#008300;--ter-on-series-6:#ffffff;--ter-series-7:#4a3aa7;--ter-on-series-7:#ffffff;--ter-series-8:#e34948;--ter-on-series-8:#0b0b0b}}
+.ter-chart .ter-f-surface{fill:var(--ter-surface)}.ter-chart .ter-s-surface{stroke:var(--ter-surface)}.ter-chart .ter-f-on-surface{fill:var(--ter-on-surface)}
+.ter-chart .ter-f-ink{fill:var(--ter-ink)}.ter-chart .ter-s-ink{stroke:var(--ter-ink)}.ter-chart .ter-f-on-ink{fill:var(--ter-on-ink)}
+.ter-chart .ter-f-ink-2{fill:var(--ter-ink-2)}.ter-chart .ter-s-ink-2{stroke:var(--ter-ink-2)}.ter-chart .ter-f-on-ink-2{fill:var(--ter-on-ink-2)}
+.ter-chart .ter-f-muted{fill:var(--ter-muted)}.ter-chart .ter-s-muted{stroke:var(--ter-muted)}.ter-chart .ter-f-on-muted{fill:var(--ter-on-muted)}
+.ter-chart .ter-f-grid{fill:var(--ter-grid)}.ter-chart .ter-s-grid{stroke:var(--ter-grid)}.ter-chart .ter-f-on-grid{fill:var(--ter-on-grid)}
+.ter-chart .ter-f-baseline{fill:var(--ter-baseline)}.ter-chart .ter-s-baseline{stroke:var(--ter-baseline)}.ter-chart .ter-f-on-baseline{fill:var(--ter-on-baseline)}
+.ter-chart .ter-f-aligned{fill:var(--ter-aligned)}.ter-chart .ter-s-aligned{stroke:var(--ter-aligned)}.ter-chart .ter-f-on-aligned{fill:var(--ter-on-aligned)}
+.ter-chart .ter-f-waste{fill:var(--ter-waste)}.ter-chart .ter-s-waste{stroke:var(--ter-waste)}.ter-chart .ter-f-on-waste{fill:var(--ter-on-waste)}
+.ter-chart .ter-f-series-1{fill:var(--ter-series-1)}.ter-chart .ter-s-series-1{stroke:var(--ter-series-1)}.ter-chart .ter-f-on-series-1{fill:var(--ter-on-series-1)}
+.ter-chart .ter-f-series-2{fill:var(--ter-series-2)}.ter-chart .ter-s-series-2{stroke:var(--ter-series-2)}.ter-chart .ter-f-on-series-2{fill:var(--ter-on-series-2)}
+.ter-chart .ter-f-series-3{fill:var(--ter-series-3)}.ter-chart .ter-s-series-3{stroke:var(--ter-series-3)}.ter-chart .ter-f-on-series-3{fill:var(--ter-on-series-3)}
+.ter-chart .ter-f-series-4{fill:var(--ter-series-4)}.ter-chart .ter-s-series-4{stroke:var(--ter-series-4)}.ter-chart .ter-f-on-series-4{fill:var(--ter-on-series-4)}
+.ter-chart .ter-f-series-5{fill:var(--ter-series-5)}.ter-chart .ter-s-series-5{stroke:var(--ter-series-5)}.ter-chart .ter-f-on-series-5{fill:var(--ter-on-series-5)}
+.ter-chart .ter-f-series-6{fill:var(--ter-series-6)}.ter-chart .ter-s-series-6{stroke:var(--ter-series-6)}.ter-chart .ter-f-on-series-6{fill:var(--ter-on-series-6)}
+.ter-chart .ter-f-series-7{fill:var(--ter-series-7)}.ter-chart .ter-s-series-7{stroke:var(--ter-series-7)}.ter-chart .ter-f-on-series-7{fill:var(--ter-on-series-7)}
+.ter-chart .ter-f-series-8{fill:var(--ter-series-8)}.ter-chart .ter-s-series-8{stroke:var(--ter-series-8)}.ter-chart .ter-f-on-series-8{fill:var(--ter-on-series-8)}
+:root{--ter-page:#f3f2ee}@media (prefers-color-scheme: dark){:root:not([data-theme=light]){--ter-page:#0f0f0e}}:root[data-theme=dark]{--ter-page:#0f0f0e}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ter-page);color:var(--ter-ink);
+font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1120px;margin:0 auto;padding:32px 24px 48px}
+header{margin-bottom:24px}
+.eyebrow{margin:0;color:var(--ter-muted);font-size:13px;letter-spacing:.06em;
+text-transform:uppercase;font-weight:600}
+h1{margin:4px 0 6px;font-size:30px;line-height:1.2}
+h2{margin:0 0 12px;font-size:17px}
+.meta{margin:0;color:var(--ter-ink-2)}
+code{font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;
+overflow-wrap:anywhere}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+gap:12px;margin-bottom:16px}
+.kpi{background:var(--ter-surface);border:1px solid var(--ter-grid);
+border-radius:12px;padding:14px 16px}
+.kpi span{display:block;color:var(--ter-muted);font-size:13px}
+.kpi b{display:block;font-size:28px;line-height:1.2;margin:2px 0;
+font-variant-numeric:tabular-nums}
+.kpi small{color:var(--ter-ink-2);font-size:12.5px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{background:var(--ter-surface);border:1px solid var(--ter-grid);
+border-radius:12px;padding:16px;margin:0}
+.wide{grid-column:1/-1}
+.chart{overflow-x:auto}
+.chart svg{display:block;width:100%;height:auto}
+.wide .chart svg{min-width:540px}
+.half .chart svg{min-width:300px}
+figcaption{color:var(--ter-ink-2);font-size:13px;margin-top:8px}
+section.card,footer.card{margin-top:16px}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--ter-grid);
+vertical-align:top}
+th{color:var(--ter-ink-2);font-weight:600;font-size:13px}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.note{border-left:4px solid var(--ter-series-1)}
+.note p,.prose p{margin:0 0 8px}
+.empty{color:var(--ter-muted);margin:0}
+dl{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 18px;
+margin:0}
+dt{font-weight:600}
+dd{margin:0;color:var(--ter-ink-2)}
+@media (max-width:760px){
+main{padding:20px 16px 32px}
+h1{font-size:25px}
+.grid{grid-template-columns:minmax(0,1fr)}
+.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+.kpi b{font-size:23px}
+dl{grid-template-columns:1fr}
+dd{margin-bottom:6px}
+}
+@media print{
+body{background:#fff;font-size:12px}
+main{max-width:none;padding:0}
+.card,.kpi{break-inside:avoid;border-color:#c3c2b7}
+.chart{overflow:visible}
+.wide .chart svg,.half .chart svg{min-width:0}
+.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+</style>
+</head>
+<body><main class="ter-chart">
+<header><p class="eyebrow">TER session report</p><h1>Token efficiency</h1><p class="meta">Session <code>golden-handoff</code> &#183; classifier v11 &#183; 7 scored spans</p></header>
+<section class="kpis" aria-label="Key metrics">
+<div class="kpi"><span>TER</span><b>0.70</b><small>95% interval 0.70 to 1.00</small></div>
+<div class="kpi"><span>Aligned tokens</span><b>192</b><small>of 203 scored</small></div>
+<div class="kpi"><span>Waste tokens</span><b>11</b><small>5.4% of scored tokens</small></div>
+<div class="kpi"><span>Est. cost</span><b>$0.0112</b><small>waste $0.0002</small></div>
+<div class="kpi"><span>Waste patterns</span><b>0</b><small>0 tokens involved</small></div>
+<div class="kpi"><span>Reliability</span><b>Low</b><small>mean confidence 0.59</small></div>
+</section>
+<div class="grid">
+<figure class="card wide"><div class="chart"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 120" width="720" height="120" role="img" class="ter-chart-svg" aria-labelledby="token-composition-title token-composition-desc" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+<title id="token-composition-title">Token composition by label</title>
+<desc id="token-composition-desc">Token composition by label. Aligned tool call (161, 79.3%); Aligned response (31, 15.3%); Redundant reasoning (11, 5.4%)</desc>
+<rect width="720" height="120" rx="8" fill="#fcfcfb" class="ter-f-surface"/>
+<text x="16.0" y="24.0" fill="#0b0b0b" class="ter-f-ink" font-size="15" font-weight="600">Token composition by label</text>
+<rect x="16.0" y="36" width="543.7" height="42" rx="4" fill="#eb6834" class="ter-f-series-2"><title>Aligned tool call: 161 tokens, 79.3%</title></rect>
+<text x="287.8" y="61.0" text-anchor="middle" font-size="12" font-weight="600" fill="#0b0b0b" class="ter-f-on-series-2">79.3%</text>
+<rect x="561.7" y="36" width="103.1" height="42" rx="4" fill="#1baf7a" class="ter-f-series-3"><title>Aligned response: 31 tokens, 15.3%</title></rect>
+<text x="613.2" y="61.0" text-anchor="middle" font-size="12" font-weight="600" fill="#0b0b0b" class="ter-f-on-series-3">15.3%</text>
+<rect x="666.7" y="36" width="37.3" height="42" rx="4" fill="#eda100" class="ter-f-series-4"><title>Redundant reasoning: 11 tokens, 5.4%</title></rect>
+<rect x="16.0" y="94.0" width="10" height="10" rx="2" fill="#eb6834" class="ter-f-series-2"/>
+<text x="30.0" y="103.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Aligned tool call (161, 79.3%)</text>
+<rect x="232.0" y="94.0" width="10" height="10" rx="2" fill="#1baf7a" class="ter-f-series-3"/>
+<text x="246.0" y="103.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Aligned response (31, 15.3%)</text>
+<rect x="435.6" y="94.0" width="10" height="10" rx="2" fill="#eda100" class="ter-f-series-4"/>
+<text x="449.6" y="103.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Redundant reasoning (11, 5.4%)</text>
+</svg></div><figcaption>Scored tokens by classification label, aligned labels first.</figcaption></figure>
+<figure class="card wide"><div class="chart"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 174" width="720" height="174" role="img" class="ter-chart-svg" aria-labelledby="span-timeline-title span-timeline-desc" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+<title id="span-timeline-title">Span timeline</title>
+<desc id="span-timeline-desc">7 classified spans in session order, one lane per phase. 6 aligned, 1 waste (11 waste tokens).</desc>
+<rect width="720" height="174" rx="8" fill="#fcfcfb" class="ter-f-surface"/>
+<defs><pattern id="span-timeline-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#ffffff" stroke-width="2" stroke-opacity="0.55"/></pattern></defs>
+<text x="16.0" y="24.0" fill="#0b0b0b" class="ter-f-ink" font-size="15" font-weight="600">Span timeline</text>
+<rect x="16.0" y="36.0" width="10" height="10" rx="2" fill="#2a78d6" class="ter-f-aligned"/>
+<text x="30.0" y="45.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Aligned</text>
+<rect x="89.4" y="36.0" width="10" height="10" rx="2" fill="#e34948" class="ter-f-waste"/>
+<text x="103.4" y="45.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Waste (hatched)</text>
+<rect x="89.4" y="36" width="10" height="10" rx="2" fill="url(#span-timeline-hatch)"/>
+<text x="88.0" y="77.0" fill="#52514e" class="ter-f-ink-2" font-size="12" text-anchor="end">Reasoning</text>
+<rect x="96" y="62" width="608" height="22" rx="3" fill="#e1e0d9" class="ter-f-grid" fill-opacity="0.45"/>
+<text x="88.0" y="105.0" fill="#52514e" class="ter-f-ink-2" font-size="12" text-anchor="end">Tool use</text>
+<rect x="96" y="90" width="608" height="22" rx="3" fill="#e1e0d9" class="ter-f-grid" fill-opacity="0.45"/>
+<text x="88.0" y="133.0" fill="#52514e" class="ter-f-ink-2" font-size="12" text-anchor="end">Generation</text>
+<rect x="96" y="118" width="608" height="22" rx="3" fill="#e1e0d9" class="ter-f-grid" fill-opacity="0.45"/>
+<rect x="96.00" y="62" width="85.86" height="22" fill="#e34948" class="ter-f-waste"><title>Span 0: Redundant reasoning, Reasoning, 11 tokens, confidence 0.60</title></rect>
+<rect x="96.00" y="62" width="85.86" height="22" fill="url(#span-timeline-hatch)" pointer-events="none"/>
+<rect x="182.86" y="90" width="85.86" height="22" fill="#2a78d6" class="ter-f-aligned"><title>Span 1: Aligned tool call, Tool use, 14 tokens, confidence 0.60</title></rect>
+<rect x="269.71" y="90" width="85.86" height="22" fill="#2a78d6" class="ter-f-aligned"><title>Span 2: Aligned tool call, Tool use, 31 tokens, confidence 0.60</title></rect>
+<rect x="356.57" y="90" width="85.86" height="22" fill="#2a78d6" class="ter-f-aligned"><title>Span 3: Aligned tool call, Tool use, 36 tokens, confidence 0.60</title></rect>
+<rect x="443.43" y="90" width="85.86" height="22" fill="#2a78d6" class="ter-f-aligned"><title>Span 4: Aligned tool call, Tool use, 30 tokens, confidence 0.60</title></rect>
+<rect x="530.29" y="90" width="85.86" height="22" fill="#2a78d6" class="ter-f-aligned"><title>Span 5: Aligned tool call, Tool use, 50 tokens, confidence 0.60</title></rect>
+<rect x="617.14" y="118" width="85.86" height="22" fill="#2a78d6" class="ter-f-aligned"><title>Span 6: Aligned response, Generation, 31 tokens, confidence 0.50</title></rect>
+<text x="96.0" y="158.0" fill="#6f6d68" class="ter-f-muted" font-size="11">span 0</text>
+<text x="704.0" y="158.0" fill="#6f6d68" class="ter-f-muted" font-size="11" text-anchor="end">span 6</text>
+<text x="400.0" y="158.0" fill="#6f6d68" class="ter-f-muted" font-size="11" text-anchor="middle">session order →</text>
+</svg></div><figcaption>Each cell is one span; hover a cell for its label, tokens and confidence.</figcaption></figure>
+<figure class="card half"><div class="chart"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 152" width="360" height="152" role="img" class="ter-chart-svg" aria-labelledby="phase-scores-title phase-scores-desc" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+<title id="phase-scores-title">TER by phase</title>
+<desc id="phase-scores-desc">TER by phase. Reasoning: 0.000; Tool use: 1.000; Generation: 1.000</desc>
+<rect width="360" height="152" rx="8" fill="#fcfcfb" class="ter-f-surface"/>
+<text x="16.0" y="24.0" fill="#0b0b0b" class="ter-f-ink" font-size="15" font-weight="600">TER by phase</text>
+<text x="132.0" y="54.0" fill="#52514e" class="ter-f-ink-2" font-size="12" text-anchor="end">Reasoning</text>
+<rect x="140" y="36" width="2.0" height="28" rx="4" fill="#2a78d6" class="ter-f-series-1"><title>Reasoning: 0.000</title></rect>
+<text x="146.0" y="54.0" fill="#0b0b0b" class="ter-f-ink" font-size="12" font-weight="500">0.000</text>
+<text x="132.0" y="90.0" fill="#52514e" class="ter-f-ink-2" font-size="12" text-anchor="end">Tool use</text>
+<rect x="140" y="72" width="150.0" height="28" rx="4" fill="#eb6834" class="ter-f-series-2"><title>Tool use: 1.000</title></rect>
+<text x="296.0" y="90.0" fill="#0b0b0b" class="ter-f-ink" font-size="12" font-weight="500">1.000</text>
+<text x="132.0" y="126.0" fill="#52514e" class="ter-f-ink-2" font-size="12" text-anchor="end">Generation</text>
+<rect x="140" y="108" width="150.0" height="28" rx="4" fill="#1baf7a" class="ter-f-series-3"><title>Generation: 1.000</title></rect>
+<text x="296.0" y="126.0" fill="#0b0b0b" class="ter-f-ink" font-size="12" font-weight="500">1.000</text>
+</svg></div><figcaption>TER within each phase, on a 0 to 1 scale.</figcaption></figure>
+<figure class="card half"><div class="chart"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 176" width="360" height="176" role="img" class="ter-chart-svg" aria-labelledby="positional-ter-title positional-ter-desc" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+<title id="positional-ter-title">TER across the session</title>
+<desc id="positional-ter-desc">TER by session third. Early: 0.560 over 2 spans; Mid: 1.000 over 2 spans; Late: 1.000 over 3 spans. Session TER 0.700.</desc>
+<rect width="360" height="176" rx="8" fill="#fcfcfb" class="ter-f-surface"/>
+<text x="16.0" y="24.0" fill="#0b0b0b" class="ter-f-ink" font-size="15" font-weight="600">TER across the session</text>
+<line x1="40" y1="142.0" x2="304" y2="142.0" stroke-width="1" stroke="#c3c2b7" class="ter-s-baseline"/>
+<text x="34.0" y="146.0" fill="#6f6d68" class="ter-f-muted" font-size="11" text-anchor="end">0.0</text>
+<line x1="40" y1="94.0" x2="304" y2="94.0" stroke-width="1" stroke="#e1e0d9" class="ter-s-grid"/>
+<text x="34.0" y="98.0" fill="#6f6d68" class="ter-f-muted" font-size="11" text-anchor="end">0.5</text>
+<line x1="40" y1="46.0" x2="304" y2="46.0" stroke-width="1" stroke="#e1e0d9" class="ter-s-grid"/>
+<text x="34.0" y="50.0" fill="#6f6d68" class="ter-f-muted" font-size="11" text-anchor="end">1.0</text>
+<line x1="40" y1="74.8" x2="304" y2="74.8" stroke-width="1" stroke-dasharray="4 3" stroke="#6f6d68" class="ter-s-muted"/>
+<text x="310.0" y="72.8" fill="#6f6d68" class="ter-f-muted" font-size="10">session</text>
+<text x="310.0" y="84.8" fill="#6f6d68" class="ter-f-muted" font-size="10">0.70</text>
+<path d="M84.0,88.2 L172.0,46.0 L260.0,46.0" fill="none" stroke-width="2" stroke-linejoin="round" stroke="#2a78d6" class="ter-s-series-1"/>
+<circle cx="84.0" cy="88.2" r="4.5" fill="#2a78d6" class="ter-f-series-1"><title>Early: TER 0.560 over 2 spans</title></circle>
+<text x="84.0" y="79.2" font-size="11" font-weight="600" text-anchor="middle" stroke-width="3" paint-order="stroke" fill="#0b0b0b" stroke="#fcfcfb" class="ter-f-ink ter-s-surface">0.56</text>
+<text x="84.0" y="158.0" fill="#52514e" class="ter-f-ink-2" font-size="11" text-anchor="middle">Early</text>
+<circle cx="172.0" cy="46.0" r="4.5" fill="#2a78d6" class="ter-f-series-1"><title>Mid: TER 1.000 over 2 spans</title></circle>
+<text x="172.0" y="64.0" font-size="11" font-weight="600" text-anchor="middle" stroke-width="3" paint-order="stroke" fill="#0b0b0b" stroke="#fcfcfb" class="ter-f-ink ter-s-surface">1.00</text>
+<text x="172.0" y="158.0" fill="#52514e" class="ter-f-ink-2" font-size="11" text-anchor="middle">Mid</text>
+<circle cx="260.0" cy="46.0" r="4.5" fill="#2a78d6" class="ter-f-series-1"><title>Late: TER 1.000 over 3 spans</title></circle>
+<text x="260.0" y="64.0" font-size="11" font-weight="600" text-anchor="middle" stroke-width="3" paint-order="stroke" fill="#0b0b0b" stroke="#fcfcfb" class="ter-f-ink ter-s-surface">1.00</text>
+<text x="260.0" y="158.0" fill="#52514e" class="ter-f-ink-2" font-size="11" text-anchor="middle">Late</text>
+</svg></div><figcaption>TER in each third of the session; dashed line is the session TER.</figcaption></figure>
+<figure class="card wide"><div class="chart"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 120" width="720" height="120" role="img" class="ter-chart-svg" aria-labelledby="token-economics-title token-economics-desc" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+<title id="token-economics-title">Provider token volume</title>
+<desc id="token-economics-desc">Provider token volume. Output (265, 9.9%); Input (2.4k, 90.1%)</desc>
+<rect width="720" height="120" rx="8" fill="#fcfcfb" class="ter-f-surface"/>
+<text x="16.0" y="24.0" fill="#0b0b0b" class="ter-f-ink" font-size="15" font-weight="600">Provider token volume</text>
+<rect x="16.0" y="36" width="66.4" height="42" rx="4" fill="#2a78d6" class="ter-f-series-1"><title>Output: 265 tokens, 9.9%</title></rect>
+<text x="49.2" y="61.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" class="ter-f-on-series-1">9.9%</text>
+<rect x="84.4" y="36" width="619.6" height="42" rx="4" fill="#eb6834" class="ter-f-series-2"><title>Input: 2.4k tokens, 90.1%</title></rect>
+<text x="394.2" y="61.0" text-anchor="middle" font-size="12" font-weight="600" fill="#0b0b0b" class="ter-f-on-series-2">90.1%</text>
+<rect x="16.0" y="94.0" width="10" height="10" rx="2" fill="#2a78d6" class="ter-f-series-1"/>
+<text x="30.0" y="103.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Output (265, 9.9%)</text>
+<rect x="157.6" y="94.0" width="10" height="10" rx="2" fill="#eb6834" class="ter-f-series-2"/>
+<text x="171.6" y="103.0" fill="#52514e" class="ter-f-ink-2" font-size="11">Input (2.4k, 90.1%)</text>
+</svg></div><figcaption>Provider-reported tokens for the whole session, including context.</figcaption></figure>
+</div>
+<section class="card" id="waste-patterns"><h2>Waste patterns</h2>
+<p class="empty">No waste patterns were detected in this session.</p>
+</section>
+<section class="card note" id="uncertainty"><h2>Uncertainty</h2><p>The TER of 0.70 is an estimate. A 95% deterministic span bootstrap interval puts it between 0.70 and 1.00 (width 0.30). 203 tokens (100.0%) were classified with low confidence; reliability is low. Differences between sessions smaller than this interval are noise. TER labels are heuristic estimates, not human-validated ground truth.</p></section>
+<footer class="card" id="how-to-read"><h2>How to read this report</h2><dl>
+<dt>TER</dt><dd>Token Efficiency Ratio: the share of agent-generated tokens that served the developer&#x27;s stated intent, weighted by phase. 1.0 means every scored token was aligned. User-authored text is never scored.</dd>
+<dt>Aligned and waste</dt><dd>Every scored span gets one label. Aligned labels are reasoning, tool calls and responses that serve the intent; waste labels are redundant reasoning, unnecessary tool calls and over-explanation.</dd>
+<dt>Span timeline</dt><dd>One cell per classified span, left to right in session order, in the lane of its phase. Blue cells are aligned; red hatched cells are waste. Clusters of red show where the session lost its way.</dd>
+<dt>Waste Pareto</dt><dd>Detected waste patterns grouped by type, largest first. The line is the running share, so the types left of where it crosses 80% are the few worth fixing first.</dd>
+<dt>Session thirds</dt><dd>TER over the early, middle and late third of the spans. A falling line usually means context drift or rework late in the session.</dd>
+<dt>Cost</dt><dd>Estimated from provider-reported token usage at the configured rates; waste cost scales the output cost by the waste share.</dd>
+</dl></footer>
+</main></body>
+</html>

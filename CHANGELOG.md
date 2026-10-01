@@ -18,6 +18,14 @@ All notable public changes to TER are documented in this file. The project follo
 - `EventIngest` driving port, `EventLog` driven port with JSONL and in-memory adapters, and `ObserveEvent` / `RecordEvent` / `AnalyseTrace` / `AnalyseEventLog` use cases. The hook path only appends, to a private (0700/0600) log under the user cache directory.
 - Claude Code hooks driving adapter that fails open, and `python -m ter observe` / `python -m ter hook` commands. See `docs/ter4/l1-observed.md`.
 - Equivalence, hypothesis property, hook payload contract and StreamReport golden tests; `hypothesis` joins the dev extra.
+- TER 4 visual report layer: a `SessionReport` view-model in `ter.domain.report`, and a driving-side reports adapter (`ter.adapters.driving.reports`) with accessible SVG chart primitives (stat tiles, stacked and horizontal bars, span timeline, waste Pareto, positional sparkline) and one colour palette for light and dark themes.
+- `ter report --html FILE` writes a self-contained HTML report (no scripts or network requests) with KPIs, all charts, a waste-pattern table, an uncertainty note and a how-to-read guide; see `docs/ter4/reports.md`.
+- Golden snapshots of the report view-model, HTML and SVG output, and a `report-renderers` import contract.
+- TER 4 maturity level L2 (Explained): a pure Lean model in `ter.domain.lean` (activity classes, eight Lean wastes, a six-stage agentic value stream, flow states), eleven plugin waste detectors behind a `WasteDetector` protocol and registry, each finding citing its evidence event ids with a published confidence rule and uncertain findings kept apart, productive iteration distinguished from rework, a typed session evidence graph (`ter.evidence/0.1`), and a multidimensional scorecard with agentic flow efficiency. See `docs/ter4/l2-explained.md` and ADR 0004.
+- `ter a3 SESSION --html FILE --json [FILE] --graph FILE` (also `python -m ter a3`) writes a one-page Toyota A3 report: background, value stream map, waste Pareto, activity and flow bars, root causes with evidence, countermeasures (CLAUDE.md lines, Claude Code hooks, settings) and follow-up measures. `ter explain` prints the findings.
+- `AnalysisEngine.explain()` and `explain_batch`: the L2 explanation of the live fold equals the batch one. `TerScorer` driven port with a TER 3 adapter (offline, pinned mode by default in the A3) and a fixed fake.
+- Two synthetic golden sessions (`lean_mix`, `iteration_converges`) and golden snapshots of findings, scorecard, evidence graph, A3 JSON and A3 HTML for the whole corpus.
+- Requirements catalogue: the L2 tests cite catalogue ids (the provisional TER-LEAN and TER-A3 ids map onto TER-LEN, TER-DET, TER-SCR, TER-FLW, TER-GRF, TER-ANL and new TER-RPT-003 to 005, TER-LEN-008 and TER-ANL-012); CI gates traceability at L0, L1 and L2. The Lean model ADR is numbered 0004.
 
 ### Changed
 
@@ -26,6 +34,7 @@ All notable public changes to TER are documented in this file. The project follo
 - PyYAML is now a runtime dependency (catalogue loading).
 - The Claude Code tool map moved to `ter.adapters.claude_code_tools`, shared by the JSONL source and the hooks adapter; `ter.adapters.driven.claude_code.tool_map` re-exports it.
 - `ter.ports.driven` imports numpy for type checking only, so hook processes start faster.
+- `ter visualize` and `ter present` charts now draw through the TER 4 report primitives: each SVG gains a `<title>` and `<desc>` (via `aria-labelledby`), legends wrap, and in-bar labels use a contrast-checked text colour. Chart names and the `ter_calculator.charts` API are unchanged.
 
 ## [3.0.0] - 2026-07-22
 

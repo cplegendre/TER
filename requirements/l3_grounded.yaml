@@ -184,7 +184,7 @@ requirements:
     rationale: >-
       Edges from actions to their motivating evidence make decisions
       explainable.
-    status: planned
+    status: verified
 
   - id: TER-GRF-003
     pattern: ubiquitous
@@ -195,7 +195,7 @@ requirements:
     rationale: >-
       A stable export serves both engineering analysis and research
       datasets.
-    status: planned
+    status: verified
 
   - id: TER-RTE-001
     pattern: ubiquitous

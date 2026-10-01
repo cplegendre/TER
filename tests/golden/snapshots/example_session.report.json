@@ -1,0 +1,160 @@
+{
+  "classifier_version": "v11",
+  "composition": [
+    {
+      "label": "aligned_reasoning",
+      "tokens": 30
+    },
+    {
+      "label": "aligned_response",
+      "tokens": 71
+    },
+    {
+      "label": "aligned_tool_call",
+      "tokens": 317
+    },
+    {
+      "label": "redundant_reasoning",
+      "tokens": 35
+    },
+    {
+      "label": "unnecessary_tool_call",
+      "tokens": 28
+    }
+  ],
+  "economics": {
+    "cache_hit_rate": 0.399,
+    "cache_read_tokens": 960,
+    "cache_write_tokens": 24,
+    "cost_usd": 0.0113,
+    "input_tokens": 1446,
+    "output_tokens": 442,
+    "waste_cost_usd": 0.0009
+  },
+  "metrics": {
+    "aligned_tokens": 418,
+    "raw_ratio": 0.869,
+    "ter": 0.806,
+    "total_tokens": 481,
+    "waste_tokens": 63
+  },
+  "phases": [
+    {
+      "phase": "reasoning",
+      "score": 0.4615,
+      "tokens": 65
+    },
+    {
+      "phase": "tool_use",
+      "score": 0.9188,
+      "tokens": 345
+    },
+    {
+      "phase": "generation",
+      "score": 1.0,
+      "tokens": 71
+    }
+  ],
+  "positional": {
+    "early": 0.7069,
+    "early_spans": 3,
+    "late": 1.0,
+    "late_spans": 3,
+    "mid": 0.3947,
+    "mid_spans": 3
+  },
+  "sections": [],
+  "session_id": "sample-session-001",
+  "spans": [
+    {
+      "confidence": 0.6,
+      "label": "redundant_reasoning",
+      "phase": "reasoning",
+      "position": 0,
+      "tokens": 17
+    },
+    {
+      "confidence": 0.5,
+      "label": "aligned_response",
+      "phase": "generation",
+      "position": 1,
+      "tokens": 13
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 2,
+      "tokens": 28
+    },
+    {
+      "confidence": 0.5,
+      "label": "aligned_reasoning",
+      "phase": "reasoning",
+      "position": 3,
+      "tokens": 30
+    },
+    {
+      "confidence": 1.0,
+      "label": "unnecessary_tool_call",
+      "phase": "tool_use",
+      "position": 4,
+      "tokens": 28
+    },
+    {
+      "confidence": 0.6,
+      "label": "redundant_reasoning",
+      "phase": "reasoning",
+      "position": 5,
+      "tokens": 18
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 6,
+      "tokens": 191
+    },
+    {
+      "confidence": 0.6,
+      "label": "aligned_tool_call",
+      "phase": "tool_use",
+      "position": 7,
+      "tokens": 98
+    },
+    {
+      "confidence": 0.5,
+      "label": "aligned_response",
+      "phase": "generation",
+      "position": 8,
+      "tokens": 58
+    }
+  ],
+  "uncertainty": {
+    "confidence_level": 0.95,
+    "low_confidence_share": 0.9418,
+    "low_confidence_tokens": 453,
+    "lower": 0.5521,
+    "mean_confidence": 0.6111,
+    "method": "deterministic_span_bootstrap",
+    "reliability": "low",
+    "upper": 1.0
+  },
+  "waste_by_type": [
+    {
+      "occurrences": 1,
+      "pattern_type": "duplicate_tool_call",
+      "tokens": 28
+    }
+  ],
+  "waste_patterns": [
+    {
+      "description": "Duplicate tool call: Read {\"file_path\":\"src/app.py\",\"offset\":1,\"limit\":200}",
+      "end_position": 4,
+      "pattern_type": "duplicate_tool_call",
+      "spans_involved": 2,
+      "start_position": 2,
+      "tokens_wasted": 28
+    }
+  ]
+}
