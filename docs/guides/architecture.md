@@ -16,7 +16,7 @@ Both install from one `pyproject.toml`. Three console entry points exist:
 
 ```bash
 ter --help                    # TER 3 CLI; `ter a3` and `ter explain` are handed to TER 4
-python -m ter --help          # TER 4 CLI: observe, explain, a3, hook
+python -m ter --help          # TER 4 CLI: observe, explain, a3, hook, capabilities
 ter-req --help                # requirements tooling: lint, trace, points, report
 ```
 
@@ -33,7 +33,7 @@ flowchart LR
     subgraph core["Core"]
         APP["application<br/>ObserveEvent · RecordEvent ·<br/>AnalyseTrace · AnalyseEventLog ·<br/>ExplainSession"]
         PORTS["ports<br/>Protocols only"]
-        DOM(["domain<br/>events · scoring · pricing ·<br/>stream · lean · report · requirements"])
+        DOM(["domain<br/>events · scoring · pricing ·<br/>stream · lean · outcome · report · requirements"])
     end
     subgraph driven["Driven adapters (ter.adapters.driven)"]
         CC["claude_code"]
@@ -43,6 +43,7 @@ flowchart LR
         LOG["event_log"]
         T3["ter3"]
         RY["requirements_yaml"]
+        JU["junit"]
         MEM["in_memory (fakes)"]
     end
     BOOT["bootstrap<br/>composition root"] --> driving
@@ -72,8 +73,11 @@ domain**. Concretely:
   hands `ter a3` and `ter explain` to `ter.bootstrap.main`).
 - The report renderers read only view-models (`SessionReport`, `A3Report`),
   never TER 3 types.
+- No behaviour measure imports `ter.domain.outcome`: the outcome verdict is
+  shown beside the measures, never read by them
+  ([outcome.md](../ter4/outcome.md)).
 
-These are six import-linter contracts in `[tool.importlinter]` in
+These are seven import-linter contracts in `[tool.importlinter]` in
 `pyproject.toml`. `lint-imports` in CI and
 `tests/architecture/test_import_contracts.py` both enforce them:
 
@@ -97,11 +101,38 @@ add an exemption.
 | `PriceBook` | driven | `JsonPriceBook` (reads `src/ter/data/price_book.json`) | `InMemoryPriceBook` | `tests/contract/test_price_book.py` |
 | `EventLog` | driven | `JsonlEventLog` | `InMemoryEventLog` | `tests/contract/test_event_log.py` |
 | `TerScorer` | driven | `Ter3Scorer` (wraps TER 3) | `FixedTerScorer` | `tests/contract/test_ter_scorer.py` |
+| `OutcomeSource` | driven | `JUnitOutcomeSource` (JUnit XML test results, [outcome.md](../ter4/outcome.md)) | `InMemoryOutcomeSource` | `tests/contract/test_outcome_source.py` |
 | `EventIngest` | driving | `ObserveEvent` (long-lived process), `RecordEvent` (append-only, one hook process) | n/a | `tests/contract/test_event_ingest.py` |
 
 Ports are `typing.Protocol` classes in `src/ter/ports/driven.py` and
 `src/ter/ports/driving.py`, and each docstring lists the obligations its
 contract suite checks.
+
+### Capabilities: adapters by port and name
+
+Every driven adapter is a **capability** named `<Port>.<adapter>`
+(`Tokenizer.regex`, `SessionSource.claude-code`). The registry in
+`ter.bootstrap.capabilities` holds TER's own adapters as built-ins and adds
+whatever installed packages declare in the `ter.capabilities` entry-point
+group (TER's `pyproject.toml` declares its built-ins there too):
+
+```toml
+[project.entry-points."ter.capabilities"]
+"Tokenizer.words" = "my_pack.tokenizer:WordTokenizer"
+```
+
+The registry resolves a built-in without scanning installed packages (hooks
+stay cheap) and imports a capability's module only when a use case first asks
+for it (TER-ARC-006). It rejects a class or instance that does not satisfy
+its port's Protocol, naming the missing members, and it never raises out of
+discovery: a capability that fails to load, names an unknown port or tries to
+replace a built-in is reported and every other capability keeps working
+(TER-ARC-004, TER-ARC-005). To see what is installed and what is broken
+(exit status 1 when anything is):
+
+```bash
+python -m ter capabilities
+```
 
 ## Strangler fig over TER 3
 
@@ -209,7 +240,7 @@ Current state (from `ter-req report` and [points.md](../ter4/points.md)):
 |---|---|---|---|
 | L0 Measured | 23 of 24 | 10 / 1 / 0 | `ter-req trace --gate L0` |
 | L1 Observed | 4 of 12 | 10 / 6 / 0 | `ter-req trace --gate L1` |
-| L2 Explained | 19 of 41 | 25 / 24 / 5 | `ter-req trace --gate L2` |
+| L2 Explained | 33 of 55 | 26 / 23 / 5 | `ter-req trace --gate L2` |
 | L3 Grounded | 2 of 20 | 3 / 8 / 37 | none yet |
 | L4 Advisory | 0 of 15 | 0 / 4 / 35 | none yet |
 | L5 Corrective | 0 of 9 | 1 / 3 / 9 | none yet |

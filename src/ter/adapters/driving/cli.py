@@ -9,9 +9,10 @@ Commands::
     python -m ter observe SESSION.jsonl [--timeline] [--json]
     python -m ter observe --event-log DIR [--session ID] [--timeline] [--json]
     python -m ter hook [--event-log DIR]      # reads one hook payload on stdin
-    python -m ter explain SESSION.jsonl [--json] [--graph FILE]
+    python -m ter explain SESSION.jsonl [--json] [--graph FILE] [--outcome FILE]
     python -m ter a3 SESSION.jsonl [--html FILE] [--json [FILE]] [--graph FILE]
-                                   [--ter offline|model|off]
+                                   [--ter offline|model|off] [--outcome FILE]
+    python -m ter capabilities                # adapters per port, and problems
 """
 
 from __future__ import annotations
@@ -25,18 +26,32 @@ from pathlib import Path
 from typing import IO
 
 from ...application.explain import ExplainedSession
+from ...domain.capabilities import Capability, CapabilityProblem
 from ...domain.lean import LeanAnalysis
+from ...domain.outcome import OutcomeFormatError, OutcomeVerdict
 from ...domain.stream import StreamReport
 from ...ports.driven import Clock
 from ...ports.driving import EventIngest
 from .claude_hooks import HookStatus, run_hook
 
-__all__ = ["CliServices", "format_findings", "format_report", "format_timeline", "main"]
+__all__ = [
+    "CliServices",
+    "format_capabilities",
+    "format_findings",
+    "format_outcome",
+    "format_report",
+    "format_timeline",
+    "main",
+]
 
 TOKENIZERS = ("regex", "tiktoken")
 #: How the A3 obtains TER: offline (deterministic, lexical embedder), with the
 #: TER 3 sentence-transformers model, or not at all.
 TER_MODES = ("offline", "model", "off")
+OUTCOME_HELP = (
+    "test results of the run (JUnit XML, e.g. from pytest --junitxml): judge "
+    "the outcome and show the verdict beside the measures"
+)
 
 
 @dataclass(frozen=True)
@@ -49,7 +64,13 @@ class CliServices:
     hook_ingest: Callable[[Path], EventIngest]
     default_log_dir: Path
     hook_clock: Clock | None = None
-    explain_transcript: Callable[[Path, str, str], ExplainedSession] | None = None
+    explain_transcript: (
+        Callable[[Path, str, str, Path | None], ExplainedSession] | None
+    ) = None
+    capabilities: (
+        Callable[[], tuple[tuple[Capability, ...], tuple[CapabilityProblem, ...]]]
+        | None
+    ) = None
 
 
 def main(
@@ -78,6 +99,8 @@ def main(
         return 0
     if args.command in ("explain", "a3"):
         return _explain(args, services, out, err)
+    if args.command == "capabilities":
+        return _capabilities(services, out, err)
     return _observe(args, services, out, err)
 
 
@@ -101,15 +124,29 @@ def _explain(
         err.write(f"No such session file: {args.path}\n")
         return 2
     ter_mode = getattr(args, "ter", "off")
-    explained = services.explain_transcript(args.path, args.tokenizer, ter_mode)
+    outcome_path: Path | None = args.outcome
+    if outcome_path is not None and not outcome_path.is_file():
+        err.write(f"No such outcome file: {outcome_path}\n")
+        return 2
+    try:
+        explained = services.explain_transcript(
+            args.path, args.tokenizer, ter_mode, outcome_path
+        )
+    except OutcomeFormatError as exc:
+        err.write(f"Cannot read outcome: {exc}\n")
+        return 2
     if args.graph is not None:
         _write(args.graph, _json(explained.analysis.graph.as_dict()))
         err.write(f"Wrote {args.graph}\n")
     if args.command == "explain":
         if args.json:
-            out.write(_json(explained.analysis.as_dict()))
+            analysis = explained.analysis.as_dict()
+            if explained.a3.outcome is not None:
+                analysis["outcome"] = explained.a3.as_dict()["outcome"]
+            out.write(_json(analysis))
         else:
             out.write(format_findings(explained.analysis))
+            out.write(format_outcome(explained.a3.outcome, outcome_path))
         return 0
 
     from .reports.a3 import render_a3_html
@@ -129,7 +166,36 @@ def _explain(
         wrote = True
     if not wrote:
         out.write(format_findings(explained.analysis))
+        out.write(format_outcome(explained.a3.outcome, outcome_path))
     return 0
+
+
+def _capabilities(services: CliServices, out: IO[str], err: IO[str]) -> int:
+    """List every adapter per port; exit 1 when a registered one is broken."""
+    if services.capabilities is None:
+        err.write("capabilities are not available in this installation\n")
+        return 2
+    found, problems = services.capabilities()
+    out.write(format_capabilities(found, problems))
+    return 1 if problems else 0
+
+
+def format_capabilities(
+    found: Sequence[Capability], problems: Sequence[CapabilityProblem]
+) -> str:
+    broken = {p.key for p in problems}
+    usable = [c for c in found if c.key not in broken]
+    lines = [f"TER capabilities · {len(usable)} usable, {len(problems)} problem(s)"]
+    if usable:
+        port_w = max(len(c.port) for c in usable)
+        name_w = max(len(c.name) for c in usable)
+        lines += [
+            f"  {c.port:<{port_w}}  {c.name:<{name_w}}  {c.target}  [{c.origin}]"
+            for c in usable
+        ]
+    for p in problems:
+        lines.append(f"  ! {p.key} ({p.target}): {p.reason}")
+    return "\n".join(lines) + "\n"
 
 
 def _observe(
@@ -204,6 +270,7 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
         "--graph", type=Path, metavar="FILE", help="write the evidence graph as JSON"
     )
     explain.add_argument("--tokenizer", choices=TOKENIZERS, default="regex")
+    explain.add_argument("--outcome", type=Path, metavar="FILE", help=OUTCOME_HELP)
 
     a3 = commands.add_parser("a3", help="L2: a one-page Lean A3 report of a session")
     a3.add_argument("path", type=Path, help="Claude Code session .jsonl")
@@ -227,6 +294,12 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
         "(TER 3 sentence-transformers, may download) or off",
     )
     a3.add_argument("--tokenizer", choices=TOKENIZERS, default="regex")
+    a3.add_argument("--outcome", type=Path, metavar="FILE", help=OUTCOME_HELP)
+
+    commands.add_parser(
+        "capabilities",
+        help="adapters registered for each port (ter.capabilities), and any that are broken",
+    )
 
     hook = commands.add_parser(
         "hook", help="Claude Code hook: record one hook payload read from stdin"
@@ -305,6 +378,29 @@ def format_timeline(report: StreamReport, *, limit: int | None = None) -> str:
     hidden = len(report.timeline) - len(rows)
     if hidden > 0:
         lines.append(f"  … {hidden} more")
+    return "\n".join(lines) + "\n"
+
+
+def format_outcome(verdict: OutcomeVerdict | None, path: Path | None) -> str:
+    """The outcome verdict, judged apart from the measures above it."""
+    if path is None:
+        return ""
+    if verdict is None:
+        return f"  outcome          none recorded in {path}\n"
+    lines = [
+        f"  outcome          {verdict.verdict.value}: {'; '.join(verdict.reasons)}"
+    ]
+    shown = [
+        r
+        for r in verdict.results
+        if r.check.required and (r.status is None or r.status.value != "passed")
+    ]
+    for r in shown[:8]:
+        status = "no evidence" if r.status is None else r.status.value
+        detail = next((e.detail for e in r.evidence if e.detail), "")
+        lines.append(f"  - {status}: {r.check.id}" + (f" · {detail}" if detail else ""))
+    if len(shown) > 8:
+        lines.append(f"  … {len(shown) - 8} more")
     return "\n".join(lines) + "\n"
 
 

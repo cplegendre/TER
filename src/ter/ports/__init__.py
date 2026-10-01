@@ -15,6 +15,7 @@ from .driven import (
     Clock,
     Embedder,
     EventLog,
+    OutcomeSource,
     PriceBook,
     SessionSource,
     TerScorer,
@@ -22,11 +23,26 @@ from .driven import (
 )
 from .driving import EventIngest
 
+#: Driven ports a capability (``ter.capabilities`` entry point) can plug into,
+#: by the name its key uses: ``<Port>.<adapter>`` (ADR 0005).
+DRIVEN_PORTS: dict[str, type[object]] = {
+    "Clock": Clock,
+    "Embedder": Embedder,
+    "EventLog": EventLog,
+    "OutcomeSource": OutcomeSource,
+    "PriceBook": PriceBook,
+    "SessionSource": SessionSource,
+    "TerScorer": TerScorer,
+    "Tokenizer": Tokenizer,
+}
+
 __all__ = [
+    "DRIVEN_PORTS",
     "Clock",
     "Embedder",
     "EventIngest",
     "EventLog",
+    "OutcomeSource",
     "PriceBook",
     "SessionSource",
     "TerScorer",

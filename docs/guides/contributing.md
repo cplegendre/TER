@@ -131,7 +131,11 @@ GARE is the first such project. A pack has five parts, added in this order:
    is pinned by fixture files in the contract suite. Add it to the
    `independent-adapters` contract, its dependencies to an optional extra in
    `pyproject.toml`, and register it through the `ter.capabilities` entry
-   point group so bootstrap finds it when the extra is installed.
+   point group, keyed `<Port>.<adapter>`, so bootstrap finds it when the
+   extra is installed (`python -m ter capabilities` lists it, or says why it
+   is broken). A TER-owned adapter also goes in `BUILTIN_CAPABILITIES` in
+   `src/ter/bootstrap/capabilities.py`; a unit test keeps that table equal
+   to the entry points in `pyproject.toml`.
 5. **Promote and record.** Tag the tests with the requirement ids, promote
    them to `verified`, update the points' `status` and `verification`, and
    run `ter-req points`; the index shows each point's origin.

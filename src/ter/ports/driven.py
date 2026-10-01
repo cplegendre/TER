@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from ..domain.events import Event, SessionTrace
+from ..domain.outcome import OutcomeEvidence
 from ..domain.pricing import Rates
 
 if TYPE_CHECKING:
@@ -121,3 +122,30 @@ class TerScorer(Protocol):
     method: str
 
     def score(self, ref: str | Path) -> float: ...
+
+
+@runtime_checkable
+class OutcomeSource(Protocol):
+    """Supplies the outcome evidence a run recorded: one result per check.
+
+    This is the judgement side of point 5. Behaviour measures never read it;
+    ``ter.domain.outcome.judge`` turns its evidence into a verdict that
+    reports show beside them.
+
+    Obligations, verified by ``tests/contract/test_outcome_source.py``:
+
+    * ``outcome(ref)`` returns the evidence recorded for the run ``ref``
+      names, or ``None`` when no outcome is recorded for it. No outcome is
+      not an error and never reads as a failing outcome;
+    * the same ``ref`` yields equal evidence on every call;
+    * the evidence names its run (``run_ref``) and source, and holds one
+      ``CheckEvidence`` per recorded result, in record order, each with a
+      non-empty check id and where it was recorded; failing, erroring and
+      skipped results are kept with that status, never dropped;
+    * a record that exists but cannot be read as outcome evidence raises
+      ``ter.domain.outcome.OutcomeFormatError`` naming the record.
+    """
+
+    name: str
+
+    def outcome(self, ref: str | Path) -> OutcomeEvidence | None: ...

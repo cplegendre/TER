@@ -45,7 +45,7 @@ Three ways in were considered:
      other tests need nothing outside the repository;
    - one **reference adapter**, registered through a package entry point
      (group `ter.capabilities`, discovered by `ter.bootstrap`; the loader
-     lands with the first pack), so installing the adapter's extra is what
+     is `ter.bootstrap.capabilities`), so installing the adapter's extra is what
      turns the capability on.
 3. **Coupling is by file contract, not by import.** An adapter for an outside
    system reads that system's files or SQLite rows by their published schema

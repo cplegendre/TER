@@ -4,6 +4,11 @@ Background (the developer's intent) → Current state (value stream map) →
 Analysis (waste Pareto, activity classes, flow) → Root causes (findings with
 their evidence) → Countermeasures → Follow-up. Renderers read this model and
 nothing else, so the HTML and the JSON of one report always agree.
+
+When outcome evidence was supplied, the A3 also carries the outcome verdict
+(``ter.domain.outcome``) beside the scorecard. The verdict is judged
+separately and no behaviour measure reads it (point 5); the ``outcome`` key
+appears in the JSON only when there is a verdict.
 """
 
 from __future__ import annotations
@@ -11,6 +16,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+from ..outcome import OutcomeVerdict, per_verified_outcome
 from .analysis import LeanAnalysis, apportion
 from .countermeasures import Countermeasure, FollowUp, build_countermeasures, follow_ups
 from .model import ActivityClass, Finding, FindingKind, LeanWaste
@@ -48,10 +54,19 @@ class A3Report:
     root_causes: tuple[Finding, ...]
     countermeasures: tuple[Countermeasure, ...]
     follow_up: tuple[FollowUp, ...]
+    outcome: OutcomeVerdict | None = None
+
+    @property
+    def tokens_per_verified_outcome(self) -> float | None:
+        """Generated tokens per accepted outcome; None without an accepted one."""
+        if self.outcome is None:
+            return None
+        generated = self.analysis.scorecard.generated_tokens
+        return per_verified_outcome(generated, (self.outcome,))
 
     def as_dict(self) -> dict[str, object]:
         a = self.analysis
-        return {
+        out: dict[str, object] = {
             "schema": A3_SCHEMA,
             "title": self.title,
             "session_id": self.session_id,
@@ -72,6 +87,15 @@ class A3Report:
                 for i, w, k, r in a.detectors
             ],
         }
+        if self.outcome is not None:
+            per = self.tokens_per_verified_outcome
+            out["outcome"] = {
+                **self.outcome.as_dict(),
+                "generated_tokens_per_verified_outcome": None
+                if per is None
+                else round(per, 1),
+            }
+        return out
 
 
 def _title(intents: Sequence[str]) -> str:
@@ -127,8 +151,13 @@ def _pareto(analysis: LeanAnalysis) -> tuple[ParetoBar, ...]:
     )
 
 
-def build_a3(analysis: LeanAnalysis, intents: Sequence[str] = ()) -> A3Report:
-    """Assemble the A3 from an analysis and the developer's prompts."""
+def build_a3(
+    analysis: LeanAnalysis,
+    intents: Sequence[str] = (),
+    outcome: OutcomeVerdict | None = None,
+) -> A3Report:
+    """Assemble the A3 from an analysis, the developer's prompts and, when
+    known, the outcome verdict (shown beside the analysis, never read by it)."""
     findings = analysis.findings
     ranked = sorted(
         findings,
@@ -156,4 +185,5 @@ def build_a3(analysis: LeanAnalysis, intents: Sequence[str] = ()) -> A3Report:
             flow_efficiency=sc.flow_efficiency_tokens,
             avoidable_share=sc.activity_share(ActivityClass.AVOIDABLE),
         ),
+        outcome=outcome,
     )

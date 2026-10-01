@@ -145,7 +145,7 @@ def _services(trace: SessionTrace) -> CliServices:
         analyse_log=base.analyse_log,
         hook_ingest=base.hook_ingest,
         default_log_dir=base.default_log_dir,
-        explain_transcript=lambda path, tok, ter: use_case(path.name),
+        explain_transcript=lambda path, tok, ter, outcome=None: use_case(path.name),
     )
 
 
