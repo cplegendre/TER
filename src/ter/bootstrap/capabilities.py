@@ -24,10 +24,12 @@ in the composition root rather than the core.
 
 from __future__ import annotations
 
+import dis
 import importlib
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from functools import cache
+from types import CodeType
 from typing import Any, Protocol
 
 from ..domain.capabilities import (
@@ -122,20 +124,47 @@ def _members(port: type[object]) -> tuple[str, ...]:
     )
 
 
+def _self_assignments(code: CodeType) -> set[str]:
+    """Attributes a method assigns on its first argument (``self.name = ...``).
+
+    Reads the bytecode: a ``STORE_ATTR`` whose target was just loaded from the
+    first local. Reads such as ``config.name`` do not count.
+    """
+    if code.co_argcount == 0:
+        return set()
+    this = code.co_varnames[0]
+    assigned: set[str] = set()
+    previous: dis.Instruction | None = None
+    for instruction in dis.get_instructions(code):
+        if (
+            instruction.opname == "STORE_ATTR"
+            and previous is not None
+            and previous.opname.startswith("LOAD_FAST")
+            and (
+                previous.argval == this
+                or (isinstance(previous.argval, tuple) and previous.argval[-1] == this)
+            )
+        ):
+            assigned.add(str(instruction.argval))
+        previous = instruction
+    return assigned
+
+
 def _undeclared(cls: type[object], port: type[object]) -> tuple[str, ...]:
     """Port members a class neither defines, annotates nor assigns in ``__init__``.
 
     A static check: nothing is instantiated, so no adapter does IO. An
-    attribute set in ``__init__`` or ``__post_init__`` (``self.name = ...``)
-    counts as declared, so only a member the class never mentions is reported.
+    attribute assigned on ``self`` in ``__init__`` or ``__post_init__``
+    (``self.name = ...``) counts as declared; merely reading a name of the
+    same spelling (``config.name``) does not.
     """
     declared: set[str] = set()
     for klass in cls.__mro__:
         declared |= set(vars(klass).get("__annotations__", {}))
         for method in ("__init__", "__post_init__"):
             code = getattr(vars(klass).get(method), "__code__", None)
-            if code is not None:
-                declared |= set(code.co_names)
+            if isinstance(code, CodeType):
+                declared |= _self_assignments(code)
     return tuple(m for m in _members(port) if not hasattr(cls, m) and m not in declared)
 
 
@@ -297,8 +326,9 @@ class CapabilityRegistry:
             raise CapabilityError(f"capability {cap.key} ({cap.target}) {reason}")
         return built
 
-    def check(self) -> tuple[CapabilityProblem, ...]:
-        """Load every registered capability and return every problem found.
+    def check(self, port: str | None = None) -> tuple[CapabilityProblem, ...]:
+        """Load every registered capability (of ``port``, if given) and return
+        every problem found so far.
 
         Besides loading, a class is checked for every attribute of its port
         that :meth:`create` would demand of the instance (see
@@ -306,7 +336,7 @@ class CapabilityRegistry:
         adapter does IO. A plain factory function can only be checked by
         :meth:`create`.
         """
-        for cap in self.capabilities():
+        for cap in self.capabilities(port):
             try:
                 loaded = self.factory(cap.port, cap.name)
             except CapabilityError:

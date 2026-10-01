@@ -113,7 +113,8 @@ def main(
         if args.tokenizer not in known:
             err.write(
                 f"Unknown tokenizer {args.tokenizer!r} "
-                f"(available: {', '.join(known) or 'none'})\n"
+                f"(available: {', '.join(known) or 'none'}; "
+                "`python -m ter capabilities` shows broken ones)\n"
             )
             return 2
     if args.command in ("explain", "a3"):

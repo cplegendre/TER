@@ -134,7 +134,15 @@ def cli_services() -> CliServices:
         return registry.capabilities(), problems
 
     def tokenizers() -> tuple[str, ...]:
-        return default_registry().names("Tokenizer")
+        # Only tokenizers that load and fit the port: a broken plugin is
+        # reported by `capabilities`, not crashed into by a report command.
+        registry = default_registry()
+        broken = {(p.key, p.target) for p in registry.check("Tokenizer")}
+        return tuple(
+            c.name
+            for c in registry.capabilities("Tokenizer")
+            if (c.key, c.target) not in broken
+        )
 
     return CliServices(
         capabilities=capabilities,

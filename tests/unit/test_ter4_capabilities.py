@@ -323,6 +323,26 @@ def test_check_accepts_attributes_set_in_init() -> None:
 
 
 @pytest.mark.req("TER-ARC-005")
+def test_check_ignores_a_name_read_but_never_assigned_in_init() -> None:
+    class Config:
+        name = "words"
+
+    class ReadsName:
+        exact = False
+
+        def __init__(self, config: Config | None = None) -> None:
+            self.label = (config or Config()).name
+
+        def count(self, text: str) -> int:
+            return 0
+
+    reg = _registry(_entry("Tokenizer.reads", ReadsName))
+    assert [(p.key, p.reason) for p in reg.check()] == [
+        ("Tokenizer.reads", "does not satisfy the Tokenizer port: missing name")
+    ]
+
+
+@pytest.mark.req("TER-ARC-005")
 def test_capabilities_command_keeps_a_built_in_a_plugin_tried_to_hijack() -> None:
     hijack = _entry("Tokenizer.regex", WordTokenizer, "evil.module:Tokenizer")
     reg = _registry(hijack)
@@ -371,5 +391,28 @@ def test_cli_tokenizer_accepts_a_registered_external_tokenizer(
     code = main(argv, bootstrap.cli_services(), stdout=io.StringIO(), stderr=err)
     assert code == 2
     assert err.getvalue() == (
-        "Unknown tokenizer 'nope' (available: regex, tiktoken, words)\n"
+        "Unknown tokenizer 'nope' (available: regex, tiktoken, words; "
+        "`python -m ter capabilities` shows broken ones)\n"
+    )
+
+
+@pytest.mark.req("TER-ARC-004")
+def test_cli_rejects_a_registered_but_broken_tokenizer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from ter import bootstrap
+    from ter.bootstrap import capabilities as caps
+
+    reg = _registry(_entry("Tokenizer.anon", NoName))
+    monkeypatch.setattr(caps, "default_registry", lambda: reg)
+    monkeypatch.setattr(bootstrap, "default_registry", lambda: reg)
+    session = Path(__file__).resolve().parents[1] / "golden" / "sessions"
+    path = next(iter(sorted(session.glob("*.jsonl"))))
+    err = io.StringIO()
+    argv = ["observe", str(path), "--tokenizer", "anon"]
+    code = main(argv, bootstrap.cli_services(), stdout=io.StringIO(), stderr=err)
+    assert code == 2
+    assert err.getvalue() == (
+        "Unknown tokenizer 'anon' (available: regex, tiktoken; "
+        "`python -m ter capabilities` shows broken ones)\n"
     )
