@@ -11,7 +11,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from .analysis import LeanAnalysis
+from .analysis import LeanAnalysis, apportion
 from .countermeasures import Countermeasure, FollowUp, build_countermeasures, follow_ups
 from .model import ActivityClass, Finding, FindingKind, LeanWaste
 
@@ -105,14 +105,22 @@ def _problem(analysis: LeanAnalysis) -> str:
     return "; ".join(parts) + "."
 
 
-def _pareto(findings: Sequence[Finding]) -> tuple[ParetoBar, ...]:
-    tokens: dict[LeanWaste, int] = {}
+def _pareto(analysis: LeanAnalysis) -> tuple[ParetoBar, ...]:
+    """Generated waste tokens by waste type, reconciling with the scorecard.
+
+    Each event's avoidable tokens count once, under the finding the scorecard
+    charged them to, so the bars add up to ``scorecard.waste_tokens``.
+    """
+    allocated = analysis.allocated_waste_tokens()
+    parts: dict[str, float] = {}
     counts: dict[LeanWaste, int] = {}
-    for f in findings:
+    for f in analysis.findings:
         if f.kind is not FindingKind.WASTE or f.uncertain:
             continue
-        tokens[f.waste] = tokens.get(f.waste, 0) + f.tokens + f.context_tokens
+        parts[f.waste.value] = parts.get(f.waste.value, 0.0) + allocated.get(f.id, 0.0)
         counts[f.waste] = counts.get(f.waste, 0) + 1
+    rounded = apportion(parts, analysis.scorecard.waste_tokens)
+    tokens = {w: rounded[w.value] for w in counts}
     return tuple(
         ParetoBar(w, tokens[w], counts[w])
         for w in sorted(tokens, key=lambda w: (-tokens[w], w.value))
@@ -138,9 +146,11 @@ def build_a3(analysis: LeanAnalysis, intents: Sequence[str] = ()) -> A3Report:
         intents=tuple(intents),
         problem=_problem(analysis),
         analysis=analysis,
-        pareto=_pareto(findings),
+        pareto=_pareto(analysis),
         root_causes=tuple(ranked[:ROOT_CAUSES_SHOWN]),
-        countermeasures=build_countermeasures(findings, analysis.steps),
+        countermeasures=build_countermeasures(
+            findings, analysis.steps, analysis.allocated_waste_tokens()
+        ),
         follow_up=follow_ups(
             findings,
             flow_efficiency=sc.flow_efficiency_tokens,

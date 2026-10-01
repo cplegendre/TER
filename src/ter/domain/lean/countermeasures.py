@@ -16,8 +16,10 @@ a ``PreToolUse`` call, or feeds stderr back to the agent after a
 from __future__ import annotations
 
 import json
+import re
+import shlex
 from collections import Counter
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -118,6 +120,10 @@ class _Context:
     def validation_command(self) -> str | None:
         runs = Counter(s.command for s in self.steps if s.is_validation and s.command)
         return runs.most_common(1)[0][0] if runs else None
+
+
+# A command of plain words needs no quoting to run inside a hook.
+_PLAIN_COMMAND = re.compile(r"[\w./:=@%+,-]+(?: [\w./:=@%+,-]+)*")
 
 
 def _settings(hooks: dict[str, object]) -> str:
@@ -306,10 +312,43 @@ def _rework_cycle(ctx: _Context) -> tuple[str, list[Action]]:
 
 def _unvalidated(ctx: _Context) -> tuple[str, list[Action]]:
     command = ctx.validation_command
-    shown = command or "<your test command, e.g. pytest -q>"
+    title = "Validate every change before reporting it"
+    edited = f"(edited without validation: {_list(ctx.subjects)})"
+    if command is None:
+        # No check ran in this session, so there is no command to put in a
+        # hook: a placeholder there would be executed as shell code.
+        return (
+            title,
+            [
+                Action(
+                    ActionKind.CLAUDE_MD,
+                    "Make validation part of done, and name the check to run.",
+                    "## Validation\n"
+                    "- Test command: <fill in the project's test command>\n"
+                    "- After changing code, run the test command and report its result "
+                    "before saying the task is done; say so explicitly if it cannot be run.",
+                    "markdown",
+                ),
+                Action(
+                    ActionKind.PRACTICE,
+                    "No check ran in this session, so no edit hook is generated. Once the "
+                    "project has a test command, add a PostToolUse hook on "
+                    f"Edit|MultiEdit|Write that runs it {edited}.",
+                ),
+            ],
+        )
+    # Both the command and the diagnostic are quoted as shell words, so
+    # quotes, ``;``, ``#`` or newlines in the observed command can neither
+    # break the hook nor detach the failure branch from the check.
+    run = (
+        command
+        if _PLAIN_COMMAND.fullmatch(command)
+        else f"bash -c {shlex.quote(command)}"
+    )
+    message = shlex.quote(f"{command} fails after this edit")
     check = (
-        f'cd "$CLAUDE_PROJECT_DIR" && {shown} >/dev/null 2>&1 '
-        f"|| {{ echo '{shown} fails after this edit' >&2; exit 2; }}"
+        f'cd "$CLAUDE_PROJECT_DIR" && {run} >/dev/null 2>&1 '
+        f"|| {{ echo {message} >&2; exit 2; }}"
     )
     hook = _settings(
         {
@@ -322,19 +361,19 @@ def _unvalidated(ctx: _Context) -> tuple[str, list[Action]]:
         }
     )
     return (
-        "Validate every change before reporting it",
+        title,
         [
             Action(
                 ActionKind.CLAUDE_MD,
                 "Make validation part of done.",
-                f"- After changing code, run `{shown}` and report its result before saying the "
+                f"- After changing code, run `{command}` and report its result before saying the "
                 "task is done; say so explicitly if it cannot be run.",
                 "markdown",
             ),
             Action(
                 ActionKind.HOOK,
-                f"Run the check after every edit and feed a failure back to the agent "
-                f"(edited without validation: {_list(ctx.subjects)}).",
+                "Run the check after every edit and feed a failure back to the agent "
+                f"{edited}.",
                 hook,
                 "json",
             ),
@@ -496,9 +535,18 @@ _CATALOGUE: dict[str, Callable[[_Context], tuple[str, list[Action]]]] = {
 
 
 def build_countermeasures(
-    findings: Sequence[Finding], steps: Sequence[Step]
+    findings: Sequence[Finding],
+    steps: Sequence[Step],
+    allocated: Mapping[str, float] | None = None,
 ) -> tuple[Countermeasure, ...]:
-    """One countermeasure per detector that fired, most costly first."""
+    """One countermeasure per detector that fired, most costly first.
+
+    A countermeasure's cost is generated tokens. With ``allocated`` (the
+    scorecard's per-finding allocation, ``LeanAnalysis.allocated_waste_tokens``)
+    a confident finding costs only the tokens charged to it, so two detectors
+    claiming one event do not both count it. Uncertain findings, and every
+    finding without an allocation, cost their own claim.
+    """
     by_detector: dict[str, list[Finding]] = {}
     for finding in findings:
         by_detector.setdefault(finding.detector, []).append(finding)
@@ -509,11 +557,18 @@ def build_countermeasures(
             continue
         ctx = _Context(tuple(group), tuple(steps))
         title, actions = make(ctx)
-        cost = sum(f.tokens + f.context_tokens for f in group)
+        cost = round(
+            sum(
+                allocated.get(f.id, 0.0)
+                if allocated is not None and not f.uncertain
+                else float(f.tokens)
+                for f in group
+            )
+        )
         uncertain = all(f.uncertain for f in group)
         confidence = max(f.confidence for f in group)
         rationale = (
-            f"{len(group)} finding(s), {cost:,} tokens: "
+            f"{len(group)} finding(s), {cost:,} generated tokens: "
             + "; ".join(f.title for f in group[:3])
             + ("; …" if len(group) > 3 else "")
             + "."

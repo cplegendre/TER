@@ -222,6 +222,21 @@ class LeanAnalysis:
     def finding(self, finding_id: str) -> Finding:
         return next(f for f in self.findings if f.id == finding_id)
 
+    def allocated_waste_tokens(self) -> dict[str, float]:
+        """Generated tokens each confident waste finding is charged with.
+
+        This is the scorecard's allocation: every event's avoidable share goes
+        to the one finding that claims it (its classification basis), so the
+        values add up to the scorecard's waste tokens, never counting an event
+        twice and never counting context tokens.
+        """
+        out: dict[str, float] = {}
+        for step, c in zip(self.steps, self.classifications, strict=True):
+            if c.activity_class is None or c.avoidable_share <= 0:
+                continue
+            out[c.basis] = out.get(c.basis, 0.0) + step.tokens * c.avoidable_share
+        return out
+
     def as_dict(self, *, graph: bool = True) -> dict[str, object]:
         out: dict[str, object] = {
             "schema": "ter.lean/0.1",
@@ -365,7 +380,7 @@ def _classify(
 # ---------------------------------------------------------------------------
 
 
-def _apportion(parts: Mapping[str, float], total: int) -> dict[str, int]:
+def apportion(parts: Mapping[str, float], total: int) -> dict[str, int]:
     """Round ``parts`` to integers that sum to ``total`` (largest remainder)."""
     floors = {k: int(v) for k, v in parts.items()}
     remainder = total - sum(floors.values())
@@ -414,8 +429,8 @@ def _scorecard(
             act[base.value] += amount * (1 - c.avoidable_share - c.uncertain_share)
     pairs = list(zip(steps, classes, strict=True))
     context = sum(s.context_tokens for s in steps)
-    flow_tokens = _apportion(flow_tok, generated)
-    activity_tokens = _apportion(act_tok, generated)
+    flow_tokens = apportion(flow_tok, generated)
+    activity_tokens = apportion(act_tok, generated)
     waste = [f for f in findings if f.kind is FindingKind.WASTE]
     sure = [f for f in waste if not f.uncertain]
 

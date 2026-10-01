@@ -363,15 +363,15 @@
       "detector": "premature_implementation",
       "evidence": [
         "efbc3fb8debf69d2",
-        "66675543479d5262"
+        "0c500468149caeae"
       ],
-      "explanation": "Write changed src/login.py with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
-      "id": "premature_implementation:efbc3fb8debf69d2",
+      "explanation": "Write changed templates/login.html with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
+      "id": "premature_implementation:0c500468149caeae",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
-      "subject": "src/login.py",
-      "title": "Changed src/login.py before reading it",
+      "subject": "templates/login.html",
+      "title": "Changed templates/login.html before reading it",
       "tokens": 0,
       "uncertain": true,
       "waste": "defects",
@@ -384,15 +384,15 @@
       "detector": "premature_implementation",
       "evidence": [
         "efbc3fb8debf69d2",
-        "0c500468149caeae"
+        "66675543479d5262"
       ],
-      "explanation": "Write changed templates/login.html with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
-      "id": "premature_implementation:efbc3fb8debf69d2",
+      "explanation": "Write changed src/login.py with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
+      "id": "premature_implementation:66675543479d5262",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
-      "subject": "templates/login.html",
-      "title": "Changed templates/login.html before reading it",
+      "subject": "src/login.py",
+      "title": "Changed src/login.py before reading it",
       "tokens": 0,
       "uncertain": true,
       "waste": "defects",
@@ -530,8 +530,8 @@
       "avoidable_tokens": 0,
       "context_tokens": 6,
       "findings": [
-        "premature_implementation:efbc3fb8debf69d2",
-        "premature_implementation:efbc3fb8debf69d2",
+        "premature_implementation:0c500468149caeae",
+        "premature_implementation:66675543479d5262",
         "unvalidated_implementation:66675543479d5262"
       ],
       "seconds": 12.0,

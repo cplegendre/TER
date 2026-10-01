@@ -4,7 +4,7 @@
     "pareto": [
       {
         "findings": 1,
-        "tokens": 54,
+        "tokens": 30,
         "waste": "handoffs"
       }
     ],
@@ -105,7 +105,7 @@
         "unnecessary_handoff:21222454fe82bdbe"
       ],
       "detector": "unnecessary_handoff",
-      "rationale": "1 finding(s), 54 tokens: Delegated Research requests changelog, then did it directly.",
+      "rationale": "1 finding(s), 30 generated tokens: Delegated Research requests changelog, then did it directly.",
       "title": "Delegate only what will not be redone",
       "uncertain": false,
       "waste": "handoffs"
@@ -115,21 +115,21 @@
         {
           "kind": "claude_md",
           "language": "markdown",
-          "snippet": "- After changing code, run `<your test command, e.g. pytest -q>` and report its result before saying the task is done; say so explicitly if it cannot be run.",
-          "text": "Make validation part of done."
+          "snippet": "## Validation\n- Test command: <fill in the project's test command>\n- After changing code, run the test command and report its result before saying the task is done; say so explicitly if it cannot be run.",
+          "text": "Make validation part of done, and name the check to run."
         },
         {
-          "kind": "hook",
-          "language": "json",
-          "snippet": "{\n  \"hooks\": {\n    \"PostToolUse\": [\n      {\n        \"matcher\": \"Edit|MultiEdit|Write\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"cd \\\"$CLAUDE_PROJECT_DIR\\\" && <your test command, e.g. pytest -q> >/dev/null 2>&1 || { echo '<your test command, e.g. pytest -q> fails after this edit' >&2; exit 2; }\",\n            \"timeout\": 300\n          }\n        ]\n      }\n    ]\n  }\n}",
-          "text": "Run the check after every edit and feed a failure back to the agent (edited without validation: `pyproject.toml`)."
+          "kind": "practice",
+          "language": null,
+          "snippet": null,
+          "text": "No check ran in this session, so no edit hook is generated. Once the project has a test command, add a PostToolUse hook on Edit|MultiEdit|Write that runs it (edited without validation: `pyproject.toml`)."
         }
       ],
       "addresses": [
         "unvalidated_implementation:4f983f4cbf7260c1"
       ],
       "detector": "unvalidated_implementation",
-      "rationale": "1 finding(s), 0 tokens: 1 edit(s) reported without validation.",
+      "rationale": "1 finding(s), 0 generated tokens: 1 edit(s) reported without validation.",
       "title": "Validate every change before reporting it",
       "uncertain": false,
       "waste": "defects"

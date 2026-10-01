@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+import shlex
 from collections.abc import Mapping
 
 from .model import Outcome, ShellIntent
@@ -30,36 +31,71 @@ __all__ = [
 
 _PATH_KEYS = ("file_path", "notebook_path", "path")
 
-# Checked in this order: a change anywhere in a compound command makes it a
-# change; otherwise a validation anywhere makes it a validation.
+# Each pattern is matched at the start of one simple command (see
+# ``_command_heads``), never anywhere in the line: ``echo pytest`` prints a
+# word and validates nothing. Checked in this order: a change in any command
+# makes the line a change; otherwise a validation in any command makes it a
+# validation.
 _CHANGE = re.compile(
-    r"(?:^|[;&|(]\s*|\s)(?:"
+    r"(?:"
     r"(?:pip3?|uv pip|poetry|npm|yarn|pnpm|cargo|go|gem|bundle|apt(?:-get)?|brew)"
     r"\s+(?:install|add|remove|uninstall|get|update|upgrade)"
     r"|git\s+(?:add|commit|checkout|switch|reset|restore|apply|merge|rebase|mv|rm|push|stash|cherry-pick)"
     r"|mkdir|rm|mv|cp|touch|chmod|chown|ln|patch|sed\s+-i|tee"
-    r")\b"
+    r")(?:\s|$)"
 )
 _VALIDATE = re.compile(
-    r"(?:^|[;&|(]\s*|\s|/)(?:"
+    r"(?:"
     r"pytest|py\.test|tox|nox|unittest|doctest|jest|vitest|mocha|ava|karma|rspec"
     r"|phpunit|ctest|ruff|mypy|pyright|flake8|pylint|bandit|eslint|tsc|prettier\s+--check"
     r"|black\s+--check|isort\s+--check|shellcheck|hadolint|golangci-lint|lint-imports"
-    r"|go\s+(?:test|vet|build)|cargo\s+(?:test|check|clippy|build)|mvn|gradlew?\s+\w*(?:test|check|build)"
+    r"|go\s+(?:test|vet|build)|cargo\s+(?:test|check|clippy|build)|mvn|gradlew?\s+\S*(?:test|check|build)"
     r"|dotnet\s+(?:test|build)|make\s+(?:test|check|lint|ci)|(?:npm|yarn|pnpm)\s+(?:run\s+)?(?:test|lint|check|build|typecheck)"
     r"|playwright\s+test|cypress\s+run|bazel\s+test|swift\s+test"
-    r")\b"
+    r")(?:\s|$)"
 )
 # Running code to check it by hand: ``python -c``, ``python - <<EOF``,
 # ``python -m pkg``, ``node script.js``. Counted as validation only when the
 # command is not also a change.
 _ADHOC_RUN = re.compile(
-    r"(?:^|[;&|(]\s*|\s)(?:python3?|node|deno|bun|ruby|php)\s+(?:-c\b|-\s|-m\s+\w|[\w./-]+\.(?:py|js|mjs|ts|rb|php)\b)"
+    r"(?:python3?|node|deno|bun|ruby|php)\s+(?:-c(?:\s|$)|-(?:\s|$)|-m\s+\w|[\w./-]+\.(?:py|js|mjs|ts|rb|php)(?:\s|$))"
 )
 _EXPLORE = re.compile(
-    r"^\s*(?:cd\s+\S+\s*&&\s*)?(?:ls|cat|head|tail|less|more|find|grep|rg|ag|tree|pwd|wc|file|stat|du"
-    r"|which|type|echo|env|printenv|git\s+(?:status|log|diff|show|blame|branch|remote|ls-files|grep))\b"
+    r"(?:ls|cat|head|tail|less|more|find|grep|rg|ag|tree|pwd|wc|file|stat|du"
+    r"|which|type|echo|env|printenv|git\s+(?:status|log|diff|show|blame|branch|remote|ls-files|grep))(?:\s|$)"
 )
+# Words that run the command after them: ``sudo pytest``, ``uv run pytest``.
+_PREFIXES = frozenset(
+    {
+        "sudo",
+        "env",
+        "time",
+        "nohup",
+        "exec",
+        "command",
+        "nice",
+        "xargs",
+        "npx",
+        "bunx",
+        "pnpx",
+    }
+)
+_RUNNERS = frozenset(
+    {
+        "uv run",
+        "poetry run",
+        "pipenv run",
+        "pdm run",
+        "hatch run",
+        "rye run",
+        "pnpm exec",
+        "yarn exec",
+        "bundle exec",
+    }
+)
+_ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
+_HEREDOC = re.compile(r"<<-?\s*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1")
+_SHELL_PUNCTUATION = "();<>|&\n"
 
 # Output markers. Failure markers are specific on purpose (precision over
 # recall): a bare "error" in prose output is not a failure.
@@ -106,16 +142,103 @@ def normalise_command(command: str) -> str:
     return " ".join(command.split())
 
 
+def _strip_heredocs(command: str) -> str:
+    """Drop heredoc bodies: their lines are data for a command, not commands."""
+    out: list[str] = []
+    lines = command.split("\n")
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        out.append(line)
+        i += 1
+        for match in _HEREDOC.finditer(line):
+            delimiter = match.group(2)
+            while i < len(lines) and lines[i].strip() != delimiter:
+                i += 1
+            i += 1  # the closing delimiter
+    return "\n".join(out)
+
+
+def _tokens(command: str) -> list[str]:
+    """Shell words and operators; quoted text stays one word."""
+    lexer = shlex.shlex(command, posix=True, punctuation_chars=_SHELL_PUNCTUATION)
+    lexer.whitespace = " \t\r"
+    lexer.whitespace_split = True
+    lexer.commenters = ""
+    try:
+        return list(lexer)
+    except ValueError:  # unbalanced quotes: fall back to bare splitting
+        return re.findall(r"[();<>|&\n]+|[^\s();<>|&]+", command)
+
+
+def _command_heads(command: str) -> list[str]:
+    """Each simple command in a shell line, from its command word on.
+
+    Segments split on ``;``, ``&&``, ``||``, ``|``, ``&``, newlines and
+    parentheses. Redirections and their targets are dropped; leading
+    ``VAR=value`` assignments, wrappers (``sudo``, ``uv run``, ...) and a
+    program's directory (``.venv/bin/pytest``) are peeled off, so the pattern
+    sees the program that actually runs.
+    """
+    segments: list[list[str]] = [[]]
+    skip_target = False
+    for token in _tokens(_strip_heredocs(command)):
+        if token and all(c in _SHELL_PUNCTUATION for c in token):
+            if "<" in token or ">" in token:  # a redirection names a target
+                skip_target = True
+                continue
+            segments.append([])
+            skip_target = False
+            continue
+        if skip_target:
+            skip_target = False
+            continue
+        segments[-1].append(token)
+    heads: list[str] = []
+    for words in segments:
+        while words and _ASSIGNMENT.match(words[0]):
+            words = words[1:]
+        while words:
+            first = words[0].rsplit("/", 1)[-1]
+            if first in _PREFIXES:
+                words = words[1:]
+                while words and (
+                    words[0].startswith("-") or _ASSIGNMENT.match(words[0])
+                ):
+                    words = words[1:]
+            elif first == "timeout":  # ``timeout [opts] DURATION cmd``
+                words = words[1:]
+                while words and words[0].startswith("-"):
+                    words = words[1:]
+                words = words[1:]
+            elif len(words) > 1 and f"{first} {words[1]}" in _RUNNERS:
+                words = words[2:]
+            else:
+                break
+        if words:
+            words = [words[0].rsplit("/", 1)[-1] or words[0], *words[1:]]
+            heads.append(" ".join(words))
+    return heads
+
+
 def shell_intent(command: str) -> ShellIntent:
-    """Classify a shell command line by what it is for."""
-    text = normalise_command(command)
-    if not text:
+    """Classify a shell command line by what it is for.
+
+    Only command words count: a test runner's name printed by ``echo`` or
+    searched for by ``grep`` is an argument, not a validation run.
+    """
+    heads = [h for h in _command_heads(command) if h.split(" ", 1)[0] != "cd"]
+    if not heads:
         return ShellIntent.OTHER
-    if _CHANGE.search(text):
+    # ``python -m pip install x`` is a change, ``python -m pytest`` a check.
+    unwrapped = [
+        h.split(" ", 2)[2] if re.match(r"python3?\s+-m\s+\S", h) else h for h in heads
+    ]
+    if any(_CHANGE.match(h) for h in unwrapped):
         return ShellIntent.CHANGE
-    if _VALIDATE.search(text) or _ADHOC_RUN.search(text):
+    if any(_VALIDATE.match(h) or _ADHOC_RUN.match(h) for h in [*heads, *unwrapped]):
         return ShellIntent.VALIDATE
-    if _EXPLORE.search(text):
+    if _EXPLORE.match(heads[0]):
         return ShellIntent.EXPLORE
     return ShellIntent.OTHER
 

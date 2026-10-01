@@ -444,3 +444,160 @@ def test_engine_explain_equals_batch_explain() -> None:
         engine.apply(event)
     assert engine.explain() == explain_batch(s.events, RegexTokenizer())
     assert engine.explain() == analysis_of(s)
+
+
+# --- review fixes --------------------------------------------------------------
+
+
+@pytest.mark.req("TER-LEN-007")
+@pytest.mark.parametrize(
+    ("command", "intent"),
+    [
+        # A runner's name as an argument is not a run.
+        ("echo pytest", ShellIntent.EXPLORE),
+        ("echo 'run pytest before merging'", ShellIntent.EXPLORE),
+        ("grep -rn pytest .", ShellIntent.EXPLORE),
+        ("cat <<EOF\npytest -q\nrm -rf build\nEOF", ShellIntent.EXPLORE),
+        ("echo rm -rf build", ShellIntent.EXPLORE),
+        ('git log --grep "mypy"', ShellIntent.EXPLORE),
+        # A runner in command position is, wherever the segment is.
+        ("echo start; pytest -q", ShellIntent.VALIDATE),
+        ("cd app\nnpm test", ShellIntent.VALIDATE),
+        ("pytest -q 2>&1 | tail -5", ShellIntent.VALIDATE),
+        (".venv/bin/pytest -q", ShellIntent.VALIDATE),
+        ("PYTHONPATH=src uv run pytest", ShellIntent.VALIDATE),
+        ("timeout 60 sudo -E pytest -x", ShellIntent.VALIDATE),
+        ("python -m pytest", ShellIntent.VALIDATE),
+        ("python - <<'EOF'\nimport os; os.remove('x')\nEOF", ShellIntent.VALIDATE),
+        ("python -m pip install requests", ShellIntent.CHANGE),
+        ("ls | tee listing.txt", ShellIntent.CHANGE),
+        ('echo "unbalanced', ShellIntent.EXPLORE),
+    ],
+)
+def test_shell_intent_reads_command_positions(
+    command: str, intent: ShellIntent
+) -> None:
+    assert shell_intent(command) is intent
+
+
+@pytest.mark.req("TER-LEN-007")
+def test_printing_a_runner_name_does_not_validate_an_edit() -> None:
+    s = Script()
+    s.prompt("Fix a.py")
+    s.read("src/a.py", "def a(): pass")
+    s.edit("src/a.py")
+    s.bash("echo pytest", "pytest")
+    s.say("Fixed src/a.py")
+    a = analysis_of(s)
+    assert [f.detector for f in a.findings] == ["unvalidated_implementation"]
+
+
+def _countermeasure(command: str | None) -> Any:
+    s = Script()
+    s.prompt("Fix a.py")
+    s.read("src/a.py", "def a(): pass")
+    if command is not None:
+        s.bash(command, PASS)
+    s.edit("src/a.py")
+    s.say("Fixed src/a.py")
+    report = build_a3(analysis_of(s), ["Fix a.py"])
+    return next(
+        c for c in report.countermeasures if c.detector == "unvalidated_implementation"
+    )
+
+
+@pytest.mark.req("TER-RPT-005")
+def test_no_observed_check_means_no_executable_edit_hook() -> None:
+    cm = _countermeasure(None)
+    assert ActionKind.HOOK not in {a.kind for a in cm.actions}
+    assert all("<your test command" not in (a.snippet or "") for a in cm.actions)
+    assert any("no edit hook is generated" in a.text for a in cm.actions)
+    observed = _countermeasure("pytest -q")
+    [hook] = [a for a in observed.actions if a.kind is ActionKind.HOOK]
+    assert "&& pytest -q >/dev/null" in (hook.snippet or "")
+
+
+@pytest.mark.req("TER-RPT-005")
+def test_edit_hook_quotes_the_observed_command() -> None:
+    import shlex
+    import subprocess
+
+    def hook_command(command: str) -> str:
+        cm = _countermeasure(command)
+        [hook] = [a for a in cm.actions if a.kind is ActionKind.HOOK]
+        settings = json.loads(hook.snippet or "")
+        check: str = settings["hooks"]["PostToolUse"][0]["hooks"][0]["command"]
+        return check
+
+    # An observed check that fails, with an apostrophe, quotes and a comment.
+    command = 'pytest -k "it\'s" -q 2>/dev/null; false # isn\'t "done" `yet`'
+    check = hook_command(command)
+    diagnostic = check.split("|| { echo ", 1)[1].rsplit(" >&2; exit 2; }", 1)[0]
+    assert shlex.split(diagnostic) == [f"{command} fails after this edit"]
+    ran = subprocess.run(
+        ["bash", "-c", check],
+        env={"CLAUDE_PROJECT_DIR": ".", "PATH": "/usr/bin:/bin"},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert ran.returncode == 2
+    assert ran.stderr == f"{command} fails after this edit\n"
+    assert hook_command("pytest tests/test_a.py -q").startswith(
+        'cd "$CLAUDE_PROJECT_DIR" && pytest tests/test_a.py -q >/dev/null'
+    )
+
+
+@pytest.mark.req("TER-LEN-007")
+def test_results_without_call_ids_pair_only_when_unambiguous() -> None:
+    from ter.domain import Actor, Event, Provenance, ToolCall, ToolKind, make_event_id
+    from ter.domain.lean.steps import StepLog
+
+    def event(n: int, kind: EventKind, tool: ToolCall, text: str = "") -> Event:
+        return Event(
+            id=make_event_id("s", n, kind.value),
+            session_id="s",
+            sequence=n,
+            kind=kind,
+            actor=Actor.TOOL if kind is EventKind.TOOL_COMPLETED else Actor.ASSISTANT,
+            text=text,
+            provenance=Provenance(source="t", record_id=f"r{n}"),
+            tool=tool,
+        )
+
+    bash = ToolCall("Bash", ToolKind.EXEC_SHELL, None, {"command": "pytest -q"})
+    read = ToolCall("Read", ToolKind.FS_READ, None, {"file_path": "a.py"})
+    result = ToolCall("", ToolKind.OTHER, None)
+    log = StepLog()
+    for e in (
+        event(0, EventKind.TOOL_REQUESTED, bash),
+        event(1, EventKind.TOOL_COMPLETED, result, FAIL),
+        # Two id-less requests in flight: their results cannot be told apart.
+        event(2, EventKind.TOOL_REQUESTED, read),
+        event(3, EventKind.TOOL_REQUESTED, bash),
+        event(4, EventKind.TOOL_COMPLETED, result, "x"),
+    ):
+        log.add(e, 1)
+    steps = log.steps()
+    paired = steps[1]
+    assert paired.request_index == 0
+    assert paired.command == "pytest -q"
+    assert paired.shell is ShellIntent.VALIDATE
+    assert paired.outcome is Outcome.FAILED
+    assert steps[4].request_index is None
+    assert steps[4].stage is Stage.EXPLORE
+
+
+@pytest.mark.req("TER-DET-001")
+def test_files_changed_unread_under_one_prompt_get_distinct_ids() -> None:
+    s = Script()
+    s.prompt("Add login")
+    s.write("src/login.py", "def login(): pass")
+    s.write("templates/login.html", "<form></form>")
+    s.say("Added login")
+    a = analysis_of(s)
+    premature = [f for f in a.findings if f.detector == "premature_implementation"]
+    assert len(premature) == 2
+    assert len({f.id for f in premature}) == 2
+    for f in premature:
+        assert a.finding(f.id) is f

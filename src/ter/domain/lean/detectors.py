@@ -121,6 +121,8 @@ def _finding(
     share: float = 1.0,
     subject: str = "",
     activity_class: ActivityClass = ActivityClass.AVOIDABLE,
+    anchor: Step | None = None,
+    key: str = "",
 ) -> Finding:
     cited = sorted({s.index: s for s in evidence}.values(), key=lambda s: s.index)
     wasted = (
@@ -128,10 +130,14 @@ def _finding(
         if detector.kind is FindingKind.WASTE
         else []
     )
-    anchor = wasted[0] if wasted else cited[0]
+    # The id names the step the finding is about: the first wasted step, an
+    # explicit anchor, or else the first cited step. ``key`` tells apart
+    # findings that share an anchor (one step touching several files).
+    if anchor is None:
+        anchor = wasted[0] if wasted else cited[0]
     share = max(0.0, min(1.0, share))
     return Finding(
-        id=f"{detector.id}:{anchor.event_id}",
+        id=f"{detector.id}:{anchor.event_id}" + (f":{key}" if key else ""),
         detector=detector.id,
         waste=detector.waste,
         kind=detector.kind,
@@ -526,6 +532,8 @@ class PrematureImplementation:
                         explanation=f"{step.native_name} changed {path} with no evidence collected about it first. {why}",
                         evidence=cited,
                         subject=path,
+                        anchor=step,
+                        key=path if len(step.paths) > 1 else "",
                     )
             if step.tool_kind in (
                 ToolKind.FS_READ,

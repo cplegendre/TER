@@ -107,7 +107,9 @@ prints on A3 landscape) in A3 order: **1 Background** (the developer's
 prompts and a problem statement) · **Scorecard** · **2 Current state** (value
 stream map: stages with steps, tokens, context and time; stages with
 confident waste outlined in red with a badge; avoidable and uncertain shares
-per stage) · **3 Analysis** (waste Pareto, activity-class 100% bar, flow by
+per stage) · **3 Analysis** (waste Pareto of generated tokens, each event
+counted once under the finding the scorecard charged it to, so the bars add
+up to the scorecard's waste; activity-class 100% bar, flow by
 tokens and by time, fail → fix cycles) · **4 Root causes** (findings with
 confidence, cost and evidence event ids) · **5 Countermeasures** (per fired
 detector: CLAUDE.md lines, hook settings and scripts, settings) · **6

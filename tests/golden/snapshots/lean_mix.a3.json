@@ -3,14 +3,14 @@
     "cycles": [],
     "pareto": [
       {
-        "findings": 4,
-        "tokens": 208,
-        "waste": "over_processing"
-      },
-      {
         "findings": 1,
         "tokens": 138,
         "waste": "overproduction"
+      },
+      {
+        "findings": 4,
+        "tokens": 132,
+        "waste": "over_processing"
       }
     ],
     "scorecard": {
@@ -110,7 +110,7 @@
         "regeneration:bbef9c623af73c14"
       ],
       "detector": "regeneration",
-      "rationale": "1 finding(s), 138 tokens: Rewrote src/retry.py in full.",
+      "rationale": "1 finding(s), 138 generated tokens: Rewrote src/retry.py in full.",
       "title": "Edit in place instead of rewriting files",
       "uncertain": false,
       "waste": "overproduction"
@@ -134,7 +134,7 @@
         "excessive_planning:afa62c3fc87da043"
       ],
       "detector": "excessive_planning",
-      "rationale": "1 finding(s), 107 tokens: 5 planning steps without acting.",
+      "rationale": "1 finding(s), 103 generated tokens: 5 planning steps without acting.",
       "title": "Turn plans into the first action sooner",
       "uncertain": false,
       "waste": "over_processing"
@@ -165,26 +165,8 @@
         "repeated_tool_call:d3419f3fcdb0f607"
       ],
       "detector": "repeated_tool_call",
-      "rationale": "2 finding(s), 79 tokens: Repeated validation run; Repeated Bash call.",
+      "rationale": "2 finding(s), 29 generated tokens: Repeated validation run; Repeated Bash call.",
       "title": "Reuse results instead of repeating calls",
-      "uncertain": false,
-      "waste": "over_processing"
-    },
-    {
-      "actions": [
-        {
-          "kind": "claude_md",
-          "language": "markdown",
-          "snippet": "- Make related changes to one file in a single MultiEdit call rather than one Edit per hunk (fragmented: `src/net.py`).",
-          "text": "Ask for one call per coherent change."
-        }
-      ],
-      "addresses": [
-        "fragmented_edits:0c363a14eea9043e"
-      ],
-      "detector": "fragmented_edits",
-      "rationale": "1 finding(s), 22 tokens: 3 separate edits to src/net.py.",
-      "title": "Batch edits to one file",
       "uncertain": false,
       "waste": "over_processing"
     },
@@ -207,10 +189,28 @@
         "unvalidated_implementation:c546d6039402b9c4"
       ],
       "detector": "unvalidated_implementation",
-      "rationale": "1 finding(s), 0 tokens: Responded after a failing check.",
+      "rationale": "1 finding(s), 0 generated tokens: Responded after a failing check.",
       "title": "Validate every change before reporting it",
       "uncertain": false,
       "waste": "defects"
+    },
+    {
+      "actions": [
+        {
+          "kind": "claude_md",
+          "language": "markdown",
+          "snippet": "- Make related changes to one file in a single MultiEdit call rather than one Edit per hunk (fragmented: `src/net.py`).",
+          "text": "Ask for one call per coherent change."
+        }
+      ],
+      "addresses": [
+        "fragmented_edits:0c363a14eea9043e"
+      ],
+      "detector": "fragmented_edits",
+      "rationale": "1 finding(s), 0 generated tokens: 3 separate edits to src/net.py.",
+      "title": "Batch edits to one file",
+      "uncertain": false,
+      "waste": "over_processing"
     }
   ],
   "current_state": {

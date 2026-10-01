@@ -85,3 +85,53 @@ def test_scorer_needs_both_seams() -> None:
     with pytest.raises(ValueError, match="both"):
         Ter3Scorer(RegexTokenizer(), None)
     assert "embeddings" in Ter3Scorer().method
+
+
+@pytest.mark.req("TER-ANL-012")
+def test_concurrent_offline_scores_each_see_their_own_seams(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import threading
+    import time
+    from types import SimpleNamespace
+
+    import ter.adapters.driven.ter3 as ter3_adapter
+
+    name = embedding_cache.DEFAULT_MODEL_NAME
+    before_enc = embedding_cache._TIKTOKEN_ENC
+    had = name in embedding_cache._MODEL_CACHE
+    seen: dict[str, list[tuple[object, object]]] = {}
+
+    def fake_analyze(args: object) -> SimpleNamespace:
+        ref = str(getattr(args, "session_path", args))
+        record = seen.setdefault(threading.current_thread().name, [])
+        for _ in range(5):
+            encoding = embedding_cache._TIKTOKEN_ENC
+            record.append(
+                (
+                    getattr(encoding, "_tokenizer", None),
+                    embedding_cache._MODEL_CACHE.get(name),
+                )
+            )
+            time.sleep(0.01)
+        return SimpleNamespace(aggregate_ter=0.5, ref=ref)
+
+    monkeypatch.setattr(ter3_adapter, "analyze_session", fake_analyze)
+    pins = {t: (RegexTokenizer(), HashingEmbedder()) for t in ("first", "second")}
+    start = threading.Barrier(2)
+
+    def run(thread: str) -> None:
+        tokenizer, embedder = pins[thread]
+        scorer = Ter3Scorer(tokenizer, embedder)
+        start.wait()
+        scorer.score(REFS[0])
+
+    threads = [threading.Thread(target=run, args=(t,), name=t) for t in pins]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    for thread, (tokenizer, embedder) in pins.items():
+        assert seen[thread] == [(tokenizer, embedder)] * 5
+    assert embedding_cache._TIKTOKEN_ENC is before_enc
+    assert (name in embedding_cache._MODEL_CACHE) == had

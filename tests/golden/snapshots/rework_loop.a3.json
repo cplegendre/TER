@@ -31,7 +31,7 @@
     "pareto": [
       {
         "findings": 1,
-        "tokens": 130,
+        "tokens": 92,
         "waste": "rework"
       }
     ],
@@ -138,7 +138,7 @@
         "rework_cycle:d149692b66de4b4b"
       ],
       "detector": "rework_cycle",
-      "rationale": "1 finding(s), 130 tokens: Fix attempt did not change the failure of pytest tests/test_parser.py -q.",
+      "rationale": "1 finding(s), 92 generated tokens: Fix attempt did not change the failure of pytest tests/test_parser.py -q.",
       "title": "Re-diagnose after an identical failure instead of patching again",
       "uncertain": false,
       "waste": "rework"

@@ -10,11 +10,14 @@ injected, :class:`Ter3Scorer` pins those seams to them for the duration of
 one call and restores them afterwards: that is the offline, deterministic
 mode (the same pinning the golden tests use). Without them, TER 3 uses its
 own tiktoken encoding and sentence-transformers model, which may download.
-Calls are not thread-safe while seams are pinned.
+Because the seams are process-wide, every score (pinned or not) runs under
+one process-wide lock: concurrent scores take turns, so none reads another's
+tokenizer or embedder, or sees seams restored while it is still running.
 """
 
 from __future__ import annotations
 
+import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
@@ -26,6 +29,9 @@ from ter_calculator.analyze_pipeline import analyze_session, default_analyze_arg
 from ....ports.driven import Embedder, Tokenizer
 
 __all__ = ["Ter3Scorer"]
+
+# Guards the TER 3 seams for the whole save, pin, score and restore sequence.
+_SEAMS = threading.Lock()
 
 
 class _TokenizerAsEncoding:
@@ -56,7 +62,7 @@ class Ter3Scorer:
             self.method = f"TER 3 ({embedding_cache.DEFAULT_MODEL_NAME} embeddings)"
 
     def score(self, ref: str | Path) -> float:
-        with self._pinned():
+        with _SEAMS, self._pinned():
             result = analyze_session(default_analyze_args(str(ref)))
         return float(result.aggregate_ter)
 

@@ -107,7 +107,8 @@ def value_stream_map(
     box_w = (width - 2 * side - gap * (len(stages) - 1)) / len(stages)
     box_h = 148
     height = top + box_h + 44
-    total_tokens = sum(s.tokens for s in stages) or 1
+    total_tokens = sum(s.tokens for s in stages)
+    denominator = total_tokens or 1  # for shares only; the total shown stays real
     desc = "Value stream, in order. " + "; ".join(
         f"{s.stage.label}: {s.steps} steps, {s.tokens} generated tokens, "
         f"{s.context_tokens} context tokens, {fmt_seconds(s.seconds)}, "
@@ -193,7 +194,7 @@ def value_stream_map(
                 (f"{fmt_tokens(s.tokens)} generated", "ink-2"),
                 (f"{fmt_tokens(s.context_tokens)} context", "ink-2"),
                 (
-                    f"{fmt_seconds(s.seconds)} · {fmt_pct(s.tokens / total_tokens, 0)} of tokens",
+                    f"{fmt_seconds(s.seconds)} · {fmt_pct(s.tokens / denominator, 0)} of tokens",
                     "ink-2",
                 ),
             ]
@@ -299,7 +300,7 @@ def pareto(report: A3Report, *, width: int = 520) -> str:
     entries = [WasteByType(p.waste.value, p.tokens, p.findings) for p in report.pareto]
     return waste_pareto(
         entries,
-        title="Waste Pareto (confident findings)",
+        title="Waste Pareto (generated tokens, confident findings)",
         width=width,
         chart_id="a3-pareto",
     )

@@ -256,3 +256,29 @@ def test_format_findings_without_ter() -> None:
         "flow efficiency" in text
         and "TER " not in text.split("findings")[0].split("activity")[1]
     )
+
+
+@pytest.mark.req("TER-RPT-003")
+@pytest.mark.parametrize("command", ["a3", "explain"])
+@pytest.mark.parametrize("flag", ["--quiet", "--verbose"])
+def test_ter3_cli_rejects_global_flags_before_delegated_commands(
+    command: str, flag: str, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from ter_calculator.cli import main as ter3_main
+
+    with pytest.raises(SystemExit) as exited:
+        ter3_main([flag, command, str(CORPUS["duplicate_exploration"])])
+    assert exited.value.code == 2
+    err = capsys.readouterr().err
+    assert f"{flag} cannot be used with {command}" in err
+
+
+@pytest.mark.req("TER-RPT-004")
+def test_value_stream_total_is_real_when_nothing_was_generated() -> None:
+    s = Script()
+    s.prompt("Only a prompt")
+    stages = explain(s.events, RegexTokenizer()).value_stream
+    assert sum(st.tokens for st in stages) == 0
+    vsm = value_stream_map(stages)
+    assert "· 0 generated tokens ·" in vsm
+    assert "· 1 generated tokens" not in vsm

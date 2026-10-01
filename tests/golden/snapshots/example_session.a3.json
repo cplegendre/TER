@@ -4,7 +4,7 @@
     "pareto": [
       {
         "findings": 1,
-        "tokens": 55,
+        "tokens": 27,
         "waste": "motion"
       }
     ],
@@ -111,7 +111,7 @@
         "repeated_exploration:53fa055cfc1d65bf"
       ],
       "detector": "repeated_exploration",
-      "rationale": "1 finding(s), 55 tokens: Re-read src/app.py.",
+      "rationale": "1 finding(s), 27 generated tokens: Re-read src/app.py.",
       "title": "Keep what was read; re-read only what changed",
       "uncertain": false,
       "waste": "motion"
@@ -135,7 +135,7 @@
         "regeneration:eca762078b6545c5"
       ],
       "detector": "regeneration",
-      "rationale": "1 finding(s), 76 tokens: Rewrote src/app.py in full. All below the confidence threshold: verify before acting.",
+      "rationale": "1 finding(s), 76 generated tokens: Rewrote src/app.py in full. All below the confidence threshold: verify before acting.",
       "title": "Edit in place instead of rewriting files",
       "uncertain": true,
       "waste": "overproduction"

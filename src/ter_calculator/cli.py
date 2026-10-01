@@ -105,6 +105,10 @@ def _add_analysis_args(parser: argparse.ArgumentParser) -> None:
     )
 
 
+_GLOBAL_FLAGS = frozenset({"--verbose", "--quiet"})
+_DELEGATED = ("a3", "explain")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="ter",
@@ -507,8 +511,20 @@ def main(argv: list[str] | None = None) -> int:
         delegated = subparsers.add_parser(name, help=text, add_help=False)
         delegated.add_argument("ter4_args", nargs=argparse.REMAINDER)
 
+    # The delegated commands are handed to TER 4 before parsing, so their
+    # options reach it untouched. Leading global options are skipped to find
+    # the command: TER 4 has no --verbose or --quiet, so naming one before a
+    # delegated command is an error rather than a silent no-op.
     raw = list(sys.argv[1:] if argv is None else argv)
-    if raw and raw[0] in ("a3", "explain"):
+    position = 0
+    while position < len(raw) and raw[position] in _GLOBAL_FLAGS:
+        position += 1
+    if position < len(raw) and raw[position] in _DELEGATED:
+        if position:
+            parser.error(
+                f"{', '.join(raw[:position])} cannot be used with "
+                f"{raw[position]}; run `ter {raw[position]} --help` for its options"
+            )
         from ter.bootstrap import main as ter4_main
 
         return ter4_main(raw)

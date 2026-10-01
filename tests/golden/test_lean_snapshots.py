@@ -68,3 +68,31 @@ def test_a3_ter_is_the_frozen_ter3_score(name: str) -> None:
     )
     assert ter is not None
     assert ter.value == pytest.approx(frozen["aggregate_ter"], abs=1e-6)
+
+
+@pytest.mark.req("TER-DET-001")
+@pytest.mark.parametrize("name", sorted(CORPUS))
+def test_finding_ids_are_unique(name: str) -> None:
+    analysis = _explained(name).analysis
+    ids = [f.id for f in analysis.findings]
+    assert len(ids) == len(set(ids))
+    for f in analysis.findings:
+        assert analysis.finding(f.id) is f
+
+
+@pytest.mark.req("TER-RPT-003")
+@pytest.mark.parametrize("name", sorted(CORPUS))
+def test_a3_pareto_and_costs_reconcile_with_the_scorecard(name: str) -> None:
+    a3 = _explained(name).a3
+    sc = a3.analysis.scorecard
+    assert sum(bar.tokens for bar in a3.pareto) == (sc.waste_tokens if a3.pareto else 0)
+    allocated = a3.analysis.allocated_waste_tokens()
+    assert sum(allocated.values()) == pytest.approx(sc.waste_tokens, abs=1)
+    confident = {f.id for f in a3.analysis.findings if not f.uncertain}
+    confident_cost = sum(
+        allocated.get(i, 0.0)
+        for c in a3.countermeasures
+        for i in c.addresses
+        if i in confident
+    )
+    assert confident_cost == pytest.approx(sc.waste_tokens, abs=1)

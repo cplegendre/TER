@@ -85,21 +85,21 @@
         {
           "kind": "claude_md",
           "language": "markdown",
-          "snippet": "- After changing code, run `<your test command, e.g. pytest -q>` and report its result before saying the task is done; say so explicitly if it cannot be run.",
-          "text": "Make validation part of done."
+          "snippet": "## Validation\n- Test command: <fill in the project's test command>\n- After changing code, run the test command and report its result before saying the task is done; say so explicitly if it cannot be run.",
+          "text": "Make validation part of done, and name the check to run."
         },
         {
-          "kind": "hook",
-          "language": "json",
-          "snippet": "{\n  \"hooks\": {\n    \"PostToolUse\": [\n      {\n        \"matcher\": \"Edit|MultiEdit|Write\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"cd \\\"$CLAUDE_PROJECT_DIR\\\" && <your test command, e.g. pytest -q> >/dev/null 2>&1 || { echo '<your test command, e.g. pytest -q> fails after this edit' >&2; exit 2; }\",\n            \"timeout\": 300\n          }\n        ]\n      }\n    ]\n  }\n}",
-          "text": "Run the check after every edit and feed a failure back to the agent (edited without validation: `src/login.py, templates/login.html`)."
+          "kind": "practice",
+          "language": null,
+          "snippet": null,
+          "text": "No check ran in this session, so no edit hook is generated. Once the project has a test command, add a PostToolUse hook on Edit|MultiEdit|Write that runs it (edited without validation: `src/login.py, templates/login.html`)."
         }
       ],
       "addresses": [
         "unvalidated_implementation:66675543479d5262"
       ],
       "detector": "unvalidated_implementation",
-      "rationale": "1 finding(s), 0 tokens: 2 edit(s) reported without validation.",
+      "rationale": "1 finding(s), 0 generated tokens: 2 edit(s) reported without validation.",
       "title": "Validate every change before reporting it",
       "uncertain": false,
       "waste": "defects"
@@ -116,15 +116,15 @@
           "kind": "setting",
           "language": "json",
           "snippet": "{\n  \"permissions\": {\n    \"defaultMode\": \"plan\"\n  }\n}",
-          "text": "Start unfamiliar tasks in plan mode, so exploration comes before edits (changed before reading: `src/login.py`, `templates/login.html`)."
+          "text": "Start unfamiliar tasks in plan mode, so exploration comes before edits (changed before reading: `templates/login.html`, `src/login.py`)."
         }
       ],
       "addresses": [
-        "premature_implementation:efbc3fb8debf69d2",
-        "premature_implementation:efbc3fb8debf69d2"
+        "premature_implementation:0c500468149caeae",
+        "premature_implementation:66675543479d5262"
       ],
       "detector": "premature_implementation",
-      "rationale": "2 finding(s), 0 tokens: Changed src/login.py before reading it; Changed templates/login.html before reading it. All below the confidence threshold: verify before acting.",
+      "rationale": "2 finding(s), 0 generated tokens: Changed templates/login.html before reading it; Changed src/login.py before reading it. All below the confidence threshold: verify before acting.",
       "title": "Collect evidence before changing code",
       "uncertain": true,
       "waste": "defects"
@@ -166,8 +166,8 @@
         "avoidable_tokens": 0,
         "context_tokens": 6,
         "findings": [
-          "premature_implementation:efbc3fb8debf69d2",
-          "premature_implementation:efbc3fb8debf69d2",
+          "premature_implementation:0c500468149caeae",
+          "premature_implementation:66675543479d5262",
           "unvalidated_implementation:66675543479d5262"
         ],
         "seconds": 12.0,
@@ -276,15 +276,15 @@
       "detector": "premature_implementation",
       "evidence": [
         "efbc3fb8debf69d2",
-        "66675543479d5262"
+        "0c500468149caeae"
       ],
-      "explanation": "Write changed src/login.py with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
-      "id": "premature_implementation:efbc3fb8debf69d2",
+      "explanation": "Write changed templates/login.html with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
+      "id": "premature_implementation:0c500468149caeae",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
-      "subject": "src/login.py",
-      "title": "Changed src/login.py before reading it",
+      "subject": "templates/login.html",
+      "title": "Changed templates/login.html before reading it",
       "tokens": 0,
       "uncertain": true,
       "waste": "defects",
@@ -297,15 +297,15 @@
       "detector": "premature_implementation",
       "evidence": [
         "efbc3fb8debf69d2",
-        "0c500468149caeae"
+        "66675543479d5262"
       ],
-      "explanation": "Write changed templates/login.html with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
-      "id": "premature_implementation:efbc3fb8debf69d2",
+      "explanation": "Write changed src/login.py with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
+      "id": "premature_implementation:66675543479d5262",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
-      "subject": "templates/login.html",
-      "title": "Changed templates/login.html before reading it",
+      "subject": "src/login.py",
+      "title": "Changed src/login.py before reading it",
       "tokens": 0,
       "uncertain": true,
       "waste": "defects",
@@ -395,15 +395,15 @@
       "detector": "premature_implementation",
       "evidence": [
         "efbc3fb8debf69d2",
-        "66675543479d5262"
+        "0c500468149caeae"
       ],
-      "explanation": "Write changed src/login.py with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
-      "id": "premature_implementation:efbc3fb8debf69d2",
+      "explanation": "Write changed templates/login.html with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
+      "id": "premature_implementation:0c500468149caeae",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
-      "subject": "src/login.py",
-      "title": "Changed src/login.py before reading it",
+      "subject": "templates/login.html",
+      "title": "Changed templates/login.html before reading it",
       "tokens": 0,
       "uncertain": true,
       "waste": "defects",
@@ -416,15 +416,15 @@
       "detector": "premature_implementation",
       "evidence": [
         "efbc3fb8debf69d2",
-        "0c500468149caeae"
+        "66675543479d5262"
       ],
-      "explanation": "Write changed templates/login.html with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
-      "id": "premature_implementation:efbc3fb8debf69d2",
+      "explanation": "Write changed src/login.py with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
+      "id": "premature_implementation:66675543479d5262",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
-      "subject": "templates/login.html",
-      "title": "Changed templates/login.html before reading it",
+      "subject": "src/login.py",
+      "title": "Changed src/login.py before reading it",
       "tokens": 0,
       "uncertain": true,
       "waste": "defects",

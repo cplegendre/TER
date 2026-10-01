@@ -4,7 +4,7 @@
     "pareto": [
       {
         "findings": 2,
-        "tokens": 96,
+        "tokens": 32,
         "waste": "motion"
       },
       {
@@ -117,7 +117,7 @@
         "repeated_exploration:1177e4320222fe66"
       ],
       "detector": "repeated_exploration",
-      "rationale": "2 finding(s), 96 tokens: Re-read src/cli.py; Re-ran search argparse.",
+      "rationale": "2 finding(s), 32 generated tokens: Re-read src/cli.py; Re-ran search argparse.",
       "title": "Keep what was read; re-read only what changed",
       "uncertain": false,
       "waste": "motion"
@@ -135,7 +135,7 @@
         "repeated_reasoning:546f400bea474093"
       ],
       "detector": "repeated_reasoning",
-      "rationale": "1 finding(s), 17 tokens: Reasoning restated.",
+      "rationale": "1 finding(s), 17 generated tokens: Reasoning restated.",
       "title": "Act on a decision instead of restating it",
       "uncertain": false,
       "waste": "over_processing"
@@ -160,7 +160,7 @@
         "unused_context:a33373b4cca658c1"
       ],
       "detector": "unused_context",
-      "rationale": "2 finding(s), 61 tokens: Read src/utils.py and never used it; Read src/config.py and never used it. All below the confidence threshold: verify before acting.",
+      "rationale": "2 finding(s), 30 generated tokens: Read src/utils.py and never used it; Read src/config.py and never used it. All below the confidence threshold: verify before acting.",
       "title": "Read with a purpose",
       "uncertain": true,
       "waste": "inventory"

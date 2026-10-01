@@ -115,6 +115,8 @@ class StepLog:
         self._steps: list[Step] = []
         self._seen: set[EventId] = set()
         self._requests: dict[str, _Open] = {}
+        # Requests that carry no call id and have no result yet, oldest first.
+        self._unkeyed: list[str] = []
 
     def __len__(self) -> int:
         return len(self._steps)
@@ -165,8 +167,10 @@ class StepLog:
             call_key = _call_key(tool.kind, arguments)
             if tool.kind is ToolKind.EXEC_SHELL:
                 raw = arguments.get("command")
-                command = normalise_command(raw) if isinstance(raw, str) else ""
-                shell = shell_intent(command)
+                raw = raw if isinstance(raw, str) else ""
+                command = normalise_command(raw)
+                # Classified before normalising: newlines separate commands.
+                shell = shell_intent(raw)
             stage = stage_of_tool(tool.kind, shell)
             subject = _subject(tool.kind, arguments, command)
             words = content_words(_argument_text(arguments))
@@ -177,8 +181,10 @@ class StepLog:
             self._requests[key] = _Open(
                 index, stage, shell, tool.kind, tool.native_name
             )
+            if not call_id:
+                self._unkeyed.append(key)
         elif event.kind is EventKind.TOOL_COMPLETED:
-            opened = self._requests.get(call_id) if call_id else None
+            opened = self._requests.get(call_id) if call_id else self._unkeyed_request()
             output_hash = output_fingerprint(event.text)
             identifiers = defined_identifiers(event.text)
             if opened is None:
@@ -231,6 +237,16 @@ class StepLog:
             seconds=0.0,
             subject=subject or (event.text[:80] if event.actor is Actor.USER else ""),
         )
+
+    def _unkeyed_request(self) -> _Open | None:
+        """The request a result without a call id answers, when that is certain.
+
+        Only one id-less request waiting for its result is unambiguous; with
+        none or several the result stays an orphan rather than a guess.
+        """
+        if len(self._unkeyed) != 1:
+            return None
+        return self._requests[self._unkeyed.pop()]
 
     def steps(self) -> tuple[Step, ...]:
         """The steps so far, with wall time attributed.

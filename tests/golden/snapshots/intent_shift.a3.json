@@ -97,10 +97,10 @@
         }
       ],
       "addresses": [
-        "premature_implementation:48ba27d45b86300c"
+        "premature_implementation:ff2bdafc4174f0ae"
       ],
       "detector": "premature_implementation",
-      "rationale": "1 finding(s), 0 tokens: Changed src/stats.py before reading it. All below the confidence threshold: verify before acting.",
+      "rationale": "1 finding(s), 0 generated tokens: Changed src/stats.py before reading it. All below the confidence threshold: verify before acting.",
       "title": "Collect evidence before changing code",
       "uncertain": true,
       "waste": "defects"
@@ -142,7 +142,7 @@
         "avoidable_tokens": 0,
         "context_tokens": 32,
         "findings": [
-          "premature_implementation:48ba27d45b86300c"
+          "premature_implementation:ff2bdafc4174f0ae"
         ],
         "seconds": 9.0,
         "stage": "implement",
@@ -251,7 +251,7 @@
         "ff2bdafc4174f0ae"
       ],
       "explanation": "Write changed src/stats.py with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
-      "id": "premature_implementation:48ba27d45b86300c",
+      "id": "premature_implementation:ff2bdafc4174f0ae",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
@@ -295,7 +295,7 @@
         "ff2bdafc4174f0ae"
       ],
       "explanation": "Write changed src/stats.py with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
-      "id": "premature_implementation:48ba27d45b86300c",
+      "id": "premature_implementation:ff2bdafc4174f0ae",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
