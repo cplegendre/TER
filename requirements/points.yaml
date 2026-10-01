@@ -2918,9 +2918,13 @@ points:
         An external capability enters as a capability pack (port, contract
         suite, EARS requirements, fake, reference adapter) and the core
         never imports its package (ADR 0005).
-    rules: [TER-ARC-002, TER-ARC-003]
+    rules: [TER-ARC-002, TER-ARC-003, TER-ARC-004, TER-ARC-005, TER-ARC-006]
     verification:
-      - 'planned: passing tests tagged req for TER-ARC-002'
+      - 'test: tests/unit/test_ter4_capabilities.py'
+      - >-
+        planned: TER-ARC-002 once repository engines, policies and the
+        analysers load through the capability registry (ports for them do not
+        exist yet; detectors register through DetectorRegistry)
       - 'test: tests/unit/test_ter4_lean_analysis.py::test_detectors_are_plugins'
       - 'test: tests/architecture/test_import_contracts.py::test_core_never_imports_external_capability_packages'
 

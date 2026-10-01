@@ -15,13 +15,17 @@ from ..adapters.driving.cli import CliServices
 from ..adapters.driving.cli import main as cli_main
 from ..adapters.driven.in_memory import SystemClock
 from ..application.explain import ExplainedSession, ExplainSession
+from .capabilities import CapabilityRegistry, default_registry
 from ..application.observe import AnalyseEventLog, AnalyseTrace, RecordEvent
+from ..domain.capabilities import Capability, CapabilityProblem, UnknownCapabilityError
 from ..domain.stream import StreamReport
 from ..ports.driven import TerScorer, Tokenizer
 from ..ports.driving import EventIngest
 
 __all__ = [
+    "CapabilityRegistry",
     "cli_services",
+    "default_registry",
     "default_event_log_dir",
     "main",
     "make_ter_scorer",
@@ -48,14 +52,17 @@ def default_event_log_dir() -> Path:
 
 
 def make_tokenizer(name: str = "regex") -> Tokenizer:
-    """``regex`` is offline and deterministic; ``tiktoken`` needs its encoding."""
-    from ..adapters.driven.tokenizers import RegexTokenizer, TiktokenTokenizer
+    """``regex`` is offline and deterministic; ``tiktoken`` needs its encoding.
 
-    if name == "tiktoken":
-        return TiktokenTokenizer()
-    if name == "regex":
-        return RegexTokenizer()
-    raise ValueError(f"Unknown tokenizer {name!r}")
+    Any ``Tokenizer.<name>`` capability works; built-ins resolve without
+    scanning installed packages, so hooks stay cheap.
+    """
+    try:
+        tokenizer = default_registry().create("Tokenizer", name)
+    except UnknownCapabilityError:
+        raise ValueError(f"Unknown tokenizer {name!r}") from None
+    assert isinstance(tokenizer, Tokenizer)  # checked by the registry
+    return tokenizer
 
 
 def make_ter_scorer(mode: str) -> TerScorer | None:
@@ -108,7 +115,13 @@ def cli_services() -> CliServices:
         )
         return use_case(path)
 
+    def capabilities() -> tuple[tuple[Capability, ...], tuple[CapabilityProblem, ...]]:
+        registry = default_registry()
+        problems = registry.check()
+        return registry.capabilities(), problems
+
     return CliServices(
+        capabilities=capabilities,
         analyse_transcript=analyse_transcript,
         log_sessions=log_sessions,
         analyse_log=analyse_log,

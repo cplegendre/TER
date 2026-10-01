@@ -89,6 +89,45 @@ requirements:
       Plugins let the platform grow without changing the core.
     status: planned
 
+  - id: TER-ARC-004
+    pattern: event-driven
+    text: >-
+      When a use case asks for an adapter of a port by name, TER shall
+      resolve the adapter from the built-in adapters and the installed
+      ter.capabilities entry points, keyed by port name and adapter name.
+    level: L2
+    source_points: [197]
+    rationale: >-
+      ADR 0005: installing a capability pack is what turns its adapter on,
+      and the core never imports the pack's package.
+    status: verified
+
+  - id: TER-ARC-005
+    pattern: unwanted
+    text: >-
+      If a registered capability fails to load, does not satisfy its port or
+      conflicts with a built-in adapter, then TER shall report the capability
+      with the reason and keep every other capability available.
+    level: L2
+    source_points: [197]
+    rationale: >-
+      One broken plugin must not stop TER, and a plugin must not silently
+      replace one of TER's own adapters.
+    status: verified
+
+  - id: TER-ARC-006
+    pattern: ubiquitous
+    text: >-
+      TER shall import the module of a capability only on the first request
+      for that capability, without scanning installed packages for a
+      built-in adapter.
+    level: L2
+    source_points: [197]
+    rationale: >-
+      Hooks run on every agent event; discovery and heavy adapters cost
+      nothing until a use case needs them.
+    status: verified
+
   - id: TER-DET-001
     pattern: event-driven
     text: >-

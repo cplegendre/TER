@@ -12,6 +12,7 @@ Commands::
     python -m ter explain SESSION.jsonl [--json] [--graph FILE]
     python -m ter a3 SESSION.jsonl [--html FILE] [--json [FILE]] [--graph FILE]
                                    [--ter offline|model|off]
+    python -m ter capabilities                # adapters per port, and problems
 """
 
 from __future__ import annotations
@@ -25,13 +26,21 @@ from pathlib import Path
 from typing import IO
 
 from ...application.explain import ExplainedSession
+from ...domain.capabilities import Capability, CapabilityProblem
 from ...domain.lean import LeanAnalysis
 from ...domain.stream import StreamReport
 from ...ports.driven import Clock
 from ...ports.driving import EventIngest
 from .claude_hooks import HookStatus, run_hook
 
-__all__ = ["CliServices", "format_findings", "format_report", "format_timeline", "main"]
+__all__ = [
+    "CliServices",
+    "format_capabilities",
+    "format_findings",
+    "format_report",
+    "format_timeline",
+    "main",
+]
 
 TOKENIZERS = ("regex", "tiktoken")
 #: How the A3 obtains TER: offline (deterministic, lexical embedder), with the
@@ -50,6 +59,10 @@ class CliServices:
     default_log_dir: Path
     hook_clock: Clock | None = None
     explain_transcript: Callable[[Path, str, str], ExplainedSession] | None = None
+    capabilities: (
+        Callable[[], tuple[tuple[Capability, ...], tuple[CapabilityProblem, ...]]]
+        | None
+    ) = None
 
 
 def main(
@@ -78,6 +91,8 @@ def main(
         return 0
     if args.command in ("explain", "a3"):
         return _explain(args, services, out, err)
+    if args.command == "capabilities":
+        return _capabilities(services, out, err)
     return _observe(args, services, out, err)
 
 
@@ -130,6 +145,34 @@ def _explain(
     if not wrote:
         out.write(format_findings(explained.analysis))
     return 0
+
+
+def _capabilities(services: CliServices, out: IO[str], err: IO[str]) -> int:
+    """List every adapter per port; exit 1 when a registered one is broken."""
+    if services.capabilities is None:
+        err.write("capabilities are not available in this installation\n")
+        return 2
+    found, problems = services.capabilities()
+    out.write(format_capabilities(found, problems))
+    return 1 if problems else 0
+
+
+def format_capabilities(
+    found: Sequence[Capability], problems: Sequence[CapabilityProblem]
+) -> str:
+    broken = {p.key for p in problems}
+    usable = [c for c in found if c.key not in broken]
+    lines = [f"TER capabilities · {len(usable)} usable, {len(problems)} problem(s)"]
+    if usable:
+        port_w = max(len(c.port) for c in usable)
+        name_w = max(len(c.name) for c in usable)
+        lines += [
+            f"  {c.port:<{port_w}}  {c.name:<{name_w}}  {c.target}  [{c.origin}]"
+            for c in usable
+        ]
+    for p in problems:
+        lines.append(f"  ! {p.key} ({p.target}): {p.reason}")
+    return "\n".join(lines) + "\n"
 
 
 def _observe(
@@ -227,6 +270,11 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
         "(TER 3 sentence-transformers, may download) or off",
     )
     a3.add_argument("--tokenizer", choices=TOKENIZERS, default="regex")
+
+    commands.add_parser(
+        "capabilities",
+        help="adapters registered for each port (ter.capabilities), and any that are broken",
+    )
 
     hook = commands.add_parser(
         "hook", help="Claude Code hook: record one hook payload read from stdin"

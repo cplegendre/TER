@@ -59,7 +59,7 @@ flowchart LR
 | `ter.ports` | Driven: `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `PriceBook`, `EventLog`, `TerScorer`. Driving: `EventIngest` | `ter.domain` |
 | `ter.application` | Use cases: `ObserveEvent`, `RecordEvent`, `AnalyseTrace`, `AnalyseEventLog` (L1), `ExplainSession` (L2) | ports, domain |
 | `ter.adapters` | Everything that knows a vendor, format or IO | anything inward, plus `ter_calculator` |
-| `ter.bootstrap` | Wiring, and the maturity ceiling | everything |
+| `ter.bootstrap` | Wiring, the capability registry (`ter.capabilities` entry points, ADR 0005) and the maturity ceiling | everything |
 
 The rules are enforced, not described. `[tool.importlinter]` in
 `pyproject.toml` declares six contracts, and both the `lint-imports` CI step

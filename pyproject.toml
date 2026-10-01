@@ -39,6 +39,18 @@ dev = [
 ter = "ter_calculator.cli:main"
 ter-req = "ter.adapters.driving.req_cli:main"
 
+# Capabilities: adapters for TER 4 ports (ADR 0005). Keys are <Port>.<adapter>;
+# this table equals ter.bootstrap.capabilities.BUILTIN_CAPABILITIES (a unit
+# test keeps them equal). Other packages add capabilities in the same group.
+[project.entry-points."ter.capabilities"]
+"Embedder.hashing" = "ter.adapters.driven.embedders:HashingEmbedder"
+"EventLog.jsonl" = "ter.adapters.driven.event_log:JsonlEventLog"
+"PriceBook.json" = "ter.adapters.driven.pricing:JsonPriceBook"
+"SessionSource.claude-code" = "ter.adapters.driven.claude_code:ClaudeCodeJsonlSource"
+"TerScorer.ter3" = "ter.adapters.driven.ter3:Ter3Scorer"
+"Tokenizer.regex" = "ter.adapters.driven.tokenizers:RegexTokenizer"
+"Tokenizer.tiktoken" = "ter.adapters.driven.tokenizers:TiktokenTokenizer"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
