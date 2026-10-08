@@ -24,21 +24,30 @@ The command writes:
 
 | Path | What |
 |---|---|
-| `sessions/p-<hash>/<file>.jsonl` | The redacted session. The project folder name is a pseudonym. |
+| `sessions/p-<hash>/<file>.jsonl` | The redacted session. The project folder name is a pseudonym; session and agent ids keep their names and any other file or folder name is hashed. |
 | `reports/p-<hash>/<file>.json` | `ter.redaction-report/1`: every replacement by kind, record line and JSON path, never the value. |
 | `manifest.json` | `ter.corpus-manifest/1`: the policy used and one entry per session (records, dates, coverage, unrecognised record types, redaction counts, labels, load error). |
 | `.salt` | Private (mode 0600). Keeps pseudonyms stable when you import more sessions into the same corpus. Never share it. |
 
+Importing into an existing corpus adds to it: sessions imported again are
+replaced, the others stay listed. A corpus has one redaction policy, so
+changing `--max-tool-output`, `--keep-tool` or `--quote-files` needs a new
+`--out`. Two sources that would write the same file (the same project folder
+and session copied to two places) are refused before anything is written.
+
 It prints a summary and flags sessions below 99% coverage (TER-SRC-005: the
 session source should map almost every real record). It exits 1 when a
-session could not be loaded, and 2 on bad input such as an invalid label file.
+session could not be read or loaded (the rest are still imported), and 2 on
+bad input such as an invalid label file.
 
 ## What redaction does
 
 The redactor (`ter.adapters.driven.claude_code.redaction`) is pure and runs
 on each record before anything is written (TER-SRC-006):
 
-- **Secrets** become `[REDACTED:<kind>]`: private keys, AWS access keys,
+- **Secrets** become `[REDACTED:<kind>#<tag>]`, where the tag is a short
+  salted hash: the same secret gets the same tag, so calls that differ only in
+  a secret stay different. Kinds: private keys, AWS access keys,
   GitHub and Slack tokens, `sk-` API keys, JWTs, bearer tokens, `password=` and
   similar assignments (the name is kept so code still reads), email addresses
   and IPv4 addresses (TER-SRC-020).
@@ -87,7 +96,7 @@ session_id,task_category,task,outcome,rating,licence
 ```
 
 `outcome` is one of `merged`, `abandoned`, `partial`, `unknown`; `rating` is 1
-to 5. Empty cells are left out. The summary lists sessions with no labels and
+to 5. Empty cells are left out, and free text is scrubbed like the sessions. The summary lists sessions with no labels and
 labels that matched no session. Subagent transcripts share their parent's
 session id, so they carry its labels.
 

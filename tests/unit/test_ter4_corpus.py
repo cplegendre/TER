@@ -5,12 +5,14 @@ from __future__ import annotations
 import io
 import json
 import os
+import re
 import stat
 from pathlib import Path
 from typing import Any
 
 import pytest
 
+from ter.adapters.driven.claude_code import corpus
 from ter.adapters.driven.claude_code.corpus import (
     CORPUS_SCHEMA,
     import_corpus,
@@ -181,12 +183,118 @@ def test_the_salt_is_private(source: Path, tmp_path: Path) -> None:
     assert stat.S_IMODE((out / ".salt").stat().st_mode) == 0o600
 
 
-def test_non_id_file_names_are_hashed(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "name",
+    ["leigh-acme-notes", "leigh-acme-2024", "2024-alice", "notes.alice", "agent-zz"],
+)
+def test_names_that_are_not_session_or_agent_ids_are_hashed_whole(
+    tmp_path: Path, name: str
+) -> None:
     src = tmp_path / "src"
-    write_session(src / PROJECT, "leigh-acme-notes")
+    write_session(src / PROJECT / "acme-2024", name)
     result = import_corpus([src], tmp_path / "corpus")
-    assert "leigh" not in result.sessions[0].file
-    assert result.sessions[0].file.endswith(".jsonl")
+    file = result.sessions[0].file
+    for part in ("leigh", "alice", "acme", "2024", "notes", "zz"):
+        assert part not in file.removeprefix("sessions/")
+    assert file.endswith(".jsonl")
+    assert re.fullmatch(
+        r"sessions/p-[0-9a-f]{12}/h-[0-9a-f]{12}/h-[0-9a-f]{12}\.jsonl", file
+    )
+
+
+def test_session_and_agent_ids_keep_their_names(source: Path, tmp_path: Path) -> None:
+    files = {
+        s.file.split("/", 2)[2]
+        for s in import_corpus([source], tmp_path / "c").sessions
+    }
+    assert files == {f"{SESSION}.jsonl", f"{SESSION}/subagents/agent-a1b2c3.jsonl"}
+
+
+@pytest.mark.req("TER-SRC-021")
+def test_a_project_folder_and_its_parent_give_the_same_project(
+    source: Path, tmp_path: Path
+) -> None:
+    out = tmp_path / "corpus"
+    whole = import_corpus([source], out)
+    one = import_corpus([source / PROJECT], out)
+    assert {s.project for s in whole.sessions} == {s.project for s in one.sessions}
+    assert len({s.project for s in one.sessions}) == 1  # the subagent too
+    assert sorted(s.file for s in one.sessions) == sorted(
+        s.file for s in whole.sessions
+    )
+
+
+def test_two_sources_writing_one_file_are_refused_before_writing(
+    tmp_path: Path,
+) -> None:
+    first = write_session(tmp_path / "laptop" / PROJECT)
+    second = write_session(tmp_path / "desktop" / PROJECT)
+    out = tmp_path / "corpus"
+    with pytest.raises(ValueError, match="would both be written"):
+        import_corpus([first.parent.parent, second.parent.parent], out)
+    assert not (out / "sessions").exists()
+    assert not (out / "manifest.json").exists()
+
+
+@pytest.mark.req("TER-SRC-023")
+def test_importing_more_sessions_adds_them_to_the_manifest(tmp_path: Path) -> None:
+    out = tmp_path / "corpus"
+    write_session(tmp_path / "a" / "-home-leigh-one")
+    other = "1c2d3e4f-0000-4000-8000-00000000abcd"
+    write_session(tmp_path / "b" / "-home-leigh-two", other, session=other)
+    import_corpus([tmp_path / "a"], out)
+    second = import_corpus([tmp_path / "b"], out)
+    again = import_corpus([tmp_path / "b"], out)
+
+    manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
+    assert {e["session_id"] for e in manifest["sessions"]} == {SESSION, other}
+    assert second.total == again.total == 2
+    assert [s.session_id for s in again.sessions] == [other]
+
+
+def test_a_different_policy_needs_a_new_corpus(source: Path, tmp_path: Path) -> None:
+    out = tmp_path / "corpus"
+    import_corpus([source], out)
+    before = (out / "manifest.json").read_text(encoding="utf-8")
+    with pytest.raises(ValueError, match="different one"):
+        import_corpus([source], out, policy=RedactionPolicy(quote_file_contents=True))
+    assert (out / "manifest.json").read_text(encoding="utf-8") == before
+    assert "proprietary" not in all_text(out)
+
+
+def test_an_unreadable_session_is_recorded_and_the_rest_imported(
+    source: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    real = corpus._read_records
+
+    def read(path: Path) -> tuple[list[dict[str, Any]], int]:
+        if "subagents" in path.parts:
+            raise PermissionError(13, "Permission denied", str(path))
+        return real(path)
+
+    monkeypatch.setattr(corpus, "_read_records", read)
+    result = import_corpus([source], tmp_path / "corpus")
+    (failed,) = result.load_failures
+    assert failed.load_error == "PermissionError: Permission denied"
+    assert failed.records == 0
+    assert len(result.sessions) == 2
+    assert "leigh" not in json.dumps([s.load_error for s in result.sessions])
+
+
+def test_free_text_labels_are_scrubbed(source: Path, tmp_path: Path) -> None:
+    labels = {
+        SESSION: {
+            "task": f"ask leigh@example.org about {CWD}/billing.py",
+            "outcome": "merged",
+        }
+    }
+    out = tmp_path / "corpus"
+    result = import_corpus([source], out, labels=labels)
+    task = result.sessions[0].labels["task"]
+    assert "leigh" not in task and "acme" not in task
+    assert "[REDACTED:email#" in task and "/repo-" in task
+    assert result.sessions[0].labels["outcome"] == "merged"
+    assert "leigh" not in (out / "manifest.json").read_text(encoding="utf-8")
 
 
 def test_a_single_file_source_is_imported(tmp_path: Path) -> None:

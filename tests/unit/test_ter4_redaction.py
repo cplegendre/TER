@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -95,7 +96,7 @@ def test_each_secret_kind_is_replaced_and_logged_without_its_value(kind: str) ->
     out = redactor.redact(user(f"use {secret} now"), line=3)
 
     text = out["message"]["content"][0]["text"]
-    assert f"[REDACTED:{kind}]" in text
+    assert re.search(rf"\[REDACTED:{kind}#[0-9a-f]{{8}}\]", text)
     assert secret not in text_of(out)
     logged = [r for r in redactor.redactions if r.kind == kind]
     assert logged and logged[0].line == 3
@@ -106,9 +107,8 @@ def test_each_secret_kind_is_replaced_and_logged_without_its_value(kind: str) ->
 @pytest.mark.req("TER-SRC-020")
 def test_assigned_secret_keeps_the_name_so_code_still_reads() -> None:
     out = Redactor().redact(user('API_KEY = "abcdef123456"'))
-    assert (
-        out["message"]["content"][0]["text"] == 'API_KEY = "[REDACTED:assigned-secret]"'
-    )
+    text = out["message"]["content"][0]["text"]
+    assert re.fullmatch(r'API_KEY = "\[REDACTED:assigned-secret#[0-9a-f]{8}\]"', text)
 
 
 @pytest.mark.req("TER-SRC-020")
@@ -200,7 +200,7 @@ def test_file_contents_are_kept_but_scrubbed_when_the_corpus_may_quote_them() ->
         ]
     )[1]
     block = out["message"]["content"][0]["content"][0]
-    assert block["text"] == "key [REDACTED:aws-access-key]"
+    assert re.fullmatch(r"key \[REDACTED:aws-access-key#[0-9a-f]{8}\]", block["text"])
 
 
 def test_long_tool_output_is_dropped_unless_its_tool_is_kept() -> None:
@@ -213,6 +213,57 @@ def test_long_tool_output_is_dropped_unless_its_tool_is_kept() -> None:
     kept_policy = RedactionPolicy(keep_tools=frozenset({"Bash"}))
     kept = Redactor(kept_policy).redact_session(records)[1]["message"]["content"][0]
     assert kept["content"] == long
+
+
+def test_quoted_file_contents_are_kept_whatever_their_length() -> None:
+    body = "x = 1\n" * 1000
+    policy = RedactionPolicy(quote_file_contents=True)
+    records = [tool_use("c1", "Read", file_path="/x"), tool_result("c1", body)]
+    block = Redactor(policy).redact_session(records)[1]["message"]["content"][0]
+    assert block["content"] == body
+
+
+@pytest.mark.parametrize("quote", [False, True])
+def test_images_a_tool_returns_are_dropped(quote: bool) -> None:
+    image = {
+        "type": "image",
+        "source": {"type": "base64", "media_type": "image/png", "data": "iVBORw0K"},
+    }
+    policy = RedactionPolicy(quote_file_contents=quote)
+    for content in ([image], [{"type": "text", "text": "a screenshot"}, image]):
+        records = [
+            tool_use("c1", "Read", file_path="/x.png"),
+            tool_use("c2", "mcp__browser__screenshot"),
+            tool_result("c1", content),
+            tool_result("c2", content),
+        ]
+        out = Redactor(policy).redact_session(records)
+        assert "iVBORw0K" not in text_of(out[2]) + text_of(out[3])
+
+
+def test_keys_are_scrubbed_like_values() -> None:
+    record = tool_use(
+        "c1", "mcp__notes__save", **{f"{CWD}/a": 1, "leigh@example.org": 2}
+    )
+    redactor = Redactor()
+    out = redactor.redact(record)
+    assert "leigh" not in text_of(out)
+    assert "leigh" not in repr(redactor.redactions)
+    assert set(out["message"]["content"][0]["input"]) == {
+        f"{out['cwd']}/a",
+        next(k for k in out["message"]["content"][0]["input"] if "REDACTED" in k),
+    }
+
+
+def test_different_secrets_stay_different_and_one_secret_stays_the_same() -> None:
+    def marker(secret: str, salt: str = "s") -> str:
+        out = Redactor(RedactionPolicy(salt=salt)).redact(user(f"token {secret}"))
+        return str(out["message"]["content"][0]["text"])
+
+    first, second = "ghp_" + "a" * 30, "ghp_" + "b" * 30
+    assert marker(first) == marker(first)
+    assert marker(first) != marker(second)
+    assert marker(first) != marker(first, salt="other")
 
 
 def test_output_at_the_limit_is_kept() -> None:

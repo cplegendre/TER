@@ -270,7 +270,8 @@ def format_corpus_import(result: "CorpusImport") -> str:
         for kind, count in session.redactions.items():
             redactions[kind] = redactions.get(kind, 0) + count
     lines = [
-        f"TER corpus import · {len(result.sessions)} session(s) into {result.out}",
+        f"TER corpus import · {len(result.sessions)} session(s) into {result.out}"
+        f" ({result.total} in its manifest)",
         "  redactions  "
         + (" · ".join(f"{k} {n:,}" for k, n in sorted(redactions.items())) or "-"),
     ]

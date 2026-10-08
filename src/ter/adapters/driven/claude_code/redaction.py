@@ -5,7 +5,8 @@ A :class:`Redactor` rewrites one session's records so that:
 
 - strings matching a secret pattern (cloud keys, API tokens, private keys,
   bearer tokens, emails, IPv4 addresses, ``password=...`` assignments) become
-  ``[REDACTED:<kind>]``;
+  ``[REDACTED:<kind>#<tag>]``, where the tag is a short salted hash, so two
+  different secrets stay different and one secret stays the same;
 - each working directory and user home becomes a pseudonym that is the same
   everywhere in a corpus (``/repo-<hash>``, ``/home-<hash>``), so a file read
   twice is still the same path after redaction;
@@ -61,7 +62,7 @@ SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
         "assigned-secret",
         re.compile(
             r"(?i)\b(?:password|passwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token)"
-            r"(?P<sep>[\"']?\s*[:=]\s*[\"']?)[^\s\"',;]{6,}"
+            r"(?P<sep>[\"']?\s*[:=]\s*[\"']?)(?!\[REDACTED:)[^\s\"',;]{6,}"
         ),
     ),
     ("email", re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")),
@@ -166,6 +167,10 @@ class Redactor:
                 home = match.group(0)
                 self._roots.add(home, "/home-" + self._hash(home))
 
+    def scrub(self, text: str, line: int = 0, path: str = "") -> str:
+        """Apply the secret patterns and path pseudonyms to free text."""
+        return self._text(text, line, path)
+
     def redact(self, record: Mapping[str, Any], line: int = 0) -> dict[str, Any]:
         """Return a redacted copy of one record."""
         self.learn(record)
@@ -250,11 +255,20 @@ class Redactor:
             text is not None
             and len(text) > self.policy.max_tool_output
             and tool not in self.policy.keep_tools
+            and tool not in _FILE_READERS  # quoted file contents are only scrubbed
         ):
             self._log("tool-output", line, f"{path}.content", text)
             out["content"] = (
                 f"[tool output dropped: {len(text)} chars, sha256:{_sha(text)}]"
             )
+        elif isinstance(content, list):
+            # Tools such as Read return images as content blocks too.
+            out["content"] = [
+                self._image(item, line, f"{path}.content[{i}]")
+                if isinstance(item, Mapping) and item.get("type") == "image"
+                else self._value(item, line, f"{path}.content[{i}]")
+                for i, item in enumerate(content)
+            ]
         else:
             out["content"] = self._value(content, line, f"{path}.content")
         return {
@@ -281,7 +295,12 @@ class Redactor:
         if isinstance(value, str):
             return self._text(value, line, path)
         if isinstance(value, Mapping):
-            return {k: self._value(v, line, f"{path}.{k}") for k, v in value.items()}
+            out: dict[Any, Any] = {}
+            for key, item in value.items():
+                # Keys are scrubbed too: tool arguments can have any keys.
+                safe = self._text(key, line, path) if isinstance(key, str) else key
+                out[safe] = self._value(item, line, f"{path}.{safe}")
+            return out
         if isinstance(value, list):
             return [self._value(v, line, f"{path}[{i}]") for i, v in enumerate(value)]
         return value
@@ -306,13 +325,16 @@ class Redactor:
         return replace
 
     def _secret(self, kind: str, match: re.Match[str], line: int, path: str) -> str:
-        self.redactions.append(Redaction(kind, line, path, len(match.group(0))))
+        found = match.group(0)
+        self.redactions.append(Redaction(kind, line, path, len(found)))
+        head = ""
         if kind == "assigned-secret":
             # Keep the name and separator so the code still reads.
-            start = match.start("sep") - match.start()
-            head = match.group(0)[: start + len(match.group("sep"))]
-            return f"{head}[REDACTED:{kind}]"
-        return f"[REDACTED:{kind}]"
+            end = match.end("sep") - match.start()
+            head, found = found[:end], found[end:]
+        # A salted tag keeps different secrets different, so calls or blocks
+        # that differ only in a secret stay distinct after redaction.
+        return f"{head}[REDACTED:{kind}#{self._hash(found)[:8]}]"
 
     def _log(self, kind: str, line: int, path: str, value: object) -> None:
         self.redactions.append(Redaction(kind, line, path, len(str(value))))
