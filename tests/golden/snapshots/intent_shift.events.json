@@ -170,7 +170,7 @@
       41
     ]
   ],
-  "schema": "ter.event/0.2",
+  "schema": "ter.event/0.3",
   "session_id": "golden-shift",
   "source_format": "claude-code-jsonl",
   "unrecognised": {}

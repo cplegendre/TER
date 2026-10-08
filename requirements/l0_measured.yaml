@@ -303,3 +303,18 @@ requirements:
     rationale: >-
       User input is evidence of intent, kept apart from generated work.
     status: verified
+
+  - id: TER-EVT-001
+    pattern: ubiquitous
+    text: >-
+      The ter.event contract shall define the routing event kinds
+      route.selected, route.failover, attempt.started,
+      verification.completed and outcome.recorded as unscored lifecycle
+      kinds.
+    level: L0
+    source_points: [103]
+    rationale: >-
+      Issue #52: a routing harness such as GARE chooses, retries and judges
+      routes; those markers belong in the neutral stream but are not agent
+      output, so they are never scored.
+    status: verified

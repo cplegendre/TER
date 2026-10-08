@@ -114,3 +114,57 @@ requirements:
       The event contract is proven provider-neutral only when a second
       harness passes the same contract tests as Claude Code.
     status: planned
+
+  - id: TER-SRC-011
+    pattern: ubiquitous
+    text: >-
+      The GARE session source shall translate the gare.ter.usage.v2 rows and
+      the run events that GARE exports for one run into ter.event events
+      whose token totals equal the export's totals.
+    level: L6
+    port: SessionSource
+    source_points: [103]
+    rationale: >-
+      Issue #52: tokens per verified outcome needs GARE's tokens, routes,
+      attempts and outcomes in the same stream as Claude Code sessions.
+    status: verified
+
+  - id: TER-SRC-012
+    pattern: unwanted
+    text: >-
+      If the GARE session source reads a row of an unsupported schema or a
+      run event of an unknown state, then the session source shall count it
+      in the trace coverage by schema name or state.
+    level: L6
+    port: SessionSource
+    source_points: [103]
+    rationale: >-
+      Issue #52: GARE's export will change; drift must lower coverage, not
+      vanish.
+    status: verified
+
+  - id: TER-SRC-013
+    pattern: ubiquitous
+    text: >-
+      The GARE session source shall report cache creation and cache read
+      tokens as zero and mark every trace with the no-cache-tokens usage
+      limit.
+    level: L6
+    port: SessionSource
+    source_points: [105]
+    rationale: >-
+      Issue #52: GARE records input and output tokens only, so cache
+      figures from it are unknown rather than zero.
+    status: verified
+
+  - id: TER-SRC-014
+    pattern: state-driven
+    text: >-
+      While a trace carries a usage limit, the observe report shall state
+      that limit beside its token figures.
+    level: L6
+    source_points: [105]
+    rationale: >-
+      Issue #52: a reader comparing GARE and Claude Code token figures must
+      see which ones cannot include cache tokens.
+    status: verified

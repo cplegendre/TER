@@ -20,7 +20,7 @@ from .capabilities import CapabilityRegistry, default_registry
 from ..application.observe import AnalyseEventLog, AnalyseTrace, RecordEvent
 from ..domain.capabilities import Capability, CapabilityProblem, UnknownCapabilityError
 from ..domain.stream import StreamReport
-from ..ports.driven import OutcomeSource, TerScorer, Tokenizer
+from ..ports.driven import OutcomeSource, SessionSource, TerScorer, Tokenizer
 from ..ports.driving import EventIngest
 
 if TYPE_CHECKING:
@@ -35,6 +35,7 @@ __all__ = [
     "make_outcome_source",
     "make_ter_scorer",
     "make_tokenizer",
+    "session_source_for",
 ]
 
 #: Environment variable that relocates the live event log.
@@ -94,13 +95,22 @@ def make_ter_scorer(mode: str) -> TerScorer | None:
     raise ValueError(f"Unknown TER mode {mode!r}")
 
 
+def session_source_for(path: Path) -> SessionSource:
+    """The session source for a reference: a GARE export, else Claude Code."""
+    from ..adapters.driven.gare import GareRunSource
+
+    if GareRunSource.accepts(path):
+        return GareRunSource()
+    from ..adapters.driven.claude_code import ClaudeCodeJsonlSource
+
+    return ClaudeCodeJsonlSource()
+
+
 def cli_services() -> CliServices:
     """Wire the CLI's use cases. Heavy adapters are imported on first use."""
 
     def analyse_transcript(path: Path, tokenizer: str) -> StreamReport:
-        from ..adapters.driven.claude_code import ClaudeCodeJsonlSource
-
-        return AnalyseTrace(ClaudeCodeJsonlSource(), make_tokenizer(tokenizer))(path)
+        return AnalyseTrace(session_source_for(path), make_tokenizer(tokenizer))(path)
 
     def log_sessions(directory: Path) -> tuple[str, ...]:
         from ..adapters.driven.event_log import JsonlEventLog
@@ -122,10 +132,8 @@ def cli_services() -> CliServices:
     def explain_transcript(
         path: Path, tokenizer: str, ter: str, outcome: Path | None = None
     ) -> ExplainedSession:
-        from ..adapters.driven.claude_code import ClaudeCodeJsonlSource
-
         use_case = ExplainSession(
-            ClaudeCodeJsonlSource(),
+            session_source_for(path),
             make_tokenizer(tokenizer),
             make_ter_scorer(ter),
             make_outcome_source() if outcome is not None else None,

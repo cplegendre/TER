@@ -516,7 +516,8 @@ def format_report(report: StreamReport) -> str:
             "usage",
             f"input {usage.input_tokens:,} · output {usage.output_tokens:,} · "
             f"cache write {usage.cache_creation_tokens:,} · "
-            f"cache read {usage.cache_read_tokens:,}",
+            f"cache read {usage.cache_read_tokens:,}"
+            + "".join(f"  [{_limit(limit)}]" for limit in report.usage_limits),
         ),
         ("duplicate calls", f"{len(report.duplicate_tool_calls)}"),
         ("repeated reads", f"{report.repeated_read_count}  {reads}"),
@@ -534,18 +535,28 @@ def format_report(report: StreamReport) -> str:
     return "\n".join(lines) + "\n"
 
 
+#: How each usage limit reads beside the usage figures (TER-SRC-014).
+USAGE_LIMIT_TEXT = {
+    "no-cache-tokens": "the source reports no cache tokens; cache figures are 0",
+}
+
+
+def _limit(limit: str) -> str:
+    return USAGE_LIMIT_TEXT.get(limit, limit)
+
+
 def format_timeline(report: StreamReport, *, limit: int | None = None) -> str:
     """One line per accepted event, with the signals it raised."""
     rows = report.timeline if limit is None else report.timeline[:limit]
-    header = (
-        f"  {'#':>4}  {'kind':<15} {'actor':<9} {'tool':<13} {'tokens':>7}  signals"
-    )
+    # Routing kinds such as verification.completed are wider than the rest.
+    width = max([15, *(len(row.kind.value) for row in rows)])
+    header = f"  {'#':>4}  {'kind':<{width}} {'actor':<9} {'tool':<13} {'tokens':>7}  signals"
     lines = ["Timeline", header]
     for row in rows:
         tool = row.tool_kind.value if row.tool_kind else ""
         signals = ", ".join(s.value for s in row.signals)
         lines.append(
-            f"  {row.index:>4}  {row.kind.value:<15} {row.actor.value:<9} "
+            f"  {row.index:>4}  {row.kind.value:<{width}} {row.actor.value:<9} "
             f"{tool:<13} {row.tokens:>7}  {signals}".rstrip()
         )
     hidden = len(report.timeline) - len(rows)

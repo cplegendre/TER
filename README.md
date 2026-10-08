@@ -187,6 +187,7 @@ All guides: [docs/guides](docs/guides/README.md). Reference:
 [L2 Explained](docs/ter4/l2-explained.md) ·
 [visual reports](docs/ter4/reports.md) ·
 [real session corpus](docs/ter4/corpus.md) ·
+[GARE runs](docs/ter4/gare.md) ·
 [requirements control](docs/ter4/requirements.md) ·
 [vision points](docs/ter4/points.md) ·
 [decision records](docs/decisions/).
