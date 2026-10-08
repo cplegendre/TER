@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import stat
 from collections.abc import Callable
@@ -12,6 +13,7 @@ import pytest
 
 from ter.adapters.driven.claude_code import ClaudeCodeJsonlSource
 from ter.adapters.driven.event_log import JsonlEventLog
+from ter.adapters.driven.event_log.codec import event_to_record
 from ter.adapters.driven.in_memory import InMemoryEventLog
 from ter.domain import Actor, Event, EventKind, Provenance, make_event_id
 from ter.ports import EventLog
@@ -71,6 +73,26 @@ def test_sessions_are_separate_and_listed_sorted(log: EventLog) -> None:
     }
 
 
+def test_lifecycle_events_round_trip(log: EventLog) -> None:
+    events = [
+        Event(
+            id=make_event_id("s", kind.value),
+            session_id="s",
+            sequence=n,
+            kind=kind,
+            actor=Actor.SYSTEM,
+            text="",
+            provenance=Provenance("t", kind.value),
+        )
+        for n, kind in enumerate(
+            (EventKind.TASK_COMPLETED, EventKind.SUBAGENT_COMPLETED)
+        )
+    ]
+    for event in events:
+        log.append(event)
+    assert log.events("s") == tuple(events)
+
+
 def test_duplicate_appends_are_kept(log: EventLog) -> None:
     event = prompt("s", 0)
     log.append(event)
@@ -91,6 +113,18 @@ class TestJsonlSpecifics:
         log.append(prompt("s", 1))
         assert [e.sequence for e in log.events("s")] == [0, 1]
         assert log.skipped == 3
+
+    @pytest.mark.req("TER-OBS-011")
+    def test_records_of_an_earlier_schema_version_still_decode(
+        self, tmp_path: Path
+    ) -> None:
+        log = JsonlEventLog(tmp_path)
+        old = prompt("s", 0)
+        record = event_to_record(old) | {"schema": "ter.event/0.1"}
+        log.path_for("s").write_text(json.dumps(record) + "\n", encoding="utf-8")
+        log.append(prompt("s", 1))
+        assert log.events("s") == (old, prompt("s", 1))
+        assert log.skipped == 0
 
     def test_unsafe_session_ids_never_escape_the_directory(
         self, tmp_path: Path

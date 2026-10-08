@@ -109,11 +109,33 @@ ter a3 ~/.claude/projects/my-project/SESSION_ID.jsonl --html a3.html
 | `UserPromptSubmit` | `intent.stated` (the prompt) |
 | `PreToolUse` | `tool.requested`, with the tool kind and input |
 | `PostToolUse` | `tool.requested` (same id as PreToolUse) and `tool.completed` with the tool response |
-| `SessionStart`, `SessionEnd`, `Stop`, `SubagentStart`, `SubagentStop`, `PreCompact`, `Notification` | recognised as lifecycle; no event yet |
+| `Stop` | `task.completed`: the agent finished a turn |
+| `SubagentStop` | `subagent.completed`, in the parent session |
+| `SessionStart`, `SessionEnd`, `SubagentStart`, `PreCompact`, `Notification` | recognised as lifecycle; no event |
 | anything else, or a malformed payload | ignored, with a reason |
 
-Task-completion and subagent events (Stop, SubagentStop) are planned
-requirements that wait on real hook data (issue #35).
+Lifecycle events are counted (class `lifecycle`) but never scored, and they
+add no step to the Lean analysis. The Stop and SubagentStop mappings follow
+Claude Code's documented payloads; checking them against real ones, and
+correlating them with the transcript, waits on recorded hook data (issue #35).
+
+### Recording real payloads
+
+`--record DIR` saves every payload the hook reads, before handling it, to
+`DIR/<session>/<seq>-<hook>.json` with the time it arrived. Recordings are
+how the hook shapes TER relies on get checked against real runs (issue #35):
+
+```bash
+python -m ter hook --event-log "$HOME/.ter/events" --record "$HOME/ter-data/hooks"
+```
+
+Register that command for every hook you want captured (`Stop`,
+`SubagentStop`, `SessionStart`, `PreCompact` and the rest, not only the tool
+hooks). Recordings hold full tool inputs and output, so they are private to
+your user (mode 0600), stay outside the repository, and go through redaction
+before any of them becomes a test fixture. A recording that cannot be written
+is reported on stderr as `ter hook: payload not recorded: <reason>`; the
+event is still handled and the hook still prints `{}`.
 
 ### Guarantees
 

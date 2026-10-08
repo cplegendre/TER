@@ -11,6 +11,8 @@ Hook                      Events
 ``UserPromptSubmit``      ``intent.stated`` (user)
 ``PreToolUse``            ``tool.requested`` (assistant)
 ``PostToolUse``           ``tool.requested`` and ``tool.completed`` (tool)
+``Stop``                  ``task.completed`` (system)
+``SubagentStop``          ``subagent.completed`` (system), in the parent session
 ``SessionStart`` etc.     none: lifecycle only, reported as ``lifecycle``
 anything else             none: reported as ``ignored`` with a reason
 ========================  ==================================================
@@ -48,14 +50,12 @@ __all__ = [
     "translate",
 ]
 
-#: Hooks that mark session lifecycle and carry no conversation content.
+#: Hooks that mark session lifecycle and produce no event.
 LIFECYCLE_HOOKS = frozenset(
     {
         "SessionStart",
         "SessionEnd",
-        "Stop",
         "SubagentStart",
-        "SubagentStop",
         "PreCompact",
         "Notification",
     }
@@ -153,7 +153,61 @@ def _translate_content(
         if name == "PreToolUse":
             return (request,)
         return (request, _completion(session_id, payload, request, key, received_at))
+    if name == "Stop":
+        return (_stop(session_id, source, received_at),)
+    if name == "SubagentStop":
+        return (_subagent_stop(session_id, payload, source, received_at),)
     return None
+
+
+def _second(received_at: datetime | None) -> tuple[str, ...]:
+    # As for prompts: the second a payload arrived tells two stops apart,
+    # while one stop delivered twice within it keeps one id.
+    if received_at is None:
+        return ()
+    return (received_at.replace(microsecond=0).isoformat(),)
+
+
+def _stop(session_id: str, source: str, received_at: datetime | None) -> Event:
+    when = _second(received_at)
+    return Event(
+        id=make_event_id(_SOURCE, session_id, "Stop", *when),
+        session_id=session_id,
+        sequence=0,
+        kind=EventKind.TASK_COMPLETED,
+        actor=Actor.SYSTEM,
+        text="",
+        provenance=Provenance(source, ":".join(("stop", *when))),
+        timestamp=received_at,
+    )
+
+
+def _subagent_stop(
+    session_id: str,
+    payload: Mapping[str, Any],
+    source: str,
+    received_at: datetime | None,
+) -> Event:
+    # session_id is the parent's, so the event joins the parent session.
+    # Newer Claude Code releases name the subagent; with that id a stop needs
+    # no clock to be told apart from another subagent's.
+    agent_id = payload.get("agent_id")
+    agent_type = payload.get("agent_type")
+    parts: tuple[str, ...]
+    if isinstance(agent_id, str) and agent_id:
+        parts = (agent_id,)
+    else:
+        parts = _second(received_at)
+    return Event(
+        id=make_event_id(_SOURCE, session_id, "SubagentStop", *parts),
+        session_id=session_id,
+        sequence=0,
+        kind=EventKind.SUBAGENT_COMPLETED,
+        actor=Actor.SYSTEM,
+        text=agent_type if isinstance(agent_type, str) else "",
+        provenance=Provenance(source, ":".join(("subagent", *parts))),
+        timestamp=received_at,
+    )
 
 
 def _request(

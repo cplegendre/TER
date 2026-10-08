@@ -14,6 +14,7 @@ from typing import Any
 
 from ....domain.events import (
     EVENT_SCHEMA_VERSION,
+    READABLE_SCHEMA_VERSIONS,
     Actor,
     Event,
     EventId,
@@ -73,10 +74,11 @@ def event_from_record(record: Mapping[str, Any]) -> Event:
     """Decode a dict written by :func:`event_to_record`.
 
     Raises:
-        ValueError: If the record is not a ``ter.event`` of this schema.
+        ValueError: If the record is not a ``ter.event`` of a readable schema
+            version (this one or an earlier one it extends).
         KeyError, TypeError: If required fields are missing or mistyped.
     """
-    if record.get("schema") != EVENT_SCHEMA_VERSION:
+    if record.get("schema") not in READABLE_SCHEMA_VERSIONS:
         raise ValueError(
             f"Not a {EVENT_SCHEMA_VERSION} record: {record.get('schema')!r}"
         )

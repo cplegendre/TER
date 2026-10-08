@@ -60,7 +60,9 @@ files) counts once.
 | `UserPromptSubmit` | `intent.stated` (user), text = `prompt` | session + hash of prompt + second received |
 | `PreToolUse` | `tool.requested` (assistant), tool kind from the Claude Code tool map, arguments = `tool_input` | session + `tool_use_id` (else hash of tool name and input) |
 | `PostToolUse` | the same `tool.requested` as PreToolUse, plus `tool.completed` (tool), text = `tool_response` | as above; the completion's `parent_id` is the request |
-| `SessionStart`, `SessionEnd`, `Stop`, `SubagentStart`, `SubagentStop`, `PreCompact`, `Notification` | none (status `lifecycle`) | n/a |
+| `Stop` | `task.completed` (system), empty text | session + second received |
+| `SubagentStop` | `subagent.completed` (system) in the parent session, text = `agent_type` when sent | session + `agent_id` when sent, else second received |
+| `SessionStart`, `SessionEnd`, `SubagentStart`, `PreCompact`, `Notification` | none (status `lifecycle`) | n/a |
 | anything else, or a malformed payload | none (status `ignored`, with a reason) | n/a |
 
 PostToolUse repeats the request because many installations register only
@@ -77,7 +79,7 @@ equivalence holds per event stream, not across the two sources.
 
 | Field | Meaning |
 |---|---|
-| `by_kind`, `by_tool`, `by_class` | Event counts by `EventKind`, by `ToolKind` (requests), and generated / user / tool |
+| `by_kind`, `by_tool`, `by_class` | Event counts by `EventKind`, by `ToolKind` (requests), and generated / user / tool / lifecycle |
 | `tokens_by_class` | Text-token estimates from the injected tokenizer (`tokens_exact` says how far to trust them) |
 | `usage` | Provider-reported input, output, cache-write and cache-read totals |
 | `duplicate_tool_calls` | Requests with the same tool kind and canonical arguments as an earlier one |

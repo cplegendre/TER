@@ -169,12 +169,13 @@ Two rules follow from the strangler approach:
 ## The event contract
 
 Every harness adapter translates its native records into one neutral stream,
-`ter.event/0.1`: `intent.stated`, `reasoning`, `response`, `tool.requested`
-and `tool.completed`, each with a stable id, provenance and a tool *kind*
+`ter.event/0.2`: `intent.stated`, `reasoning`, `response`, `tool.requested`
+and `tool.completed`, plus the lifecycle kinds `task.completed` and
+`subagent.completed` from hooks, each with a stable id, provenance and a tool *kind*
 (`fs.read`, `fs.edit`, `exec.shell`, …) rather than a native tool name.
 Detectors reason about kinds, so a second harness needs a new
 `SessionSource` adapter and nothing else. See
-[the event contract](../ter4/architecture.md#the-event-contract-terevent01).
+[the event contract](../ter4/architecture.md#the-event-contract-terevent02).
 
 ## Adding an adapter
 

@@ -1530,9 +1530,10 @@ points:
     status: partial
     definition_of_done:
       - An EventIngest port is the only way events enter analysis.
-    rules: [TER-OBS-001]
+    rules: [TER-OBS-001, TER-OBS-011]
     verification:
       - 'test: tests/contract/test_event_ingest.py'
+      - 'test: tests/contract/test_event_log.py::test_records_of_an_earlier_schema_version_still_decode'
       - 'planned: recorded sessions enter analysis through EventIngest too (TER-OBS-001)'
 
   - id: P102
@@ -1727,9 +1728,11 @@ points:
     real_data: true
     definition_of_done:
       - Stop hooks emit a task completion event.
-    rules: [TER-OBS-002, TER-OBS-005]
+    rules: [TER-OBS-002, TER-OBS-005, TER-OBS-009, TER-OBS-010]
     verification:
-      - 'planned: Stop hook emits a task.completed event (TER-OBS-005)'
+      - 'test: tests/unit/test_ter4_hook_lifecycle.py::test_stop_appends_one_task_completed_event'
+      - 'test: tests/unit/test_ter4_hook_lifecycle.py::test_record_writes_the_raw_payload_before_translating'
+      - 'planned: the task.completed id equals the id derived from the JSONL stop (TER-OBS-005)'
       - 'planned: real-data verification in issue #35'
 
   - id: P116
@@ -1744,9 +1747,10 @@ points:
       - >-
         SubagentStop and subagent tool hooks emit events attributed to the
         subagent.
-    rules: [TER-OBS-002, TER-OBS-006]
+    rules: [TER-OBS-002, TER-OBS-006, TER-OBS-010]
     verification:
-      - 'planned: subagent hook events with subagent attribution'
+      - 'test: tests/unit/test_ter4_hook_lifecycle.py::test_subagent_stop_joins_the_parent_session'
+      - 'planned: subagent tool hooks attributed to the subagent'
       - 'planned: real-data verification in issue #35'
 
   - id: P117
@@ -1761,8 +1765,9 @@ points:
       - >-
         Every hook event correlates with its JSONL record by event id,
         including prompts.
-    rules: [TER-OBS-007, TER-OBS-005]
+    rules: [TER-OBS-007, TER-OBS-005, TER-OBS-010]
     verification:
+      - 'test: tests/unit/test_ter4_hook_lifecycle.py::test_recordings_replay_to_the_same_events'
       - 'planned: prompt correlation test across hook and JSONL'
       - 'planned: real-data verification in issue #35'
 

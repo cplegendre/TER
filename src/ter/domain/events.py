@@ -19,7 +19,13 @@ from typing import NewType
 
 #: Version of the normalised ``ter.event`` contract. Bumped on any change to
 #: the fields below that consumers can observe.
-EVENT_SCHEMA_VERSION = "ter.event/0.1"
+#:
+#: 0.2 added the lifecycle kinds ``task.completed`` and ``subagent.completed``.
+EVENT_SCHEMA_VERSION = "ter.event/0.2"
+
+#: Every contract version this build reads. Each is a subset of the current
+#: one, so a record written under any of them decodes unchanged.
+READABLE_SCHEMA_VERSIONS = frozenset({"ter.event/0.1", EVENT_SCHEMA_VERSION})
 
 #: Stable, content-derived identity of an event. The same source record always
 #: yields the same id, which makes replay idempotent and findings citable.
@@ -43,6 +49,13 @@ class EventKind(StrEnum):
     RESPONSE = "response"
     TOOL_REQUESTED = "tool.requested"
     TOOL_COMPLETED = "tool.completed"
+    TASK_COMPLETED = "task.completed"
+    SUBAGENT_COMPLETED = "subagent.completed"
+
+    @property
+    def is_lifecycle(self) -> bool:
+        """True for markers of the session's shape that carry no conversation."""
+        return self in {EventKind.TASK_COMPLETED, EventKind.SUBAGENT_COMPLETED}
 
     @property
     def is_generated(self) -> bool:
