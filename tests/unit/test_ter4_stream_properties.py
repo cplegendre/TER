@@ -175,7 +175,10 @@ def test_counts_are_non_negative_and_partition_the_total(events: list[Event]) ->
     ]
     assert all(n >= 0 for n in counts)
     assert (
-        report.generated_events + report.user_events + report.tool_events
+        report.generated_events
+        + report.user_events
+        + report.tool_events
+        + report.lifecycle_events
         == report.total_events
         == sum(n for _, n in report.by_kind)
         == len(report.timeline)

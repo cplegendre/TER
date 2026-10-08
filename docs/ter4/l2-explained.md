@@ -223,7 +223,7 @@ catalogue review differ, the status here has been aligned with it.
 
 ## Known limits
 
-- Validation outcomes are read from output text; `ter.event/0.1` has no
+- Validation outcomes are read from output text; `ter.event` has no
   error flag. Unknown outcomes form no cycle.
 - Detectors run when an explanation is requested, in time linear in the
   session; the per-event fold stays O(1) amortised.

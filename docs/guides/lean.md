@@ -272,7 +272,7 @@ which is tracked in GitHub issues #34 to #46 (see the
 
 - Session evidence alone cannot tell whether a read mattered, so "unused
   context" stays uncertain until repository evidence arrives at L3.
-- `ter.event/0.1` carries no error flag; validation outcomes come from output
+- `ter.event` carries no error flag; validation outcomes come from output
   text, and unknown outcomes form no cycle.
 - Hook-recorded sessions carry no reasoning or responses, so the planning,
   restated-reasoning and unvalidated-before-response detectors stay silent on

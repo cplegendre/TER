@@ -126,6 +126,9 @@ class StepLog:
         if event.id in self._seen:
             return False
         self._seen.add(event.id)
+        if event.kind.is_lifecycle:
+            # A task or subagent finishing is not a step of the value stream.
+            return True
         self._steps.append(self._read(event, tokens))
         return True
 

@@ -211,8 +211,8 @@ every requirement per level follow.
 CI runs the gate at L0, L1 and L2. Raising the gate (`--gate L3`) is the
 build side of claiming a level; `Maturity.permits` is the runtime side. Each gate
 checks only the requirements already verified at or below its level; planned
-ones (for example Stop and SubagentStop hooks, which wait on issue #35) do not
-fail it.
+ones (for example correlating Stop hooks with the transcript, which waits on
+issue #35) do not fail it.
 
 ## Where the code lives
 

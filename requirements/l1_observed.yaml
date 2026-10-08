@@ -45,13 +45,13 @@ requirements:
     text: >-
       When Claude Code runs a PreToolUse, PostToolUse, Stop or SubagentStop
       hook, the hook adapter shall translate the hook payload into
-      ter.event/0.1 events.
+      ter.event events.
     level: L1
     port: EventIngest
     source_points: [111, 112, 113, 114, 115, 116]
     rationale: >-
       Hooks are the live observation channel for Claude Code.
-    status: planned
+    status: verified
 
   - id: TER-OBS-003
     pattern: event-driven
@@ -107,7 +107,7 @@ requirements:
     rationale: >-
       Issue #35: subagent activity must be attributable to its parent
       session.
-    status: planned
+    status: verified
 
   - id: TER-OBS-007
     pattern: ubiquitous
@@ -132,6 +132,46 @@ requirements:
     rationale: >-
       Passive observation is the safe default; an observe-only hook cannot
       change agent behaviour.
+    status: verified
+
+  - id: TER-OBS-009
+    pattern: event-driven
+    text: >-
+      When Claude Code runs the Stop hook, the hook adapter shall append one
+      task.completed event to the session of the hook payload.
+    level: L1
+    port: EventIngest
+    source_points: [115]
+    rationale: >-
+      Issue #35: the end of a task is observable live. Correlating it with
+      the recorded session (TER-OBS-005) waits on real payloads.
+    status: verified
+
+  - id: TER-OBS-010
+    pattern: event-driven
+    text: >-
+      When the hook adapter runs with a recording directory, the hook
+      adapter shall write the raw hook payload and its receive time to a new
+      file in that directory before it translates the payload.
+    level: L1
+    source_points: [115, 116, 117]
+    rationale: >-
+      Issue #35: the hook shapes TER relies on must come from recordings of
+      real runs, not from documentation alone.
+    status: verified
+
+  - id: TER-OBS-011
+    pattern: event-driven
+    text: >-
+      When the event log reads a record written under an earlier ter.event
+      schema version, the event log shall decode the record into the same
+      event.
+    level: L1
+    port: EventStore
+    source_points: [101]
+    rationale: >-
+      Contract versions only add kinds, so an event log written before an
+      upgrade stays readable after it.
     status: verified
 
   - id: TER-SRC-005

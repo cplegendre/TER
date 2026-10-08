@@ -8,7 +8,7 @@ Commands::
 
     python -m ter observe SESSION.jsonl [--timeline] [--json]
     python -m ter observe --event-log DIR [--session ID] [--timeline] [--json]
-    python -m ter hook [--event-log DIR]      # reads one hook payload on stdin
+    python -m ter hook [--event-log DIR] [--record DIR]  # one payload on stdin
     python -m ter explain SESSION.jsonl [--json] [--graph FILE] [--outcome FILE]
     python -m ter a3 SESSION.jsonl [--html FILE] [--json [FILE]] [--graph FILE]
                                    [--ter offline|model|off] [--outcome FILE]
@@ -102,10 +102,13 @@ def main(
             out,
             lambda: services.hook_ingest(log_dir),
             clock=services.hook_clock,
+            record_to=args.record,
         )
+        # Still exit 0 so the agent carries on; stderr leaves a trace
+        # (Claude Code shows it in verbose mode and debug logs).
+        if result.record_error:
+            err.write(f"ter hook: payload not recorded: {result.record_error}\n")
         if result.status is HookStatus.IGNORED and result.reason:
-            # Still exit 0 so the agent carries on; stderr leaves a trace
-            # (Claude Code shows it in verbose mode and debug logs).
             err.write(f"ter hook: event not recorded: {result.reason}\n")
         return 0
     if args.command in ("observe", "explain", "a3"):
@@ -332,6 +335,14 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
         default=default_log_dir,
         metavar="DIR",
         help=f"where live events are appended (default {default_log_dir})",
+    )
+    hook.add_argument(
+        "--record",
+        type=Path,
+        default=None,
+        metavar="DIR",
+        help="also save the raw payload to DIR/<session>/<seq>-<hook>.json "
+        "(for collecting real hook payloads; contains tool inputs and output)",
     )
     return parser
 

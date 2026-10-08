@@ -74,6 +74,7 @@ class EventClass(StrEnum):
     GENERATED = "generated"
     USER = "user"
     TOOL = "tool"
+    LIFECYCLE = "lifecycle"
 
     @classmethod
     def of(cls, kind: EventKind) -> EventClass:
@@ -81,6 +82,8 @@ class EventClass(StrEnum):
             return cls.GENERATED
         if kind is EventKind.PROMPT:
             return cls.USER
+        if kind.is_lifecycle:
+            return cls.LIFECYCLE
         return cls.TOOL
 
 
@@ -176,6 +179,10 @@ class StreamReport:
     @property
     def tool_events(self) -> int:
         return self.count(EventClass.TOOL)
+
+    @property
+    def lifecycle_events(self) -> int:
+        return self.count(EventClass.LIFECYCLE)
 
     @property
     def repeated_read_count(self) -> int:

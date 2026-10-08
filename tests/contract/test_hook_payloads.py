@@ -33,9 +33,15 @@ ALL = sorted(p.stem for p in FIXTURES.glob("*.json"))
 #: fixture -> (status, [(kind, actor, tool kind, native name)])
 EXPECTED: dict[str, tuple[HookStatus, list[tuple[EventKind, Actor, Any, Any]]]] = {
     "session_start": (HookStatus.LIFECYCLE, []),
-    "subagent_stop": (HookStatus.LIFECYCLE, []),
+    "subagent_stop": (
+        HookStatus.RECORDED,
+        [(EventKind.SUBAGENT_COMPLETED, Actor.SYSTEM, None, None)],
+    ),
     "pre_compact": (HookStatus.LIFECYCLE, []),
-    "stop": (HookStatus.LIFECYCLE, []),
+    "stop": (
+        HookStatus.RECORDED,
+        [(EventKind.TASK_COMPLETED, Actor.SYSTEM, None, None)],
+    ),
     "session_end": (HookStatus.LIFECYCLE, []),
     "user_prompt_submit": (
         HookStatus.RECORDED,
@@ -102,6 +108,7 @@ def test_fixture_carries_the_common_hook_fields(name: str) -> None:
         assert isinstance(payload["prompt"], str)
 
 
+@pytest.mark.req("TER-OBS-002")
 @pytest.mark.parametrize("name", ALL)
 def test_fixture_translates_to_the_pinned_events(name: str) -> None:
     payload = load(name)
