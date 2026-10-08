@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 from collections.abc import Sequence
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from ..adapters.driving.cli import CliServices
 from ..adapters.driving.cli import main as cli_main
@@ -21,6 +22,9 @@ from ..domain.capabilities import Capability, CapabilityProblem, UnknownCapabili
 from ..domain.stream import StreamReport
 from ..ports.driven import OutcomeSource, TerScorer, Tokenizer
 from ..ports.driving import EventIngest
+
+if TYPE_CHECKING:
+    from ..adapters.driven.claude_code.corpus import CorpusImport
 
 __all__ = [
     "CapabilityRegistry",
@@ -144,8 +148,35 @@ def cli_services() -> CliServices:
             if (c.key, c.target) not in broken
         )
 
+    def import_corpus(
+        sources: Sequence[Path],
+        out: Path,
+        labels: Path | None,
+        max_tool_output: int,
+        keep_tools: frozenset[str],
+        quote_files: bool,
+    ) -> CorpusImport:
+        from ..adapters.driven.claude_code.redaction import RedactionPolicy
+        from ..adapters.driven.claude_code.corpus import (
+            import_corpus as run,
+            read_labels,
+        )
+
+        policy = RedactionPolicy(
+            max_tool_output=max_tool_output,
+            keep_tools=keep_tools,
+            quote_file_contents=quote_files,
+        )
+        return run(
+            sources,
+            out,
+            policy=policy,
+            labels=read_labels(labels) if labels is not None else None,
+        )
+
     return CliServices(
         capabilities=capabilities,
+        import_corpus=import_corpus,
         tokenizers=tokenizers,
         analyse_transcript=analyse_transcript,
         log_sessions=log_sessions,
