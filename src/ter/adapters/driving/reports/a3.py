@@ -20,6 +20,7 @@ from ter.domain.lean import (
     FlowState,
     StageSummary,
 )
+from ter.domain.events import describe_limit
 from ter.domain.lean.model import UNCERTAIN_BELOW, Stage
 from ter.domain.report import WasteByType
 from ter.domain.outcome import CheckResult
@@ -443,6 +444,10 @@ def _background(report: A3Report) -> str:
         + quotes
         + f'<p class="problem"><b>Problem.</b> {esc(report.problem)}</p>'
         + f'<p class="fine">{a.events} events analysed · session <code>{esc(report.session_id or "-")}</code></p>'
+        + "".join(
+            f'<p class="fine"><b>Limit.</b> {esc(describe_limit(limit))}</p>'
+            for limit in report.usage_limits
+        )
     )
 
 

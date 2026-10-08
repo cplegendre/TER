@@ -29,6 +29,13 @@ the usage export, TER sees model calls and failovers; with only `explain.json`,
 it sees routes, attempts and outcomes and takes each task's final route as its
 model call. Use both.
 
+A `.jsonl` file is a usage export when any of its rows has the
+`gare.ter.usage.v2` schema, so a leading row of another schema or broken JSON
+does not hide the export (it counts against coverage instead). An
+`explain.json` that is not valid `gare explain --json` output, or names no run
+id, is refused rather than read as a usage-only run. Usage rows of another run
+count against coverage as `other-run:<id>`.
+
 ## Mapping
 
 | GARE | `ter.event` kind | Actor |
@@ -52,9 +59,22 @@ no Lean step. Only `response` events are generated work.
   coverage (TER-SRC-012).
 - Event ids derive from the run id, file, row or event position and kind, so
   re-reading a run gives the same ids.
+- Events are ordered by time. A row or run event with no valid timestamp keeps
+  its place in its own file: it sorts at the time of the dated entry before it,
+  or at the run's start.
 
 ## Limits
 
+- **No response text.** The usage export carries counts, not what the model
+  wrote, so a `response` event's text is its task and route. Measures counted
+  from event text (the observe report's text tokens, Lean's generated tokens
+  and flow efficiency) therefore measure those labels; the `input` and
+  `output` usage figures are GARE's own counts. Every GARE trace carries the
+  `no-response-text` usage limit, and `observe`, `explain` and the A3 (JSON
+  and HTML) state it (TER-SRC-016).
+- **No TER score.** TER 3 scoring reads Claude Code JSONL only, so `explain`
+  and `a3` report a GARE run without a TER score and say so on stderr
+  (TER-SRC-017).
 - **No cache tokens.** GARE records input and output tokens only. For
   OpenAI-style and Gemini providers its input count already includes cached
   tokens, with no split. Every GARE trace carries the `no-cache-tokens` usage

@@ -168,3 +168,29 @@ requirements:
       Issue #52: a reader comparing GARE and Claude Code token figures must
       see which ones cannot include cache tokens.
     status: verified
+
+  - id: TER-SRC-016
+    pattern: state-driven
+    text: >-
+      While a trace carries the no-response-text usage limit, every TER
+      report of that trace shall state that limit.
+    level: L6
+    source_points: [105]
+    rationale: >-
+      PR #60 review: GARE exports usage counts, not responses, so token counts
+      taken from event text measure route labels; the reader must know.
+    status: verified
+
+  - id: TER-SRC-017
+    pattern: unwanted
+    text: >-
+      If explain or a3 is asked for a TER score of a session that is not
+      Claude Code JSONL, then TER shall report the session without a TER
+      score and say why.
+    level: L6
+    source_points: [103]
+    rationale: >-
+      PR #60 review: TER 3 reads Claude Code JSONL only; a3 scored GARE runs
+      by default and crashed on a folder or scored a usage export as a
+      transcript.
+    status: verified

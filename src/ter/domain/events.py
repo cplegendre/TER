@@ -167,6 +167,24 @@ class Event:
     parent_id: EventId | None = None
 
 
+#: How each known usage limit reads beside the figures it qualifies
+#: (TER-SRC-014, TER-SRC-016).
+USAGE_LIMIT_TEXT: Mapping[str, str] = {
+    "no-cache-tokens": "the source reports no cache tokens; cache figures are 0",
+    "no-response-text": (
+        "the source exports no response text; text tokens count route labels, "
+        "not what the model wrote"
+    ),
+}
+#: Limits that qualify token counts taken from event text, not usage figures.
+TEXT_LIMITS = frozenset({"no-response-text"})
+
+
+def describe_limit(limit: str) -> str:
+    """The reader-facing text for a usage limit (the id when unknown)."""
+    return USAGE_LIMIT_TEXT.get(limit, limit)
+
+
 @dataclass(frozen=True)
 class UnrecognisedRecord:
     """A source record the adapter could not map, kept so coverage is honest."""

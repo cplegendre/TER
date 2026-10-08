@@ -132,10 +132,16 @@ def cli_services() -> CliServices:
     def explain_transcript(
         path: Path, tokenizer: str, ter: str, outcome: Path | None = None
     ) -> ExplainedSession:
+        from ..adapters.driven.claude_code import ClaudeCodeJsonlSource
+
+        source = session_source_for(path)
+        # TER 3 scores Claude Code transcripts only; other sources get no TER
+        # rather than a meaningless one (TER-SRC-017).
+        scores = isinstance(source, ClaudeCodeJsonlSource)
         use_case = ExplainSession(
-            session_source_for(path),
+            source,
             make_tokenizer(tokenizer),
-            make_ter_scorer(ter),
+            make_ter_scorer(ter if scores else "off"),
             make_outcome_source() if outcome is not None else None,
         )
         return use_case(path, outcome)

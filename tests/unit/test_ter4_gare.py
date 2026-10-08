@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -12,9 +13,15 @@ import pytest
 
 from ter.adapters.driven.claude_code import ClaudeCodeJsonlSource
 from ter.adapters.driven.event_log.codec import event_from_record, event_to_record
-from ter.adapters.driven.gare import GARE_USAGE_SCHEMA, NO_CACHE_TOKENS, GareRunSource
+from ter.adapters.driven.gare import (
+    GARE_USAGE_SCHEMA,
+    NO_CACHE_TOKENS,
+    NO_RESPONSE_TEXT,
+    GareRunSource,
+)
 from ter.adapters.driven.tokenizers import RegexTokenizer
 from ter.adapters.driving.cli import format_report, main
+from ter.adapters.driving.reports.a3 import render_a3_html
 from ter.application.observe import AnalyseTrace
 from ter.bootstrap import cli_services, session_source_for
 from ter.domain import Actor, EventKind
@@ -257,7 +264,7 @@ def test_unknown_states_and_schemas_count_against_coverage(tmp_path: Path) -> No
 @pytest.mark.parametrize("run", [FAILOVER, MISSION], ids=["failover", "mission"])
 def test_gare_traces_carry_no_cache_tokens_and_say_so(run: Path) -> None:
     trace = GareRunSource().read(run)
-    assert trace.usage_limits == (NO_CACHE_TOKENS,)
+    assert NO_CACHE_TOKENS in trace.usage_limits
     for event in trace.events:
         if event.usage is not None:
             assert event.usage.cache_creation_tokens == 0
@@ -267,12 +274,16 @@ def test_gare_traces_carry_no_cache_tokens_and_say_so(run: Path) -> None:
 @pytest.mark.req("TER-SRC-014")
 def test_reports_state_the_usage_limit_beside_their_token_figures() -> None:
     report = AnalyseTrace(GareRunSource(), RegexTokenizer())(FAILOVER)
-    assert report.usage_limits == (NO_CACHE_TOKENS,)
-    assert report.as_dict()["usage_limits"] == [NO_CACHE_TOKENS]
-    usage_line = next(
-        line for line in format_report(report).splitlines() if "usage" in line
-    )
+    assert report.usage_limits == (NO_CACHE_TOKENS, NO_RESPONSE_TEXT)
+    assert report.as_dict()["usage_limits"] == [NO_CACHE_TOKENS, NO_RESPONSE_TEXT]
+    lines = format_report(report).splitlines()
+    usage_line = next(line for line in lines if line.lstrip().startswith("usage"))
+    text_line = next(line for line in lines if "text tokens" in line)
     assert "reports no cache tokens" in usage_line
+    assert "no response text" not in usage_line
+    # The text limit qualifies the counts taken from event text.
+    assert "no response text" in text_line
+    assert "no cache tokens" not in text_line
 
 
 @pytest.mark.req("TER-SRC-014")
@@ -373,3 +384,194 @@ def test_observe_prints_a_gare_timeline_with_the_cache_caveat() -> None:
     header, rows = timeline[0], timeline[1:]
     row = next(line for line in rows if "outcome.recorded" in line)
     assert row.index("system") == header.index("actor")
+
+
+# -- no response text (review of PR #60) -------------------------------------
+
+
+def run_cli(*args: str) -> tuple[int, str, str]:
+    out, err = io.StringIO(), io.StringIO()
+    code = main(list(args), cli_services(), stdout=out, stderr=err)
+    return code, out.getvalue(), err.getvalue()
+
+
+@pytest.mark.req("TER-SRC-016")
+@pytest.mark.parametrize(
+    "ref", [FAILOVER, FAILOVER / "explain.json"], ids=["usage", "explain-only"]
+)
+def test_gare_responses_carry_no_text_and_say_so(ref: Path) -> None:
+    trace = GareRunSource().read(ref)
+    assert NO_RESPONSE_TEXT in trace.usage_limits
+    responses = [e for e in trace.events if e.kind is EventKind.RESPONSE]
+    # The text is only the task and route; the tokens are on the usage figures.
+    assert responses
+    assert all(re.fullmatch(r"[\w-]+: [\w.-]+/[\w.:-]+", e.text) for e in responses)
+    assert sum(e.usage.output_tokens for e in responses if e.usage) > 0
+
+
+@pytest.mark.req("TER-SRC-016")
+def test_explanations_and_a3s_state_the_sources_limits(tmp_path: Path) -> None:
+    code, out, _ = run_cli("explain", str(FAILOVER))
+    assert code == 0
+    assert "no response text" in out and "no cache tokens" in out
+
+    report = tmp_path / "a3.json"
+    html = tmp_path / "a3.html"
+    code, _, _ = run_cli(
+        "a3", str(FAILOVER), "--json", str(report), "--html", str(html)
+    )
+    assert code == 0
+    data = json.loads(report.read_text(encoding="utf-8"))
+    assert data["usage_limits"] == [NO_CACHE_TOKENS, NO_RESPONSE_TEXT]
+    assert "no response text" in html.read_text(encoding="utf-8")
+
+
+@pytest.mark.req("TER-SRC-016")
+def test_claude_code_explanations_carry_no_limits(tmp_path: Path) -> None:
+    services = cli_services()
+    assert services.explain_transcript is not None
+    explained = services.explain_transcript(
+        CORPUS["example_session"], "regex", "off", None
+    )
+    assert explained.a3.usage_limits == ()
+    assert "usage_limits" not in explained.a3.as_dict()
+    assert "Limit." not in render_a3_html(explained.a3)
+    code, out, _ = run_cli("explain", str(CORPUS["example_session"]))
+    assert code == 0 and "  limit " not in out
+
+
+@pytest.mark.req("TER-SRC-017")
+@pytest.mark.parametrize(
+    "ref",
+    [MISSION, MISSION / "gare-ter-usage.jsonl", MISSION / "explain.json"],
+    ids=["folder", "usage", "explain"],
+)
+def test_a3_on_a_gare_run_reports_without_a_ter_score(
+    ref: Path, tmp_path: Path
+) -> None:
+    report = tmp_path / "a3.json"
+    code, _, err = run_cli("a3", str(ref), "--json", str(report))
+    assert code == 0
+    assert "No TER score: TER 3 scoring reads Claude Code transcripts" in err
+    scorecard = json.loads(report.read_text(encoding="utf-8"))["analysis"]["scorecard"]
+    assert scorecard.get("ter") is None
+
+
+@pytest.mark.req("TER-SRC-017")
+def test_claude_code_sessions_still_get_a_ter_score() -> None:
+    services = cli_services()
+    assert services.explain_transcript is not None
+    explained = services.explain_transcript(
+        CORPUS["example_session"], "regex", "offline", None
+    )
+    assert explained.analysis.scorecard.ter is not None
+
+
+# -- review of PR #60: discovery, broken files, order, other runs ------------
+
+
+def usage_row(**extra: Any) -> dict[str, Any]:
+    return {
+        "schema": GARE_USAGE_SCHEMA,
+        "run_id": "run1",
+        "task_id": "t",
+        "provider": "p",
+        "model": "m",
+        "input_tokens": 3,
+        "output_tokens": 4,
+        "success": 1,
+        "created_at": "2026-10-08T12:00:05+00:00",
+        **extra,
+    }
+
+
+def write_usage(path: Path, *rows: dict[str, Any] | str) -> Path:
+    path.write_text(
+        "".join((r if isinstance(r, str) else json.dumps(r)) + "\n" for r in rows),
+        encoding="utf-8",
+    )
+    return path
+
+
+@pytest.mark.req("TER-SRC-012")
+@pytest.mark.parametrize(
+    "first", ['{"schema": "gare.ter.usage.v3"}', "not json"], ids=["schema", "json"]
+)
+def test_a_leading_unknown_row_does_not_hide_the_export(
+    tmp_path: Path, first: str
+) -> None:
+    write_usage(tmp_path / "usage.jsonl", first, usage_row())
+    assert GareRunSource.accepts(tmp_path)
+    assert GareRunSource.accepts(tmp_path / "usage.jsonl")
+    trace = GareRunSource().read(tmp_path)
+    assert [e.kind for e in trace.events] == [EventKind.RESPONSE]
+    assert len(trace.unrecognised) == 1
+    assert trace.coverage == pytest.approx(1 / 2)
+
+
+def test_a_file_that_only_mentions_the_schema_is_not_an_export(
+    tmp_path: Path,
+) -> None:
+    path = write_usage(
+        tmp_path / "chat.jsonl", {"type": "user", "text": GARE_USAGE_SCHEMA}
+    )
+    assert not GareRunSource.accepts(path)
+
+
+@pytest.mark.parametrize(
+    "content", ["{not json", '{"run": {"id": "run1"}}'], ids=["json", "shape"]
+)
+def test_a_broken_explanation_beside_usage_is_refused(
+    tmp_path: Path, content: str
+) -> None:
+    (tmp_path / "explain.json").write_text(content, encoding="utf-8")
+    write_usage(tmp_path / "usage.jsonl", usage_row())
+    with pytest.raises(ValueError, match="is not `gare explain --json` output"):
+        GareRunSource().read(tmp_path)
+
+
+def test_an_explanation_without_a_run_id_is_refused(tmp_path: Path) -> None:
+    data = explain(("created", {}))
+    data["run"]["id"] = ""
+    with pytest.raises(ValueError, match="names no run id"):
+        GareRunSource().read(write_explain(tmp_path, data))
+
+
+@pytest.mark.req("TER-SRC-012")
+def test_usage_rows_of_another_run_count_against_coverage(tmp_path: Path) -> None:
+    write_explain(tmp_path, explain(("created", {"goal": "fix it"})))
+    write_usage(tmp_path / "usage.jsonl", usage_row(), usage_row(run_id="other"))
+    trace = GareRunSource().read(tmp_path)
+    assert trace.unrecognised_by_type == {"other-run:other": 1}
+    assert [e.kind for e in trace.events] == [EventKind.PROMPT, EventKind.RESPONSE]
+
+
+@pytest.mark.req("TER-SRC-012")
+def test_only_rows_of_another_run_fall_back_to_the_tasks(tmp_path: Path) -> None:
+    data = explain(
+        ("created", {}),
+        tasks=[{"id": "t", "provider": "p", "model": "m", "output_tokens": 2}],
+    )
+    write_explain(tmp_path, data)
+    write_usage(tmp_path / "usage.jsonl", usage_row(run_id="other"))
+    trace = GareRunSource().read(tmp_path)
+    assert trace.unrecognised_by_type == {"other-run:other": 1}
+    assert trace.coverage < 1.0
+
+
+def test_undated_rows_keep_their_place_in_their_file(tmp_path: Path) -> None:
+    data = explain(("created", {"goal": "fix it"}), ("route_decision", {}))
+    write_explain(tmp_path, data)
+    write_usage(
+        tmp_path / "usage.jsonl",
+        usage_row(task_id="undated-first", created_at=None),
+        usage_row(task_id="dated", created_at="2026-10-08T12:00:05+00:00"),
+        usage_row(task_id="undated-after", created_at="garbage"),
+    )
+    trace = GareRunSource().read(tmp_path)
+    texts = [e.text for e in trace.events]
+    # Nothing lands before the goal, and file order holds within the export.
+    assert texts[0] == "fix it"
+    usage = [t.split(":")[0] for t in texts if t.startswith(("undated", "dated"))]
+    assert usage == ["undated-first", "dated", "undated-after"]
+    assert texts.index("dated: p/m") > texts.index(": no route")

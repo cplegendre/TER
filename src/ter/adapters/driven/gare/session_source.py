@@ -30,7 +30,10 @@ final state               ``task.completed``          system
 ========================  ==========================  =========
 
 GARE reports input and output tokens only, so every trace carries the
-``no-cache-tokens`` usage limit and reports say so (TER-SRC-013). Run event
+``no-cache-tokens`` usage limit and reports say so (TER-SRC-013). It exports
+no response text either: a ``response`` event's text is its task and route,
+so every trace also carries the ``no-response-text`` limit and measures
+counted from text say so (TER-SRC-016). Run event
 states TER knows but does not model (planning notes, diagnoses) produce no
 event; unknown states and rows of an unknown schema are counted as
 unrecognised, so coverage stays honest (TER-SRC-012).
@@ -58,11 +61,19 @@ from ....domain.events import (
     make_event_id,
 )
 
-__all__ = ["EXPLAIN_FILE", "GARE_USAGE_SCHEMA", "NO_CACHE_TOKENS", "GareRunSource"]
+__all__ = [
+    "EXPLAIN_FILE",
+    "GARE_USAGE_SCHEMA",
+    "NO_CACHE_TOKENS",
+    "NO_RESPONSE_TEXT",
+    "GareRunSource",
+]
 
 GARE_USAGE_SCHEMA = "gare.ter.usage.v2"
 #: The usage limit every GARE trace carries.
 NO_CACHE_TOKENS = "no-cache-tokens"
+#: GARE exports usage counts, not what the model wrote.
+NO_RESPONSE_TEXT = "no-response-text"
 #: File name ``gare explain RUN --json`` output is looked for under.
 EXPLAIN_FILE = "explain.json"
 
@@ -138,7 +149,8 @@ class GareRunSource:
             raise FileNotFoundError(path)
         explain_path, usage_paths = _files(path)
         explain = _load_json(explain_path) if explain_path else None
-        if explain is not None and not _explain_shape(explain):
+        if explain_path is not None and not _explain_shape(explain):
+            # A broken explanation must not pass as a usage-only run.
             raise ValueError(f"{explain_path} is not `gare explain --json` output")
 
         unrecognised: list[UnrecognisedRecord] = []
@@ -154,19 +166,24 @@ class GareRunSource:
                 rows.append((usage_path.name, line, row))
 
         run_id = _run_id(explain, rows, path)
-        drafts: list[_Draft] = []
+        groups: list[list[_Draft]] = []
         if explain is not None:
-            drafts += _run_events(explain, unrecognised)
-        usage_rows = [r for r in rows if r[2].get("run_id") == run_id]
+            groups.append(list(_run_events(explain, unrecognised)))
+        usage_rows: list[tuple[str, int, dict[str, Any]]] = []
+        for entry in rows:
+            other = str(entry[2].get("run_id"))
+            if other == run_id:
+                usage_rows.append(entry)
+            else:
+                unrecognised.append(UnrecognisedRecord(entry[1], f"other-run:{other}"))
         if usage_rows:
-            drafts += _usage_events(usage_rows, explain)
+            groups.append(list(_usage_events(usage_rows, explain)))
         elif explain is not None:
             # Without the usage export, each task's final route stands in.
-            drafts += _task_events(explain)
+            groups.append(list(_task_events(explain)))
 
-        drafts.sort(key=lambda d: (_sort_time(d.at), d.order))
         events: list[Event] = []
-        for draft in drafts:
+        for _, draft in sorted(_chronology(groups), key=lambda k: (k[0], k[1].order)):
             event_id = make_event_id(
                 "gare", run_id, draft.source, draft.key, draft.kind.value
             )
@@ -193,7 +210,7 @@ class GareRunSource:
             source_format=self.format_name,
             events=tuple(events),
             unrecognised=tuple(unrecognised),
-            usage_limits=(NO_CACHE_TOKENS,),
+            usage_limits=(NO_CACHE_TOKENS, NO_RESPONSE_TEXT),
         )
 
 
@@ -215,15 +232,20 @@ def _files(path: Path) -> tuple[Path | None, list[Path]]:
 
 
 def _is_usage_file(path: Path) -> bool:
+    """True when any row has the usage schema: a leading unknown or broken row
+    must not hide the rest of the export (they count against coverage)."""
     try:
         with path.open(encoding="utf-8") as handle:
             for line in handle:
-                if line.strip():
+                if GARE_USAGE_SCHEMA not in line:
+                    continue
+                try:
                     row = json.loads(line)
-                    return (
-                        isinstance(row, dict) and row.get("schema") == GARE_USAGE_SCHEMA
-                    )
-    except (OSError, ValueError):
+                except ValueError:
+                    continue
+                if isinstance(row, dict) and row.get("schema") == GARE_USAGE_SCHEMA:
+                    return True
+    except (OSError, UnicodeDecodeError):
         return False
     return False
 
@@ -263,7 +285,10 @@ def _run_id(
     path: Path,
 ) -> str:
     if explain is not None:
-        return str(explain["run"].get("id") or "")
+        run_id = str(explain["run"].get("id") or "")
+        if not run_id:
+            raise ValueError(f"{path}: the explanation names no run id")
+        return run_id
     runs = sorted({str(r[2].get("run_id")) for r in rows})
     if len(runs) == 1:
         return runs[0]
@@ -470,8 +495,18 @@ def _time(value: object) -> datetime | None:
         return None
 
 
-def _sort_time(value: datetime | None) -> float:
-    return value.timestamp() if value is not None else float("-inf")
+def _chronology(groups: list[list[_Draft]]) -> Iterator[tuple[float, _Draft]]:
+    """Each draft with the time it sorts by. An undated draft keeps its place
+    in its own file: it takes the time of the dated draft before it there, or
+    the run's first time when none comes before it."""
+    dated = [d.at.timestamp() for g in groups for d in g if d.at is not None]
+    start = min(dated) if dated else 0.0
+    for group in groups:
+        last = start
+        for draft in group:
+            if draft.at is not None:
+                last = draft.at.timestamp()
+            yield last, draft
 
 
 def _int(value: object) -> int:
