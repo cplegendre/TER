@@ -23,11 +23,13 @@ and an A3 report turns findings into concrete countermeasures for
 flowchart LR
     S["Claude Code<br/>transcript or hooks"] --> E["ter.event stream"]
     E --> T["TER ratio<br/>(TER 3, kept)"]
+    O["Test results<br/>(JUnit XML)"] --> V["Outcome verdict"]
     E --> L["Lean model<br/>value stream · 11 waste detectors"]
     L --> G["Evidence graph"]
     L --> SC["Scorecard<br/>flow efficiency · activity · waste cost"]
     T --> SC
     SC --> A3["A3 report<br/>root causes → countermeasures"]
+    V -. beside, never mixed in .-> A3
 ```
 
 - **Two packages, one install.** `ter_calculator` is TER 3, the original
@@ -43,6 +45,16 @@ flowchart LR
 - **Controlled by requirements.** Every behaviour is an EARS requirement
   traced to tests and gated in CI, under a 200-point vision with a definition
   of done per point.
+- **Behaviour apart from outcome.** Test results (JUnit XML) give a verdict,
+  accepted, rejected or incomplete, shown beside the Lean measures and never
+  folded into them.
+- **Open to capability packs.** Adapters for every port are registered by
+  `ter.capabilities` entry points, so another project can add a session
+  source, tokenizer or outcome source without forking TER
+  ([ADR 0005](docs/decisions/0005-admitting-external-capabilities.md)).
+- **Real data, redacted first.** Real sessions enter only through a corpus
+  importer that redacts secrets, paths and file contents before anything is
+  written, and hook payloads can be recorded to calibrate the live path.
 
 ### Maturity levels
 
@@ -53,12 +65,12 @@ L2 today.
 | Level | Name | Adds | Status | Requirements verified | Points done / partial / not started |
 |---|---|---|---|---:|---:|
 | L0 | Measured | TER 3 parity inside the hexagon: event contract, scoring, dated prices | Gate passing; the runtime maturity ceiling (TER-INT-001) is planned | 23 of 24 | 10 / 1 / 0 |
-| L1 | Observed | Event stream as the core boundary, Claude Code hooks, live = batch | Gate passing; Stop and SubagentStop hooks wait on real data (#35) | 4 of 12 | 10 / 6 / 0 |
-| L2 | Explained | Lean model, waste detectors, evidence graph, scorecard, A3 | Built, gate passing; more detectors planned | 19 of 41 | 25 / 24 / 5 |
+| L1 | Observed | Event stream as the core boundary, Claude Code hooks (Stop and SubagentStop included), hook recorder, live = batch | Gate passing; calibrating against recorded hook payloads waits on real data (#35) | 14 of 19 | 10 / 6 / 0 |
+| L2 | Explained | Lean model, waste detectors, evidence graph, scorecard, A3, outcome verdict, redacted corpus import | Built, gate passing; more detectors and a real corpus (#34) to come | 33 of 55 | 26 / 23 / 5 |
 | L3 | Grounded | Repository evidence: symbols, tests, git diff, change surface | Started: session evidence-graph edges only | 2 of 20 | 3 / 8 / 37 |
 | L4 | Advisory | Intervention engine, declarative policies, ledger | Not started | 0 of 15 | 0 / 4 / 35 |
-| L5 | Corrective | Routing, opt-in corrective actions, calibration | Not started | 0 of 9 | 1 / 3 / 9 |
-| L6 | Learning | Closed loop, second harness, research datasets | Not started | 0 of 9 | 0 / 2 / 17 |
+| L5 | Corrective | Routing, opt-in corrective actions, calibration | Not started | 0 of 9 | 1 / 4 / 8 |
+| L6 | Learning | Closed loop, second harness, research datasets | Not started | 0 of 9 | 0 / 3 / 16 |
 
 Live numbers: `ter-req report` (requirements) and
 [docs/ter4/points.md](docs/ter4/points.md) (points).
@@ -120,6 +132,9 @@ ter list ~/.claude/projects/ --limit 20
 ter explain session.jsonl                          # findings, flow efficiency, activity classes
 ter explain session.jsonl --json --graph evidence.json
 ter a3 session.jsonl --html a3.html --json a3.json # the A3: root causes and countermeasures
+ter a3 session.jsonl --outcome junit.xml --html a3.html  # add the test verdict beside the measures
+python -m ter explain session.jsonl --outcome junit.xml  # findings plus accepted / rejected / incomplete
+python -m ter capabilities                         # adapters registered for each port, and any broken
 python -m ter observe session.jsonl --timeline     # L1 observables, event by event
 ```
 
@@ -130,7 +145,17 @@ python -m ter hook < payload.json                  # capture hook: records event
 python -m ter observe --event-log ~/.cache/ter/events  # analyse what the hook recorded
 ter hook monitor < payload.json                    # TER 3 live waste monitor
 ter watch ~/.claude/projects/my-project --latest   # live terminal dashboard
+python -m ter hook --record ~/ter-data/hooks < payload.json  # also keep the raw payload
 ```
+
+The capture hook maps `UserPromptSubmit`, `PreToolUse` and `PostToolUse` to
+prompt and tool events, `Stop` to `task.completed` and `SubagentStop` to
+`subagent.completed` in the parent session (`ter.event/0.2`). `--record DIR`
+also saves every payload as `DIR/<session>/<seq>-<hook>.json`, for collecting
+the real payloads issue #35 needs. Recordings hold tool inputs and output, so
+keep them outside the repository and redact before sharing. Details in the
+[hooks guide](docs/guides/hooks.md) and
+[L1 Observed](docs/ter4/l1-observed.md).
 
 ### Build a redacted corpus of real sessions
 
@@ -186,7 +211,9 @@ All guides: [docs/guides](docs/guides/README.md). Reference:
 [L1 Observed](docs/ter4/l1-observed.md) ·
 [L2 Explained](docs/ter4/l2-explained.md) ·
 [visual reports](docs/ter4/reports.md) ·
+[outcome and acceptance](docs/ter4/outcome.md) ·
 [real session corpus](docs/ter4/corpus.md) ·
+[dataset card](docs/ter4/dataset-card.md) ·
 [requirements control](docs/ter4/requirements.md) ·
 [vision points](docs/ter4/points.md) ·
 [decision records](docs/decisions/).
@@ -234,7 +261,9 @@ The TER 3 pipeline is described in [docs/architecture.md](docs/architecture.md).
   worth labelling.
 - Claims about real agent behaviour need real session data. That work is
   tracked in GitHub issues #34 to #46 (tracker #47), and the points that
-  depend on it are never marked done from synthetic tests.
+  depend on it are never marked done from synthetic tests. The tools to
+  collect it exist (`python -m ter corpus import`, `python -m ter hook --record`);
+  the sessions themselves are still to come.
 
 ## Development
 
