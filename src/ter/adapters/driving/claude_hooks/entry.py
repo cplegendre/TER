@@ -108,13 +108,15 @@ def run_hook(
             result = handle_hook(raw, ingest, clock=clock)
         else:
             # Read the clock once, so a recording replays to the very ids
-            # (prompts and stops include the second received) seen live.
-            moment, clock_error = _read_clock(clock)
+            # (prompts and stops include the second received) seen live. A
+            # clock that fails is left to handle_hook, which ignores the
+            # payload with the reason, as without recording.
+            moment = _read_clock(clock)
             recorded_to, record_error = _record(raw, record_to, moment)
             result = replace(
-                handle_hook(raw, ingest, clock=_At(moment) if moment else None),
+                handle_hook(raw, ingest, clock=_At(moment) if moment else clock),
                 recorded_to=recorded_to,
-                record_error=clock_error or record_error,
+                record_error=record_error,
             )
     stdout.write(HOOK_OUTPUT + "\n")
     return result
@@ -130,11 +132,11 @@ class _At:
         return self.moment
 
 
-def _read_clock(clock: Clock | None) -> tuple[datetime | None, str]:
+def _read_clock(clock: Clock | None) -> datetime | None:
     try:
-        return (clock.now() if clock is not None else None), ""
-    except Exception as error:  # noqa: BLE001 - a hook must fail open
-        return None, f"clock: {type(error).__name__}: {error}"
+        return clock.now() if clock is not None else None
+    except Exception:  # noqa: BLE001 - a hook must fail open
+        return None
 
 
 def _record(

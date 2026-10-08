@@ -5,7 +5,9 @@ from __future__ import annotations
 import io
 import json
 import os
+import re
 import stat
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -105,6 +107,14 @@ class TestSubagentStop:
         assert early.text == "Explore"
         assert early.provenance.record_id == "subagent:agent-7f3a"
 
+    @pytest.mark.req("TER-OBS-006")
+    def test_unnamed_subagents_finishing_in_one_second_are_both_kept(self) -> None:
+        sink = ingest()
+        later = T0 + timedelta(milliseconds=200)
+        first = handle_hook(load("subagent_stop"), sink, clock=FixedClock(T0))
+        second = handle_hook(load("subagent_stop"), sink, clock=FixedClock(later))
+        assert (first.appended, second.appended) == (1, 1)
+
     @pytest.mark.parametrize("agent_id", [None, "", 42])
     def test_a_missing_or_odd_agent_id_falls_back_to_the_clock(
         self, agent_id: object
@@ -140,6 +150,15 @@ class TestLifecycleInAnalysis:
         assert explain(events, tokenizer) == explain(content, tokenizer)
 
 
+def counter(start: int = 0) -> Any:
+    """A deterministic nanosecond clock for recording names."""
+    ticks = iter(range(start, start + 10**6))
+    return lambda: next(ticks)
+
+
+NAME = re.compile(r"\d{20}-[A-Za-z_]+\.json")
+
+
 class TestRecord:
     @pytest.mark.req("TER-OBS-010")
     def test_record_writes_the_raw_payload_before_translating(
@@ -159,12 +178,27 @@ class TestRecord:
         assert result.status is HookStatus.RECORDED
         assert result.recorded_to is not None
         assert result.recorded_to.parent == tmp_path / "rec" / payload["session_id"]
-        assert result.recorded_to.name == "000000-PostToolUse.json"
+        assert NAME.fullmatch(result.recorded_to.name)
+        assert result.recorded_to.name.endswith("-PostToolUse.json")
         saved = json.loads(result.recorded_to.read_text(encoding="utf-8"))
         assert saved == {
             "schema": RECORDING_SCHEMA,
             "received_at": T0.isoformat(),
-            "payload": payload,
+            "raw": raw,
+        }
+
+    @pytest.mark.req("TER-OBS-010")
+    def test_the_payload_is_kept_byte_for_byte(self, tmp_path: Path) -> None:
+        # Duplicate keys and spacing would not survive a parse and re-dump.
+        raw = '{"session_id": "s", "hook_event_name": "Stop",  "x": 1, "x": 2}\n'
+        path = record_payload(raw, tmp_path)
+        [recording] = read_recordings(tmp_path)
+        assert recording.path == path
+        assert recording.raw == raw
+        assert recording.payload == {
+            "session_id": "s",
+            "hook_event_name": "Stop",
+            "x": 2,
         }
 
     @pytest.mark.req("TER-OBS-010")
@@ -173,36 +207,55 @@ class TestRecord:
             io.StringIO("{not json"), io.StringIO(), ingest(), record_to=tmp_path
         )
         assert result.status is HookStatus.IGNORED
-        assert result.recorded_to == tmp_path / "_unknown" / "000000-_unknown.json"
-        saved = json.loads(result.recorded_to.read_text(encoding="utf-8"))
-        assert saved == {
-            "schema": RECORDING_SCHEMA,
-            "received_at": None,
-            "raw": "{not json",
-        }
+        assert result.recorded_to is not None
+        assert result.recorded_to.parent == tmp_path / "_unknown"
+        assert result.recorded_to.name.endswith("-_unknown.json")
+        [recording] = read_recordings(tmp_path)
+        assert (recording.raw, recording.payload) == ("{not json", None)
+        assert recording.received_at is None
 
-    def test_each_payload_gets_the_next_sequence_number(self, tmp_path: Path) -> None:
-        names = [
-            record_payload(json.dumps(load(n)), tmp_path).name
-            for n in ("user_prompt_submit", "pre_tool_use_read", "stop")
-        ]
-        assert names == [
-            "000000-UserPromptSubmit.json",
-            "000001-PreToolUse.json",
-            "000002-Stop.json",
-        ]
-
-    def test_a_taken_sequence_number_is_skipped_not_overwritten(
+    def test_names_sort_in_arrival_order_whatever_the_hook(
         self, tmp_path: Path
     ) -> None:
+        clock = counter(10**18)
+        paths = [
+            record_payload(json.dumps(load(n)), tmp_path, now_ns=clock)
+            for n in ("user_prompt_submit", "pre_tool_use_read", "stop")
+        ]
+        assert [p.name for p in paths] == [
+            "01000000000000000000-UserPromptSubmit.json",
+            "01000000000000000001-PreToolUse.json",
+            "01000000000000000002-Stop.json",
+        ]
+        assert [r.path for r in read_recordings(tmp_path)] == paths
+
+    def test_a_taken_name_is_skipped_not_overwritten(self, tmp_path: Path) -> None:
         payload = load("stop")
-        folder = tmp_path / payload["session_id"]
-        folder.mkdir()
-        (folder / "000001-Stop.json").write_text("kept", encoding="utf-8")
-        # One file present: the next writer tries 000001, finds it taken.
-        path = record_payload(json.dumps(payload), tmp_path)
-        assert path.name == "000002-Stop.json"
-        assert (folder / "000001-Stop.json").read_text(encoding="utf-8") == "kept"
+        first = record_payload(json.dumps(payload), tmp_path, now_ns=lambda: 7)
+        second = record_payload(json.dumps(payload), tmp_path, now_ns=lambda: 7)
+        assert (first.name, second.name) == (
+            "00000000000000000007-Stop.json",
+            "00000000000000000008-Stop.json",
+        )
+        assert first.read_text(encoding="utf-8") == second.read_text(encoding="utf-8")
+
+    def test_concurrent_writers_never_clobber_each_other(self, tmp_path: Path) -> None:
+        payloads = [load("stop") | {"n": n} for n in range(40)]
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            paths = list(
+                pool.map(
+                    lambda p: record_payload(json.dumps(p), tmp_path, now_ns=lambda: 1),
+                    payloads,
+                )
+            )
+        assert len(set(paths)) == len(payloads)
+        recorded = sorted(r.payload["n"] for r in read_recordings(tmp_path))  # type: ignore[index]
+        assert recorded == list(range(40))
+
+    def test_no_partial_file_is_left_behind(self, tmp_path: Path) -> None:
+        record_payload(json.dumps(load("stop")), tmp_path)
+        folder = tmp_path / load("stop")["session_id"]
+        assert [p.name for p in folder.iterdir() if p.name.startswith(".")] == []
 
     @pytest.mark.parametrize(
         "session", ["../../etc", "..", ".hidden", "a/b", "x" * 300, "sp ace"]
@@ -226,6 +279,17 @@ class TestRecord:
         assert stat.S_IMODE(path.parent.stat().st_mode) == 0o700
         assert stat.S_IMODE((tmp_path / "rec").stat().st_mode) == 0o700
 
+    @pytest.mark.skipif(os.name != "posix", reason="POSIX file modes")
+    def test_existing_open_directories_are_tightened(self, tmp_path: Path) -> None:
+        root = tmp_path / "rec"
+        folder = root / load("stop")["session_id"]
+        folder.mkdir(parents=True)
+        root.chmod(0o755)
+        folder.chmod(0o777)
+        record_payload(json.dumps(load("stop")), root)
+        assert stat.S_IMODE(root.stat().st_mode) == 0o700
+        assert stat.S_IMODE(folder.stat().st_mode) == 0o700
+
     @pytest.mark.req("TER-OBS-010", "TER-OBS-008")
     def test_a_failed_recording_still_handles_the_payload(self, tmp_path: Path) -> None:
         blocker = tmp_path / "file"
@@ -238,6 +302,29 @@ class TestRecord:
         assert result.status is HookStatus.RECORDED
         assert result.recorded_to is None
         assert result.record_error
+
+    @pytest.mark.req("TER-OBS-008")
+    def test_a_failing_clock_is_handled_as_without_recording(
+        self, tmp_path: Path
+    ) -> None:
+        class Broken:
+            def now(self) -> datetime:
+                raise RuntimeError("no time")
+
+        raw = json.dumps(load("stop"))
+        plain = run_hook(io.StringIO(raw), io.StringIO(), ingest(), clock=Broken())
+        recorded = run_hook(
+            io.StringIO(raw),
+            io.StringIO(),
+            ingest(),
+            clock=Broken(),
+            record_to=tmp_path,
+        )
+        assert plain.status is recorded.status is HookStatus.IGNORED
+        assert recorded.reason == plain.reason == "RuntimeError: no time"
+        assert recorded.record_error == ""
+        [recording] = read_recordings(tmp_path)
+        assert recording.received_at is None
 
     @pytest.mark.req("TER-OBS-010")
     def test_recordings_replay_to_the_same_events(self, tmp_path: Path) -> None:
@@ -254,7 +341,7 @@ class TestRecord:
         # Every fixture shares one session, so the recordings come back in
         # the order they were made.
         recordings = list(read_recordings(tmp_path))
-        assert [r.sequence for r in recordings] == list(range(len(names)))
+        assert len(recordings) == len(names)
         for name, recording in zip(names, recordings, strict=True):
             assert recording.payload == load(name)
             assert recording.hook_event_name == load(name)["hook_event_name"]

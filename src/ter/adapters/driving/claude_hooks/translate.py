@@ -190,14 +190,18 @@ def _subagent_stop(
 ) -> Event:
     # session_id is the parent's, so the event joins the parent session.
     # Newer Claude Code releases name the subagent; with that id a stop needs
-    # no clock to be told apart from another subagent's.
+    # no clock to be told apart from another subagent's. Without it, parallel
+    # subagents can finish within one second, so the full receive time keys
+    # the stop: a lost subagent costs more than a rare double delivery.
     agent_id = payload.get("agent_id")
     agent_type = payload.get("agent_type")
     parts: tuple[str, ...]
     if isinstance(agent_id, str) and agent_id:
         parts = (agent_id,)
+    elif received_at is not None:
+        parts = (received_at.isoformat(),)
     else:
-        parts = _second(received_at)
+        parts = ()
     return Event(
         id=make_event_id(_SOURCE, session_id, "SubagentStop", *parts),
         session_id=session_id,

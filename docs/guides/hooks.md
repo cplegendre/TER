@@ -122,7 +122,7 @@ correlating them with the transcript, waits on recorded hook data (issue #35).
 ### Recording real payloads
 
 `--record DIR` saves every payload the hook reads, before handling it, to
-`DIR/<session>/<seq>-<hook>.json` with the time it arrived. Recordings are
+`DIR/<session>/<seq>-<hook>.json`, byte for byte, with the time it arrived (`<seq>` is the write time in nanoseconds, so names sort in arrival order). Recordings are
 how the hook shapes TER relies on get checked against real runs (issue #35):
 
 ```bash

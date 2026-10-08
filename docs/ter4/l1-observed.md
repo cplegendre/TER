@@ -61,7 +61,7 @@ files) counts once.
 | `PreToolUse` | `tool.requested` (assistant), tool kind from the Claude Code tool map, arguments = `tool_input` | session + `tool_use_id` (else hash of tool name and input) |
 | `PostToolUse` | the same `tool.requested` as PreToolUse, plus `tool.completed` (tool), text = `tool_response` | as above; the completion's `parent_id` is the request |
 | `Stop` | `task.completed` (system), empty text | session + second received |
-| `SubagentStop` | `subagent.completed` (system) in the parent session, text = `agent_type` when sent | session + `agent_id` when sent, else second received |
+| `SubagentStop` | `subagent.completed` (system) in the parent session, text = `agent_type` when sent | session + `agent_id` when sent, else the exact receive time (parallel subagents can finish within one second) |
 | `SessionStart`, `SessionEnd`, `SubagentStart`, `PreCompact`, `Notification` | none (status `lifecycle`) | n/a |
 | anything else, or a malformed payload | none (status `ignored`, with a reason) | n/a |
 
