@@ -132,6 +132,15 @@ ter hook monitor < payload.json                    # TER 3 live waste monitor
 ter watch ~/.claude/projects/my-project --latest   # live terminal dashboard
 ```
 
+### Build a redacted corpus of real sessions
+
+```bash
+python -m ter corpus import ~/.claude/projects --out ~/ter-data/corpus  # redact, then write with a manifest
+```
+
+See [the corpus reference](docs/ter4/corpus.md) for what is redacted and how
+to label sessions.
+
 See the [hooks guide](docs/guides/hooks.md) for `.claude/settings.json`
 setups.
 
@@ -177,6 +186,7 @@ All guides: [docs/guides](docs/guides/README.md). Reference:
 [L1 Observed](docs/ter4/l1-observed.md) ·
 [L2 Explained](docs/ter4/l2-explained.md) ·
 [visual reports](docs/ter4/reports.md) ·
+[real session corpus](docs/ter4/corpus.md) ·
 [requirements control](docs/ter4/requirements.md) ·
 [vision points](docs/ter4/points.md) ·
 [decision records](docs/decisions/).

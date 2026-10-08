@@ -1302,16 +1302,18 @@ points:
       Build calibration datasets from real software-engineering sessions.
     level: L5
     kind: research
-    status: not-started
+    status: partial
     issue: 34
     real_data: true
     definition_of_done:
       - >-
         A calibration dataset of real sessions exists with its collection
         protocol documented.
-    rules: [TER-CAL-001, TER-SRC-006]
+    rules: [TER-CAL-001, TER-SRC-006, TER-SRC-022]
     verification:
-      - 'planned: passing tests tagged req for TER-CAL-001, TER-SRC-006'
+      - 'test: tests/unit/test_ter4_corpus.py::test_nothing_unredacted_reaches_the_corpus'
+      - 'test: tests/unit/test_ter4_redaction.py::test_a_redacted_golden_session_yields_the_same_events'
+      - 'planned: passing tests tagged req for TER-CAL-001'
       - 'planned: real-data verification in issue #34'
 
   - id: P088
@@ -1392,8 +1394,9 @@ points:
       - >-
         Benchmark corpora are versioned in the repository or a pinned
         dataset, and re-runnable with one command.
-    rules: [TER-BEN-001, TER-SRC-005]
+    rules: [TER-BEN-001, TER-SRC-005, TER-SRC-023]
     verification:
+      - 'test: tests/unit/test_ter4_corpus.py::test_manifest_lists_every_session_with_dates_coverage_and_redactions'
       - 'planned: passing tests tagged req for TER-BEN-001, TER-SRC-005'
       - 'planned: real-data verification in issue #34'
 
@@ -1436,9 +1439,12 @@ points:
       - >-
         The corpus contains real sessions with recorded privacy and licence
         clearance.
-    rules: [TER-BEN-001, TER-SRC-006]
+    rules: [TER-BEN-001, TER-SRC-006, TER-SRC-020, TER-SRC-021]
     verification:
-      - 'planned: passing tests tagged req for TER-BEN-001, TER-SRC-006'
+      - 'test: tests/unit/test_ter4_corpus.py::test_nothing_unredacted_reaches_the_corpus'
+      - 'test: tests/unit/test_ter4_redaction.py::test_each_secret_kind_is_replaced_and_logged_without_its_value'
+      - 'test: tests/unit/test_ter4_redaction.py::test_working_directory_becomes_one_pseudonym_everywhere'
+      - 'planned: passing tests tagged req for TER-BEN-001'
       - 'planned: real-data verification in issue #34'
 
   - id: P096
@@ -2646,13 +2652,15 @@ points:
       Create a research dataset describing software-agent value streams.
     level: L6
     kind: research
-    status: not-started
+    status: partial
     issue: 34
     real_data: true
     definition_of_done:
       - A versioned value stream dataset with a data card is published.
-    rules: [TER-RSH-001, TER-GRF-003]
+    rules: [TER-RSH-001, TER-GRF-003, TER-SRC-023]
     verification:
+      - 'test: tests/unit/test_ter4_corpus.py::test_labels_are_joined_by_session_id'
+      - 'planned: a published data card (template: docs/ter4/dataset-card.md)'
       - 'planned: passing tests tagged req for TER-RSH-001, TER-GRF-003'
       - 'planned: real-data verification in issue #34'
 

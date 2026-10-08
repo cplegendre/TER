@@ -10,9 +10,9 @@ rules that enforce it and how it is verified. Rules live in
 contributed from another source (an external capability, ADR 0005) and the
 Origin column names that source, its reference and author.
 
-**200 points** · ● done **50** · ◐ partial **47** · ○ not started **103**
+**200 points** · ● done **50** · ◐ partial **49** · ○ not started **101**
 
-`██████████▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░`
+`██████████▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░`
 
 Legend: `█` done · `▓` partial · `░` not started
 
@@ -25,8 +25,8 @@ Legend: `█` done · `▓` partial · `░` not started
 | L2 Explained | `██████████▓▓▓▓▓▓▓▓░░` | 26 | 23 | 5 | 54 |
 | L3 Grounded | `█▓▓▓▓░░░░░░░░░░░░░░░` | 3 | 8 | 37 | 48 |
 | L4 Advisory | `▓▓░░░░░░░░░░░░░░░░░░` | 0 | 4 | 35 | 39 |
-| L5 Corrective | `██▓▓▓▓░░░░░░░░░░░░░░` | 1 | 3 | 9 | 13 |
-| L6 Learning | `▓▓░░░░░░░░░░░░░░░░░░` | 0 | 2 | 17 | 19 |
+| L5 Corrective | `██▓▓▓▓▓▓░░░░░░░░░░░░` | 1 | 4 | 8 | 13 |
+| L6 Learning | `▓▓▓░░░░░░░░░░░░░░░░░` | 0 | 3 | 16 | 19 |
 
 Kinds: capability 136 · principle 37 · research 27
 
@@ -43,12 +43,12 @@ P001 ◐ ● ◐ ● ● ○ ◐ ◐ ◐ ◐ ● ◐ ● ● ● ● ● ● ●
 P021 ◐ ◐ ● ● ● ● ● ◐ ● ◐ ○ ○ ○ ● ◐ ◐ ● ◐ ● ●
 P041 ● ● ● ● ◐ ◐ ◐ ○ ◐ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○
 P061 ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ● ◐ ● ● ◐ ◐ ● ●
-P081 ○ ◐ ◐ ● ● ● ○ ○ ○ ○ ◐ ◐ ● ○ ◐ ○ ○ ○ ○ ◐
+P081 ○ ◐ ◐ ● ● ● ◐ ○ ○ ○ ◐ ◐ ● ○ ◐ ○ ○ ○ ○ ◐
 P101 ◐ ● ● ● ● ● ● ● ● ◐ ● ● ● ● ◐ ◐ ◐ ◐ ● ●
 P121 ◐ ● ○ ○ ◐ ○ ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ○
 P141 ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ◐ ◐ ○ ○ ○ ○ ○ ○ ○ ○
 P161 ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○
-P181 ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ◐ ◐ ○ ○
+P181 ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ◐ ◐ ○ ○
 ```
 
 ## Points
@@ -141,15 +141,15 @@ P181 ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ◐ ◐ ○
 | P084 | Allow an aggregate indicator only where its composition remains explainable. | vision | L2 | ● done |  | • Any aggregate shows the weight and value of each dimension beside it. | `TER-SCR-002` ✓ | test: tests/unit/test_ter4_lean_analysis.py::test_scorecard_dimensions_and_explained_composite |
 | P085 | Report confidence and uncertainty for heuristic classifications. | vision | L2 | ● done |  | • Session reports show a 95% interval for TER.<br>• Heuristic classifications carry a confidence value. | `TER-ANL-003` ✓<br>`TER-ANL-021` ✓<br>`TER-RPT-001` ✓<br>`TER-RPT-002` ✓ | test: tests/unit/test_explainability_uncertainty_v11.py::test_result_formatters_expose_uncertainty_and_explanations<br>test: tests/golden/test_report_snapshots.py<br>test: tests/unit/test_ter4_reports.py::TestHtmlReport::test_uncertainty_note<br>test: tests/unit/test_ter4_lean_properties.py::test_findings_are_traceable_and_bounded |
 | P086 | Make low-confidence classifications visible rather than silently treating them as facts. | vision | L2 | ● done |  | • Reports show low-confidence tokens and label low-confidence findings as uncertain. | `TER-ANL-003` ✓<br>`TER-ANL-021` ✓<br>`TER-RPT-001` ✓<br>`TER-RPT-002` ✓ | test: tests/unit/test_explainability_uncertainty_v11.py::test_result_formatters_expose_uncertainty_and_explanations<br>test: tests/unit/test_formatter_html.py::test_format_html_is_standalone_and_interactive<br>test: tests/golden/test_report_snapshots.py<br>test: tests/unit/test_ter4_reports.py::TestHtmlReport::test_uncertainty_note<br>test: tests/unit/test_ter4_lean_analysis.py::test_confident_waste_is_avoidable_and_uncertain_is_kept_apart |
-| P087 | Build calibration datasets from real software-engineering sessions. | vision | L5 | ○ not started | [#34](https://github.com/lgriffin/TER/issues/34) | • A calibration dataset of real sessions exists with its collection protocol documented. | `TER-CAL-001` ·<br>`TER-SRC-006` · | planned: passing tests tagged req for TER-CAL-001, TER-SRC-006<br>planned: real-data verification in issue #34 |
+| P087 | Build calibration datasets from real software-engineering sessions. | vision | L5 | ◐ partial | [#34](https://github.com/lgriffin/TER/issues/34) | • A calibration dataset of real sessions exists with its collection protocol documented. | `TER-CAL-001` ·<br>`TER-SRC-006` ✓<br>`TER-SRC-022` ✓ | test: tests/unit/test_ter4_corpus.py::test_nothing_unredacted_reaches_the_corpus<br>test: tests/unit/test_ter4_redaction.py::test_a_redacted_golden_session_yields_the_same_events<br>planned: passing tests tagged req for TER-CAL-001<br>planned: real-data verification in issue #34 |
 | P088 | Support expert annotation of agent behaviours. | vision | L5 | ○ not started | [#36](https://github.com/lgriffin/TER/issues/36) | • An annotation tool or format lets experts label event ids with behaviours. | `TER-CAL-001` ·<br>`TER-EVD-010` · | planned: passing tests tagged req for TER-CAL-001, TER-EVD-010<br>planned: real-data verification in issue #36 |
 | P089 | Measure inter-rater agreement for Lean waste classifications. | vision | L5 | ○ not started | [#36](https://github.com/lgriffin/TER/issues/36) | • Inter-rater agreement (for example Cohen's kappa) is reported per waste category. | `TER-CAL-002` ·<br>`TER-EVD-011` · | planned: passing tests tagged req for TER-CAL-002, TER-EVD-011<br>planned: real-data verification in issue #36 |
 | P090 | Evaluate precision and recall independently for each waste category. | vision | L5 | ○ not started | [#41](https://github.com/lgriffin/TER/issues/41) | • Precision and recall are reported per waste category. | `TER-ANL-025` · | planned: passing tests tagged req for TER-ANL-025<br>planned: real-data verification in issue #41 |
 | P091 | Prioritise precision where false intervention would disrupt productive agent behaviour. | vision | L5 | ◐ partial | [#41](https://github.com/lgriffin/TER/issues/41) | • Categories below the precision floor cannot trigger interventions. | `TER-INT-010` · | test: tests/unit/test_ter4_lean_properties.py::test_findings_are_traceable_and_bounded<br>planned: precision floor per category before interventions (TER-INT-010)<br>planned: real-data verification in issue #41 |
-| P092 | Establish reproducible benchmark corpora. | vision | L5 | ◐ partial | [#34](https://github.com/lgriffin/TER/issues/34) | • Benchmark corpora are versioned in the repository or a pinned dataset, and re-runnable with one command. | `TER-BEN-001` ·<br>`TER-SRC-005` · | planned: passing tests tagged req for TER-BEN-001, TER-SRC-005<br>planned: real-data verification in issue #34 |
+| P092 | Establish reproducible benchmark corpora. | vision | L5 | ◐ partial | [#34](https://github.com/lgriffin/TER/issues/34) | • Benchmark corpora are versioned in the repository or a pinned dataset, and re-runnable with one command. | `TER-BEN-001` ·<br>`TER-SRC-005` ·<br>`TER-SRC-023` ✓ | test: tests/unit/test_ter4_corpus.py::test_manifest_lists_every_session_with_dates_coverage_and_redactions<br>planned: passing tests tagged req for TER-BEN-001, TER-SRC-005<br>planned: real-data verification in issue #34 |
 | P093 | Include synthetic sessions for deterministic regression testing. | vision | L5 | ● done |  | • A synthetic corpus runs in CI as a deterministic regression test. | `TER-BEN-001` ·<br>`TER-ANL-000` ✓ | test: tests/golden/test_ter3_characterisation.py |
 | P094 | Include controlled software tasks with known expected outcomes. | vision | L5 | ○ not started | [#37](https://github.com/lgriffin/TER/issues/37) | • The corpus contains controlled tasks with known expected outcomes. | `TER-BEN-001` ·<br>`TER-ANL-030` · | planned: passing tests tagged req for TER-BEN-001, TER-ANL-030<br>planned: real-data verification in issue #37 |
-| P095 | Include real-world sessions where privacy and licensing permit. | vision | L5 | ◐ partial | [#34](https://github.com/lgriffin/TER/issues/34) | • The corpus contains real sessions with recorded privacy and licence clearance. | `TER-BEN-001` ·<br>`TER-SRC-006` · | planned: passing tests tagged req for TER-BEN-001, TER-SRC-006<br>planned: real-data verification in issue #34 |
+| P095 | Include real-world sessions where privacy and licensing permit. | vision | L5 | ◐ partial | [#34](https://github.com/lgriffin/TER/issues/34) | • The corpus contains real sessions with recorded privacy and licence clearance. | `TER-BEN-001` ·<br>`TER-SRC-006` ✓<br>`TER-SRC-020` ✓<br>`TER-SRC-021` ✓ | test: tests/unit/test_ter4_corpus.py::test_nothing_unredacted_reaches_the_corpus<br>test: tests/unit/test_ter4_redaction.py::test_each_secret_kind_is_replaced_and_logged_without_its_value<br>test: tests/unit/test_ter4_redaction.py::test_working_directory_becomes_one_pseudonym_everywhere<br>planned: passing tests tagged req for TER-BEN-001<br>planned: real-data verification in issue #34 |
 | P096 | Compare different models performing equivalent tasks. | vision | L5 | ○ not started | [#38](https://github.com/lgriffin/TER/issues/38) | • A comparison report shows models on the same benchmark tasks. | `TER-BEN-002` ·<br>`TER-ANL-031` · | planned: passing tests tagged req for TER-BEN-002, TER-ANL-031<br>planned: real-data verification in issue #38 |
 | P097 | Compare different prompting strategies performing equivalent tasks. | vision | L5 | ○ not started | [#38](https://github.com/lgriffin/TER/issues/38) | • A comparison report shows prompting strategies on the same tasks. | `TER-BEN-002` ·<br>`TER-ANL-031` · | planned: passing tests tagged req for TER-BEN-002, TER-ANL-031<br>planned: real-data verification in issue #38 |
 | P098 | Compare different context strategies performing equivalent tasks. | vision | L5 | ○ not started | [#42](https://github.com/lgriffin/TER/issues/42) | • A comparison report shows context strategies on the same tasks. | `TER-BEN-002` ·<br>`TER-ANL-031` · | planned: passing tests tagged req for TER-BEN-002, TER-ANL-031<br>planned: real-data verification in issue #42 |
@@ -235,7 +235,7 @@ P181 ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ◐ ◐ ○
 | P178 | Record the subsequent outcome. | vision | L4 | ○ not started |  | • The ledger records the outcome after each intervention. | `TER-INT-009` · | planned: passing tests tagged req for TER-INT-009 |
 | P179 | Use intervention outcomes for future calibration. | vision | L4 | ○ not started | [#43](https://github.com/lgriffin/TER/issues/43) | • Ledger outcomes feed calibration of thresholds and policies. | `TER-INT-012` · | planned: passing tests tagged req for TER-INT-012<br>planned: real-data verification in issue #43 |
 | P180 | Never silently optimise agent behaviour without producing an auditable record. | vision | L4 | ○ not started |  | • No behaviour change is made without a ledger record. | `TER-INT-009` · | planned: passing tests tagged req for TER-INT-009 |
-| P181 | Create a research dataset describing software-agent value streams. | vision | L6 | ○ not started | [#34](https://github.com/lgriffin/TER/issues/34) | • A versioned value stream dataset with a data card is published. | `TER-RSH-001` ·<br>`TER-GRF-003` ✓ | planned: passing tests tagged req for TER-RSH-001, TER-GRF-003<br>planned: real-data verification in issue #34 |
+| P181 | Create a research dataset describing software-agent value streams. | vision | L6 | ◐ partial | [#34](https://github.com/lgriffin/TER/issues/34) | • A versioned value stream dataset with a data card is published. | `TER-RSH-001` ·<br>`TER-GRF-003` ✓<br>`TER-SRC-023` ✓ | test: tests/unit/test_ter4_corpus.py::test_labels_are_joined_by_session_id<br>planned: a published data card (template: docs/ter4/dataset-card.md)<br>planned: passing tests tagged req for TER-RSH-001, TER-GRF-003<br>planned: real-data verification in issue #34 |
 | P182 | Investigate whether classical Lean wastes meaningfully predict inefficiency in agentic… | vision | L6 | ○ not started | [#44](https://github.com/lgriffin/TER/issues/44) | • A study reports whether each classical Lean waste predicts inefficiency. | `TER-RSH-002` ·<br>`TER-EXP-010` · | planned: passing tests tagged req for TER-RSH-002, TER-EXP-010<br>planned: real-data verification in issue #44 |
 | P183 | Determine which Lean concepts require adaptation for non-human software agents. | vision | L6 | ○ not started | [#44](https://github.com/lgriffin/TER/issues/44) | • The study names which Lean concepts need adapting for agents, and why. | `TER-RSH-002` ·<br>`TER-EXP-010` · | planned: passing tests tagged req for TER-RSH-002, TER-EXP-010<br>planned: real-data verification in issue #44 |
 | P184 | Define new agent-specific wastes where empirical evidence supports them. | vision | L6 | ○ not started | [#44](https://github.com/lgriffin/TER/issues/44) | • Any new agent-specific waste is defined only with supporting empirical evidence. | `TER-RSH-002` ·<br>`TER-EXP-010` · | planned: passing tests tagged req for TER-RSH-002, TER-EXP-010<br>planned: real-data verification in issue #44 |

@@ -197,4 +197,56 @@ requirements:
     rationale: >-
       Issue #34: real sessions hold secrets and paths; nothing is analysed
       or shared unredacted.
-    status: planned
+    status: verified
+
+  - id: TER-SRC-020
+    pattern: ubiquitous
+    text: >-
+      The redaction step shall replace every string matching a published
+      secret pattern with a marker naming its kind and log the kind, record
+      line and location of each replacement without its value.
+    level: L1
+    source_points: [95]
+    rationale: >-
+      Issue #34: keys, tokens, emails and addresses must not leave the
+      machine, and a reviewer must be able to check what was removed.
+    status: verified
+
+  - id: TER-SRC-021
+    pattern: ubiquitous
+    text: >-
+      The redaction step shall replace each working directory and home
+      directory with a salted pseudonym that is the same in every record of
+      a corpus.
+    level: L1
+    source_points: [95]
+    rationale: >-
+      Issue #34: paths name people and projects, but repeated reads of one
+      file must stay recognisable after redaction.
+    status: verified
+
+  - id: TER-SRC-022
+    pattern: ubiquitous
+    text: >-
+      The session source shall derive the same event ids, kinds and coverage
+      from a redacted session as from the original session.
+    level: L1
+    port: SessionSource
+    source_points: [87]
+    rationale: >-
+      Issue #34: findings on a shared corpus must cite the same evidence ids
+      as a local run on the raw session.
+    status: verified
+
+  - id: TER-SRC-023
+    pattern: event-driven
+    text: >-
+      When the corpus importer finishes an import, the corpus importer shall
+      write a manifest listing every session with its record count, dates,
+      coverage, redaction counts and labels.
+    level: L1
+    source_points: [92, 181]
+    rationale: >-
+      Issue #34: a corpus is reproducible and describable only if every
+      session in it is listed with what was done to it.
+    status: verified

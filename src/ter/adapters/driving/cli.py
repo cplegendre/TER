@@ -13,6 +13,9 @@ Commands::
     python -m ter a3 SESSION.jsonl [--html FILE] [--json [FILE]] [--graph FILE]
                                    [--ter offline|model|off] [--outcome FILE]
     python -m ter capabilities                # adapters per port, and problems
+    python -m ter corpus import SRC... --out DIR [--labels CSV]
+                                [--max-tool-output N] [--keep-tool NAME]
+                                [--quote-files]
 """
 
 from __future__ import annotations
@@ -23,7 +26,7 @@ import sys
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import IO
+from typing import IO, TYPE_CHECKING
 
 from ...application.explain import ExplainedSession
 from ...domain.capabilities import Capability, CapabilityProblem
@@ -34,9 +37,13 @@ from ...ports.driven import Clock
 from ...ports.driving import EventIngest
 from .claude_hooks import HookStatus, run_hook
 
+if TYPE_CHECKING:
+    from ..driven.claude_code.corpus import CorpusImport
+
 __all__ = [
     "CliServices",
     "format_capabilities",
+    "format_corpus_import",
     "format_findings",
     "format_outcome",
     "format_report",
@@ -56,6 +63,8 @@ TOKENIZER_HELP = (
 TER_MODES = ("offline", "model", "off")
 #: Checks listed under the outcome verdict in text output.
 OUTCOME_ROWS = 12
+#: Share of records the session source should map (TER-SRC-005).
+CORPUS_COVERAGE_TARGET = 0.99
 OUTCOME_HELP = (
     "test results of the run (JUnit XML, e.g. from pytest --junitxml): judge "
     "the outcome and show the verdict beside the measures"
@@ -82,6 +91,15 @@ class CliServices:
     #: Names of the registered ``Tokenizer`` capabilities, to validate
     #: ``--tokenizer``; ``None`` accepts the built-ins only.
     tokenizers: Callable[[], tuple[str, ...]] | None = None
+    #: ``import_corpus(sources, out, labels_csv, max_tool_output, keep_tools,
+    #: quote_files)``; raises ``ValueError`` for a bad label file.
+    import_corpus: (
+        Callable[
+            [Sequence[Path], Path, Path | None, int, frozenset[str], bool],
+            "CorpusImport",
+        ]
+        | None
+    ) = None
 
 
 def main(
@@ -124,6 +142,8 @@ def main(
         return _explain(args, services, out, err)
     if args.command == "capabilities":
         return _capabilities(services, out, err)
+    if args.command == "corpus":
+        return _corpus(args, services, out, err)
     return _observe(args, services, out, err)
 
 
@@ -201,6 +221,81 @@ def _capabilities(services: CliServices, out: IO[str], err: IO[str]) -> int:
     found, problems = services.capabilities()
     out.write(format_capabilities(found, problems))
     return 1 if problems else 0
+
+
+def _corpus(
+    args: argparse.Namespace, services: CliServices, out: IO[str], err: IO[str]
+) -> int:
+    """Redact real sessions into a research corpus (issue #34)."""
+    if services.import_corpus is None:
+        err.write("corpus import is not available in this installation\n")
+        return 2
+    sources: list[Path] = args.sources
+    target = args.out.resolve()
+    for source in sources:
+        if not source.exists():
+            err.write(f"No such session file or folder: {source}\n")
+            return 2
+        resolved = source.resolve()
+        if resolved.is_dir() and (target == resolved or resolved in target.parents):
+            # The next import would read the redacted copies back as sources.
+            err.write(f"--out {args.out} must not be inside the source {source}\n")
+            return 2
+    if args.labels is not None and not args.labels.is_file():
+        err.write(f"No such label file: {args.labels}\n")
+        return 2
+    if args.max_tool_output < 0:
+        err.write("--max-tool-output must be 0 or more\n")
+        return 2
+    try:
+        result = services.import_corpus(
+            sources,
+            args.out,
+            args.labels,
+            args.max_tool_output,
+            frozenset(args.keep_tool),
+            args.quote_files,
+        )
+    except ValueError as exc:
+        err.write(f"ter corpus import: {exc}\n")
+        return 2
+    out.write(format_corpus_import(result))
+    return 1 if result.load_failures else 0
+
+
+def format_corpus_import(result: "CorpusImport") -> str:
+    """What an import wrote, and what needs a look before the corpus is used."""
+    redactions: dict[str, int] = {}
+    for session in result.sessions:
+        for kind, count in session.redactions.items():
+            redactions[kind] = redactions.get(kind, 0) + count
+    lines = [
+        f"TER corpus import · {len(result.sessions)} session(s) into {result.out}"
+        f" ({result.total} in its manifest)",
+        "  redactions  "
+        + (" · ".join(f"{k} {n:,}" for k, n in sorted(redactions.items())) or "-"),
+    ]
+    low = [
+        s
+        for s in result.sessions
+        if s.coverage is not None and s.coverage < CORPUS_COVERAGE_TARGET
+    ]
+    if low:
+        lines.append(
+            f"  {len(low)} session(s) below {CORPUS_COVERAGE_TARGET:.0%} coverage "
+            "(see unrecognised_by_type in manifest.json):"
+        )
+        lines += [f"    {s.file}  {s.coverage:.1%}" for s in low]
+    for session in result.load_failures:
+        lines.append(f"  ! {session.file}: {session.load_error}")
+    if result.unlabelled:
+        lines.append(f"  {len(result.unlabelled)} session id(s) have no labels")
+    if result.unknown_labels:
+        lines.append(
+            "  labels for sessions not found: " + ", ".join(result.unknown_labels)
+        )
+    lines.append("  Review reports/ and the redacted sessions before sharing anything.")
+    return "\n".join(lines) + "\n"
 
 
 def format_capabilities(
@@ -343,6 +438,51 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
         metavar="DIR",
         help="also save the raw payload to DIR/<session>/<seq>-<hook>.json "
         "(for collecting real hook payloads; contains tool inputs and output)",
+    )
+
+    corpus = commands.add_parser(
+        "corpus", help="build a redacted research corpus from real sessions"
+    )
+    corpus_commands = corpus.add_subparsers(dest="corpus_command", required=True)
+    corpus_import = corpus_commands.add_parser(
+        "import",
+        help="redact sessions into DIR with a manifest and redaction reports",
+    )
+    corpus_import.add_argument(
+        "sources",
+        nargs="+",
+        type=Path,
+        metavar="SRC",
+        help="session .jsonl files or folders of them (e.g. ~/.claude/projects)",
+    )
+    corpus_import.add_argument(
+        "--out", type=Path, required=True, metavar="DIR", help="corpus folder"
+    )
+    corpus_import.add_argument(
+        "--labels",
+        type=Path,
+        metavar="CSV",
+        help="session_id,task_category,task,outcome,rating,licence",
+    )
+    corpus_import.add_argument(
+        "--max-tool-output",
+        type=int,
+        default=2000,
+        metavar="N",
+        help="drop tool outputs longer than N characters (default 2000)",
+    )
+    corpus_import.add_argument(
+        "--keep-tool",
+        action="append",
+        default=[],
+        metavar="NAME",
+        help="keep this tool's outputs whatever their length (repeatable)",
+    )
+    corpus_import.add_argument(
+        "--quote-files",
+        action="store_true",
+        help="keep the content of files the agent read (only for code whose "
+        "licence allows sharing)",
     )
     return parser
 

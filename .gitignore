@@ -124,3 +124,7 @@ priority.csv
 *.tar.gz
 *.7z
 req-trace.json
+
+# Real session data (issue #34): raw sessions and local corpora never reach git
+*.raw.jsonl
+ter-data/
