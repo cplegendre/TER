@@ -157,7 +157,7 @@ other harnesses. Developer prompts are the intent stage and are never scored.
 | **Avoidable** | Could have been skipped with no loss | the share claimed by a *confident* waste finding |
 | **Uncertain** | A finding claims it below confidence 0.70 | shown, **never** counted as avoidable |
 
-Every event carries a `basis`: the stage rule or the finding id that gave it its class. Any number in a report traces back to the events behind it.
+Every classification carries a `basis`: the stage rule or the finding id that gave the event its class. Any number in a report traces back to the events behind it.
 
 <!--
 The uncertain bucket matters. TER would rather miss a finding than make a false one:
