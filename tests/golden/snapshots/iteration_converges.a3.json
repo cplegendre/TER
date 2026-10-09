@@ -630,7 +630,27 @@
     },
     "intents": [
       "slugify in src/text.py should collapse repeated dashes and strip leading/trailing ones. Make tests/test_text.py pass."
-    ]
+    ],
+    "profile": {
+      "dominant_basis": "edits",
+      "dominant_language": "Python",
+      "languages": [
+        {
+          "edits": 2,
+          "evidence": [
+            "5c03460d9d68b092",
+            "321d23d8448d431f",
+            "f8cde61261bee94b"
+          ],
+          "files_edited": 1,
+          "files_read": 1,
+          "language": "Python",
+          "reads": 1
+        }
+      ],
+      "stack": null,
+      "unrecognised_extensions": {}
+    }
   },
   "context_inventory": {
     "model_turns": 7,

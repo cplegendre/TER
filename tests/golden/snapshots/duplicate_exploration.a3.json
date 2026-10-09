@@ -664,7 +664,30 @@
     },
     "intents": [
       "Add a --verbose flag to the CLI in src/cli.py that prints each processed file name."
-    ]
+    ],
+    "profile": {
+      "dominant_basis": "edits",
+      "dominant_language": "Python",
+      "languages": [
+        {
+          "edits": 2,
+          "evidence": [
+            "d00b931283ea1956",
+            "04f87d31174f38ff",
+            "d9eb8e056a8c4e06",
+            "db5d89ed876d571f",
+            "45c733fb69783266",
+            "bdeeea540baee64f"
+          ],
+          "files_edited": 1,
+          "files_read": 3,
+          "language": "Python",
+          "reads": 4
+        }
+      ],
+      "stack": null,
+      "unrecognised_extensions": {}
+    }
   },
   "context_inventory": {
     "model_turns": 10,

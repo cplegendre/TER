@@ -1174,6 +1174,29 @@
     "rule": "Overlap coefficient |intent ∩ activity| / min(|intent|, |activity|) of key terms (content words, identifier parts and file-name parts, stemmed, without stopwords or generic programming words); 0 when either side has no terms.",
     "scorer": "lexical"
   },
+  "profile": {
+    "dominant_basis": "edits",
+    "dominant_language": "Python",
+    "languages": [
+      {
+        "edits": 5,
+        "evidence": [
+          "0b5278cfddc408b3",
+          "525128d61f9d3cdd",
+          "b5390d420b1defb6",
+          "e7fe263036935cb0",
+          "e57b1931d2bbede0",
+          "12bb38c11ea216b3"
+        ],
+        "files_edited": 2,
+        "files_read": 1,
+        "language": "Python",
+        "reads": 1
+      }
+    ],
+    "stack": null,
+    "unrecognised_extensions": {}
+  },
   "schema": "ter.lean/0.1",
   "scorecard": {
     "activity_seconds": {

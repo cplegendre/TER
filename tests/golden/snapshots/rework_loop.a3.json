@@ -657,7 +657,28 @@
     },
     "intents": [
       "The duration parser in src/parser.py fails for hours like '2h'. Fix parse_duration so hours work and keep the existing tests passing."
-    ]
+    ],
+    "profile": {
+      "dominant_basis": "edits",
+      "dominant_language": "Python",
+      "languages": [
+        {
+          "edits": 3,
+          "evidence": [
+            "e31ca633f6f5ea96",
+            "be52d3e10d534665",
+            "3fcd365aa84f70a8",
+            "8002a740aa59f968"
+          ],
+          "files_edited": 1,
+          "files_read": 1,
+          "language": "Python",
+          "reads": 1
+        }
+      ],
+      "stack": null,
+      "unrecognised_extensions": {}
+    }
   },
   "context_inventory": {
     "model_turns": 8,

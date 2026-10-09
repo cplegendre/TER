@@ -539,7 +539,35 @@
     },
     "intents": [
       "Add a login page with email and password validation"
-    ]
+    ],
+    "profile": {
+      "dominant_basis": "edits",
+      "dominant_language": "Python",
+      "languages": [
+        {
+          "edits": 1,
+          "evidence": [
+            "fa615a96e084b535"
+          ],
+          "files_edited": 1,
+          "files_read": 0,
+          "language": "HTML",
+          "reads": 0
+        },
+        {
+          "edits": 1,
+          "evidence": [
+            "ebdc557f2464af54"
+          ],
+          "files_edited": 1,
+          "files_read": 0,
+          "language": "Python",
+          "reads": 0
+        }
+      ],
+      "stack": null,
+      "unrecognised_extensions": {}
+    }
   },
   "context_inventory": {
     "model_turns": 6,

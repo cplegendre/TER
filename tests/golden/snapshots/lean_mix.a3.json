@@ -750,7 +750,30 @@
     },
     "intents": [
       "Add a retry decorator to src/net.py with exponential backoff, and use it in fetch_json. Keep tests green."
-    ]
+    ],
+    "profile": {
+      "dominant_basis": "edits",
+      "dominant_language": "Python",
+      "languages": [
+        {
+          "edits": 5,
+          "evidence": [
+            "0b5278cfddc408b3",
+            "525128d61f9d3cdd",
+            "b5390d420b1defb6",
+            "e7fe263036935cb0",
+            "e57b1931d2bbede0",
+            "12bb38c11ea216b3"
+          ],
+          "files_edited": 2,
+          "files_read": 1,
+          "language": "Python",
+          "reads": 1
+        }
+      ],
+      "stack": null,
+      "unrecognised_extensions": {}
+    }
   },
   "context_inventory": {
     "model_turns": 16,

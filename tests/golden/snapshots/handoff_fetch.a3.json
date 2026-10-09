@@ -548,7 +548,26 @@
     },
     "intents": [
       "Upgrade the requests dependency in pyproject.toml to the latest 2.x release and check the changelog for breaking changes."
-    ]
+    ],
+    "profile": {
+      "dominant_basis": "edits",
+      "dominant_language": "TOML",
+      "languages": [
+        {
+          "edits": 1,
+          "evidence": [
+            "6540e8d5b7cc8006",
+            "330c37857326061d"
+          ],
+          "files_edited": 1,
+          "files_read": 1,
+          "language": "TOML",
+          "reads": 1
+        }
+      ],
+      "stack": null,
+      "unrecognised_extensions": {}
+    }
   },
   "context_inventory": {
     "model_turns": 6,

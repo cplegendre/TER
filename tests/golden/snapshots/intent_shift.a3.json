@@ -590,7 +590,27 @@
     "intents": [
       "Write a function in src/stats.py that returns the median of a list of numbers.",
       "Actually, forget the median. Instead add a mode function that returns the most common value, and raise ValueError on an empty list."
-    ]
+    ],
+    "profile": {
+      "dominant_basis": "edits",
+      "dominant_language": "Python",
+      "languages": [
+        {
+          "edits": 3,
+          "evidence": [
+            "a09b1560a78f36dd",
+            "cf1d7311b82b594e",
+            "a319570797cdc7f7"
+          ],
+          "files_edited": 1,
+          "files_read": 0,
+          "language": "Python",
+          "reads": 0
+        }
+      ],
+      "stack": null,
+      "unrecognised_extensions": {}
+    }
   },
   "context_inventory": {
     "model_turns": 5,
