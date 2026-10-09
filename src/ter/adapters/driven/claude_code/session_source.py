@@ -50,13 +50,19 @@ _CONTENT_TYPES = frozenset({"user", "assistant"})
 #: the reference corpus; a type not listed here stays unrecognised.
 METADATA_TYPES = frozenset(
     {
+        "agent-name",
         "ai-title",
+        "artifact-autoreact-ledger",
+        "artifact-comment-monitor",
         "atis-latch",
         "attachment",
+        "bridge-session",
         "cost-state",
         "custom-title",
         "file-history-delta",
         "file-history-snapshot",
+        "fork-context-ref",
+        "frame-link",
         "last-prompt",
         "mode",
         "permission-mode",

@@ -82,6 +82,12 @@ def _metadata_records() -> list[dict[str, Any]]:
         {"type": "file-history-snapshot", "messageId": "u1", "snapshot": {}},
         {"type": "file-history-delta", "messageId": "u1"},
         {"type": "cost-state", "sessionId": "s1"},
+        {"type": "agent-name", "sessionId": "s1"},
+        {"type": "bridge-session", "sessionId": "s1"},
+        {"type": "frame-link", "sessionId": "s1"},
+        {"type": "fork-context-ref", "sessionId": "s1"},
+        {"type": "artifact-autoreact-ledger", "sessionId": "s1"},
+        {"type": "artifact-comment-monitor", "sessionId": "s1"},
         {
             "type": "system",
             "subtype": "stop_hook_summary",
