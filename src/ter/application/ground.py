@@ -42,7 +42,7 @@ from ..domain.repository import (
     module_name,
     repository_path,
     resolve_import,
-    session_root,
+    session_roots,
     source_language,
 )
 from ..ports.driven import ArchitectureContracts, RepositoryEvidence
@@ -123,8 +123,8 @@ def ground_session(
             p for e in requests if e.tool for p in tool_paths(e.tool.arguments)
         )
     )
-    root = session_root(session_paths, files)
-    paths = {p: repository_path(p, root) for p in session_paths}
+    roots = session_roots(session_paths, files)
+    paths = {p: repository_path(p, roots) for p in session_paths}
 
     # Start commit: syntax trees of every source file (not third-party
     # code), then the import graph and symbols.
@@ -255,7 +255,8 @@ def ground_session(
         links=links,
         importers={k: tuple(sorted(v)) for k, v in importers.items()},
         symbols={k: tuple(sorted(v)) for k, v in sorted(symbols.items())},
-        root=root,
+        root=roots[0] if roots else None,
+        roots=roots,
         paths=paths,
         edits=edits,
         contracts=found,

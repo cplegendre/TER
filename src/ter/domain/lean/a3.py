@@ -111,6 +111,18 @@ class A3Report:
                 "intent": a.intent.as_dict([f.id for f in a.drift_findings]),
                 # Languages and stack (TER-STK-001, TER-STK-002).
                 "profile": a.profile.as_dict(),
+                # Only a grounded (L3) A3: the repository engine and every
+                # directory the session named it by (TER-EVD-017).
+                **(
+                    {
+                        "repository": {
+                            "engine": a.repository.engine,
+                            "roots": list(a.repository.roots),
+                        }
+                    }
+                    if a.repository is not None
+                    else {}
+                ),
             },
             "problem": self.problem,
             "current_state": {"value_stream": [s.as_dict() for s in a.value_stream]},

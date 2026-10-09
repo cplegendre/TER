@@ -240,6 +240,77 @@ requirements:
       does not see.
     status: planned
 
+  - id: TER-EVD-017
+    pattern: ubiquitous
+    text: >-
+      TER shall map a session path to a repository path when the path lies
+      under any accepted root of the session, where the accepted roots are
+      the directory most session paths name the repository by, each Claude
+      Code worktree checkout under which a session path names a repository
+      file or directory, the directory such a worktree was made from when a
+      session path under it names a repository file or directory, and each
+      other directory under which at least two distinct session paths name
+      repository files with at least one of them in a subdirectory.
+    level: L3
+    source_points: [63, 64, 66]
+    rationale: >-
+      On the owner's 52 sessions, edits in Claude Code worktrees
+      (<repo>/.claude/worktrees/<name>) and in other checkouts of the same
+      repository were placed outside the repository and lost to the change
+      surface. Two files, one in a subdirectory, keep a stray README.md or
+      package.json elsewhere from making a root. The deepest root decides a
+      path that lies under two.
+    status: verified
+
+  - id: TER-EVD-018
+    pattern: event-driven
+    text: >-
+      When TER matches session paths against roots, TER shall compare
+      Windows drive letters without regard to case and with either path
+      separator, reading a Git-Bash path of the form /x/... as the drive
+      path X:/... only when the session also uses drive-letter paths.
+    level: L3
+    source_points: [63, 64, 66]
+    rationale: >-
+      Windows sessions name one file as D:/x, D:\x, d:/x and, from Git-Bash,
+      /d/x. A one-letter top-level directory is a drive only in a session
+      that shows it runs on Windows; a Git-Bash-only session matches its own
+      spelling anyway. Nothing else is case-folded.
+    status: verified
+
+  - id: TER-EVD-019
+    pattern: unwanted
+    text: >-
+      If an edited path lies outside every root of the session and under a
+      .claude directory that is not a worktree checkout, then TER shall place
+      the edit as harness state and report no change surface finding for it.
+    level: L3
+    source_points: [63, 64, 66]
+    rationale: >-
+      Plans, memory and settings of the agent harness (~/.claude) are not
+      repository edits; 39 such edits on the owner's corpus were counted as
+      outside the repository. A project's own CLAUDE.md or .claude/ files
+      inside the repository root stay repository paths.
+    status: verified
+
+  - id: TER-EVD-020
+    pattern: state-driven
+    text: >-
+      While no session path names a repository file or lies in a repository
+      directory, TER shall take as the session root the prefix most session
+      paths agree on whose remainder lies under a repository directory at
+      least two levels deep.
+    level: L3
+    source_points: [63, 64, 66]
+    rationale: >-
+      A session that only creates files in new directories (a new Java
+      package under src/main/java) found no root. Two levels (src/main,
+      src/lib) keep a top-level name such as src, which also names
+      directories above checkouts (/home/me/src/proj), from making a false
+      root. A deepest common directory of created files was rejected: it
+      names a directory inside the repository, not its root.
+    status: verified
+
   - id: TER-GRF-001
     pattern: ubiquitous
     text: >-

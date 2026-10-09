@@ -21,14 +21,16 @@ import argparse
 import csv
 import io
 import json
+import re
 import subprocess
 import tarfile
 import time
 from collections import Counter, defaultdict
+from collections.abc import Collection, Sequence
 from pathlib import Path
 from typing import Any
 
-SCHEMA = "ter.corpus-grounded/1"
+SCHEMA = "ter.corpus-grounded/2"
 DETECTORS = ("unrelated_modification", "surface_expansion", "boundary_violation")
 
 
@@ -51,24 +53,52 @@ def _norm(path: str) -> str:
     return path.replace("\\", "/").rstrip("/")
 
 
-def why_outside(path: str, root: str | None, cwd: str) -> str:
-    """A content-free reason an edit was placed outside the repository."""
+_GIT_BASH = re.compile(r"/[A-Za-z]/")
+_TEMP = ("/tmp/", "/temp/", "/appdata/local/temp/")
+
+
+def _names_file(path: str, files: Collection[str]) -> bool:
+    """Whether some suffix of ``path`` is a repository file."""
+    parts = [p for p in path.split("/") if p]
+    return any("/".join(parts[cut:]) in files for cut in range(1, len(parts)))
+
+
+def why_outside(
+    path: str, roots: Sequence[str], cwd: str, files: Collection[str] = ()
+) -> str:
+    """A content-free reason an edit was placed outside the repository.
+
+    Harness state (plans, memory, settings under ``.claude``) is its own
+    placement now, so it never reaches here. A path outside the session's
+    working directory is split by what it looks like: a Git-Bash spelling
+    of a drive path (``/d/...`` while the working directory is ``D:/...``),
+    another checkout of the repository (some suffix of the path is a
+    repository file), a temporary directory, or elsewhere.
+    """
     p, c = _norm(path), _norm(cwd)
     if "/.claude/worktrees/" in p:
         return "under a .claude/worktrees checkout"
-    if "/.claude/" in p or p.startswith("~"):
-        return "under ~/.claude (plans, memory, settings)"
     if not (p.startswith("/") or p[1:2] == ":"):
         return "relative path"
     under_cwd = p.lower().startswith(c.lower() + "/")
-    if root is None:
+    if not roots:
         return "no session root found" + (" (path under cwd)" if under_cwd else "")
-    r = _norm(root)
-    if p.lower().startswith(r.lower() + "/"):
+    if any(p.lower().startswith(_norm(r).lower() + "/") for r in roots):
         return "under the root but differs in letter case"
     if under_cwd:
         return "under cwd but not under the chosen root"
-    return "outside cwd"
+    if _GIT_BASH.match(p) and c[1:2] == ":":
+        return "Git-Bash drive spelling"
+    if _names_file(p, files):
+        return "another checkout of the repository (remainder names a repository file)"
+    if any(t in p.lower() for t in _TEMP):
+        return "temporary directory"
+    return "elsewhere"
+
+
+def roots_bucket(count: int) -> str:
+    """Sessions by how many roots named the repository: 0, 1 or 2+."""
+    return "2+" if count >= 2 else str(count)
 
 
 def main() -> None:
@@ -92,6 +122,7 @@ def main() -> None:
     confident: dict[str, Counter[str]] = defaultdict(Counter)
     uncertain: dict[str, Counter[str]] = defaultdict(Counter)
     outside: dict[str, Counter[str]] = defaultdict(Counter)
+    roots: dict[str, Counter[str]] = defaultdict(Counter)
     by_suffix: dict[str, Counter[str]] = defaultdict(Counter)
     errors: Counter[str] = Counter()
     sessions: Counter[str] = Counter()
@@ -113,7 +144,9 @@ def main() -> None:
         sessions[repo] += 1
         analysis = explained.analysis
         grounding = analysis.repository
-        root = grounding.root if grounding is not None else None
+        found = grounding.roots if grounding is not None else ()
+        files = grounding.files if grounding is not None else frozenset()
+        roots[repo][roots_bucket(len(found))] += 1
         if not analysis.surfaces:
             outside[repo]["session with no placed edit"] += 1
         seeds: dict[str, str] = {}
@@ -124,7 +157,7 @@ def main() -> None:
                 by_suffix[repo][f"{edit.placement.value} {suffix}"] += 1
                 seeds[edit.path] = " ".join(surface.seeds)
                 if edit.placement.value == "outside_repository":
-                    outside[repo][why_outside(edit.path, root, row["cwd"])] += 1
+                    outside[repo][why_outside(edit.path, found, row["cwd"], files)] += 1
         for f in analysis.findings:
             if f.detector not in DETECTORS:
                 continue
@@ -153,6 +186,7 @@ def main() -> None:
                 "confident": dict(confident[repo]),
                 "uncertain": dict(uncertain[repo]),
                 "outside_reasons": dict(outside[repo]),
+                "roots": dict(sorted(roots[repo].items())),
                 "placements_by_suffix": dict(by_suffix[repo].most_common()),
             }
             for repo, n in sorted(sessions.items())

@@ -743,10 +743,14 @@ def format_surfaces(analysis: LeanAnalysis) -> str:
         if g is None or not g.contracts
         else f"{len(g.contracts)} contract(s) from {g.contract_source}"
     )
-    return (
+    line = (
         f"  change surface   {len(analysis.surfaces)} task(s); edits: {counts}; "
         f"{contracts}"
     )
+    if g is not None and len(g.roots) > 1:
+        # More than one checkout named the repository (TER-EVD-017).
+        line += f"\n  repository roots {', '.join(g.roots)}"
+    return line
 
 
 def format_profile(analysis: LeanAnalysis) -> str:

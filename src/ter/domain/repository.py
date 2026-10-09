@@ -20,7 +20,14 @@ read.
 from __future__ import annotations
 
 import re
-from collections.abc import Collection, Iterable, Mapping
+from collections.abc import (
+    Callable,
+    Collection,
+    Iterable,
+    Iterator,
+    Mapping,
+    Sequence,
+)
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import PurePosixPath
@@ -59,11 +66,17 @@ __all__ = [
     "repository_path",
     "resolve_import",
     "resolve_relative",
+    "canonical_path",
+    "has_drive_letter",
+    "is_harness_state",
     "session_root",
+    "session_roots",
     "source_language",
     "tests_importing",
     "within",
     "ECMASCRIPT_SUFFIXES",
+    "HARNESS_DIR",
+    "WORKTREES_DIR",
     "VENDOR_DIRS",
 ]
 
@@ -406,6 +419,14 @@ def imported_modules(edge: ImportEdge, modules: Collection[str]) -> tuple[str, .
 
 # -- session paths -------------------------------------------------------------
 
+_DRIVE = re.compile(r"([A-Za-z]):(?:/|$)")
+_GIT_BASH = re.compile(r"/([A-Za-z])(?:/|$)")
+
+#: The directory Claude Code keeps its own state in (plans, memory,
+#: settings), and the subdirectory of it that holds worktree checkouts.
+HARNESS_DIR = ".claude"
+WORKTREES_DIR = "worktrees"
+
 
 def _parts(path: str) -> list[str]:
     return [p for p in path.replace("\\", "/").split("/") if p not in ("", ".")]
@@ -415,59 +436,225 @@ def _absolute(path: str) -> bool:
     return path.startswith("/") or (len(path) > 1 and path[1] == ":")
 
 
-def session_root(paths: Iterable[str], files: Collection[str]) -> str | None:
-    """The directory a session's absolute paths name the repository by.
+def has_drive_letter(path: str) -> bool:
+    """Whether ``path`` is a Windows path with a drive letter (``D:/x``,
+    ``d:\\x``)."""
+    return _DRIVE.match(path.replace("\\", "/")) is not None
+
+
+def canonical_path(path: str, windows: bool = False) -> str:
+    """One spelling of an absolute path, for matching it against roots
+    (TER-EVD-018).
+
+    Backslashes become ``/`` and a drive letter is upper case (``d:\\x`` ->
+    ``D:/x``): Windows drive letters are case-insensitive. With ``windows``
+    (the session also uses drive-letter paths), a Git-Bash path ``/d/x`` is
+    read as ``D:/x``. Nothing else is case-folded: a POSIX path is case
+    sensitive, and a one-letter top-level directory (``/d``) is a Git-Bash
+    drive only in a session that shows it runs on Windows.
+    """
+    normal = path.replace("\\", "/")
+    if m := _DRIVE.match(normal):
+        return m.group(1).upper() + normal[1:]
+    if windows and (m := _GIT_BASH.match(normal)):
+        return f"{m.group(1).upper()}:{normal[2:] or '/'}"
+    return normal
+
+
+def _lead(normal: str) -> str:
+    return "/" if normal.startswith("/") else ""
+
+
+def _ancestors(path: str, depth: int) -> Iterator[str]:
+    """Proper ancestor directories of ``path`` at least ``depth`` deep."""
+    parts = path.split("/")[:-1]
+    for n in range(len(parts), depth - 1, -1):
+        yield "/".join(parts[:n])
+
+
+def _vote(absolute: Sequence[str], matches: Callable[[str], bool]) -> str | None:
+    """The prefix most paths agree on, cutting each path at its shortest
+    prefix whose remainder ``matches`` (ties: the shorter, then the first in
+    sort order)."""
+    votes: dict[str, int] = {}
+    for normal in absolute:
+        parts = _parts(normal)
+        for cut in range(1, len(parts)):
+            if matches("/".join(parts[cut:])):
+                root = _lead(normal) + "/".join(parts[:cut])
+                votes[root] = votes.get(root, 0) + 1
+                break
+    if not votes:
+        return None
+    return min(votes, key=lambda r: (-votes[r], len(r), r))
+
+
+def _worktree(normal: str) -> tuple[str, str] | None:
+    """``(checkout, remainder)`` for a path under a Claude Code worktree
+    checkout ``<dir>/.claude/worktrees/<name>/...``."""
+    parts = _parts(normal)
+    for i in range(len(parts) - 3):
+        if parts[i] == HARNESS_DIR and parts[i + 1] == WORKTREES_DIR:
+            checkout = _lead(normal) + "/".join(parts[: i + 3])
+            return checkout, "/".join(parts[i + 3 :])
+    return None
+
+
+def _under(parts: Sequence[str], root: str) -> list[str] | None:
+    """The parts of a path below ``root``, or ``None`` when it is not below."""
+    base = _parts(root)
+    if len(parts) <= len(base) or list(parts[: len(base)]) != base:
+        return None
+    return list(parts[len(base) :])
+
+
+def session_roots(paths: Iterable[str], files: Collection[str]) -> tuple[str, ...]:
+    """Every directory a session's absolute paths name the repository by,
+    the main root first (TER-EVD-006, TER-EVD-017, TER-EVD-018, TER-EVD-020).
 
     A session records the paths its tools used (``/home/me/proj/src/a.py``);
-    the repository lists them relative to its root (``src/a.py``). For each
-    absolute path, the shortest prefix whose remainder is a listed file is a
-    candidate root; the root is the candidate most paths agree on (ties: the
-    shorter, then the first in sort order). When no path names a listed
-    file (a session that only creates files), the same vote runs on paths
-    whose directory is a directory of the repository. ``None`` when neither
-    finds a candidate.
+    the repository lists them relative to its root (``src/a.py``). Paths are
+    compared in one spelling (:func:`canonical_path`).
+
+    *Main root*: for each absolute path, the shortest prefix whose remainder
+    is a listed file is a candidate; the root is the candidate most paths
+    agree on (ties: the shorter, then the first in sort order). When no path
+    names a listed file (a session that only creates files), the same vote
+    runs on paths whose directory is a directory of the repository, and then
+    on paths that lie under a repository directory at least two levels deep
+    (``src/main/java/...`` for a new package of new files). One level is not
+    enough: a top-level name such as ``src`` also names directories *above*
+    checkouts (``/home/me/src/proj``), so it alone never makes a root.
+
+    *Other roots*: a Claude Code worktree checkout
+    (``<dir>/.claude/worktrees/<name>``) when the remainder of a path under
+    it is a listed file or a repository directory, or lies in one; the
+    directory that worktree was made from (``<dir>``), when the remainder of
+    a path under it, outside its ``.claude``, does the same; and, for paths
+    under no root yet, a prefix under which at least two distinct
+    paths name listed files, at least one of them in a subdirectory, so a
+    stray ``README.md`` or ``package.json`` elsewhere does not make a root.
+    Other roots follow the main root, in sort order.
     """
-    absolute = [p.replace("\\", "/") for p in paths]
-    absolute = [p for p in absolute if _absolute(p)]
+    raw = [p.replace("\\", "/") for p in paths]
+    raw = [p for p in raw if _absolute(p)]
+    windows = any(has_drive_letter(p) for p in raw)
+    absolute = list(dict.fromkeys(canonical_path(p, windows) for p in raw))
     directories = {str(PurePosixPath(f).parent) for f in files} - {"."}
-    for known, of in ((files, lambda r: r), (directories, _parent)):
-        votes: dict[str, int] = {}
-        for normal in absolute:
-            parts = _parts(normal)
-            lead = "/" if normal.startswith("/") else ""
-            for cut in range(1, len(parts)):
-                if of("/".join(parts[cut:])) in known:
-                    root = lead + "/".join(parts[:cut])
-                    votes[root] = votes.get(root, 0) + 1
-                    break
-        if votes:
-            return min(votes, key=lambda r: (-votes[r], len(r), r))
-    return None
+
+    def listed(rest: str) -> bool:
+        return rest in files
+
+    def in_directory(rest: str) -> bool:
+        return _parent(rest) in directories
+
+    def under_directory(rest: str) -> bool:
+        return any(a in directories for a in _ancestors(rest, 2))
+
+    def names_repository(rest: str) -> bool:
+        return rest in files or rest in directories or in_directory(rest)
+
+    main: str | None = None
+    for matches in (listed, in_directory, under_directory):
+        main = _vote(absolute, matches)
+        if main is not None:
+            break
+    others: set[str] = set()
+    for normal in absolute:
+        found = _worktree(normal)
+        if found is None:
+            continue
+        checkout, rest = found
+        if names_repository(rest):
+            others.add(checkout)
+    # The directory a worktree was made from is a checkout too, when a path
+    # under it (outside its ``.claude``) names the repository the same way.
+    owners = {w.rsplit(f"/{HARNESS_DIR}/{WORKTREES_DIR}/", 1)[0] for w in others} - {""}
+    for normal in absolute:
+        parts = _parts(normal)
+        for owner in owners - others:
+            rest_parts = _under(parts, owner)
+            if (
+                rest_parts is not None
+                and rest_parts[0] != HARNESS_DIR
+                and names_repository("/".join(rest_parts))
+            ):
+                others.add(owner)
+    accepted = [r for r in (main, *others) if r is not None]
+    named: dict[str, set[str]] = {}
+    for normal in absolute:
+        parts = _parts(normal)
+        if any(_under(parts, r) is not None for r in accepted):
+            continue
+        for cut in range(1, len(parts)):
+            rest = "/".join(parts[cut:])
+            if rest in files:
+                named.setdefault(_lead(normal) + "/".join(parts[:cut]), set()).add(rest)
+                break
+    others.update(
+        root
+        for root, rests in named.items()
+        if len(rests) >= 2 and any("/" in r for r in rests)
+    )
+    if main is not None:
+        others.discard(main)
+    return ((main,) if main is not None else ()) + tuple(sorted(others))
+
+
+def session_root(paths: Iterable[str], files: Collection[str]) -> str | None:
+    """The main directory a session's absolute paths name the repository
+    by: the first of :func:`session_roots`, or ``None``."""
+    roots = session_roots(paths, files)
+    return roots[0] if roots else None
 
 
 def _parent(path: str) -> str:
     return str(PurePosixPath(path).parent)
 
 
-def repository_path(path: str, root: str | None) -> str | None:
+def repository_path(path: str, root: str | Sequence[str] | None) -> str | None:
     """``path`` relative to the repository, or ``None`` when it lies outside.
 
     A relative path is taken as relative to the repository root (the
     session's working directory). An absolute one must lie under ``root``
-    (from :func:`session_root`); with no root, it lies outside.
+    (one root, or the roots from :func:`session_roots`); under more than
+    one, the deepest decides (a worktree checkout inside the main
+    checkout). With no root, it lies outside. Drive letters match in any
+    case, and a Git-Bash path ``/d/x`` matches ``D:/x`` when a root is
+    spelled with a drive letter (:func:`canonical_path`).
     """
     normal = path.replace("\\", "/")
-    absolute = _absolute(normal)
     parts = _parts(normal)
-    if not absolute:
+    if not _absolute(normal):
         return None if not parts or ".." in parts else "/".join(parts)
-    if root is None:
-        return None
-    base = _parts(root)
-    if len(parts) <= len(base) or parts[: len(base)] != base:
-        return None
-    rest = parts[len(base) :]
-    return None if ".." in rest else "/".join(rest)
+    roots = () if root is None else (root,) if isinstance(root, str) else tuple(root)
+    windows = any(has_drive_letter(r) for r in roots)
+    parts = _parts(canonical_path(normal, windows))
+    best: list[str] | None = None
+    for r in roots:
+        rest = _under(parts, canonical_path(r, windows))
+        if rest is not None and (best is None or len(rest) < len(best)):
+            best = rest
+    return None if best is None or ".." in best else "/".join(best)
+
+
+def is_harness_state(path: str) -> bool:
+    """Whether ``path`` lies under a ``.claude`` directory that is not a
+    worktree checkout: the agent harness's plans, memory and settings
+    (``~/.claude/plans/x.md``, ``~/.claude/CLAUDE.md``), not repository
+    code (TER-EVD-019). Callers ask only about paths outside every root, so
+    a project's own ``.claude/`` files inside the repository stay
+    repository paths."""
+    parts = _parts(path)
+    i = 0
+    while i < len(parts) - 1:
+        if parts[i] == HARNESS_DIR:
+            if parts[i + 1] != WORKTREES_DIR:
+                return True
+            i += 3  # past ``.claude/worktrees/<name>``
+            continue
+        i += 1
+    return False
 
 
 # -- architecture contracts ------------------------------------------------------

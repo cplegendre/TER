@@ -164,7 +164,7 @@ def test_explain_text_and_a3_with_a_repository(tmp_path: Path) -> None:
     assert code == 0
     assert (
         "change surface   1 task(s); edits: 2 inside, 0 expansion, 1 unrelated, "
-        "0 outside repository; 2 contract(s) from pyproject.toml"
+        "0 outside repository, 0 harness state; 2 contract(s) from pyproject.toml"
     ) in out
     code, out, _ = run(["a3", path, "--repo", str(repo), "--ter", "off", "--json"])
     assert code == 0

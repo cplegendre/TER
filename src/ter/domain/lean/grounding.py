@@ -105,7 +105,8 @@ class RepositoryGrounding:
     importers: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
     #: Distinctive symbol name (lower case) -> files that define it.
     symbols: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
-    #: The directory the session's absolute paths name the repository by.
+    #: The directory the session's absolute paths name the repository by
+    #: (the main root, the first of ``roots``).
     root: str | None = None
     #: Session path -> repository path, ``None`` for a path outside it.
     paths: Mapping[str, str | None] = field(default_factory=dict)
@@ -115,6 +116,10 @@ class RepositoryGrounding:
     contract_source: str | None = None
     #: Why declared contracts could not be read, when they could not.
     contract_problem: str | None = None
+    #: Every directory the session's paths name the repository by: the main
+    #: root, then Claude Code worktree checkouts and other checkouts of the
+    #: same repository (TER-EVD-017).
+    roots: tuple[str, ...] = ()
 
     def repository_path(self, path: str) -> str | None:
         return self.paths.get(path)
@@ -128,6 +133,7 @@ class RepositoryGrounding:
             "syntax": self.syntax,
             "files": len(self.files),
             "root": self.root,
+            "roots": list(self.roots),
             "contracts": [c.id for c in self.contracts],
             "contract_source": self.contract_source,
             "contract_problem": self.contract_problem,

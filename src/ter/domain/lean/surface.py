@@ -27,7 +27,9 @@ imports, or a new test of a seed, is inside.
 
 Every edit is then marked *inside* the surface; *expansion*, outside it but
 one import link from a file inside (point 64); *unrelated*, with no import
-link to it (point 66); or *outside the repository* (not judged).
+link to it (point 66); *harness state*, under a ``.claude`` directory that
+is not a worktree checkout and outside every root (the agent's plans, memory
+and settings; not judged); or *outside the repository* (not judged).
 
 **Boundary violations** (TER-EVD-007, point 65): an edit whose replayed
 result imports a module it did not import before, where that import breaks a
@@ -46,6 +48,7 @@ from ..events import EventId, EventKind
 from ..repository import (
     ContractViolation,
     contract_violations,
+    is_harness_state,
     is_test_module,
 )
 from .detectors import SessionView, WasteDetector, _finding
@@ -79,6 +82,9 @@ class EditPlacement(StrEnum):
     EXPANSION = "expansion"
     UNRELATED = "unrelated"
     OUTSIDE_REPOSITORY = "outside_repository"
+    #: The agent harness's own state under a ``.claude`` directory (plans,
+    #: memory, settings), outside every root: not judged (TER-EVD-019).
+    HARNESS_STATE = "harness_state"
 
 
 @dataclass(frozen=True)
@@ -239,7 +245,17 @@ def _place(
         if not step.paths:
             continue
         path = g.repository_path(step.paths[0])
-        if path is None:
+        if path is None and is_harness_state(step.paths[0]):
+            placed.append(
+                SurfaceEdit(
+                    step.event_id,
+                    step.paths[0],
+                    EditPlacement.HARNESS_STATE,
+                    "the agent harness's own state (plans, memory, settings) "
+                    "under a .claude directory",
+                )
+            )
+        elif path is None:
             placed.append(
                 SurfaceEdit(
                     step.event_id,

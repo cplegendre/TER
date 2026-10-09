@@ -30,6 +30,10 @@ stay `planned` in `requirements/l3_grounded.yaml`.
 | TER-EVD-014 | When a detector requests repository evidence for a TypeScript, JavaScript, Svelte or Vue source module, the repository evidence adapter shall return every test module whose imports load that source module. | `TestEcmaScriptTests`, contract `test_tests_of_another_language_are_linked_or_refused`, golden `repository/syntax.json` |
 | TER-EVD-015 (planned) | Boundary violations for contracts TER-EVD-007 does not evaluate: other languages, other contract types, indirect import chains. | split from TER-EVD-007 |
 | TER-EVD-016 (planned) | Call edges of TypeScript, JavaScript, Svelte and Vue files. | split from TER-EVD-012 |
+| TER-EVD-017 | TER shall map a session path to a repository path when the path lies under any accepted root of the session, where the accepted roots are the directory most session paths name the repository by, each Claude Code worktree checkout under which a session path names a repository file or directory, the directory such a worktree was made from when a session path under it names a repository file or directory, and each other directory under which at least two distinct session paths name repository files with at least one of them in a subdirectory. | `tests/unit/test_ter4_session_roots.py::TestMoreThanOneCheckout` |
+| TER-EVD-018 | When TER matches session paths against roots, TER shall compare Windows drive letters without regard to case and with either path separator, reading a Git-Bash path of the form /x/... as the drive path X:/... only when the session also uses drive-letter paths. | `TestPathSpelling` |
+| TER-EVD-019 | If an edited path lies outside every root of the session and under a .claude directory that is not a worktree checkout, then TER shall place the edit as harness state and report no change surface finding for it. | `TestHarnessState` |
+| TER-EVD-020 | While no session path names a repository file or lies in a repository directory, TER shall take as the session root the prefix most session paths agree on whose remainder lies under a repository directory at least two levels deep. | `TestNewDirectories` |
 
 Unless named otherwise, the test classes are in
 `tests/unit/test_ter4_repository_evidence.py` (engines) or
@@ -265,11 +269,10 @@ values only:
 - the **distinctive symbols** each file defines: names a prompt can only
   mean one way, with an inner underscore or an inner capital
   (`tests_importing`, `ExplainSession`; never `run` or `main`);
-- the mapping from the session's paths to repository paths. A session's
-  tools use absolute paths (`/home/me/shop/src/a.py`); the root is the
-  prefix most paths agree on when the rest names a repository file (or,
-  for a session that only creates files, a repository directory). A path
-  outside that root is outside the repository;
+- the mapping from the session's paths to repository paths, through the
+  session's **roots** (`roots` in `explain --json` and in the A3's
+  `background.repository`; the text output lists them when there is more
+  than one). See [Session roots](#session-roots) below;
 - for each edit and write, the file **after** it, replayed on the start
   commit's text (`replay_edit`: `content` replaces; `old_string` must be
   found, else the file's text is unknown from there on), parsed with
@@ -311,7 +314,55 @@ output):
 | `inside` | the file is a seed, a neighbour or a test of the surface | none |
 | `expansion` | outside, but it imports or is imported by a file inside (P064) | `surface_expansion` |
 | `unrelated` | outside, with no import link to any file inside (P066) | `unrelated_modification` |
-| `outside_repository` | not a path under the repository root (`/tmp/x.py`) | none: not judged |
+| `harness_state` | outside every root and under a `.claude` directory that is not a worktree checkout: the agent's plans, memory and settings (`~/.claude/plans/x.md`) (TER-EVD-019) | none: not judged |
+| `outside_repository` | not a path under any root of the session (`/tmp/x.py`) | none: not judged |
+
+A harness-state or outside edit is never a seed, a neighbour or a finding.
+A project's own `CLAUDE.md` or `.claude/settings.json` inside the root is a
+repository path and placed like any other file.
+
+### Session roots
+
+A session's tools use absolute paths (`/home/me/shop/src/a.py`); the
+repository lists paths relative to its root (`src/a.py`). Events carry no
+working directory, so the roots come from the paths alone
+(`session_roots` in `ter.domain.repository`):
+
+1. **Spelling** (TER-EVD-018). Paths are compared in one spelling:
+   backslashes become `/` and a drive letter is upper case (`d:\x` and
+   `D:/x` are one path). A Git-Bash path `/d/x` is read as `D:/x` only when
+   the session also uses drive-letter paths: on Linux or macOS `/d` is an
+   ordinary directory, and a Git-Bash-only session matches its own spelling
+   anyway, so the conditional rule loses nothing and never invents a drive.
+   Nothing else is case-folded.
+2. **Main root.** For each path, the shortest prefix whose remainder is a
+   repository file is a candidate; the root is the candidate most paths
+   agree on (ties: the shorter, then the first in sort order). When no path
+   names a file (a session that only creates files), the same vote runs on
+   paths whose directory is a repository directory, and then (TER-EVD-020)
+   on paths that lie under a repository directory **at least two levels
+   deep** (`src/main/java/...` for a new Java package). One level is not
+   enough: a top-level name such as `src` also names directories above
+   checkouts (`/home/me/src/proj`), which would make a false root.
+3. **Other checkouts** (TER-EVD-017). A Claude Code worktree checkout
+   `<dir>/.claude/worktrees/<name>` is a root when the remainder of a path
+   under it names a repository file or directory (or lies in one); `<dir>`,
+   the checkout the worktree was made from, is a root when a path under it
+   (outside its `.claude`) does the same. For paths under no root yet, a
+   prefix is a root when at least two distinct paths under it name
+   repository files, at least one of them in a subdirectory, so a stray
+   `README.md` or `package.json` elsewhere does not make a root.
+
+A path under more than one root (a worktree inside the main checkout) maps
+through the deepest. `grounding.root` is the main root, the first of
+`grounding.roots`.
+
+**Rejected: a root from the created files' common directory.** A session
+whose paths name nothing the start commit holds could take the deepest
+common directory of the files it created. That directory lies *inside* the
+repository (`/w/p/src/newpkg`), so every path would map to the wrong
+repository path; a session with no structural match keeps no root, and its
+edits stay `outside_repository`.
 
 ### Boundary violations (TER-EVD-007)
 
@@ -394,7 +445,7 @@ The pure rules every engine and the fake share live in
 | Layer | Module |
 |---|---|
 | domain | `ter/domain/repository.py`: `TextMatch`, `Symbol`, `ImportEdge`, `CallEdge`, `SourceStructure`, `FileChange`, `RepositoryDiff`, `FileCommit`, errors, shared rules |
-| domain | `ter/domain/repository.py` also: `ArchitectureContract`, `Layer`, `ContractViolation`, `contract_violations`, `imported_modules`, `session_root`, `repository_path` |
+| domain | `ter/domain/repository.py` also: `ArchitectureContract`, `Layer`, `ContractViolation`, `contract_violations`, `imported_modules`, `session_roots`, `session_root`, `repository_path`, `canonical_path`, `is_harness_state` |
 | domain | `ter/domain/lean/grounding.py`: `RepositoryGrounding`, `EditGrounding`, `replay_edit`; `ter/domain/lean/surface.py`: `ChangeSurface`, `change_surfaces`, the grounded detectors |
 | ports | `ter/ports/driven.py`: `RepositoryEvidence`, `ArchitectureContracts` |
 | driven adapters | `ter/adapters/driven/repository/`: `lexical.py`, `python_ast.py`, `git.py`, `syntax.py` with the ECMAScript reader `ecmascript.py`; `ter/adapters/driven/import_linter.py`; fakes `InMemoryRepositoryEvidence`, `InMemoryArchitectureContracts` in `ter/adapters/driven/in_memory.py` |
@@ -437,6 +488,23 @@ files, kept on the owner's machine) with an empty `verdict` column to mark
 python scripts/corpus_grounded.py labels-d4.csv ~/.claude/projects \
     --work ~/ter-data/grounded --out grounded.json --review review.csv
 ```
+
+The counts file (`ter.corpus-grounded/2`) also says, per repository, how
+many sessions named it by 0, 1 or 2+ roots (`roots`) and why each
+`outside_repository` edit was outside (`outside_reasons`, content-free): a
+worktree checkout that was not accepted, a relative path, no session root
+(and whether the path lay under the session's working directory), a letter
+case difference, a path under the working directory but not under a root,
+and, for a path outside the working directory, a Git-Bash drive spelling,
+another checkout of the repository (some suffix of the path is a repository
+file), a temporary directory (`/tmp/`, `/Temp/`, `AppData/Local/Temp`) or
+elsewhere. Harness state has its own placement and is counted under
+`placements`.
+
+On the owner's 52 sessions (before TER-EVD-017 to TER-EVD-020), 244 edits
+were outside the repository: 86 outside the working directory, 107 with no
+session root (26 of them under the working directory), 12 in worktree
+checkouts and 39 harness state.
 
 ## Session languages and stack
 

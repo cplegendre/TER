@@ -1014,10 +1014,11 @@ points:
       - >-
         Each task has a computed expected change surface, and edits are
         marked inside or outside it.
-    rules: [TER-EVD-006]
+    rules: [TER-EVD-006, TER-EVD-017, TER-EVD-018, TER-EVD-019, TER-EVD-020]
     verification:
       - 'test: tests/unit/test_ter4_change_surface.py::TestChangeSurface'
       - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestEcmaScriptChangeSurface'
+      - 'test: tests/unit/test_ter4_session_roots.py'
       - 'test: tests/unit/test_ter4_grounded_cli.py'
       - 'planned: real-data check on sessions with their repository and start commit (D4)'
 
@@ -1029,10 +1030,11 @@ points:
     status: partial
     definition_of_done:
       - Growth of the change surface beyond the expected one is reported.
-    rules: [TER-EVD-006]
+    rules: [TER-EVD-006, TER-EVD-017, TER-EVD-018, TER-EVD-019, TER-EVD-020]
     verification:
       - 'test: tests/unit/test_ter4_change_surface.py::TestSurfaceExpansion'
       - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestEcmaScriptChangeSurface'
+      - 'test: tests/unit/test_ter4_session_roots.py'
       - 'planned: real-data check on sessions with their repository and start commit (D4)'
 
   - id: P065
@@ -1061,10 +1063,11 @@ points:
     status: partial
     definition_of_done:
       - Edits unrelated to the task are reported as unrelated modifications.
-    rules: [TER-EVD-006]
+    rules: [TER-EVD-006, TER-EVD-017, TER-EVD-018, TER-EVD-019, TER-EVD-020]
     verification:
       - 'test: tests/unit/test_ter4_change_surface.py::TestUnrelatedModification'
       - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestEcmaScriptChangeSurface'
+      - 'test: tests/unit/test_ter4_session_roots.py'
       - 'test: tests/unit/test_ter4_grounded_cli.py'
       - 'planned: real-data check on sessions with their repository and start commit (D4)'
 
