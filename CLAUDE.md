@@ -84,4 +84,4 @@ Python 3.11+: Follow standard conventions. Dataclasses for models, enums for dom
 
 `ter analyze` `ter report [--html FILE]` `ter a3` `ter explain` `ter visualize` `ter present` `ter compare` `ter list` `ter watch` `ter budget` `ter context {store|graph|optimize|delta|check}`
 
-TER 4 (`python -m ter`): `observe` `hook` `explain` `a3`
+TER 4 (`python -m ter`): `observe` `hook` `explain` `a3` `route` `context {bundle|report}` `corpus`
