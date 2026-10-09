@@ -8,6 +8,7 @@ import os
 import re
 import stat
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -147,7 +148,15 @@ class TestLifecycleInAnalysis:
         events = self._events()
         content = [e for e in events if not e.kind.is_lifecycle]
         tokenizer = RegexTokenizer()
-        assert explain(events, tokenizer) == explain(content, tokenizer)
+        with_lifecycle = explain(events, tokenizer)
+        without = explain(content, tokenizer)
+        assert replace(with_lifecycle, wip=without.wip) == without
+        # WIP is counted after every event, lifecycle ones included, and the
+        # turn's end (Stop) resolves the open hypothesis the read raised.
+        assert len(with_lifecycle.wip.samples) == len(events)
+        final = with_lifecycle.wip.final
+        assert final is not None and final.hypotheses == 0
+        assert without.wip.final is not None and without.wip.final.hypotheses == 1
 
 
 def counter(start: int = 0) -> Any:

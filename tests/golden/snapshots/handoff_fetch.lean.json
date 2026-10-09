@@ -598,6 +598,9 @@
     },
     "uncertain_findings": 0,
     "uncertain_waste_tokens": 0,
+    "validation_runs": 0,
+    "validations_failed": 0,
+    "validations_passed": 0,
     "waste_context_tokens": 24,
     "waste_seconds": 6.0,
     "waste_tokens": 30
@@ -670,5 +673,142 @@
       "tokens": 31,
       "uncertain_tokens": 0
     }
-  ]
+  ],
+  "wip": {
+    "edits_opened": 1,
+    "edits_validated": 0,
+    "final": {
+      "edits": 1,
+      "event_id": "71f7f1f147f2ae8d",
+      "failures": 0,
+      "hypotheses": 1,
+      "tasks": 1,
+      "total": 3
+    },
+    "kinds": [
+      "hypotheses",
+      "tasks",
+      "edits",
+      "failures"
+    ],
+    "open_at_end": {
+      "edits": [
+        "4f983f4cbf7260c1"
+      ],
+      "failures": [],
+      "hypotheses": [
+        "3b63c8d624bcf410"
+      ],
+      "tasks": [
+        "0c09dd0c065ec07b"
+      ]
+    },
+    "peak": {
+      "edits": 0,
+      "event_id": "0c09dd0c065ec07b",
+      "failures": 0,
+      "hypotheses": 2,
+      "tasks": 1,
+      "total": 3
+    },
+    "peak_by_kind": {
+      "edits": 1,
+      "failures": 0,
+      "hypotheses": 2,
+      "tasks": 1
+    },
+    "series": [
+      [
+        "cfe38703c440c315",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "4172b0441cd7cfba",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "f1146cba7555b4e6",
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "61179269c4df5b69",
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "21222454fe82bdbe",
+        1,
+        1,
+        0,
+        0
+      ],
+      [
+        "8c5e4ee9638011b7",
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "3b63c8d624bcf410",
+        2,
+        0,
+        0,
+        0
+      ],
+      [
+        "85abe9461af226a2",
+        2,
+        0,
+        0,
+        0
+      ],
+      [
+        "0c09dd0c065ec07b",
+        2,
+        1,
+        0,
+        0
+      ],
+      [
+        "be91bfcb97b1fce4",
+        2,
+        1,
+        0,
+        0
+      ],
+      [
+        "4f983f4cbf7260c1",
+        1,
+        1,
+        1,
+        0
+      ],
+      [
+        "1797e204a67133ae",
+        1,
+        1,
+        1,
+        0
+      ],
+      [
+        "71f7f1f147f2ae8d",
+        1,
+        1,
+        1,
+        0
+      ]
+    ]
+  }
 }

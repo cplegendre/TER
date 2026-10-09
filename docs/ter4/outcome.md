@@ -87,7 +87,9 @@ reports without one are unchanged.
 
 ## Not yet
 
-- `TER-SCR-001` stays planned: the scorecard still has no quality dimension.
+- Software Value Efficiency (TER-SCR-003) reads the verdict the same way:
+  it sits next to TER and is *unknown* without outcome evidence (see
+  [l2-explained.md](l2-explained.md#software-value-efficiency)).
 - An acceptance contract other than "every recorded check passes" is
   available in the API (the `contract` argument of `ExplainSession`) but not yet on
   the command line.

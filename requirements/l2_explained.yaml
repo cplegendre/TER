@@ -395,7 +395,7 @@ requirements:
     rationale: >-
       Fewer tokens are not automatically more efficient; delivery is the
       goal.
-    status: planned
+    status: verified
 
   - id: TER-LEN-006
     pattern: ubiquitous
@@ -408,7 +408,7 @@ requirements:
     rationale: >-
       A formal Lean model needs an explicit mapping from each concept to
       something measurable.
-    status: planned
+    status: verified
 
   - id: TER-LEN-007
     pattern: ubiquitous
@@ -509,7 +509,7 @@ requirements:
     rationale: >-
       A multidimensional scorecard avoids one opaque score and keeps
       measurement apart from outcome judgement.
-    status: planned
+    status: verified
 
   - id: TER-SCR-002
     pattern: optional
@@ -531,7 +531,7 @@ requirements:
     source_points: [4, 81]
     rationale: >-
       TER remains the foundation; value efficiency adds the outcome view.
-    status: planned
+    status: verified
 
   - id: TER-SCR-004
     pattern: optional
@@ -684,4 +684,4 @@ requirements:
     rationale: >-
       WIP is measurable in agent sessions and is a candidate predictor of
       inefficiency.
-    status: planned
+    status: verified

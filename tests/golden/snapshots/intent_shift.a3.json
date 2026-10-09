@@ -1,37 +1,251 @@
 {
   "analysis": {
     "cycles": [],
-    "pareto": [
+    "dimensions": [
       {
-        "findings": 1,
-        "tokens": 110,
-        "waste": "overproduction"
+        "dimension": "efficiency",
+        "measures": [
+          {
+            "key": "ter",
+            "label": "Token Efficiency Ratio",
+            "note": "TER 3, offline (regex-v1 tokens, lexical-hash-384 embeddings)",
+            "unit": "ratio",
+            "value": 0.9316
+          },
+          {
+            "key": "software_value_efficiency",
+            "label": "Software Value Efficiency",
+            "note": "unknown",
+            "unit": "ratio",
+            "value": null
+          },
+          {
+            "key": "value_adding_share",
+            "label": "Value-adding share of generated tokens",
+            "note": "",
+            "unit": "ratio",
+            "value": 0.7767
+          },
+          {
+            "key": "avoidable_share",
+            "label": "Avoidable share of generated tokens",
+            "note": "",
+            "unit": "ratio",
+            "value": 0.0
+          }
+        ],
+        "question": "How much of the resource became value?"
+      },
+      {
+        "dimension": "flow",
+        "measures": [
+          {
+            "key": "flow_efficiency_tokens",
+            "label": "Flow efficiency (tokens)",
+            "note": "",
+            "unit": "ratio",
+            "value": 1.0
+          },
+          {
+            "key": "flow_efficiency_time",
+            "label": "Flow efficiency (time)",
+            "note": "",
+            "unit": "ratio",
+            "value": 1.0
+          },
+          {
+            "key": "wip_peak",
+            "label": "Peak WIP",
+            "note": "after event 5783fac4e7fb70bd",
+            "unit": "items",
+            "value": 3
+          },
+          {
+            "key": "wip_final",
+            "label": "WIP at the end",
+            "note": "",
+            "unit": "items",
+            "value": 0
+          }
+        ],
+        "question": "How smoothly did work move, and how much was left open?"
+      },
+      {
+        "dimension": "quality",
+        "measures": [
+          {
+            "key": "validation_runs",
+            "label": "Validation runs",
+            "note": "",
+            "unit": "count",
+            "value": 1
+          },
+          {
+            "key": "validations_passed",
+            "label": "Runs that passed",
+            "note": "",
+            "unit": "count",
+            "value": 0
+          },
+          {
+            "key": "validations_failed",
+            "label": "Runs that failed",
+            "note": "",
+            "unit": "count",
+            "value": 0
+          },
+          {
+            "key": "iterations",
+            "label": "Iteration cycles (converging)",
+            "note": "",
+            "unit": "count",
+            "value": 0
+          },
+          {
+            "key": "rework_cycles",
+            "label": "Rework cycles (same failure)",
+            "note": "",
+            "unit": "count",
+            "value": 0
+          },
+          {
+            "key": "edits_validated_share",
+            "label": "Edits covered by a later validation run",
+            "note": "3 of 3",
+            "unit": "ratio",
+            "value": 1.0
+          }
+        ],
+        "question": "Was the work checked, and did the checks converge?"
+      },
+      {
+        "dimension": "cost",
+        "measures": [
+          {
+            "key": "generated_tokens",
+            "label": "Generated tokens",
+            "note": "",
+            "unit": "tokens",
+            "value": 421
+          },
+          {
+            "key": "context_tokens",
+            "label": "Context tokens",
+            "note": "",
+            "unit": "tokens",
+            "value": 33
+          },
+          {
+            "key": "agent_seconds",
+            "label": "Agent time",
+            "note": "",
+            "unit": "seconds",
+            "value": 27.0
+          },
+          {
+            "key": "waste_tokens",
+            "label": "Avoidable generated tokens",
+            "note": "",
+            "unit": "tokens",
+            "value": 0
+          },
+          {
+            "key": "waste_context_tokens",
+            "label": "Avoidable context tokens",
+            "note": "",
+            "unit": "tokens",
+            "value": 0
+          },
+          {
+            "key": "waste_seconds",
+            "label": "Avoidable agent time",
+            "note": "",
+            "unit": "seconds",
+            "value": 0.0
+          }
+        ],
+        "question": "What did the session consume, and how much was waste?"
+      },
+      {
+        "dimension": "risk",
+        "measures": [
+          {
+            "key": "risk_findings",
+            "label": "Risk findings",
+            "note": "",
+            "unit": "count",
+            "value": 1
+          },
+          {
+            "key": "uncertain_findings",
+            "label": "Uncertain findings",
+            "note": "",
+            "unit": "count",
+            "value": 0
+          },
+          {
+            "key": "unvalidated_edits_at_end",
+            "label": "Edits no validation run covered",
+            "note": "",
+            "unit": "count",
+            "value": 0
+          },
+          {
+            "key": "unresolved_failures_at_end",
+            "label": "Failing checks never seen passing again",
+            "note": "",
+            "unit": "count",
+            "value": 0
+          }
+        ],
+        "question": "What may be wrong that nothing has shown yet?"
+      },
+      {
+        "dimension": "outcome",
+        "measures": [
+          {
+            "key": "verdict",
+            "label": "Verdict",
+            "note": "no outcome evidence supplied",
+            "unit": "verdict",
+            "value": "unknown"
+          },
+          {
+            "key": "tokens_per_verified_outcome",
+            "label": "Generated tokens per verified outcome",
+            "note": "",
+            "unit": "tokens",
+            "value": null
+          }
+        ],
+        "question": "Was the requested change accepted?"
       }
     ],
+    "pareto": [],
     "scorecard": {
       "activity_seconds": {
-        "avoidable": 3.0,
+        "avoidable": 0.0,
         "necessary_non_value_adding": 15.0,
         "uncertain": 0.0,
-        "value_adding": 9.0
+        "value_adding": 12.0
       },
       "activity_tokens": {
-        "avoidable": 110,
+        "avoidable": 0,
         "necessary_non_value_adding": 94,
         "uncertain": 0,
-        "value_adding": 217
+        "value_adding": 327
       },
       "agent_seconds": 27.0,
       "composite": {
         "components": [
           {
             "name": "Flow efficiency (tokens)",
-            "value": 0.7387,
+            "value": 1.0,
             "weight": 0.3333
           },
           {
             "name": "Flow efficiency (time)",
-            "value": 0.8889,
+            "value": 1.0,
             "weight": 0.3333
           },
           {
@@ -41,219 +255,206 @@
           }
         ],
         "formula": "Unweighted mean of Flow efficiency (tokens), Flow efficiency (time), TER.",
-        "value": 0.8531
+        "value": 0.9772
       },
       "context_tokens": 33,
       "developer_seconds": 3.0,
-      "findings": 1,
-      "flow_efficiency_time": 0.8889,
-      "flow_efficiency_tokens": 0.7387,
+      "findings": 0,
+      "flow_efficiency_time": 1.0,
+      "flow_efficiency_tokens": 1.0,
       "flow_seconds": {
         "inventory": 0.0,
-        "progressing": 24.0,
+        "progressing": 27.0,
         "recovering": 0.0,
         "repeating": 0.0,
-        "reworking": 3.0,
+        "reworking": 0.0,
         "waiting": 0.0
       },
       "flow_tokens": {
         "inventory": 0,
-        "progressing": 311,
+        "progressing": 421,
         "recovering": 0,
         "repeating": 0,
-        "reworking": 110,
+        "reworking": 0,
         "waiting": 0
       },
       "generated_tokens": 421,
       "iterations": 0,
       "rework_cycles": 0,
       "risks": 1,
+      "software_value_efficiency": {
+        "definition": "Software Value Efficiency: value-adding work toward a verified (accepted) outcome per unit of resource: value-adding generated tokens / generated tokens, and the same for agent time; 0 when the outcome was rejected, unknown without outcome evidence.",
+        "reason": "Unknown: no outcome evidence was supplied (--outcome FILE); value is never inferred from tokens.",
+        "seconds_per_outcome": null,
+        "status": "unknown",
+        "time": null,
+        "tokens": null,
+        "tokens_per_outcome": null,
+        "value_seconds": null,
+        "value_tokens": null,
+        "verdict": null,
+        "verified_outcomes": null
+      },
       "ter": {
         "method": "TER 3, offline (regex-v1 tokens, lexical-hash-384 embeddings)",
         "value": 0.9316
       },
       "uncertain_findings": 0,
       "uncertain_waste_tokens": 0,
-      "waste_context_tokens": 11,
-      "waste_seconds": 3.0,
-      "waste_tokens": 110
+      "validation_runs": 1,
+      "validations_failed": 0,
+      "validations_passed": 0,
+      "waste_context_tokens": 0,
+      "waste_seconds": 0.0,
+      "waste_tokens": 0
+    },
+    "wip": {
+      "edits_opened": 3,
+      "edits_validated": 3,
+      "final": {
+        "edits": 0,
+        "event_id": "98eb228a9ef62c5e",
+        "failures": 0,
+        "hypotheses": 0,
+        "tasks": 0,
+        "total": 0
+      },
+      "kinds": [
+        "hypotheses",
+        "tasks",
+        "edits",
+        "failures"
+      ],
+      "open_at_end": {
+        "edits": [],
+        "failures": [],
+        "hypotheses": [],
+        "tasks": []
+      },
+      "peak": {
+        "edits": 3,
+        "event_id": "5783fac4e7fb70bd",
+        "failures": 0,
+        "hypotheses": 0,
+        "tasks": 0,
+        "total": 3
+      },
+      "peak_by_kind": {
+        "edits": 3,
+        "failures": 0,
+        "hypotheses": 0,
+        "tasks": 0
+      },
+      "series": [
+        [
+          "48ba27d45b86300c",
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          "9f1830571498ab8a",
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          "ff2bdafc4174f0ae",
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          "74f80f9aa57df306",
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          "952a574075aacf7c",
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          "8c8981ce0ad931aa",
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          "3a726cf05dd3f436",
+          0,
+          0,
+          2,
+          0
+        ],
+        [
+          "915dd336f4f690a2",
+          0,
+          0,
+          2,
+          0
+        ],
+        [
+          "49e3059cba2ea9f8",
+          0,
+          0,
+          2,
+          0
+        ],
+        [
+          "5783fac4e7fb70bd",
+          0,
+          0,
+          3,
+          0
+        ],
+        [
+          "b9b4608554250086",
+          0,
+          0,
+          3,
+          0
+        ],
+        [
+          "dce4ed64099ffef5",
+          0,
+          0,
+          3,
+          0
+        ],
+        [
+          "8ae1a7de2852286e",
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          "98eb228a9ef62c5e",
+          0,
+          0,
+          0,
+          0
+        ]
+      ]
     }
   },
   "background": {
     "events": 14,
-    "intent": {
-      "alignment": [
-        {
-          "band": "aligned",
-          "basis": "text",
-          "event_id": "9f1830571498ab8a",
-          "names": [],
-          "revision": 1,
-          "score": 0.5
-        },
-        {
-          "band": "aligned",
-          "basis": "names",
-          "event_id": "ff2bdafc4174f0ae",
-          "names": [
-            "median"
-          ],
-          "revision": 1,
-          "score": 1.0
-        },
-        {
-          "band": "low",
-          "basis": "text",
-          "event_id": "8c8981ce0ad931aa",
-          "names": [],
-          "revision": 2,
-          "score": 0.0
-        },
-        {
-          "band": "low",
-          "basis": "names",
-          "event_id": "3a726cf05dd3f436",
-          "names": [
-            "mean",
-            "variance"
-          ],
-          "revision": 2,
-          "score": 0.0
-        },
-        {
-          "band": "aligned",
-          "basis": "text",
-          "event_id": "49e3059cba2ea9f8",
-          "names": [],
-          "revision": 2,
-          "score": 0.8571
-        },
-        {
-          "band": "aligned",
-          "basis": "names",
-          "event_id": "5783fac4e7fb70bd",
-          "names": [
-            "mode"
-          ],
-          "revision": 2,
-          "score": 1.0
-        },
-        {
-          "band": "aligned",
-          "basis": "text",
-          "event_id": "dce4ed64099ffef5",
-          "names": [],
-          "revision": 2,
-          "score": 0.5
-        },
-        {
-          "band": "aligned",
-          "basis": "text",
-          "event_id": "98eb228a9ef62c5e",
-          "names": [],
-          "revision": 2,
-          "score": 1.0
-        }
-      ],
-      "changes": [
-        {
-          "abandoned": [
-            "median"
-          ],
-          "event_id": "952a574075aacf7c",
-          "from_revision": 1,
-          "reason": "explicit redirect ('Actually')",
-          "to_revision": 2
-        }
-      ],
-      "config": {
-        "drift_below": 0.25,
-        "low_below": 0.25,
-        "min_events": 3
-      },
-      "drift": [
-        "intent_drift:3a726cf05dd3f436"
-      ],
-      "low_alignment_periods": [],
-      "revisions": [
-        {
-          "abandoned": [],
-          "event_id": "48ba27d45b86300c",
-          "prompt": "Write a function in src/stats.py that returns the median of a list of numbers.",
-          "relation": "opened",
-          "revision": 1,
-          "similarity": null,
-          "terms": [
-            "list",
-            "median",
-            "number",
-            "stat"
-          ]
-        },
-        {
-          "abandoned": [
-            "median"
-          ],
-          "event_id": "952a574075aacf7c",
-          "prompt": "Actually, forget the median. Instead add a mode function that returns the most c",
-          "relation": "changed",
-          "revision": 2,
-          "similarity": 0.25,
-          "terms": [
-            "common",
-            "empty",
-            "error",
-            "list",
-            "mod",
-            "rais",
-            "valu"
-          ]
-        }
-      ],
-      "rule": "Overlap coefficient |intent ∩ activity| / min(|intent|, |activity|) of key terms (content words, identifier parts and file-name parts, stemmed, without stopwords or generic programming words); 0 when either side has no terms.",
-      "scorer": "lexical"
-    },
     "intents": [
       "Write a function in src/stats.py that returns the median of a list of numbers.",
       "Actually, forget the median. Instead add a mode function that returns the most common value, and raise ValueError on an empty list."
     ]
   },
-  "context_inventory": {
-    "model_turns": 5,
-    "reread": [],
-    "reread_carried_tokens": 0,
-    "reread_tokens": 0,
-    "retrieved_tokens": 0,
-    "unchanged_reread_tokens": 0,
-    "unused": [],
-    "unused_carried_tokens": 0,
-    "unused_tokens": 0
-  },
   "countermeasures": [
-    {
-      "actions": [
-        {
-          "kind": "claude_md",
-          "language": "markdown",
-          "snippet": "- Do only what the current request asks. When you see something else worth doing, mention it in your answer and wait for the go-ahead; when the user changes the goal, drop the old one.",
-          "text": "Ask the agent to propose extra work instead of doing it."
-        },
-        {
-          "kind": "practice",
-          "language": null,
-          "snippet": null,
-          "text": "Unrequested changes this session: `mean, variance`. If they were wanted, say so in the prompt next time, so the intent records them and they count as value; if not, revert them."
-        }
-      ],
-      "addresses": [
-        "intent_drift:3a726cf05dd3f436"
-      ],
-      "detector": "intent_drift",
-      "rationale": "1 finding(s), 110 generated tokens: Edit departs from the intent: mean, variance.",
-      "title": "Stay inside the stated intent",
-      "uncertain": false,
-      "waste": "overproduction"
-    },
     {
       "actions": [
         {
@@ -312,10 +513,9 @@
         "uncertain_tokens": 0
       },
       {
-        "avoidable_tokens": 110,
+        "avoidable_tokens": 0,
         "context_tokens": 32,
         "findings": [
-          "intent_drift:3a726cf05dd3f436",
           "premature_implementation:ff2bdafc4174f0ae"
         ],
         "seconds": 9.0,
@@ -412,41 +612,9 @@
       "id": "regeneration",
       "kind": "waste",
       "waste": "overproduction"
-    },
-    {
-      "confidence_rule": "An edit or write whose alignment to the intent in force is below the drift band (default 0.25), against an intent of at least 3 key terms: 0.85 when the names it defines continue a goal the developer dropped, or the agent's own reasoning or narration since the prompt called it additional ('also', 'while I'm at it') and names it; 0.75 when it defines new names the intent does not mention; 0.55 (uncertain) when it defines no names and only its added words (at least 3) depart. Before any prompt, or against a shorter intent: no finding.",
-      "id": "intent_drift",
-      "kind": "waste",
-      "waste": "overproduction"
     }
   ],
   "findings": [
-    {
-      "activity_class": "avoidable",
-      "confidence": 0.85,
-      "context_tokens": 11,
-      "detector": "intent_drift",
-      "evidence": [
-        "952a574075aacf7c",
-        "8c8981ce0ad931aa",
-        "3a726cf05dd3f436",
-        "915dd336f4f690a2"
-      ],
-      "explanation": "Edit of src/stats.py is about mean, variance, which scores 0.00 against intent revision 2 (below 0.25), and no intent change was recorded. The agent itself called it additional work.",
-      "id": "intent_drift:3a726cf05dd3f436",
-      "kind": "waste",
-      "seconds": 3.0,
-      "share": 1.0,
-      "subject": "mean, variance",
-      "title": "Edit departs from the intent: mean, variance",
-      "tokens": 110,
-      "uncertain": false,
-      "waste": "overproduction",
-      "waste_events": [
-        "3a726cf05dd3f436",
-        "915dd336f4f690a2"
-      ]
-    },
     {
       "activity_class": "avoidable",
       "confidence": 0.45,
@@ -472,57 +640,187 @@
   "follow_up": [
     {
       "current": "1",
-      "how": "findings[detector=intent_drift]",
-      "metric": "Edits departing from the intent with no intent change",
-      "target": "0"
-    },
-    {
-      "current": "1",
       "how": "findings[detector=premature_implementation]",
       "metric": "Edits to files not read first",
       "target": "0"
     },
     {
-      "current": "74%",
+      "current": "100%",
       "how": "scorecard.flow_efficiency_tokens",
       "metric": "Agentic flow efficiency (tokens)",
       "target": "higher"
     },
     {
-      "current": "26%",
+      "current": "0%",
       "how": "scorecard.activity_tokens.avoidable",
       "metric": "Avoidable share of generated tokens",
       "target": "lower"
     }
   ],
-  "problem": "26% of the 421 tokens the agent generated went to avoidable work across 1 confident finding(s); flow efficiency is 74% of tokens and 89% of agent time; 1 risk(s) to the outcome were flagged.",
-  "root_causes": [
+  "lean_concepts": [
     {
-      "activity_class": "avoidable",
-      "confidence": 0.85,
-      "context_tokens": 11,
-      "detector": "intent_drift",
-      "evidence": [
-        "952a574075aacf7c",
-        "8c8981ce0ad931aa",
-        "3a726cf05dd3f436",
-        "915dd336f4f690a2"
-      ],
-      "explanation": "Edit of src/stats.py is about mean, variance, which scores 0.00 against intent revision 2 (below 0.25), and no intent change was recorded. The agent itself called it additional work.",
-      "id": "intent_drift:3a726cf05dd3f436",
-      "kind": "waste",
-      "seconds": 3.0,
-      "share": 1.0,
-      "subject": "mean, variance",
-      "title": "Edit departs from the intent: mean, variance",
-      "tokens": 110,
-      "uncertain": false,
-      "waste": "overproduction",
-      "waste_events": [
-        "3a726cf05dd3f436",
-        "915dd336f4f690a2"
+      "concept": "value",
+      "measures": [
+        {
+          "meaning": "Edits that change the software and the final response.",
+          "name": "Value-adding generated tokens",
+          "source": "a3:analysis.scorecard.activity_tokens.value_adding"
+        },
+        {
+          "meaning": "Value-adding work toward a verified outcome per unit of resource.",
+          "name": "Software Value Efficiency",
+          "source": "a3:analysis.scorecard.software_value_efficiency.tokens"
+        }
       ]
     },
+    {
+      "concept": "flow",
+      "measures": [
+        {
+          "meaning": "Share of generated tokens progressing or recovering.",
+          "name": "Agentic flow efficiency (tokens)",
+          "source": "a3:analysis.scorecard.flow_efficiency_tokens"
+        },
+        {
+          "meaning": "Share of agent wall time progressing or recovering.",
+          "name": "Agentic flow efficiency (time)",
+          "source": "a3:analysis.scorecard.flow_efficiency_time"
+        }
+      ]
+    },
+    {
+      "concept": "pull",
+      "measures": [
+        {
+          "meaning": "Context pushed into the window that no later action pulled.",
+          "name": "Unused context",
+          "source": "detector:unused_context"
+        },
+        {
+          "meaning": "Exploration not yet pulled into an action or a conclusion.",
+          "name": "Peak open hypotheses",
+          "source": "a3:analysis.wip.peak_by_kind.hypotheses"
+        }
+      ]
+    },
+    {
+      "concept": "wip",
+      "measures": [
+        {
+          "meaning": "Unresolved hypotheses, tasks, edits and failures per event.",
+          "name": "WIP after every event",
+          "source": "a3:analysis.wip.series"
+        },
+        {
+          "meaning": "The most unresolved work open at once.",
+          "name": "Peak WIP",
+          "source": "a3:analysis.wip.peak.total"
+        }
+      ]
+    },
+    {
+      "concept": "queues",
+      "measures": [
+        {
+          "meaning": "Changes queued behind the next check.",
+          "name": "Peak edits awaiting validation",
+          "source": "a3:analysis.wip.peak_by_kind.edits"
+        },
+        {
+          "meaning": "To-do items and subagent handoffs waiting to finish.",
+          "name": "Peak open tasks",
+          "source": "a3:analysis.wip.peak_by_kind.tasks"
+        }
+      ]
+    },
+    {
+      "concept": "rework",
+      "measures": [
+        {
+          "meaning": "A fix that left the same check failing the same way.",
+          "name": "Rework cycles",
+          "source": "detector:rework_cycle"
+        },
+        {
+          "meaning": "Generated tokens spent changing work again.",
+          "name": "Reworking tokens",
+          "source": "a3:analysis.scorecard.flow_tokens.reworking"
+        }
+      ]
+    },
+    {
+      "concept": "defects",
+      "measures": [
+        {
+          "meaning": "Edits answered without a check that covers them.",
+          "name": "Unvalidated implementation",
+          "source": "detector:unvalidated_implementation"
+        },
+        {
+          "meaning": "Edits of code the agent had not seen.",
+          "name": "Premature implementation",
+          "source": "detector:premature_implementation"
+        },
+        {
+          "meaning": "Failing checks never seen passing again.",
+          "name": "Unresolved failures",
+          "source": "a3:analysis.wip.final.failures"
+        }
+      ]
+    },
+    {
+      "concept": "waiting",
+      "measures": [
+        {
+          "meaning": "Agent time blocked on a delegated agent that was not needed.",
+          "name": "Waiting time",
+          "source": "a3:analysis.scorecard.flow_seconds.waiting"
+        },
+        {
+          "meaning": "Delegating work the agent then did itself.",
+          "name": "Unnecessary handoff",
+          "source": "detector:unnecessary_handoff"
+        }
+      ]
+    },
+    {
+      "concept": "over_processing",
+      "measures": [
+        {
+          "meaning": "The same call returning the same output.",
+          "name": "Repeated tool call",
+          "source": "detector:repeated_tool_call"
+        },
+        {
+          "meaning": "Reasoning that restates earlier reasoning.",
+          "name": "Repeated reasoning",
+          "source": "detector:repeated_reasoning"
+        },
+        {
+          "meaning": "A run of planning steps with no action.",
+          "name": "Excessive planning",
+          "source": "detector:excessive_planning"
+        },
+        {
+          "meaning": "Many small edits to one file where one would do.",
+          "name": "Fragmented edits",
+          "source": "detector:fragmented_edits"
+        }
+      ]
+    },
+    {
+      "concept": "motion",
+      "measures": [
+        {
+          "meaning": "Re-reading a file or re-running a search with identical results.",
+          "name": "Repeated exploration",
+          "source": "detector:repeated_exploration"
+        }
+      ]
+    }
+  ],
+  "problem": "0% of the 421 tokens the agent generated went to avoidable work across 0 confident finding(s); flow efficiency is 100% of tokens and 100% of agent time; 1 risk(s) to the outcome were flagged.",
+  "root_causes": [
     {
       "activity_class": "avoidable",
       "confidence": 0.45,

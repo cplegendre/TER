@@ -21,7 +21,14 @@ from ..outcome import OutcomeVerdict, per_verified_outcome
 from .analysis import LeanAnalysis, apportion
 from .countermeasures import Countermeasure, FollowUp, build_countermeasures, follow_ups
 from .inventory import ContextInventory, context_inventory
+from .concepts import LEAN_MEASURES
 from .model import ActivityClass, Finding, FindingKind, LeanWaste
+from .scorecard import (
+    ScorecardDimension,
+    SoftwareValueEfficiency,
+    scorecard_dimensions,
+    software_value_efficiency,
+)
 
 __all__ = ["A3_SCHEMA", "A3Report", "ParetoBar", "build_a3"]
 
@@ -73,6 +80,25 @@ class A3Report:
         generated = self.analysis.scorecard.generated_tokens
         return per_verified_outcome(generated, (self.outcome,))
 
+    @property
+    def value_efficiency(self) -> SoftwareValueEfficiency:
+        """Software Value Efficiency, reported next to TER (TER-SCR-003)."""
+        return software_value_efficiency(self.analysis.scorecard, self.outcome)
+
+    @property
+    def dimensions(self) -> tuple[ScorecardDimension, ...]:
+        """The six scorecard dimensions (TER-SCR-001)."""
+        return scorecard_dimensions(self.analysis, self.value_efficiency, self.outcome)
+
+    def scorecard_dict(self) -> dict[str, object]:
+        """The behaviour scorecard with Software Value Efficiency right after TER."""
+        out: dict[str, object] = {}
+        for key, value in self.analysis.scorecard.as_dict().items():
+            out[key] = value
+            if key == "ter":
+                out["software_value_efficiency"] = self.value_efficiency.as_dict()
+        return out
+
     def as_dict(self) -> dict[str, object]:
         a = self.analysis
         out: dict[str, object] = {
@@ -87,7 +113,9 @@ class A3Report:
             "problem": self.problem,
             "current_state": {"value_stream": [s.as_dict() for s in a.value_stream]},
             "analysis": {
-                "scorecard": a.scorecard.as_dict(),
+                "scorecard": self.scorecard_dict(),
+                "dimensions": [d.as_dict() for d in self.dimensions],
+                "wip": a.wip.as_dict(),
                 "pareto": [p.as_dict() for p in self.pareto],
                 "cycles": [c.as_dict() for c in a.cycles],
             },
@@ -98,6 +126,10 @@ class A3Report:
             "detectors": [
                 {"id": i, "waste": w, "kind": k, "confidence_rule": r}
                 for i, w, k, r in a.detectors
+            ],
+            "lean_concepts": [
+                {"concept": c.value, "measures": [m.as_dict() for m in ms]}
+                for c, ms in LEAN_MEASURES.items()
             ],
         }
         if self.usage_limits:

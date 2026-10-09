@@ -124,12 +124,31 @@ ids. The A3 page shows it as the intent timeline in Background.
 
 ## Scorecard (no single opaque score)
 
-| Dimension | Definition |
+The scorecard has six separate dimensions (`ter.domain.lean.scorecard`,
+TER-SCR-001), each a list of named measures with units; an unknown measure is
+`null`/"unknown", never 0. The first five measure agent behaviour and come
+from the analysis alone; *outcome* is judged apart from them
+([outcome.md](outcome.md)). The A3 JSON carries them under
+`analysis.dimensions`, and the A3 page as the "Scorecard dimensions" table.
+
+| Dimension | Measures |
+|---|---|
+| Efficiency | TER, **Software Value Efficiency**, value-adding share and avoidable share of generated tokens |
+| Flow | Agentic flow efficiency by tokens and by time, peak WIP (and the event it follows), WIP at the end |
+| Quality | Validation runs, runs that passed and failed (read from their output), iteration and rework cycles, share of edits covered by a later validation run |
+| Cost | Generated and context tokens, agent time, avoidable generated tokens, context tokens and time |
+| Risk | Risk findings, uncertain findings, edits no validation run covered, failing checks never seen passing again |
+| Outcome | The verdict (`accepted`, `rejected`, `incomplete`, or `unknown` without evidence), generated tokens per verified outcome |
+
+Definitions of the headline measures:
+
+| Measure | Definition |
 |---|---|
 | Agentic flow efficiency (tokens, time) | Share of generated tokens (agent wall time) *progressing* or *recovering* (productive iteration), against *repeating*, *reworking*, *waiting* (unnecessary handoffs) and *inventory* (unused context). Only confident findings move tokens out of progress. |
 | Activity classes | Generated tokens and time by value-adding, necessary NVA, avoidable, uncertain. Sums equal the totals. |
 | Waste cost | Avoidable generated tokens, context tokens re-entering the window, and seconds. |
 | TER | The TER 3 ratio with the method used (`--ter offline` pins the deterministic tokenizer and embedder; `--ter model` uses sentence-transformers). |
+| Software Value Efficiency | See below; reported next to TER in the A3 tiles, the A3 JSON (`analysis.scorecard.software_value_efficiency`, the key after `ter`), `explain --json` and the `explain` text. |
 | Findings | Confident, uncertain and risk counts; iteration and rework cycles. |
 | Composite | Only with its composition: the unweighted mean of flow efficiency (tokens), flow efficiency (time) and TER, whichever exist. |
 | Context inventory | Tokens of retrieved context no later event used (the reads `unused_context` names, always uncertain, so inventory and never avoidable) and of context read more than once (every read of a path after its first; those after an edit of the file are marked `changed`), each with the model turns that carried it (TER-DET-004). |
@@ -163,6 +182,73 @@ ids. The A3 page shows it as the intent timeline in Background.
   usage, no timestamp (the latest prices are used), or unpriced turns.
   Reconciling these figures with real billing is issue #40.
 
+### Software Value Efficiency
+
+SVE (point 81, TER-SCR-003) is value delivered toward a *verified* outcome per
+unit of resource consumed. Value-adding work is the Lean activity class above
+(edits that change the software, the final response); the outcome verdict says
+whether that work delivered anything.
+
+| Verdict | Status | `tokens` | `time` | Per outcome |
+|---|---|---|---|---|
+| accepted | `measured` | value-adding generated tokens ÷ generated tokens | value-adding agent seconds ÷ agent seconds | `tokens_per_outcome` = generated tokens, `seconds_per_outcome` = agent seconds |
+| rejected | `no_value` | 0 | 0 | none (no verified outcome) |
+| incomplete, or no `--outcome` | `unknown` | none | none | none |
+
+Value is never inferred from tokens: without outcome evidence SVE is
+*unknown*, and the reason says so. Money cost waits for cost on the L2
+scorecard, so resources are tokens and time.
+
+### Value per unit of resource, never token count alone
+
+Every efficiency judgement is a ratio of value (or progressing work) to the
+resource spent (TER-LEN-005): flow efficiency, activity shares and SVE.
+Counting every text three times as many tokens changes none of them, nor any
+finding or the verdict; a session that used fewer tokens and delivered nothing
+scores below one that delivered an accepted change. Token minimisation is not
+a goal, and the A3 says so under the scorecard.
+
+## Work in progress
+
+`LeanAnalysis.wip` (`ter.domain.lean.wip`, TER-WIP-001, points 31 and 32)
+counts unresolved work after every event, lifecycle events included, as a fold
+inside the incremental analyser (O(1) amortised per event; batch equals live).
+
+| Kind | Opens | Resolves |
+|---|---|---|
+| Edits | an `fs.edit` or `fs.write` request | the result of a validation run requested after it, whatever it says (a failure becomes WIP of its own) |
+| Failures | a validation result read as failed, keyed by its normalised command | a later run of the same command that passes; a different command does not (L2 cannot tell which checks a command covers) |
+| Tasks | each to-do item (`plan.todo` with a `todos` list) not `completed`, replaced by each new list; each `agent.handoff` request | the to-do list marking it completed; the handoff's result |
+| Hypotheses | an exploration request (read, search, fetch, exploring shell) on a subject not already open: the file path, otherwise the tool kind and subject | an edit or write of that path (acted on), or the end of the turn (a new prompt or `task.completed`) |
+
+An intermediate response does not end a turn. Unknown validation outcomes open
+and close nothing. The report has the series (`[event_id, hypotheses, tasks,
+edits, failures]` per event), the peak (first sample with the largest total),
+the peak of each kind, the final sample and the event ids that opened every
+item still open at the end. The A3 draws the series as a stacked chart with
+the peak marked, adds a "Peak WIP" tile, and `explain` prints a WIP line.
+
+## Lean concepts and their measures
+
+`ter.domain.lean.concepts.LEAN_MEASURES` maps each Lean concept TER-LEN-006
+names to at least one measure the code computes: a detector
+(`detector:<id>`) or a field of the A3 JSON (`a3:<path>`). A test resolves
+every path in a real A3 and looks every detector up in the registry; the A3
+lists the map under "Evidence and method" and in its JSON (`lean_concepts`).
+
+| Concept | Measures |
+|---|---|
+| Value | `a3:analysis.scorecard.activity_tokens.value_adding`, `a3:analysis.scorecard.software_value_efficiency.tokens` |
+| Flow | `a3:analysis.scorecard.flow_efficiency_tokens`, `a3:analysis.scorecard.flow_efficiency_time` |
+| Pull | `detector:unused_context` (context no later action pulled), `a3:analysis.wip.peak_by_kind.hypotheses` (exploration not yet pulled into an action) |
+| WIP | `a3:analysis.wip.series`, `a3:analysis.wip.peak.total` |
+| Queues | `a3:analysis.wip.peak_by_kind.edits` (changes queued behind the next check), `a3:analysis.wip.peak_by_kind.tasks` |
+| Rework | `detector:rework_cycle`, `a3:analysis.scorecard.flow_tokens.reworking` |
+| Defects | `detector:unvalidated_implementation`, `detector:premature_implementation`, `a3:analysis.wip.final.failures` |
+| Waiting | `a3:analysis.scorecard.flow_seconds.waiting`, `detector:unnecessary_handoff` |
+| Over-processing | `detector:repeated_tool_call`, `detector:repeated_reasoning`, `detector:excessive_planning`, `detector:fragmented_edits` |
+| Motion | `detector:repeated_exploration` |
+
 ## Evidence graph
 
 `LeanAnalysis.graph` (`ter.evidence/0.1`, exported with `--graph FILE`) has one
@@ -184,13 +270,14 @@ python -m ter explain session.jsonl [--json]              # findings as text or 
 
 One self-contained page (no scripts, no requests, light and dark themes,
 prints on A3 landscape) in A3 order: **1 Background** (the developer's
-prompts and a problem statement) · **Scorecard** · **2 Current state** (value
+prompts and a problem statement) · **Scorecard** (tiles with TER and SVE side
+by side and peak WIP, then the six dimensions) · **2 Current state** (value
 stream map: stages with steps, tokens, context and time; stages with
 confident waste outlined in red with a badge; avoidable and uncertain shares
 per stage) · **3 Analysis** (waste Pareto of generated tokens, each event
 counted once under the finding the scorecard charged it to, so the bars add
 up to the scorecard's waste; activity-class 100% bar, flow by
-tokens and by time, fail → fix cycles) · **4 Root causes** (findings with
+tokens and by time, WIP over the session, fail → fix cycles) · **4 Root causes** (findings with
 confidence, cost and evidence event ids) · **5 Countermeasures** (per fired
 detector: CLAUDE.md lines, hook settings and scripts, settings) · **6
 Follow-up** (what to measure next run and where in the JSON).
@@ -218,7 +305,7 @@ existed map as follows.
 | TER-LEAN-018 | TER-DET-008 | planned: model escalations need routing | `test_ter4_lean_detectors.py` |
 | TER-LEAN-019 | TER-LEN-004 | planned: `excessive_planning` can count a planning step that adds a decision | `test_ter4_lean_detectors.py` |
 | TER-LEAN-030 | TER-GRF-002, TER-GRF-003 (TER-GRF-001 planned: decision nodes) | verified | `test_ter4_lean_analysis.py`, properties, `test_ter4_a3.py` |
-| TER-LEAN-040 | TER-SCR-002, TER-FLW-001 (TER-SCR-001 planned: quality, risk, outcome) | verified | `test_ter4_lean_analysis.py`, properties |
+| TER-LEAN-040 | TER-SCR-002, TER-FLW-001, TER-SCR-001 | verified | `test_ter4_lean_analysis.py`, properties, `test_ter4_wip_scorecard.py` |
 | TER-LEAN-050 | TER-ANL-010 | verified | `tests/equivalence/test_live_static.py`, properties |
 | TER-LEAN-060 | TER-ARC-002 | planned: only detectors are plugins so far | `test_ter4_lean_analysis.py` |
 | TER-A3-001, 005 | TER-RPT-003 | verified | `test_ter4_lean_analysis.py`, `test_ter4_a3.py`, golden A3 JSON |
@@ -229,9 +316,10 @@ existed map as follows.
 | (new) | TER-ITN-001, 002, 004, 005 | verified | `tests/unit/test_ter4_lean_intent.py`, `tests/contract/test_alignment_scorer.py`, golden `intent_shift` and `example_session` |
 | (new) | TER-ITN-003 (edits and writes; TER-ITN-006 planned at L3 for exploration and reasoning) | verified | `test_ter4_lean_intent.py` |
 | (new) | TER-LEN-003 (edits and writes; TER-LEN-009 planned at L3 for the other events) | verified | `test_ter4_lean_intent.py` |
+| (new) | TER-WIP-001, TER-SCR-003, TER-LEN-005, TER-LEN-006 | verified | `tests/unit/test_ter4_wip_scorecard.py` |
 
 Tests that only partly prove a planned requirement (TER-DET-007, 008,
-TER-LEN-004, TER-ARC-002, TER-SCR-001, TER-GRF-001) do not cite it, so the
+TER-LEN-004, TER-ARC-002, TER-GRF-001) do not cite it, so the
 trace gate never suggests promoting it early; `requirements/points.yaml`
 names those tests as the points' verification instead.
 
@@ -244,14 +332,14 @@ catalogue review differ, the status here has been aligned with it.
 
 | Pt | Status | Definition of done | Rule for long-term navigation |
 |---|---|---|---|
-| 3 | partial | Value, waste, flow, cost are domain types (`ActivityClass`, `LeanWaste`, `FlowState`, `Scorecard`); quality, risk, outcome need L3 evidence | New dimensions join `Scorecard` as separate fields, never folded into another |
+| 3 | done | Value, waste, flow, quality, cost, risk and outcome are named scorecard dimensions (`Dimension`, `ScorecardDimension`) computed from recorded events and the outcome verdict | New measures join a `Dimension`, never folded into another |
 | 6 | partial | Edits and writes are valued against the current intent (`intent_drift`, TER-LEN-003); other events need repository evidence (TER-LEN-009, L3) | Value is judged against the intent revision in force, never the first prompt alone |
 | 7 | partial | Waste = cost claimed by a finding that did not advance the requested outcome; an edit departing from the intent is overproduction (TER-LEN-003); other events at L3 (TER-LEN-009) | A waste finding must cite what it consumed (`waste_events`) |
 | 8 | partial | Reasoning is waste only when restated with ≤ 25% new words, or in a 4+ step run without action; the planning rule can still count a step that adds a decision (TER-LEN-004) | Never flag reasoning by length |
-| 9 | partial | Flow efficiency counts productive iteration as flow; the constant-value, fewer-tokens test (TER-LEN-005) is still to write | No detector threshold may be a token count |
-| 10 | partial | Headline is flow efficiency, not token totals; the report does not yet name token minimisation as a non-goal | Reports lead with flow and outcome risk |
-| 11 | done | `ter.domain.lean` + ADR 0004 | Lean concepts change only with an ADR |
-| 12 | partial | Rework, defects, waiting, over-processing, motion, inventory mapped; pull, WIP, queues later (L3/L4) | Map a new concept onto `LeanWaste`/`FlowState` before adding a detector |
+| 9 | done | Flow efficiency counts productive iteration as flow; a test cuts every token count to a third at constant value and no efficiency judgement or verdict changes (TER-LEN-005) | No detector threshold may be a token count |
+| 10 | done | Headline is flow efficiency and SVE, not token totals; the A3 names token minimisation as a non-goal | Reports lead with flow and outcome risk |
+| 11 | done | `ter.domain.lean` + ADR 0004; concept-to-measure map in `concepts.py` | Lean concepts change only with an ADR |
+| 12 | done | Every concept has computed measures in `LEAN_MEASURES` (table above); pull and queues are proxied by unused context and WIP at L2 | Map a new concept onto `LeanWaste`/`FlowState` or `LEAN_MEASURES` before adding a detector |
 | 13 | done | Six-stage value stream, `STAGE_ORDER` | Stage order is fixed; new tools map onto an existing stage |
 | 14 | done | Prompts, reasoning, tool calls, reads, edits, tests, responses are events with stages | Stages come from tool *kinds*, never native names |
 | 15 | done | Three activity classes with a basis per event | Every classified event carries a basis |
@@ -270,7 +358,8 @@ catalogue review differ, the status here has been aligned with it.
 | 28 | partial | Repeated reads are motion (`repeated_exploration`); unused traversals are uncertain inventory, not motion, until L3 | As 18 |
 | 29 | done | `unnecessary_handoff` | The handoff is the waste; the agent's own call is kept |
 | 30 | partial | Handoff wait time lands in the *waiting* flow state; model escalation needs routing (L5) | Waiting is attributed only through findings |
-| 31–33 | later | WIP of hypotheses and failures needs L3/L4 signals | Add as a `Scorecard` dimension, not a detector |
+| 31, 32 | done | `WipTracker` counts unresolved hypotheses, tasks, edits and failures after every event; the A3 shows the series and its peak | WIP is a fold: O(1) amortised per event, batch equals live |
+| 33 | later | The WIP–efficiency correlation needs the L6 dataset (issue #44) | A finding never fires on WIP alone without that evidence |
 | 34 | done | `unused_context` (inventory) | As 21 |
 | 35 | partial | Unused context in tokens and carrying cost at the session date's prices, estimated without cache fields; reconciliation with real billing waits on issue #40 | Context and generated tokens are reported separately |
 | 36 | partial | Re-read context in tokens and carrying cost, as 35; real data waits on issue #40 | As 35 |
@@ -293,9 +382,9 @@ catalogue review differ, the status here has been aligned with it.
 | 77 | partial | `EvidenceGraph.ancestors`; no command prints the reconstruction yet | Graph export schema is versioned (`ter.evidence/0.1`) |
 | 79 | done | Agentic flow efficiency (tokens and time) | Defined in this page; changes need an ADR |
 | 80 | done | Flow states: progressing, recovering, repeating, reworking, waiting, inventory | Each `LeanWaste` maps to exactly one flow state |
-| 81 | later | Software Value Efficiency needs outcome evidence (L3) | Not approximated from tokens |
-| 82 | partial | Separate scorecard dimensions; quality, risk and outcome are later (TER-SCR-001) | No opaque single score |
-| 83 | partial | Efficiency, flow, cost now; quality, risk, outcome later | As 3 |
+| 81 | done | Software Value Efficiency defined above, computed from the verdict and shown next to TER; unknown without outcome evidence | Not approximated from tokens |
+| 82 | done | Six separate scorecard dimensions; the composite shows its parts | No opaque single score |
+| 83 | done | Efficiency, flow, quality, cost, risk and outcome | As 3 |
 | 84 | done | `Composite` with components, weights and formula | A composite is never shown without its parts |
 | 85 | done | Confidence on every finding with a published rule | Every detector publishes `confidence_rule` |
 | 86 | done | Uncertain findings shown and bucketed separately | Uncertain never counts as avoidable |
@@ -306,12 +395,12 @@ catalogue review differ, the status here has been aligned with it.
 
 | Layer | Module |
 |---|---|
-| domain | `ter/domain/lean/`: `model.py`, `facts.py`, `steps.py`, `intent.py`, `detectors.py`, `graph.py`, `analysis.py`, `countermeasures.py`, `inventory.py`, `a3.py`; `ter/domain/costing.py`; `AnalysisEngine.explain()` and `explain_batch` in `ter/domain/stream.py` |
+| domain | `ter/domain/lean/`: `model.py`, `facts.py`, `steps.py`, `intent.py`, `detectors.py`, `graph.py`, `analysis.py`, `wip.py`, `scorecard.py`, `concepts.py`, `countermeasures.py`, `inventory.py`, `a3.py`; `ter/domain/costing.py`; `AnalysisEngine.explain()` and `explain_batch` in `ter/domain/stream.py` |
 | ports | `TerScorer`, `PriceBook` and `AlignmentScorer` in `ter/ports/driven.py` |
 | application | `ExplainSession` in `ter/application/explain.py` |
 | driven adapters | `ter/adapters/driven/ter3/` (`Ter3Scorer`), `FixedTerScorer` fake, `ter/adapters/driven/alignment.py` (`EmbeddingAlignment`) |
 | driving adapters | `ter/adapters/driving/reports/a3.py`, `explain` and `a3` in `ter/adapters/driving/cli.py`; `ter a3` delegates from the TER 3 CLI |
-| tests | `tests/unit/test_ter4_lean_*.py`, `test_ter4_a3.py`, `tests/contract/test_ter_scorer.py`, `tests/contract/test_alignment_scorer.py`, `tests/golden/test_lean_snapshots.py`, `tests/equivalence/test_live_static.py` |
+| tests | `tests/unit/test_ter4_lean_*.py`, `test_ter4_a3.py`, `test_ter4_wip_scorecard.py`, `test_ter4_context_cost.py`, `tests/contract/test_ter_scorer.py`, `tests/contract/test_alignment_scorer.py`, `tests/golden/test_lean_snapshots.py`, `tests/equivalence/test_live_static.py`, `tests/equivalence/test_recompute_from_events.py` |
 
 ## Known limits
 
