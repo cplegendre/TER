@@ -10,9 +10,9 @@ rules that enforce it and how it is verified. Rules live in
 contributed from another source (an external capability, ADR 0005) and the
 Origin column names that source, its reference and author.
 
-**200 points** · ● done **80** · ◐ partial **42** · ○ not started **78**
+**200 points** · ● done **87** · ◐ partial **43** · ○ not started **70**
 
-`████████████████▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░`
+`█████████████████▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░`
 
 Legend: `█` done · `▓` partial · `░` not started
 
@@ -23,7 +23,7 @@ Legend: `█` done · `▓` partial · `░` not started
 | L0 Measured | `██████████████████▓▓` | 10 | 1 | 0 | 11 |
 | L1 Observed | `███████████████████▓` | 15 | 1 | 0 | 16 |
 | L2 Explained | `█████████████████▓▓▓` | 45 | 9 | 0 | 54 |
-| L3 Grounded | `████▓▓▓▓▓▓▓░░░░░░░░░` | 9 | 18 | 21 | 48 |
+| L3 Grounded | `███████▓▓▓▓▓▓▓▓░░░░░` | 16 | 19 | 13 | 48 |
 | L4 Advisory | `▓▓░░░░░░░░░░░░░░░░░░` | 0 | 4 | 35 | 39 |
 | L5 Corrective | `██▓▓▓▓▓▓░░░░░░░░░░░░` | 1 | 4 | 8 | 13 |
 | L6 Learning | `▓▓▓▓▓░░░░░░░░░░░░░░░` | 0 | 5 | 14 | 19 |
@@ -46,7 +46,7 @@ P061 ● ◐ ◐ ◐ ◐ ◐ ○ ○ ○ ○ ◐ ◐ ● ◐ ● ● ◐ ◐ ●
 P081 ● ● ● ● ● ● ◐ ○ ○ ○ ◐ ◐ ● ○ ◐ ○ ○ ○ ○ ◐
 P101 ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ◐ ● ● ● ●
 P121 ◐ ● ○ ○ ◐ ○ ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ○
-P141 ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ◐ ◐ ○ ○ ○ ○ ○ ○ ○ ○
+P141 ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ● ● ◐ ● ◐ ◐ ● ● ● ●
 P161 ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○
 P181 ◐ ◐ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ◐ ◐ ○ ○
 ```
@@ -205,16 +205,16 @@ P181 ◐ ◐ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ◐ ◐ ○
 | P148 | Escalate difficult reasoning only when evidence supports escalation. | vision | L3 | ○ not started |  | • Escalation happens only with a supporting detector signal. | `TER-RTE-003` · | planned: passing tests tagged req for TER-RTE-003 |
 | P149 | Measure whether escalation actually improves software outcomes. | vision | L3 | ○ not started | [#39](https://github.com/lgriffin/TER/issues/39) | • Every escalation records the outcome change it produced. | `TER-RTE-002` · | planned: passing tests tagged req for TER-RTE-002<br>planned: real-data verification in issue #39 |
 | P150 | Measure the cost and latency introduced by escalation. | vision | L3 | ○ not started | [#39](https://github.com/lgriffin/TER/issues/39) | • Every escalation records its cost and latency. | `TER-RTE-002` · | planned: passing tests tagged req for TER-RTE-002<br>planned: real-data verification in issue #39 |
-| P151 | Adopt TGV-style deterministic context bundles. | vision | L3 | ◐ partial |  | • The same inputs produce the same context bundle, byte for byte. | `TER-CTX-001` · | planned: passing tests tagged req for TER-CTX-001 |
-| P152 | Construct compact evidence packages containing only information relevant to the next… | vision | L3 | ◐ partial |  | • Bundles hold only evidence selected for the next decision. | `TER-CTX-001` · | planned: passing tests tagged req for TER-CTX-001 |
-| P153 | Compare full-context approaches with evidence-selected context. | vision | L3 | ○ not started | [#42](https://github.com/lgriffin/TER/issues/42) | • A benchmark compares full-context and evidence-selected context on the same tasks. | `TER-CTX-003` ·<br>`TER-ANL-031` · | planned: passing tests tagged req for TER-CTX-003, TER-ANL-031<br>planned: real-data verification in issue #42 |
-| P154 | Measure context precision: the proportion of supplied context subsequently used. | vision | L3 | ○ not started |  | • Context precision is reported per bundle. | `TER-CTX-003` · | planned: passing tests tagged req for TER-CTX-003 |
-| P155 | Measure context recall: whether critical repository evidence was available when needed. | vision | L3 | ○ not started | [#42](https://github.com/lgriffin/TER/issues/42) | • Context recall is reported per bundle. | `TER-CTX-003` ·<br>`TER-EVD-005` · | planned: passing tests tagged req for TER-CTX-003, TER-EVD-005<br>planned: real-data verification in issue #42 |
-| P156 | Investigate context selection as a Lean inventory problem. | vision | L3 | ○ not started | [#42](https://github.com/lgriffin/TER/issues/42) | • The Lean model docs treat context selection as an inventory problem with measures. | `TER-CTX-004` · | planned: passing tests tagged req for TER-CTX-004<br>planned: real-data verification in issue #42 |
-| P157 | Treat excessive context as inventory carrying cost. | vision | L3 | ○ not started |  | • Unused context is costed as inventory carrying cost. | `TER-CTX-004` · | planned: passing tests tagged req for TER-CTX-004 |
-| P158 | Treat missing context as a potential defect source. | vision | L3 | ○ not started |  | • Missing context is reported as defect risk. | `TER-CTX-004` · | planned: passing tests tagged req for TER-CTX-004 |
-| P159 | Optimise context for sufficient evidence rather than minimum size. | vision | L3 | ○ not started |  | • Context selection targets sufficient evidence, and tests show a bundle is not shrunk below the evidence needed. | `TER-CTX-001` · | planned: passing tests tagged req for TER-CTX-001 |
-| P160 | Record why each context fragment was selected. | vision | L3 | ○ not started |  | • Every context fragment records why it was selected. | `TER-EVD-004` · | planned: passing tests tagged req for TER-EVD-004 |
+| P151 | Adopt TGV-style deterministic context bundles. | vision | L3 | ● done |  | • The same inputs produce the same context bundle, byte for byte. | `TER-CTX-001` ✓ | test: tests/unit/test_ter4_context_bundle.py::TestDeterminism<br>test: tests/unit/test_ter4_context_bundle.py::TestCli::test_bundle_prints_the_bundle_and_records_its_supply |
+| P152 | Construct compact evidence packages containing only information relevant to the next… | vision | L3 | ● done |  | • Bundles hold only evidence selected for the next decision. | `TER-CTX-001` ✓ | test: tests/unit/test_ter4_context_bundle.py::TestSelection<br>test: tests/unit/test_ter4_context_bundle.py::TestBudget |
+| P153 | Compare full-context approaches with evidence-selected context. | vision | L3 | ◐ partial | [#42](https://github.com/lgriffin/TER/issues/42) | • A benchmark compares full-context and evidence-selected context on the same tasks. | `TER-CTX-003` ✓<br>`TER-ANL-031` · | test: tests/unit/test_ter4_context_bundle.py::TestPrecisionRecall<br>planned: passing tests tagged req for TER-ANL-031<br>planned: real-data verification in issue #42 |
+| P154 | Measure context precision: the proportion of supplied context subsequently used. | vision | L3 | ● done |  | • Context precision is reported per bundle. | `TER-CTX-003` ✓ | test: tests/unit/test_ter4_context_bundle.py::TestPrecisionRecall<br>test: tests/unit/test_ter4_context_bundle.py::TestCli::test_report_prints_the_measures |
+| P155 | Measure context recall: whether critical repository evidence was available when needed. | vision | L3 | ◐ partial | [#42](https://github.com/lgriffin/TER/issues/42) | • Context recall is reported per bundle. | `TER-CTX-003` ✓<br>`TER-EVD-005` ✓ | test: tests/unit/test_ter4_context_bundle.py::TestPrecisionRecall<br>test: tests/unit/test_ter4_context_bundle.py::TestCriticalRecall<br>test: tests/unit/test_ter4_context_bundle.py::TestCriticalFile<br>planned: real-data verification in issue #42 |
+| P156 | Investigate context selection as a Lean inventory problem. | vision | L3 | ◐ partial | [#42](https://github.com/lgriffin/TER/issues/42) | • The Lean model docs treat context selection as an inventory problem with measures. | `TER-CTX-004` ✓ | test: tests/unit/test_ter4_context_bundle.py::TestInventoryAndRisk<br>planned: real-data verification in issue #42 |
+| P157 | Treat excessive context as inventory carrying cost. | vision | L3 | ● done |  | • Unused context is costed as inventory carrying cost. | `TER-CTX-004` ✓ | test: tests/unit/test_ter4_context_bundle.py::TestInventoryAndRisk |
+| P158 | Treat missing context as a potential defect source. | vision | L3 | ● done |  | • Missing context is reported as defect risk. | `TER-CTX-004` ✓ | test: tests/unit/test_ter4_context_bundle.py::TestInventoryAndRisk::test_missing_context_names_the_edits_that_depended_on_it<br>test: tests/unit/test_ter4_context_bundle.py::TestPrecisionRecall::test_recall_falls_when_the_session_edits_a_file_the_bundle_lacked |
+| P159 | Optimise context for sufficient evidence rather than minimum size. | vision | L3 | ● done |  | • Context selection targets sufficient evidence, and tests show a bundle is not shrunk below the evidence needed. | `TER-CTX-001` ✓ | test: tests/unit/test_ter4_context_bundle.py::TestBudget::test_a_seed_is_never_dropped_for_lower_ranked_evidence<br>test: tests/unit/test_ter4_context_bundle.py::TestSelection::test_a_prompt_naming_nothing_selects_nothing_and_says_so |
+| P160 | Record why each context fragment was selected. | vision | L3 | ● done |  | • Every context fragment records why it was selected. | `TER-EVD-004` ✓ | test: tests/unit/test_ter4_context_bundle.py::TestSupplied |
 | P161 | Introduce an Intervention Engine separate from the Analysis Engine. | vision | L4 | ○ not started |  | • An Intervention Engine exists as a separate module from the Analysis Engine. | `TER-INT-006` · | planned: passing tests tagged req for TER-INT-006 |
 | P162 | Feed the Intervention Engine structured analytical signals rather than raw heuristics. | vision | L4 | ○ not started |  | • The Intervention Engine consumes typed detector signals, not raw heuristics. | `TER-INT-006` · | planned: passing tests tagged req for TER-INT-006 |
 | P163 | Define intervention policies declaratively. | vision | L4 | ○ not started |  | • Intervention policies are declarative files. | `TER-INT-008` · | planned: passing tests tagged req for TER-INT-008 |
