@@ -103,17 +103,17 @@ flow state, used by the flow efficiency measure below.
 | Flow | Agentic flow efficiency by tokens and by time; flow states | measured |
 | Rework | `rework_cycle` findings; `rework_cycles` in the scorecard | measured |
 | Defects | Risk findings (`unvalidated_implementation`, `premature_implementation`) | measured as risk, no cost claimed |
-| Waiting | *waiting* flow state, attributed through handoff findings | partly measured |
+| Waiting | *waiting* flow state, attributed through handoff and failed-route findings | measured; escalation after a successful call needs L3 |
 | Over-processing | Four detectors listed above | measured |
-| Motion | `repeated_exploration`; unnecessary traversal needs repository evidence (L3) | partly measured |
-| Inventory | `unused_context`, always uncertain until L3 | uncertain only |
+| Motion | `repeated_exploration`, `fragmented_edits`; `unused_traversal` uncertain until L3 | measured |
+| Inventory | `unused_context`, `excessive_context`, always uncertain until L3 | uncertain only |
 | Pull | `unused_context` (context no later action pulled) and peak open hypotheses | measured as proxies at L2 |
 | WIP | Unresolved hypotheses, tasks, edits and failures after every event (`LeanAnalysis.wip`) | measured |
 | Queues | Peak edits awaiting validation and peak open tasks (`wip.peak_by_kind`) | measured as proxies; real queues need L4 |
 
 ## The detectors
 
-Eleven detectors live in `src/ter/domain/lean/detectors.py` behind the
+Sixteen detectors live in `src/ter/domain/lean/detectors.py` behind the
 `WasteDetector` protocol and are registered in `DEFAULT_REGISTRY`. Each
 publishes its `confidence_rule` in plain language, and each finding lists the
 `evidence` events it rests on and the `waste_events` whose cost it claims.
@@ -125,12 +125,16 @@ publishes its `confidence_rule` in plain language, and each finding lists the
 | `rework_cycle` | rework | the same check fails with the same failure signature after a fix (0.80, 0.90 the second time in a row) | the next run passes or fails differently: that is iteration |
 | `unvalidated_implementation` | defects (risk) | the agent responds after edits with no check (0.85), only earlier checks (0.75), or after a failing check (0.85) | a check ran after the edits and the last check before the response did not fail |
 | `premature_implementation` | defects (risk) | an in-place edit of a file never read, written or named (0.75) | the file was read or named first |
-| `excessive_planning` | over-processing | four or more planning steps with no action between | an exploration, edit, check or response comes within the first four planning steps |
-| `fragmented_edits` | over-processing | three or more consecutive edits to one file | edits touch different files, or any other tool call comes between them |
+| `excessive_planning` | over-processing | four or more planning steps with no action between, and a step after the second restates the plan | an action comes within the first four planning steps, or every later step adds a decision (more than 25% new words, or a new to-do list) |
+| `fragmented_edits` | motion | three or more consecutive edits to one file | edits touch different files, or any other tool call comes between them |
 | `unused_context` | inventory | nothing after a read names the file or what it defines (0.55 to 0.65, always uncertain) | a later event names the file or its symbols |
 | `unnecessary_handoff` | handoffs | the agent redoes a delegated task itself (shared key words) | the agent's later calls are about something else |
-| `repeated_reasoning` | over-processing | reasoning restates earlier reasoning for the same prompt with at most 25% new words | anything was edited between, or the block adds new content |
+| `repeated_reasoning` | over-processing | reasoning restates earlier reasoning for the same prompt with at most 25% new words | anything was edited between, the block adds new content, or a new word comes from a tool result seen since (new evidence) |
 | `regeneration` | overproduction | a whole-file write keeps most of an existing file (0.80 for the agent's own write, 0.60 for a file just read) | the file is new, or the write changes most of it |
+| `excessive_context` | inventory | a task acquires more distinct context items before its first edit than 3 per changed file plus 3 (0.55 to 0.65, always uncertain) | the context stays within the band |
+| `insufficient_context` | defects (risk) | a task edits its n-th file in place with fewer than n context items (0.70; 0.55 when an earlier task read the file) | each file edited in place has a context item in the task |
+| `unused_traversal` | motion | a search or `ls`/`find` lists files nothing later reads, edits or names (0.60, always uncertain) | a listed file is used later, or the output lists none |
+| `failed_route` | waiting | a model call fails over (`route.failover`) and another route does the work (0.80) | no route fails |
 
 The full confidence rules are in the
 [detector catalogue](../ter4/l2-explained.md#detector-catalogue) and in each

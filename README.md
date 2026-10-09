@@ -24,7 +24,7 @@ flowchart LR
     S["Claude Code<br/>transcript or hooks"] --> E["ter.event stream"]
     E --> T["TER ratio<br/>(TER 3, kept)"]
     O["Test results<br/>(JUnit XML)"] --> V["Outcome verdict"]
-    E --> L["Lean model<br/>value stream · 11 waste detectors"]
+    E --> L["Lean model<br/>value stream · 16 waste detectors"]
     L --> G["Evidence graph"]
     L --> SC["Scorecard<br/>flow efficiency · activity · waste cost"]
     T --> SC

@@ -156,7 +156,7 @@ requirements:
     rationale: >-
       Both too much and too little context acquisition are waste or defect
       sources.
-    status: planned
+    status: verified
 
   - id: TER-DET-004
     pattern: ubiquitous
@@ -204,18 +204,22 @@ requirements:
     rationale: >-
       Motion waste in agents is traversal and fragmentation without
       downstream use.
-    status: planned
+    status: verified
 
   - id: TER-DET-008
     pattern: ubiquitous
     text: >-
-      TER shall report subagent handoffs and model escalations that add
-      waiting time without adding new evidence.
+      TER shall report subagent handoffs whose work the agent then does
+      itself and model calls that fail over to another route as waiting
+      that added no new evidence.
     level: L2
     source_points: [29, 30]
     rationale: >-
       Handoffs and escalations create queues; only evidence justifies them.
-    status: planned
+      A failover is the escalation the event stream shows (route.failover,
+      ter.event/0.3); an escalation after a successful call needs a
+      route.escalated event and is TER-DET-011 (L3).
+    status: verified
 
   - id: TER-DET-009
     pattern: event-driven
@@ -228,7 +232,7 @@ requirements:
     rationale: >-
       Exploration required by uncertainty is value; aimless exploration is
       waste.
-    status: planned
+    status: verified
 
   - id: TER-DET-010
     pattern: unwanted
@@ -376,7 +380,7 @@ requirements:
     source_points: [8, 17]
     rationale: >-
       Additional reasoning is not automatically waste.
-    status: planned
+    status: verified
 
   - id: TER-LEN-005
     pattern: ubiquitous

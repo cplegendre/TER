@@ -241,7 +241,7 @@
       "waste": "defects"
     },
     {
-      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary; the rest as waste.",
+      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary. A later step is waste only when it adds no decision: a reasoning block with at most 25% content words new to the prompt and the run so far, or a to-do update identical to an earlier one in the run. A step that adds a decision is never waste, and a run with no such restating step is not a finding.",
       "id": "excessive_planning",
       "kind": "waste",
       "waste": "over_processing"
@@ -250,7 +250,7 @@
       "confidence_rule": "At least 3 consecutive edit calls to one file with only reasoning and their results in between. 0.70 for 3, plus 0.05 per extra edit, capped at 0.85. Only the round-trip overhead (results and waiting of edits after the first) is counted as waste, never the change itself.",
       "id": "fragmented_edits",
       "kind": "waste",
-      "waste": "over_processing"
+      "waste": "motion"
     },
     {
       "confidence_rule": "Judged only once the agent has responded after the read. A read counts as used when a later reasoning, response or tool call names the file, or names something the file defines, or edits it. Otherwise 0.65 when the file defined names that were never used, 0.55 when it defined none. Always uncertain: reading to rule something out is legitimate, and only repository evidence (L3) can tell.",
@@ -265,7 +265,7 @@
       "waste": "handoffs"
     },
     {
-      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, and at most 25% of its content words are new (in neither the earlier block nor the prompt). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
+      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, at most 25% of its content words are new (in neither the earlier block nor the prompt), and none of its new words comes from a tool result observed since the earlier block (that would be new evidence). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
       "id": "repeated_reasoning",
       "kind": "waste",
       "waste": "over_processing"
@@ -277,10 +277,28 @@
       "waste": "overproduction"
     },
     {
-      "confidence_rule": "An edit or write whose alignment to the intent in force is below the drift band (default 0.25), against an intent of at least 3 key terms: 0.85 when the names it defines continue a goal the developer dropped, or the agent's own reasoning or narration since the prompt called it additional ('also', 'while I'm at it') and names it; 0.75 when it defines new names the intent does not mention; 0.55 (uncertain) when it defines no names and only its added words (at least 3) depart. Before any prompt, or against a shorter intent: no finding.",
-      "id": "intent_drift",
+      "confidence_rule": "Per task (prompt), counting distinct context items (file reads, searches, fetches, handoffs, exploring shell commands) before the first edit: a finding when they exceed per_file (3) × files the task changes + slack (3). Items past the band that are not reads of a changed file are the waste. Confidence 0.55 + 0.02 per item over the band, capped at 0.65: always uncertain at L2, since only repository scope (L3) can tell whether the extra context was needed.",
+      "id": "excessive_context",
       "kind": "waste",
-      "waste": "overproduction"
+      "waste": "inventory"
+    },
+    {
+      "confidence_rule": "Per task (prompt): when the task first edits its n-th distinct file in place (Edit, not a new-file Write), it must have acquired at least min_per_file (1) × n distinct context items (reads, searches, fetches, handoffs, exploring shell). The first edit below that bound is the finding: 0.70 when that file was never read or written earlier in the session; 0.55 (uncertain) when it was, since context carried from an earlier task may suffice. A risk: it claims no cost.",
+      "id": "insufficient_context",
+      "kind": "risk",
+      "waste": "defects"
+    },
+    {
+      "confidence_rule": "Judged only once the agent has responded after it. A search (Grep, Glob) or traversing shell command (ls, find, tree, rg, grep) whose output lists file names, none of which a later event reads, edits or names: 0.60. Always uncertain at L2: a traversal can rule a place out, and only repository evidence (L3) can tell. Empty or unobserved output and repeats of an earlier traversal (left to repeated_exploration) are not findings.",
+      "id": "unused_traversal",
+      "kind": "waste",
+      "waste": "motion"
+    },
+    {
+      "confidence_rule": "A route.failover event (a model call that returned no tokens and did not succeed). 0.80 when a later response completed the work on another route, so the failed call added only waiting; 0.55 (uncertain) when no later response followed. The failover's wall time is the waste; it generated no tokens.",
+      "id": "failed_route",
+      "kind": "waste",
+      "waste": "waiting"
     }
   ],
   "events": 20,
@@ -617,6 +635,18 @@
     "schema": "ter.evidence/0.1",
     "session_id": "golden-rework"
   },
+  "exploration": [
+    {
+      "driver": "intent_directed",
+      "event_id": "f2873718c65cddef",
+      "motive": "e2450187ade21441",
+      "shared": [
+        "parser",
+        "parser.py",
+        "src"
+      ]
+    }
+  ],
   "findings": [
     {
       "activity_class": "avoidable",
@@ -649,137 +679,6 @@
       ]
     }
   ],
-  "intent": {
-    "alignment": [
-      {
-        "band": "partial",
-        "basis": "text",
-        "event_id": "85ed37b31edb7b93",
-        "names": [],
-        "revision": 1,
-        "score": 0.4286
-      },
-      {
-        "band": "aligned",
-        "basis": "text",
-        "event_id": "f2873718c65cddef",
-        "names": [],
-        "revision": 1,
-        "score": 1.0
-      },
-      {
-        "band": "low",
-        "basis": "text",
-        "event_id": "77dbe291b043466d",
-        "names": [],
-        "revision": 1,
-        "score": 0.1667
-      },
-      {
-        "band": "low",
-        "basis": "changed_words",
-        "event_id": "b5dc801f9ba2fcf1",
-        "names": [],
-        "revision": 1,
-        "score": 0.0
-      },
-      {
-        "band": "aligned",
-        "basis": "text",
-        "event_id": "1c91989c08c0ed50",
-        "names": [],
-        "revision": 1,
-        "score": 0.6667
-      },
-      {
-        "band": "partial",
-        "basis": "text",
-        "event_id": "b79c917cdfc846b5",
-        "names": [],
-        "revision": 1,
-        "score": 0.3333
-      },
-      {
-        "band": "low",
-        "basis": "changed_words",
-        "event_id": "d149692b66de4b4b",
-        "names": [],
-        "revision": 1,
-        "score": 0.0
-      },
-      {
-        "band": "aligned",
-        "basis": "text",
-        "event_id": "763dc8c817be8d49",
-        "names": [],
-        "revision": 1,
-        "score": 0.6667
-      },
-      {
-        "band": "low",
-        "basis": "text",
-        "event_id": "c502b1c166401b3c",
-        "names": [],
-        "revision": 1,
-        "score": 0.2222
-      },
-      {
-        "band": "low",
-        "basis": "text",
-        "event_id": "f32c8aba5faf2655",
-        "names": [],
-        "revision": 1,
-        "score": 0.0
-      },
-      {
-        "band": "aligned",
-        "basis": "text",
-        "event_id": "1721cb31e33a6b9b",
-        "names": [],
-        "revision": 1,
-        "score": 0.6667
-      },
-      {
-        "band": "aligned",
-        "basis": "text",
-        "event_id": "ee6a5952b4a08820",
-        "names": [],
-        "revision": 1,
-        "score": 0.5556
-      }
-    ],
-    "changes": [],
-    "config": {
-      "drift_below": 0.25,
-      "low_below": 0.25,
-      "min_events": 3
-    },
-    "drift": [],
-    "low_alignment_periods": [],
-    "revisions": [
-      {
-        "abandoned": [],
-        "event_id": "e2450187ade21441",
-        "prompt": "The duration parser in src/parser.py fails for hours like '2h'. Fix parse_durati",
-        "relation": "opened",
-        "revision": 1,
-        "similarity": null,
-        "terms": [
-          "duration",
-          "exist",
-          "fail",
-          "hour",
-          "keep",
-          "pars",
-          "parser",
-          "test",
-          "work"
-        ]
-      }
-    ],
-    "rule": "Overlap coefficient |intent ∩ activity| / min(|intent|, |activity|) of key terms (content words, identifier parts and file-name parts, stemmed, without stopwords or generic programming words); 0 when either side has no terms.",
-    "scorer": "lexical"
-  },
   "schema": "ter.lean/0.1",
   "scorecard": {
     "activity_seconds": {
@@ -847,9 +746,6 @@
     },
     "uncertain_findings": 0,
     "uncertain_waste_tokens": 0,
-    "validation_runs": 3,
-    "validations_failed": 2,
-    "validations_passed": 1,
     "waste_context_tokens": 38,
     "waste_seconds": 9.0,
     "waste_tokens": 92
@@ -920,185 +816,5 @@
       "tokens": 39,
       "uncertain_tokens": 0
     }
-  ],
-  "wip": {
-    "edits_opened": 3,
-    "edits_validated": 3,
-    "final": {
-      "edits": 0,
-      "event_id": "ee6a5952b4a08820",
-      "failures": 0,
-      "hypotheses": 0,
-      "tasks": 0,
-      "total": 0
-    },
-    "kinds": [
-      "hypotheses",
-      "tasks",
-      "edits",
-      "failures"
-    ],
-    "open_at_end": {
-      "edits": [],
-      "failures": [],
-      "hypotheses": [],
-      "tasks": []
-    },
-    "peak": {
-      "edits": 1,
-      "event_id": "d149692b66de4b4b",
-      "failures": 1,
-      "hypotheses": 0,
-      "tasks": 0,
-      "total": 2
-    },
-    "peak_by_kind": {
-      "edits": 1,
-      "failures": 1,
-      "hypotheses": 1,
-      "tasks": 0
-    },
-    "series": [
-      [
-        "e2450187ade21441",
-        0,
-        0,
-        0,
-        0
-      ],
-      [
-        "85ed37b31edb7b93",
-        0,
-        0,
-        0,
-        0
-      ],
-      [
-        "f2873718c65cddef",
-        1,
-        0,
-        0,
-        0
-      ],
-      [
-        "031f35117637cfd7",
-        1,
-        0,
-        0,
-        0
-      ],
-      [
-        "77dbe291b043466d",
-        1,
-        0,
-        0,
-        0
-      ],
-      [
-        "b5dc801f9ba2fcf1",
-        0,
-        0,
-        1,
-        0
-      ],
-      [
-        "ee00dc2afae9406b",
-        0,
-        0,
-        1,
-        0
-      ],
-      [
-        "1c91989c08c0ed50",
-        0,
-        0,
-        1,
-        0
-      ],
-      [
-        "67f5fdb471aa600f",
-        0,
-        0,
-        0,
-        1
-      ],
-      [
-        "b79c917cdfc846b5",
-        0,
-        0,
-        0,
-        1
-      ],
-      [
-        "d149692b66de4b4b",
-        0,
-        0,
-        1,
-        1
-      ],
-      [
-        "7bb0cb9e49bf57ce",
-        0,
-        0,
-        1,
-        1
-      ],
-      [
-        "763dc8c817be8d49",
-        0,
-        0,
-        1,
-        1
-      ],
-      [
-        "672962215503debc",
-        0,
-        0,
-        0,
-        1
-      ],
-      [
-        "c502b1c166401b3c",
-        0,
-        0,
-        0,
-        1
-      ],
-      [
-        "f32c8aba5faf2655",
-        0,
-        0,
-        1,
-        1
-      ],
-      [
-        "72c60d4bd7b11dc4",
-        0,
-        0,
-        1,
-        1
-      ],
-      [
-        "1721cb31e33a6b9b",
-        0,
-        0,
-        1,
-        1
-      ],
-      [
-        "41eddab414314d4f",
-        0,
-        0,
-        0,
-        0
-      ],
-      [
-        "ee6a5952b4a08820",
-        0,
-        0,
-        0,
-        0
-      ]
-    ]
-  }
+  ]
 }

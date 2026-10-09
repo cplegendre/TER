@@ -336,7 +336,7 @@ def test_detectors_are_plugins() -> None:
     a = analysis_of(s, registry=registry)
     assert [f.detector for f in a.findings] == ["every_prompt", "every_prompt"]
     assert a.detectors == (("every_prompt", "waiting", "risk", "always 0.5"),)
-    assert len(DEFAULT_REGISTRY) == 12
+    assert len(DEFAULT_REGISTRY) == 16
     assert all(d.confidence_rule and d.summary for d in DEFAULT_REGISTRY)
 
 

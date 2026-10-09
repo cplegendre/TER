@@ -30,47 +30,47 @@
     [
       "afa62c3fc87da043",
       "plan",
-      "avoidable",
-      1.0,
+      "necessary_non_value_adding",
       0.0,
-      "repeating",
-      "excessive_planning:afa62c3fc87da043"
+      0.0,
+      "progressing",
+      "stage:plan is necessary but adds no value itself"
     ],
     [
       "885640dbc628de1c",
       "plan",
-      "avoidable",
-      1.0,
+      "necessary_non_value_adding",
       0.0,
-      "repeating",
-      "excessive_planning:afa62c3fc87da043"
+      0.0,
+      "progressing",
+      "stage:plan is necessary but adds no value itself"
     ],
     [
       "787b76f5878f0c56",
       "plan",
-      "avoidable",
-      1.0,
+      "necessary_non_value_adding",
       0.0,
-      "repeating",
-      "excessive_planning:afa62c3fc87da043"
+      0.0,
+      "progressing",
+      "stage:plan is necessary but adds no value itself"
     ],
     [
       "4c20d65d717bf537",
       "plan",
-      "avoidable",
-      1.0,
+      "necessary_non_value_adding",
       0.0,
-      "repeating",
-      "excessive_planning:afa62c3fc87da043"
+      0.0,
+      "progressing",
+      "stage:plan is necessary but adds no value itself"
     ],
     [
       "f7059ba8a701f037",
       "plan",
-      "avoidable",
-      1.0,
+      "necessary_non_value_adding",
       0.0,
-      "repeating",
-      "excessive_planning:afa62c3fc87da043"
+      0.0,
+      "progressing",
+      "stage:plan is necessary but adds no value itself"
     ],
     [
       "dc771e57dc3ec0aa",
@@ -295,7 +295,7 @@
       "waste": "defects"
     },
     {
-      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary; the rest as waste.",
+      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary. A later step is waste only when it adds no decision: a reasoning block with at most 25% content words new to the prompt and the run so far, or a to-do update identical to an earlier one in the run. A step that adds a decision is never waste, and a run with no such restating step is not a finding.",
       "id": "excessive_planning",
       "kind": "waste",
       "waste": "over_processing"
@@ -304,7 +304,7 @@
       "confidence_rule": "At least 3 consecutive edit calls to one file with only reasoning and their results in between. 0.70 for 3, plus 0.05 per extra edit, capped at 0.85. Only the round-trip overhead (results and waiting of edits after the first) is counted as waste, never the change itself.",
       "id": "fragmented_edits",
       "kind": "waste",
-      "waste": "over_processing"
+      "waste": "motion"
     },
     {
       "confidence_rule": "Judged only once the agent has responded after the read. A read counts as used when a later reasoning, response or tool call names the file, or names something the file defines, or edits it. Otherwise 0.65 when the file defined names that were never used, 0.55 when it defined none. Always uncertain: reading to rule something out is legitimate, and only repository evidence (L3) can tell.",
@@ -319,7 +319,7 @@
       "waste": "handoffs"
     },
     {
-      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, and at most 25% of its content words are new (in neither the earlier block nor the prompt). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
+      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, at most 25% of its content words are new (in neither the earlier block nor the prompt), and none of its new words comes from a tool result observed since the earlier block (that would be new evidence). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
       "id": "repeated_reasoning",
       "kind": "waste",
       "waste": "over_processing"
@@ -331,10 +331,28 @@
       "waste": "overproduction"
     },
     {
-      "confidence_rule": "An edit or write whose alignment to the intent in force is below the drift band (default 0.25), against an intent of at least 3 key terms: 0.85 when the names it defines continue a goal the developer dropped, or the agent's own reasoning or narration since the prompt called it additional ('also', 'while I'm at it') and names it; 0.75 when it defines new names the intent does not mention; 0.55 (uncertain) when it defines no names and only its added words (at least 3) depart. Before any prompt, or against a shorter intent: no finding.",
-      "id": "intent_drift",
+      "confidence_rule": "Per task (prompt), counting distinct context items (file reads, searches, fetches, handoffs, exploring shell commands) before the first edit: a finding when they exceed per_file (3) × files the task changes + slack (3). Items past the band that are not reads of a changed file are the waste. Confidence 0.55 + 0.02 per item over the band, capped at 0.65: always uncertain at L2, since only repository scope (L3) can tell whether the extra context was needed.",
+      "id": "excessive_context",
       "kind": "waste",
-      "waste": "overproduction"
+      "waste": "inventory"
+    },
+    {
+      "confidence_rule": "Per task (prompt): when the task first edits its n-th distinct file in place (Edit, not a new-file Write), it must have acquired at least min_per_file (1) × n distinct context items (reads, searches, fetches, handoffs, exploring shell). The first edit below that bound is the finding: 0.70 when that file was never read or written earlier in the session; 0.55 (uncertain) when it was, since context carried from an earlier task may suffice. A risk: it claims no cost.",
+      "id": "insufficient_context",
+      "kind": "risk",
+      "waste": "defects"
+    },
+    {
+      "confidence_rule": "Judged only once the agent has responded after it. A search (Grep, Glob) or traversing shell command (ls, find, tree, rg, grep) whose output lists file names, none of which a later event reads, edits or names: 0.60. Always uncertain at L2: a traversal can rule a place out, and only repository evidence (L3) can tell. Empty or unobserved output and repeats of an earlier traversal (left to repeated_exploration) are not findings.",
+      "id": "unused_traversal",
+      "kind": "waste",
+      "waste": "motion"
+    },
+    {
+      "confidence_rule": "A route.failover event (a model call that returned no tokens and did not succeed). 0.80 when a later response completed the work on another route, so the failed call added only waiting; 0.55 (uncertain) when no later response followed. The failover's wall time is the waste; it generated no tokens.",
+      "id": "failed_route",
+      "kind": "waste",
+      "waste": "waiting"
     }
   ],
   "events": 29,
@@ -585,7 +603,7 @@
         "tool": null
       },
       {
-        "activity_class": "avoidable",
+        "activity_class": "necessary_non_value_adding",
         "id": "afa62c3fc87da043",
         "index": 3,
         "kind": "tool.requested",
@@ -594,7 +612,7 @@
         "tool": "plan.todo"
       },
       {
-        "activity_class": "avoidable",
+        "activity_class": "necessary_non_value_adding",
         "id": "885640dbc628de1c",
         "index": 4,
         "kind": "tool.completed",
@@ -603,7 +621,7 @@
         "tool": "plan.todo"
       },
       {
-        "activity_class": "avoidable",
+        "activity_class": "necessary_non_value_adding",
         "id": "787b76f5878f0c56",
         "index": 5,
         "kind": "tool.requested",
@@ -612,7 +630,7 @@
         "tool": "plan.todo"
       },
       {
-        "activity_class": "avoidable",
+        "activity_class": "necessary_non_value_adding",
         "id": "4c20d65d717bf537",
         "index": 6,
         "kind": "tool.completed",
@@ -621,7 +639,7 @@
         "tool": "plan.todo"
       },
       {
-        "activity_class": "avoidable",
+        "activity_class": "necessary_non_value_adding",
         "id": "f7059ba8a701f037",
         "index": 7,
         "kind": "reasoning",
@@ -822,6 +840,35 @@
     "schema": "ter.evidence/0.1",
     "session_id": "golden-lean-mix"
   },
+  "exploration": [
+    {
+      "driver": "intent_directed",
+      "event_id": "dc771e57dc3ec0aa",
+      "motive": "f6592a7c2b8b29cd",
+      "shared": [
+        "src",
+        "tests"
+      ]
+    },
+    {
+      "driver": "intent_directed",
+      "event_id": "26d689fc6e48e582",
+      "motive": "f6592a7c2b8b29cd",
+      "shared": [
+        "net.py",
+        "src"
+      ]
+    },
+    {
+      "driver": "intent_directed",
+      "event_id": "d3419f3fcdb0f607",
+      "motive": "f6592a7c2b8b29cd",
+      "shared": [
+        "src",
+        "tests"
+      ]
+    }
+  ],
   "findings": [
     {
       "activity_class": "avoidable",
@@ -844,38 +891,6 @@
       "waste": "overproduction",
       "waste_events": [
         "bbef9c623af73c14"
-      ]
-    },
-    {
-      "activity_class": "avoidable",
-      "confidence": 0.8,
-      "context_tokens": 4,
-      "detector": "excessive_planning",
-      "evidence": [
-        "11dd3be920e41229",
-        "62fcd90f604b8a22",
-        "afa62c3fc87da043",
-        "885640dbc628de1c",
-        "787b76f5878f0c56",
-        "4c20d65d717bf537",
-        "f7059ba8a701f037"
-      ],
-      "explanation": "5 reasoning or to-do steps in a row before the agent explored, edited, checked or answered anything.",
-      "id": "excessive_planning:afa62c3fc87da043",
-      "kind": "waste",
-      "seconds": 15.0,
-      "share": 1.0,
-      "subject": "5 planning steps",
-      "title": "5 planning steps without acting",
-      "tokens": 103,
-      "uncertain": false,
-      "waste": "over_processing",
-      "waste_events": [
-        "afa62c3fc87da043",
-        "885640dbc628de1c",
-        "787b76f5878f0c56",
-        "4c20d65d717bf537",
-        "f7059ba8a701f037"
       ]
     },
     {
@@ -952,7 +967,7 @@
       "title": "3 separate edits to src/net.py",
       "tokens": 0,
       "uncertain": false,
-      "waste": "over_processing",
+      "waste": "motion",
       "waste_events": [
         "0c363a14eea9043e",
         "8529cea01d42b188"
@@ -981,189 +996,17 @@
       "waste_events": []
     }
   ],
-  "intent": {
-    "alignment": [
-      {
-        "band": "aligned",
-        "basis": "text",
-        "event_id": "11dd3be920e41229",
-        "names": [],
-        "revision": 1,
-        "score": 1.0
-      },
-      {
-        "band": "low",
-        "basis": "text",
-        "event_id": "62fcd90f604b8a22",
-        "names": [],
-        "revision": 1,
-        "score": 0.1429
-      },
-      {
-        "band": "unknown",
-        "basis": "text",
-        "event_id": "afa62c3fc87da043",
-        "names": [],
-        "revision": 1,
-        "score": null
-      },
-      {
-        "band": "unknown",
-        "basis": "text",
-        "event_id": "787b76f5878f0c56",
-        "names": [],
-        "revision": 1,
-        "score": null
-      },
-      {
-        "band": "partial",
-        "basis": "text",
-        "event_id": "f7059ba8a701f037",
-        "names": [],
-        "revision": 1,
-        "score": 0.4
-      },
-      {
-        "band": "aligned",
-        "basis": "text",
-        "event_id": "dc771e57dc3ec0aa",
-        "names": [],
-        "revision": 1,
-        "score": 1.0
-      },
-      {
-        "band": "aligned",
-        "basis": "text",
-        "event_id": "26d689fc6e48e582",
-        "names": [],
-        "revision": 1,
-        "score": 1.0
-      },
-      {
-        "band": "aligned",
-        "basis": "text",
-        "event_id": "d3419f3fcdb0f607",
-        "names": [],
-        "revision": 1,
-        "score": 1.0
-      },
-      {
-        "band": "partial",
-        "basis": "names",
-        "event_id": "23e8557e97c5cf7b",
-        "names": [
-          "inner",
-          "retry",
-          "wrap"
-        ],
-        "revision": 1,
-        "score": 0.3333
-      },
-      {
-        "band": "partial",
-        "basis": "names",
-        "event_id": "bbef9c623af73c14",
-        "names": [
-          "inner",
-          "retry",
-          "wrap"
-        ],
-        "revision": 1,
-        "score": 0.3333
-      },
-      {
-        "band": "aligned",
-        "basis": "changed_words",
-        "event_id": "201a5b895ab673e9",
-        "names": [],
-        "revision": 1,
-        "score": 1.0
-      },
-      {
-        "band": "aligned",
-        "basis": "changed_words",
-        "event_id": "afd57e70643ee1c4",
-        "names": [],
-        "revision": 1,
-        "score": 1.0
-      },
-      {
-        "band": "aligned",
-        "basis": "changed_words",
-        "event_id": "12eb3429dc69e478",
-        "names": [],
-        "revision": 1,
-        "score": 0.5
-      },
-      {
-        "band": "aligned",
-        "basis": "text",
-        "event_id": "3a6966ef0e054a01",
-        "names": [],
-        "revision": 1,
-        "score": 0.6667
-      },
-      {
-        "band": "aligned",
-        "basis": "text",
-        "event_id": "c546d6039402b9c4",
-        "names": [],
-        "revision": 1,
-        "score": 0.6667
-      },
-      {
-        "band": "aligned",
-        "basis": "text",
-        "event_id": "4fa7eec5e701db40",
-        "names": [],
-        "revision": 1,
-        "score": 0.6
-      }
-    ],
-    "changes": [],
-    "config": {
-      "drift_below": 0.25,
-      "low_below": 0.25,
-      "min_events": 3
-    },
-    "drift": [],
-    "low_alignment_periods": [],
-    "revisions": [
-      {
-        "abandoned": [],
-        "event_id": "f6592a7c2b8b29cd",
-        "prompt": "Add a retry decorator to src/net.py with exponential backoff, and use it in fetc",
-        "relation": "opened",
-        "revision": 1,
-        "similarity": null,
-        "terms": [
-          "backoff",
-          "decorator",
-          "exponential",
-          "fetch",
-          "green",
-          "json",
-          "keep",
-          "net",
-          "retry",
-          "test"
-        ]
-      }
-    ],
-    "rule": "Overlap coefficient |intent ∩ activity| / min(|intent|, |activity|) of key terms (content words, identifier parts and file-name parts, stemmed, without stopwords or generic programming words); 0 when either side has no terms.",
-    "scorer": "lexical"
-  },
   "schema": "ter.lean/0.1",
   "scorecard": {
     "activity_seconds": {
-      "avoidable": 32.5,
-      "necessary_non_value_adding": 24.0,
+      "avoidable": 17.5,
+      "necessary_non_value_adding": 39.0,
       "uncertain": 0.0,
       "value_adding": 27.5
     },
     "activity_tokens": {
-      "avoidable": 270,
-      "necessary_non_value_adding": 83,
+      "avoidable": 167,
+      "necessary_non_value_adding": 186,
       "uncertain": 0,
       "value_adding": 344
     },
@@ -1172,12 +1015,12 @@
       "components": [
         {
           "name": "Flow efficiency (tokens)",
-          "value": 0.6126,
+          "value": 0.7604,
           "weight": 0.3333
         },
         {
           "name": "Flow efficiency (time)",
-          "value": 0.6131,
+          "value": 0.7917,
           "weight": 0.3333
         },
         {
@@ -1187,26 +1030,26 @@
         }
       ],
       "formula": "Unweighted mean of Flow efficiency (tokens), Flow efficiency (time), TER.",
-      "value": 0.6657
+      "value": 0.7745
     },
     "context_tokens": 196,
     "developer_seconds": 0.0,
-    "findings": 5,
-    "flow_efficiency_time": 0.6131,
-    "flow_efficiency_tokens": 0.6126,
+    "findings": 4,
+    "flow_efficiency_time": 0.7917,
+    "flow_efficiency_tokens": 0.7604,
     "flow_seconds": {
       "inventory": 0.0,
-      "progressing": 51.5,
+      "progressing": 66.5,
       "recovering": 0.0,
-      "repeating": 27.0,
+      "repeating": 12.0,
       "reworking": 5.5,
       "waiting": 0.0
     },
     "flow_tokens": {
       "inventory": 0,
-      "progressing": 427,
+      "progressing": 530,
       "recovering": 0,
-      "repeating": 132,
+      "repeating": 29,
       "reworking": 138,
       "waiting": 0
     },
@@ -1220,12 +1063,9 @@
     },
     "uncertain_findings": 0,
     "uncertain_waste_tokens": 0,
-    "validation_runs": 2,
-    "validations_failed": 2,
-    "validations_passed": 0,
-    "waste_context_tokens": 76,
-    "waste_seconds": 32.5,
-    "waste_tokens": 270
+    "waste_context_tokens": 72,
+    "waste_seconds": 17.5,
+    "waste_tokens": 167
   },
   "session_id": "golden-lean-mix",
   "value_stream": [
@@ -1252,11 +1092,9 @@
       "uncertain_tokens": 0
     },
     {
-      "avoidable_tokens": 103,
+      "avoidable_tokens": 0,
       "context_tokens": 4,
-      "findings": [
-        "excessive_planning:afa62c3fc87da043"
-      ],
+      "findings": [],
       "seconds": 21.0,
       "stage": "plan",
       "steps": 5,
@@ -1301,254 +1139,5 @@
       "tokens": 47,
       "uncertain_tokens": 0
     }
-  ],
-  "wip": {
-    "edits_opened": 5,
-    "edits_validated": 5,
-    "final": {
-      "edits": 0,
-      "event_id": "4fa7eec5e701db40",
-      "failures": 1,
-      "hypotheses": 1,
-      "tasks": 2,
-      "total": 4
-    },
-    "kinds": [
-      "hypotheses",
-      "tasks",
-      "edits",
-      "failures"
-    ],
-    "open_at_end": {
-      "edits": [],
-      "failures": [
-        "63a58bc98af34062"
-      ],
-      "hypotheses": [
-        "dc771e57dc3ec0aa"
-      ],
-      "tasks": [
-        "787b76f5878f0c56"
-      ]
-    },
-    "peak": {
-      "edits": 5,
-      "event_id": "12eb3429dc69e478",
-      "failures": 0,
-      "hypotheses": 1,
-      "tasks": 2,
-      "total": 8
-    },
-    "peak_by_kind": {
-      "edits": 5,
-      "failures": 1,
-      "hypotheses": 2,
-      "tasks": 2
-    },
-    "series": [
-      [
-        "f6592a7c2b8b29cd",
-        0,
-        0,
-        0,
-        0
-      ],
-      [
-        "11dd3be920e41229",
-        0,
-        0,
-        0,
-        0
-      ],
-      [
-        "62fcd90f604b8a22",
-        0,
-        0,
-        0,
-        0
-      ],
-      [
-        "afa62c3fc87da043",
-        0,
-        1,
-        0,
-        0
-      ],
-      [
-        "885640dbc628de1c",
-        0,
-        1,
-        0,
-        0
-      ],
-      [
-        "787b76f5878f0c56",
-        0,
-        2,
-        0,
-        0
-      ],
-      [
-        "4c20d65d717bf537",
-        0,
-        2,
-        0,
-        0
-      ],
-      [
-        "f7059ba8a701f037",
-        0,
-        2,
-        0,
-        0
-      ],
-      [
-        "dc771e57dc3ec0aa",
-        1,
-        2,
-        0,
-        0
-      ],
-      [
-        "caff931cda4b3075",
-        1,
-        2,
-        0,
-        0
-      ],
-      [
-        "26d689fc6e48e582",
-        2,
-        2,
-        0,
-        0
-      ],
-      [
-        "04fb1b1d585306b6",
-        2,
-        2,
-        0,
-        0
-      ],
-      [
-        "d3419f3fcdb0f607",
-        2,
-        2,
-        0,
-        0
-      ],
-      [
-        "e815b1e3c3bd3d9a",
-        2,
-        2,
-        0,
-        0
-      ],
-      [
-        "23e8557e97c5cf7b",
-        2,
-        2,
-        1,
-        0
-      ],
-      [
-        "3f1b4d7739855dfc",
-        2,
-        2,
-        1,
-        0
-      ],
-      [
-        "bbef9c623af73c14",
-        2,
-        2,
-        2,
-        0
-      ],
-      [
-        "c25006b6c17cfaae",
-        2,
-        2,
-        2,
-        0
-      ],
-      [
-        "201a5b895ab673e9",
-        1,
-        2,
-        3,
-        0
-      ],
-      [
-        "b1b25b79327612cc",
-        1,
-        2,
-        3,
-        0
-      ],
-      [
-        "afd57e70643ee1c4",
-        1,
-        2,
-        4,
-        0
-      ],
-      [
-        "0c363a14eea9043e",
-        1,
-        2,
-        4,
-        0
-      ],
-      [
-        "12eb3429dc69e478",
-        1,
-        2,
-        5,
-        0
-      ],
-      [
-        "8529cea01d42b188",
-        1,
-        2,
-        5,
-        0
-      ],
-      [
-        "3a6966ef0e054a01",
-        1,
-        2,
-        5,
-        0
-      ],
-      [
-        "63a58bc98af34062",
-        1,
-        2,
-        0,
-        1
-      ],
-      [
-        "c546d6039402b9c4",
-        1,
-        2,
-        0,
-        1
-      ],
-      [
-        "d0a9e677d00c3c13",
-        1,
-        2,
-        0,
-        1
-      ],
-      [
-        "4fa7eec5e701db40",
-        1,
-        2,
-        0,
-        1
-      ]
-    ]
-  }
+  ]
 }

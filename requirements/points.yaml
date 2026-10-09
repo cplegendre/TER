@@ -162,15 +162,15 @@ points:
       Recognise that additional reasoning is not automatically waste.
     level: L2
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         A reasoning span that introduces new evidence or a decision is never
         labelled waste, shown by tests.
     rules: [TER-LEN-004]
     verification:
-      - 'test: tests/unit/test_ter4_lean_detectors.py::TestRepeatedReasoning::test_new_decision_is_not_a_restatement'
-      - 'planned: excessive_planning counts planning steps beyond the second as waste even when they add a decision (TER-LEN-004)'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestRepeatedReasoning'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestExcessivePlanning'
 
   - id: P009
     text: >-
@@ -318,6 +318,7 @@ points:
     rules: [TER-DET-002, TER-LEN-004]
     verification:
       - 'test: tests/unit/test_ter4_lean_detectors.py::TestRepeatedReasoning'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestRepeatedReasoning::test_reasoning_that_uses_new_evidence_is_not_waste'
 
   - id: P018
     text: >-
@@ -369,28 +370,27 @@ points:
       Detect excessive context acquisition.
     level: L2
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         A detector flags context acquisition above the configured band
         before an edit.
     rules: [TER-DET-003]
     verification:
-      - 'test: tests/unit/test_ter4_lean_detectors.py::TestUnusedContext'
-      - 'planned: context band before an edit needs repository scope (TER-DET-003, L3)'
+      - 'test: tests/unit/test_ter4_lean_context_motion_waiting.py::TestExcessiveContext'
 
   - id: P022
     text: >-
       Detect insufficient context acquisition before implementation.
     level: L2
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - A detector flags edits made with context below the configured band.
     rules: [TER-DET-003]
     verification:
+      - 'test: tests/unit/test_ter4_lean_context_motion_waiting.py::TestInsufficientContext'
       - 'test: tests/unit/test_ter4_lean_detectors.py::TestPrematureImplementation'
-      - 'planned: context sufficiency band needs repository scope (TER-DET-003, L3)'
 
   - id: P023
     text: >-
@@ -469,15 +469,15 @@ points:
       Detect unnecessary file traversal as agentic motion waste.
     level: L2
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         A detector flags file traversals whose content no later event uses,
         as motion waste.
     rules: [TER-DET-007]
     verification:
-      - 'test: tests/unit/test_ter4_lean_detectors.py::TestUnusedContext'
-      - 'planned: unused traversals are reported as uncertain inventory, not motion; motion needs L3 evidence (TER-DET-007)'
+      - 'test: tests/unit/test_ter4_lean_context_motion_waiting.py::TestUnusedTraversal'
+      - 'test: tests/unit/test_ter4_lean_detectors.py::TestFragmentedEdits'
 
   - id: P029
     text: >-
@@ -492,6 +492,7 @@ points:
     rules: [TER-DET-008]
     verification:
       - 'test: tests/unit/test_ter4_lean_detectors.py::TestUnnecessaryHandoff'
+      - 'test: tests/unit/test_ter4_lean_context_motion_waiting.py::TestFailedRoute'
 
   - id: P030
     text: >-
@@ -503,10 +504,10 @@ points:
       - >-
         A detector flags external-model escalations whose waiting time
         bought no new evidence.
-    rules: [TER-DET-008]
+    rules: [TER-DET-008, TER-DET-011]
     verification:
-      - 'test: tests/unit/test_ter4_lean_detectors.py::TestUnnecessaryHandoff'
-      - 'planned: model escalation waiting needs routing (TER-DET-008, L5)'
+      - 'test: tests/unit/test_ter4_lean_context_motion_waiting.py::TestFailedRoute'
+      - 'planned: escalation after a successful call needs route.escalated events and answer text (TER-DET-011, L3)'
 
   - id: P031
     text: >-
@@ -629,15 +630,15 @@ points:
       exploration.
     level: L2
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Exploration linked to a recorded open question is labelled
-        uncertainty-driven; other exploration is labelled aimless.
+        uncertainty-driven; other exploration is labelled intent-directed
+        when it names the prompt in force, and aimless otherwise.
     rules: [TER-DET-009]
     verification:
-      - 'test: tests/unit/test_ter4_lean_analysis.py::test_every_event_gets_a_stage_and_classified_basis'
-      - 'planned: uncertainty-driven exploration linked to open questions (TER-DET-009, L3)'
+      - 'test: tests/unit/test_ter4_lean_context_motion_waiting.py::TestExplorationDrivers'
 
   - id: P039
     text: >-

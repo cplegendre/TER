@@ -228,6 +228,20 @@ requirements:
       (TER-LEN-003).
     status: planned
 
+  - id: TER-DET-011
+    pattern: event-driven
+    text: >-
+      When a session records a model escalation after a completed model
+      call, TER shall report the escalation as waiting waste unless the
+      escalated call adds evidence that the earlier call did not.
+    level: L3
+    source_points: [30]
+    rationale: >-
+      Split from TER-DET-008: telling whether an escalated answer added
+      evidence needs a route.escalated event (TER-RTE-002) and the text of
+      both answers, which no current source records.
+    status: planned
+
   - id: TER-RTE-001
     pattern: ubiquitous
     text: >-

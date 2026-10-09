@@ -27,6 +27,7 @@ from .detectors import (
     DEFAULT_REGISTRY,
     DetectorRegistry,
     SessionView,
+    exploration_labels,
     validation_cycles,
 )
 from .graph import EvidenceGraph, build_graph
@@ -43,6 +44,7 @@ from .model import (
     STAGE_ORDER,
     ActivityClass,
     CycleVerdict,
+    ExplorationLabel,
     Finding,
     FindingKind,
     FlowState,
@@ -238,6 +240,9 @@ class LeanAnalysis:
         """Findings of the ``intent_drift`` detector (TER-ITN-003)."""
         return tuple(f for f in self.findings if f.detector == "intent_drift")
 
+    #: Why each exploration request happened (TER-DET-009, point 38).
+    exploration: tuple[ExplorationLabel, ...] = ()
+
     @property
     def waste_findings(self) -> tuple[Finding, ...]:
         return tuple(f for f in self.findings if f.kind is FindingKind.WASTE)
@@ -291,6 +296,7 @@ class LeanAnalysis:
                 for i, w, k, r in self.detectors
             ],
             "intent": self.intent.as_dict([f.id for f in self.drift_findings]),
+            "exploration": [e.as_dict() for e in self.exploration],
         }
         if graph:
             out["evidence_graph"] = self.graph.as_dict()
@@ -340,6 +346,11 @@ def _base_class(
         return (
             ActivityClass.NECESSARY_NON_VALUE_ADDING,
             "stage:implement set-up command",
+        )
+    if step.is_failover:
+        return (
+            ActivityClass.NECESSARY_NON_VALUE_ADDING,
+            "stage:respond failed model route returned nothing",
         )
     if step.stage is Stage.RESPOND:
         if step.index in finals:
@@ -594,6 +605,7 @@ def analyse_steps(
         ),
         intent=timeline,
         wip=WipTracker.of_steps(steps) if wip is None else wip,
+        exploration=exploration_labels(view),
     )
 
 

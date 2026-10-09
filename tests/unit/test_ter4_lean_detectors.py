@@ -324,14 +324,14 @@ class TestExcessivePlanning:
         s = Script()
         s.think("plan the retry decorator carefully")
         s.todo("design")
-        s.think("more thoughts on the retry design")
-        s.todo("design again")
+        restated = s.think("plan the retry decorator, carefully")
+        again, again_result = s.todo("design")
         s.read("a.py")
         [f] = found(s, "excessive_planning")
         assert f.confidence == 0.75
-        assert (
-            len(f.evidence) == 6 and len(f.waste_events) == 3
-        )  # steps and todo results
+        assert len(f.evidence) == 6  # steps and todo results
+        assert again_result is not None
+        assert set(f.waste_events) == {restated.id, again.id, again_result.id}
 
     def test_three_is_below_threshold(self) -> None:
         s = Script()
@@ -343,14 +343,54 @@ class TestExcessivePlanning:
 
     def test_run_at_end_of_session_counts(self) -> None:
         s = Script()
-        for i in range(5):
-            s.think(f"thought number {i}")
+        for _ in range(5):
+            s.think("thought about the retry plan")
         assert found(s, "excessive_planning")[0].confidence == 0.8
+
+    @pytest.mark.req("TER-LEN-004")
+    def test_planning_steps_that_add_decisions_are_never_waste(self) -> None:
+        s = Script()
+        s.prompt("Add a retry decorator to src/net.py")
+        s.think("I need a retry decorator with exponential backoff.")
+        s.think("It needs attempts, a base delay and a multiplier.")
+        s.think("Plan: write decorator, apply to fetch_json, run tests.")
+        s.todo("write decorator")
+        s.todo("apply decorator to fetch_json")
+        s.read("src/net.py")
+        assert found(s, "excessive_planning") == []
+
+    @pytest.mark.req("TER-LEN-004")
+    def test_only_the_restating_step_of_a_run_is_waste(self) -> None:
+        s = Script()
+        s.prompt("Add a retry decorator to src/net.py")
+        s.think("I need a retry decorator with exponential backoff.")
+        s.think("It needs attempts, a base delay and a multiplier.")
+        decision = s.think("Plan: write decorator, apply to fetch_json, run tests.")
+        restated = s.think("So: a retry decorator with exponential backoff.")
+        s.read("src/net.py")
+        [f] = found(s, "excessive_planning")
+        assert f.waste_events == (restated.id,)
+        assert decision.id in f.evidence and decision.id not in f.waste_events
+
+    @pytest.mark.req("TER-LEN-004")
+    def test_boundary_a_quarter_new_words_is_still_a_restatement(self) -> None:
+        s = Script()
+        s.think("alpha beta gamma delta")
+        s.think("epsilon zeta theta iota")
+        s.think("kappa lambda sigma omega")
+        # 1 of 4 content words new (25%): no decision added.
+        low = s.think("alpha beta gamma rho")
+        # 2 of 4 new (50%): a decision.
+        s.think("alpha beta upsilon chi")
+        s.read("a.py")
+        [f] = found(s, "excessive_planning")
+        assert f.waste_events == (low.id,)
 
 
 # --- fragmented_edits --------------------------------------------------------
 
 
+@pytest.mark.req("TER-DET-007")
 class TestFragmentedEdits:
     def test_three_edits_in_a_row(self) -> None:
         s = Script()
@@ -362,6 +402,7 @@ class TestFragmentedEdits:
         s.bash("pytest -q", PASS)
         [f] = found(s, "fragmented_edits")
         assert f.confidence == 0.7 and f.tokens == 0 and f.context_tokens > 0
+        assert f.waste is LeanWaste.MOTION
 
     def test_two_edits_are_fine(self) -> None:
         s = Script()
@@ -430,6 +471,7 @@ class TestUnusedContext:
 # --- unnecessary_handoff -----------------------------------------------------
 
 
+@pytest.mark.req("TER-DET-008")
 class TestUnnecessaryHandoff:
     def test_handoff_then_same_work_directly(self) -> None:
         s = Script()
@@ -470,6 +512,7 @@ class TestRepeatedReasoning:
         [f] = found(s, "repeated_reasoning")
         assert f.confidence >= 0.7 and 0 < f.share <= 1
 
+    @pytest.mark.req("TER-LEN-004")
     def test_new_decision_is_not_a_restatement(self) -> None:
         s = Script()
         s.prompt("Add a verbose flag")
@@ -485,6 +528,27 @@ class TestRepeatedReasoning:
         s.edit("a.py")
         s.think("I should find where the parser handles arguments.")
         assert found(s, "repeated_reasoning") == []
+
+    @pytest.mark.req("TER-LEN-004")
+    def test_reasoning_that_uses_new_evidence_is_not_waste(self) -> None:
+        s = Script()
+        s.prompt("Add a verbose flag")
+        s.think("I should find where the parser handles arguments.")
+        s.search("parser", "src/cli.py:3: parser = build_parser()")
+        # One new word in five (below the 25% decision bound), but it is what
+        # the search just showed: new evidence.
+        s.think("I need to find where the parser handles arguments in build_parser.")
+        assert found(s, "repeated_reasoning") == []
+
+    @pytest.mark.req("TER-LEN-004")
+    def test_boundary_new_word_not_from_evidence_is_still_restated(self) -> None:
+        s = Script()
+        s.prompt("Add a verbose flag")
+        s.think("I should find where the parser handles arguments.")
+        s.search("parser", "src/cli.py:3: parser = build_parser()")
+        s.think("I need to find where the parser handles arguments in parse_cli.")
+        [f] = found(s, "repeated_reasoning")
+        assert f.share == pytest.approx(0.8)
 
 
 # --- regeneration ------------------------------------------------------------

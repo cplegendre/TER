@@ -3,7 +3,7 @@
 At L2 TER says *why* a session was inefficient, not only how much. Every
 event in a session is placed on an agentic value stream and classified as
 value-adding, necessary but non-value-adding, or avoidable, against the
-developer's current intent. Twelve detectors look for Lean wastes, each finding cites the events it rests on, and an A3
+developer's current intent. Sixteen detectors look for Lean wastes, each finding cites the events it rests on, and an A3
 report turns findings into countermeasures: lines for `CLAUDE.md`, Claude
 Code hooks and settings. All of it is computed from the session's event
 stream alone; repository evidence arrives at L3.
@@ -36,9 +36,11 @@ flowchart LR
 | Plan | `reasoning`, `plan.todo` | necessary non-value-adding |
 | Implement | `fs.edit`, `fs.write` (value-adding); changing or other shell (`pip install`, `git commit`) | value-adding / necessary NVA |
 | Validate | shell recognised as a check: test runners, linters, type checkers, build, ad-hoc `python -c` | necessary non-value-adding |
-| Respond | `response`: the last one before the next prompt delivers the outcome | value-adding (final) / necessary NVA (narration) |
+| Respond | `response`: the last one before the next prompt delivers the outcome; `route.failover`: a model call that failed on its way to a response | value-adding (final) / necessary NVA (narration, failed route) |
 
-A tool result belongs to its request's stage. Wall time is the gap each event
+Other routing markers (`route.selected`, `attempt.started`,
+`verification.completed`, `outcome.recorded`) and task or subagent ends are
+not steps. A tool result belongs to its request's stage. Wall time is the gap each event
 closes: the gap before a tool result is the tool's running time and belongs
 to its request; every other gap belongs to the event it precedes.
 
@@ -77,13 +79,44 @@ at L3 and L4.
 | `rework_cycle` (26, 37) | rework | failed run, failure, fix edits, next run | same command, edits between: 0.80 when the next run fails with the same failure signature, 0.90 for the second in a row. Pass or different failure: iteration, no finding | CLAUDE.md "same failure twice → stop and re-diagnose"; PostToolUse(Bash) hook flagging an identical failure |
 | `unvalidated_implementation` (25) | defects (risk) | unvalidated edits and the response | per prompt, after a response: 0.85 no check in the session; 0.75 checks only earlier; 0.50 docs only; 0.85 responded after a failing check | CLAUDE.md "validation is part of done" with the session's own test command; PostToolUse(Edit\|Write) hook running it |
 | `premature_implementation` (22, 23) | defects (risk) | the prompt and the edit | 0.75 in-place edit of a file never read, written or named in output; 0.45 new file before any exploration | CLAUDE.md "read before editing"; `permissions.defaultMode: plan` |
-| `excessive_planning` (24) | over-processing | the planning run | ≥ 4 planning steps with no action between; 0.55 + 0.05 per step, ≤ 0.90; steps beyond the second are waste | CLAUDE.md "act after planning"; plan-mode practice |
-| `fragmented_edits` (27) | over-processing | the edits and results | ≥ 3 consecutive edits to one file; 0.70 + 0.05 per extra, ≤ 0.85; only round-trip overhead is waste | CLAUDE.md "one MultiEdit per coherent change" |
+| `excessive_planning` (8, 24) | over-processing | the planning run | ≥ 4 planning steps with no action between; 0.55 + 0.05 per step, ≤ 0.90; a step beyond the second is waste only when it adds no decision (reasoning ≤ 25% new words, or a repeated to-do update); no restating step, no finding | CLAUDE.md "act after planning"; plan-mode practice |
+| `fragmented_edits` (27, 28) | motion | the edits and results | ≥ 3 consecutive edits to one file; 0.70 + 0.05 per extra, ≤ 0.85; only round-trip overhead is waste | CLAUDE.md "one MultiEdit per coherent change" |
 | `unused_context` (21, 34, 35) | inventory | the read and its result | after a response, nothing later names the file or what it defines: 0.65 (defines names) or 0.55 — always uncertain at L2 | CLAUDE.md "read with a purpose"; verify first, then map or `/compact` |
 | `unnecessary_handoff` (29, 30) | handoffs | handoff, result, the agent's own call | a later own call shares ≥ 3 key words and ≥ 50% of the smaller set: 0.45 + 0.40 × overlap, ≤ 0.85 | CLAUDE.md "when to delegate"; `permissions.deny: ["Task"]` for small tasks |
-| `repeated_reasoning` (17) | over-processing | both reasoning blocks | same prompt, no edit between, ≥ 3 shared words, ≤ 25% new words: 0.85 − novelty (− 0.10 under 6 words) | CLAUDE.md "act instead of restating" |
+| `repeated_reasoning` (8, 17) | over-processing | both reasoning blocks | same prompt, no edit between, ≥ 3 shared words, ≤ 25% new words, none of them from a tool result seen since (new evidence): 0.85 − novelty (− 0.10 under 6 words) | CLAUDE.md "act instead of restating" |
 | `regeneration` (20) | overproduction | earlier write or read, the rewrite | whole-file write keeping ≥ 80% of the agent's own earlier write: 0.80; ≥ 60% of a file just read: 0.60 | CLAUDE.md "Edit, not Write, for existing files"; PreToolUse(Write) hook |
 | `intent_drift` (6, 7, 48) | overproduction | the prompt in force, the agent's "also …" reasoning, the edit and result | edit or write scoring below the drift band (0.25) against an intent of ≥ 3 key terms, no intent change recorded: 0.85 continues a goal the developer dropped, or the agent called it additional; 0.75 defines names the intent does not mention; 0.55 only added words (≥ 3) depart | CLAUDE.md "propose extra work, do not do it"; say wanted extras in the prompt |
+| `excessive_context` (21) | inventory | the prompt, the context items, the first edit | per task, distinct context items before the first edit > 3 × files changed + 3: 0.55 + 0.02 per item over, ≤ 0.65 — always uncertain at L2; items past the band that are not reads of a changed file are waste | CLAUDE.md "name the files first"; verify, then a "Where things live" map |
+| `insufficient_context` (22) | defects (risk) | the prompt, the items, the edit | per task, the n-th distinct file edited in place with fewer than 1 × n context items: 0.70; 0.55 when the file was read or written in an earlier task | CLAUDE.md "evidence for every file changed"; `permissions.defaultMode: plan` |
+| `unused_traversal` (28) | motion | the search or walk and its result | after a response, a Grep/Glob or `ls`/`find`/`tree`/`rg` whose listed file names nothing later reads, edits or names: 0.60 — always uncertain at L2; empty output and repeats are not findings | CLAUDE.md "search for a target"; layout map |
+| `failed_route` (29, 30) | waiting | the `route.failover` and the response that did the work | a model call that failed over: 0.80 when a later response did the work on another route, 0.55 when none did; its wall time is the waste | demote or health-check the failing route; timeout and circuit breaker |
+
+The context band (`ContextBand`: `min_per_file` 1, `per_file` 3, `slack` 3)
+is structural: it counts distinct context items (a file read once whatever
+its ranges, each distinct search, fetch, handoff or exploring shell command)
+in the task, from the prompt in force, against the files the task changes.
+Pass `ExcessiveContext(band=...)` or `InsufficientContext(band=...)` in a
+custom `DetectorRegistry` to change it. A reasoning span or planning step
+*adds a decision* when more than 25% of its content words
+(`DECISION_NOVELTY`) are new to the prompt and the reasoning it is compared
+with, and *adds evidence* when a new word comes from a tool result observed
+since; such a span is never waste (TER-LEN-004).
+
+## Exploration drivers
+
+`LeanAnalysis.exploration` (`exploration` in the JSON) labels every
+exploration request (TER-DET-009, point 38). Questions are the sentences
+ending in `?` in the task's prompt, reasoning and responses; they stay open
+until the next prompt.
+
+| Label | Rule | `motive` |
+|---|---|---|
+| `uncertainty_driven` | the request (its arguments, or a path's name or stem) names a word of an open question recorded before it | the question's event |
+| `intent_directed` | otherwise, it names a word or file of the prompt in force | the prompt |
+| `aimless` | neither | none |
+
+A label never changes an event's activity class: exploration stays necessary
+non-value-adding unless a waste detector claims it.
 
 Validation outcomes are read from tool output with specific markers
 (`FAILED`, `N failed`, `Traceback`, `error:`, `exit code N`…); anything else is
@@ -315,12 +348,14 @@ existed map as follows.
 | TER-LEAN-010, 011, 019, 020 | TER-DET-002 (and TER-DET-010 for re-run validation) | verified | `tests/unit/test_ter4_lean_detectors.py` |
 | TER-LEAN-012 | TER-DET-006 | verified | same, `iteration_converges` golden session |
 | TER-LEAN-013, 014, 015 | TER-DET-005 | verified | `test_ter4_lean_detectors.py` |
-| TER-LEAN-016 | TER-DET-007 | planned: fragmented edits are over-processing here; unused traversals as motion need L3 | `test_ter4_lean_detectors.py` |
+| TER-LEAN-016 | TER-DET-007 | verified: `fragmented_edits` and `unused_traversal` are motion; unused traversals stay uncertain until L3 evidence | `test_ter4_lean_detectors.py`, `test_ter4_lean_context_motion_waiting.py` |
 | TER-LEAN-017 | TER-DET-004 | verified: unused and re-read context in tokens | `test_ter4_lean_detectors.py`, `tests/unit/test_ter4_context_cost.py` |
 | (new) | TER-ANL-040, TER-ANL-041 | verified: priced at the session date's prices; no cache fields → estimated | `tests/unit/test_ter4_context_cost.py`, `tests/contract/test_price_book.py` |
 | (new) | TER-EXP-001 | verified: stream report and A3 (cost included) recomputed from a reloaded event log; the TER 3 ratio and outcome verdict are TER-EXP-002 (L3, planned) | `tests/equivalence/test_recompute_from_events.py` |
-| TER-LEAN-018 | TER-DET-008 | planned: model escalations need routing | `test_ter4_lean_detectors.py` |
-| TER-LEAN-019 | TER-LEN-004 | planned: `excessive_planning` can count a planning step that adds a decision | `test_ter4_lean_detectors.py` |
+| TER-LEAN-018 | TER-DET-008 (TER-DET-011 planned, L3: escalation after a successful call) | verified: redone handoffs and failed routes (`route.failover`) | `test_ter4_lean_detectors.py`, `test_ter4_lean_context_motion_waiting.py` |
+| TER-LEAN-019 | TER-LEN-004 | verified: `excessive_planning` and `repeated_reasoning` never claim a step that adds a decision or new evidence | `test_ter4_lean_detectors.py` |
+| (new) | TER-DET-003 | verified: `excessive_context` (uncertain) and `insufficient_context` against a configurable structural band | `test_ter4_lean_context_motion_waiting.py` |
+| (new) | TER-DET-009 | verified: exploration drivers | `test_ter4_lean_context_motion_waiting.py` |
 | TER-LEAN-030 | TER-GRF-002, TER-GRF-003 (TER-GRF-001 planned: decision nodes) | verified | `test_ter4_lean_analysis.py`, properties, `test_ter4_a3.py` |
 | TER-LEAN-040 | TER-SCR-002, TER-FLW-001, TER-SCR-001 | verified | `test_ter4_lean_analysis.py`, properties, `test_ter4_wip_scorecard.py` |
 | TER-LEAN-050 | TER-ANL-010 | verified | `tests/equivalence/test_live_static.py`, properties |
@@ -335,8 +370,8 @@ existed map as follows.
 | (new) | TER-LEN-003 (edits and writes; TER-LEN-009 planned at L3 for the other events) | verified | `test_ter4_lean_intent.py` |
 | (new) | TER-WIP-001, TER-SCR-003, TER-LEN-005, TER-LEN-006 | verified | `tests/unit/test_ter4_wip_scorecard.py` |
 
-Tests that only partly prove a planned requirement (TER-DET-007, 008,
-TER-LEN-004, TER-GRF-001) do not cite it, so the
+Tests that only partly prove a planned requirement (TER-GRF-001) do not
+cite it, so the
 trace gate never suggests promoting it early; `requirements/points.yaml`
 names those tests as the points' verification instead.
 
@@ -352,7 +387,7 @@ catalogue review differ, the status here has been aligned with it.
 | 3 | done | Value, waste, flow, quality, cost, risk and outcome are named scorecard dimensions (`Dimension`, `ScorecardDimension`) computed from recorded events and the outcome verdict | New measures join a `Dimension`, never folded into another |
 | 6 | partial | Edits and writes are valued against the current intent (`intent_drift`, TER-LEN-003); other events need repository evidence (TER-LEN-009, L3) | Value is judged against the intent revision in force, never the first prompt alone |
 | 7 | partial | Waste = cost claimed by a finding that did not advance the requested outcome; an edit departing from the intent is overproduction (TER-LEN-003); other events at L3 (TER-LEN-009) | A waste finding must cite what it consumed (`waste_events`) |
-| 8 | partial | Reasoning is waste only when restated with ≤ 25% new words, or in a 4+ step run without action; the planning rule can still count a step that adds a decision (TER-LEN-004) | Never flag reasoning by length |
+| 8 | done | Reasoning is waste only when restated with ≤ 25% new words and no new evidence, or a restating step in a 4+ step run without action; a step that adds a decision or evidence never is (TER-LEN-004) | Never flag reasoning by length |
 | 9 | done | Flow efficiency counts productive iteration as flow; a test cuts every token count to a third at constant value and no efficiency judgement or verdict changes (TER-LEN-005) | No detector threshold may be a token count |
 | 10 | done | Headline is flow efficiency and SVE, not token totals; the A3 names token minimisation as a non-goal | Reports lead with flow and outcome risk |
 | 11 | done | `ter.domain.lean` + ADR 0004; concept-to-measure map in `concepts.py` | Lean concepts change only with an ADR |
@@ -365,23 +400,23 @@ catalogue review differ, the status here has been aligned with it.
 | 18 | done | `repeated_exploration` | Re-reads after an edit of that file are never waste |
 | 19 | done | `repeated_tool_call` | Output must be compared, not only input |
 | 20 | done | `regeneration` | Only whole-file writes retaining existing lines |
-| 21 | partial | Unused reads flagged (uncertain); "excessive" needs repository scope (L3) | Stay uncertain until repository evidence exists |
-| 22 | partial | `premature_implementation` (edit of unseen file); sufficiency needs L3 | Knowledge = read, written, or named in output |
+| 21 | done | `excessive_context` against the structural band (uncertain), `unused_context` | Stay uncertain until repository evidence exists |
+| 22 | done | `insufficient_context` (band per task), `premature_implementation` (edit of unseen file) | Bands count context items, never tokens |
 | 23 | done | `premature_implementation` | Risk findings claim no cost |
 | 24 | done | `excessive_planning` | Structural run length, never reasoning tokens |
 | 25 | done | `unvalidated_implementation` | Judged per prompt, only after a response |
 | 26 | done | `rework_cycle` | Same command, edits between, same signature |
-| 27 | done | `fragmented_edits` | Only overhead is waste, never the change |
-| 28 | partial | Repeated reads are motion (`repeated_exploration`); unused traversals are uncertain inventory, not motion, until L3 | As 18 |
-| 29 | done | `unnecessary_handoff` | The handoff is the waste; the agent's own call is kept |
-| 30 | partial | Handoff wait time lands in the *waiting* flow state; model escalation needs routing (L5) | Waiting is attributed only through findings |
+| 27 | done | `fragmented_edits` (motion) | Only overhead is waste, never the change |
+| 28 | done | Repeated reads (`repeated_exploration`), fragmented edits and unused traversals (`unused_traversal`, uncertain) are motion | As 18; unused traversals stay uncertain until L3 |
+| 29 | done | `unnecessary_handoff`, `failed_route` | The handoff is the waste; the agent's own call is kept |
+| 30 | partial | Failed routes (`route.failover`) are *waiting*; an escalation after a successful call needs `route.escalated` and answer text (TER-DET-011, L3) | Waiting is attributed only through findings |
 | 31, 32 | done | `WipTracker` counts unresolved hypotheses, tasks, edits and failures after every event; the A3 shows the series and its peak | WIP is a fold: O(1) amortised per event, batch equals live |
 | 33 | later | The WIP–efficiency correlation needs the L6 dataset (issue #44) | A finding never fires on WIP alone without that evidence |
 | 34 | done | `unused_context` (inventory) | As 21 |
 | 35 | partial | Unused context in tokens and carrying cost at the session date's prices, estimated without cache fields; reconciliation with real billing waits on issue #40 | Context and generated tokens are reported separately |
 | 36 | partial | Re-read context in tokens and carrying cost, as 35; real data waits on issue #40 | As 35 |
 | 37 | done | `ValidationCycle.verdict` iteration vs rework; iteration is *recovering* flow | A converging cycle is never waste |
-| 38 | partial | Exploration is never waste unless repeated or unused (uncertain); intent-aware judgement is L3 | Default for exploration is necessary NVA |
+| 38 | done | `LeanAnalysis.exploration` labels uncertainty-driven, intent-directed and aimless exploration | Default for exploration is necessary NVA; a label never changes the class |
 | 39 | done | Validation re-run without edits and identical output | Re-validation after edits is never duplicated validation |
 | 40 | done | `evidence`, `waste_events`, `Classification.basis`; property tested | No finding without evidence ids that exist in the trace |
 | 45 | done | `IntentRecord` in `ter.domain.lean.intent`, rebuilt from the session's events by the same fold as the analysis | One record per session; revisions are never rewritten |
@@ -433,4 +468,6 @@ catalogue review differ, the status here has been aligned with it.
   is only confident when an edit defines names the intent never mentions.
 - Hook-recorded sessions carry no reasoning or responses, so detectors that
   need them (planning, restated reasoning, unvalidated-before-response) stay
-  silent on hook logs.
+  silent on hook logs, and only prompts record open questions there.
+- A failed route's wall time is the gap since the previous step, which can
+  include routing overhead before the call.
