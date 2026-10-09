@@ -215,8 +215,8 @@ All guides: [docs/guides](docs/guides/README.md). Reference:
 [visual reports](docs/ter4/reports.md) ·
 [outcome and acceptance](docs/ter4/outcome.md) ·
 [real session corpus](docs/ter4/corpus.md) ·
-[dataset card](docs/ter4/dataset-card.md) ·
 [GARE runs](docs/ter4/gare.md) ·
+[dataset card](docs/ter4/dataset-card.md) ·
 [requirements control](docs/ter4/requirements.md) ·
 [vision points](docs/ter4/points.md) ·
 [decision records](docs/decisions/).
