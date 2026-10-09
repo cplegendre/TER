@@ -2,8 +2,8 @@
 
 At L2 TER says *why* a session was inefficient, not only how much. Every
 event in a session is placed on an agentic value stream and classified as
-value-adding, necessary but non-value-adding, or avoidable. Eleven detectors
-look for Lean wastes, each finding cites the events it rests on, and an A3
+value-adding, necessary but non-value-adding, or avoidable, against the
+developer's current intent. Twelve detectors look for Lean wastes, each finding cites the events it rests on, and an A3
 report turns findings into countermeasures: lines for `CLAUDE.md`, Claude
 Code hooks and settings. All of it is computed from the session's event
 stream alone; repository evidence arrives at L3.
@@ -66,11 +66,61 @@ are **uncertain**: shown, never suppressed, never counted as waste.
 | `unnecessary_handoff` (29, 30) | handoffs | handoff, result, the agent's own call | a later own call shares ≥ 3 key words and ≥ 50% of the smaller set: 0.45 + 0.40 × overlap, ≤ 0.85 | CLAUDE.md "when to delegate"; `permissions.deny: ["Task"]` for small tasks |
 | `repeated_reasoning` (17) | over-processing | both reasoning blocks | same prompt, no edit between, ≥ 3 shared words, ≤ 25% new words: 0.85 − novelty (− 0.10 under 6 words) | CLAUDE.md "act instead of restating" |
 | `regeneration` (20) | overproduction | earlier write or read, the rewrite | whole-file write keeping ≥ 80% of the agent's own earlier write: 0.80; ≥ 60% of a file just read: 0.60 | CLAUDE.md "Edit, not Write, for existing files"; PreToolUse(Write) hook |
+| `intent_drift` (6, 7, 48) | overproduction | the prompt in force, the agent's "also …" reasoning, the edit and result | edit or write scoring below the drift band (0.25) against an intent of ≥ 3 key terms, no intent change recorded: 0.85 continues a goal the developer dropped, or the agent called it additional; 0.75 defines names the intent does not mention; 0.55 only added words (≥ 3) depart | CLAUDE.md "propose extra work, do not do it"; say wanted extras in the prompt |
 
 Validation outcomes are read from tool output with specific markers
 (`FAILED`, `N failed`, `Traceback`, `error:`, `exit code N`…); anything else is
 *unknown* and forms no cycle. Failure signatures hash the failing lines with
 timings, addresses and timestamps removed.
+
+## Intent and alignment
+
+`ter/domain/lean/intent.py` keeps one **intent record** per session
+(TER-ITN-001). Every `intent.stated` event adds a revision, so the history is
+kept:
+
+| Relation | When | Intent terms after |
+|---|---|---|
+| `opened` | the first prompt | the prompt's key terms |
+| `acknowledged` | fewer than 2 goal terms (`ok`, `thanks`) | unchanged |
+| `changed` | a sentence opens with a redirect (`Actually`, `Instead`, `Forget`, `New task`…) and the prompt scores below 0.5 against the intent or drops something; or, unmarked, ≥ 3 goal terms scoring below 0.2 | the prompt's goal terms |
+| `refined` | otherwise | intent ∪ prompt, minus dropped terms |
+
+Terms in a sentence that drops something (`forget the median`) are recorded as
+*abandoned*. A change is an `IntentChange` naming the prompt that caused it
+(TER-ITN-002).
+
+**Key terms** are content words, identifier parts (`ValueError` → `valu`,
+`error`) and file-name parts, lightly stemmed, without stopwords or generic
+programming words. An edit's or write's subject is the names it defines that
+were not there before, else the words it adds; other events use their text or
+arguments.
+
+**Alignment** (TER-ITN-004): every agent event (reasoning, tool request,
+response) gets a score in [0, 1] against the revision in force, from an
+injected `AlignmentScorer` (port in `ter.ports.driven`). The default,
+`LexicalAlignment`, is the overlap coefficient of the two term sets;
+`ter.adapters.driven.alignment.EmbeddingAlignment` scores the same terms with
+any `Embedder`. Bands: aligned ≥ 0.5, partial ≥ `low_below`, low below it;
+unknown when either side has no terms.
+
+**Low-alignment periods** (TER-ITN-005): `min_events` (default 3) or more
+consecutive scored agent events below `low_below` (default 0.25), with no
+prompt between; unknown scores neither extend nor break a run. A period is a
+report, not waste.
+
+**Drift** (TER-ITN-003) is the `intent_drift` detector: an edit or write that
+departs from the intent in force with no change recorded. Its finding claims
+the edit, so a change the developer did not ask for is not value-adding
+(TER-LEN-003). Departures in exploration and reasoning show only as low
+alignment until L3 can tell relevant exploration from drift (TER-ITN-006,
+TER-LEN-009). `IntentConfig(low_below, min_events, drift_below)` holds the
+thresholds: similarity bands and counts of events, never token counts.
+
+The timeline is `LeanAnalysis.intent`; the JSON carries it under `intent`
+(and the A3 JSON under `background.intent`): revisions, changes, per-event
+alignment, low-alignment periods and drift finding ids, each citing event
+ids. The A3 page shows it as the intent timeline in Background.
 
 ## Scorecard (no single opaque score)
 
@@ -144,6 +194,9 @@ existed map as follows.
 | TER-A3-003 | TER-RPT-005 | verified | `test_ter4_lean_analysis.py` |
 | TER-A3-004 | TER-LEN-008 | verified | `tests/golden/test_lean_snapshots.py` |
 | TER-A3-006 | TER-ANL-012 | verified | `tests/contract/test_ter_scorer.py`, golden TER check |
+| (new) | TER-ITN-001, 002, 004, 005 | verified | `tests/unit/test_ter4_lean_intent.py`, `tests/contract/test_alignment_scorer.py`, golden `intent_shift` and `example_session` |
+| (new) | TER-ITN-003 (edits and writes; TER-ITN-006 planned at L3 for exploration and reasoning) | verified | `test_ter4_lean_intent.py` |
+| (new) | TER-LEN-003 (edits and writes; TER-LEN-009 planned at L3 for the other events) | verified | `test_ter4_lean_intent.py` |
 
 Tests that only partly prove a planned requirement (TER-DET-004, 007, 008,
 TER-LEN-004, TER-ARC-002, TER-SCR-001, TER-GRF-001) do not cite it, so the
@@ -160,7 +213,8 @@ catalogue review differ, the status here has been aligned with it.
 | Pt | Status | Definition of done | Rule for long-term navigation |
 |---|---|---|---|
 | 3 | partial | Value, waste, flow, cost are domain types (`ActivityClass`, `LeanWaste`, `FlowState`, `Scorecard`); quality, risk, outcome need L3 evidence | New dimensions join `Scorecard` as separate fields, never folded into another |
-| 7 | partial | Waste = cost claimed by a finding that did not advance the requested outcome; judging value against the stated intent (TER-LEN-003) is later | A waste finding must cite what it consumed (`waste_events`) |
+| 6 | partial | Edits and writes are valued against the current intent (`intent_drift`, TER-LEN-003); other events need repository evidence (TER-LEN-009, L3) | Value is judged against the intent revision in force, never the first prompt alone |
+| 7 | partial | Waste = cost claimed by a finding that did not advance the requested outcome; an edit departing from the intent is overproduction (TER-LEN-003); other events at L3 (TER-LEN-009) | A waste finding must cite what it consumed (`waste_events`) |
 | 8 | partial | Reasoning is waste only when restated with ≤ 25% new words, or in a 4+ step run without action; the planning rule can still count a step that adds a decision (TER-LEN-004) | Never flag reasoning by length |
 | 9 | partial | Flow efficiency counts productive iteration as flow; the constant-value, fewer-tokens test (TER-LEN-005) is still to write | No detector threshold may be a token count |
 | 10 | partial | Headline is flow efficiency, not token totals; the report does not yet name token minimisation as a non-goal | Reports lead with flow and outcome risk |
@@ -192,6 +246,12 @@ catalogue review differ, the status here has been aligned with it.
 | 38 | partial | Exploration is never waste unless repeated or unused (uncertain); intent-aware judgement is L3 | Default for exploration is necessary NVA |
 | 39 | done | Validation re-run without edits and identical output | Re-validation after edits is never duplicated validation |
 | 40 | done | `evidence`, `waste_events`, `Classification.basis`; property tested | No finding without evidence ids that exist in the trace |
+| 45 | done | `IntentRecord` in `ter.domain.lean.intent`, rebuilt from the session's events by the same fold as the analysis | One record per session; revisions are never rewritten |
+| 46 | done | Every `intent.stated` event adds a revision (`opened`, `refined`, `acknowledged`, `changed`) | History is kept; the current intent is the last revision |
+| 47 | done | `IntentChange` with the causing prompt's event id and reason | A change needs a stated goal (≥ 2 goal terms) |
+| 48 | partial | `intent_drift` for edits and writes; departures after a change are judged against the new intent. Exploration and reasoning drift need L3 (TER-ITN-006) | Drift is never inferred from a prompt, only from agent changes |
+| 49 | done | `Alignment` per agent event from an injected `AlignmentScorer` | Scorers satisfy the port contract; the rule is published |
+| 50 | done | `LowAlignmentPeriod` from `IntentConfig(low_below, min_events)` | Thresholds are similarity bands and event counts |
 | 71 | partial | Session-scope evidence graph; repository nodes at L3 | Edges always point from later to earlier events |
 | 72 | partial | Actions link to motivating observations; decisions as such need L3 | `motivated_by` is structural (preceding observation) |
 | 73 | done | `motivated_by` edges | As 72 |
@@ -214,12 +274,12 @@ catalogue review differ, the status here has been aligned with it.
 
 | Layer | Module |
 |---|---|
-| domain | `ter/domain/lean/`: `model.py`, `facts.py`, `steps.py`, `detectors.py`, `graph.py`, `analysis.py`, `countermeasures.py`, `a3.py`; `AnalysisEngine.explain()` and `explain_batch` in `ter/domain/stream.py` |
-| ports | `TerScorer` in `ter/ports/driven.py` |
+| domain | `ter/domain/lean/`: `model.py`, `facts.py`, `steps.py`, `intent.py`, `detectors.py`, `graph.py`, `analysis.py`, `countermeasures.py`, `a3.py`; `AnalysisEngine.explain()` and `explain_batch` in `ter/domain/stream.py` |
+| ports | `TerScorer`, `AlignmentScorer` in `ter/ports/driven.py` |
 | application | `ExplainSession` in `ter/application/explain.py` |
-| driven adapters | `ter/adapters/driven/ter3/` (`Ter3Scorer`), `FixedTerScorer` fake |
+| driven adapters | `ter/adapters/driven/ter3/` (`Ter3Scorer`), `FixedTerScorer` fake, `ter/adapters/driven/alignment.py` (`EmbeddingAlignment`) |
 | driving adapters | `ter/adapters/driving/reports/a3.py`, `explain` and `a3` in `ter/adapters/driving/cli.py`; `ter a3` delegates from the TER 3 CLI |
-| tests | `tests/unit/test_ter4_lean_*.py`, `test_ter4_a3.py`, `tests/contract/test_ter_scorer.py`, `tests/golden/test_lean_snapshots.py`, `tests/equivalence/test_live_static.py` |
+| tests | `tests/unit/test_ter4_lean_*.py`, `test_ter4_a3.py`, `tests/contract/test_ter_scorer.py`, `tests/contract/test_alignment_scorer.py`, `tests/golden/test_lean_snapshots.py`, `tests/equivalence/test_live_static.py` |
 
 ## Known limits
 
@@ -227,6 +287,9 @@ catalogue review differ, the status here has been aligned with it.
   error flag. Unknown outcomes form no cycle.
 - Detectors run when an explanation is requested, in time linear in the
   session; the per-event fold stays O(1) amortised.
+- Alignment is lexical by default: it sees shared words, not meaning, so
+  exploration with unrelated names can form a low-alignment period, and drift
+  is only confident when an edit defines names the intent never mentions.
 - Hook-recorded sessions carry no reasoning or responses, so detectors that
   need them (planning, restated reasoning, unvalidated-before-response) stay
   silent on hook logs.

@@ -121,7 +121,7 @@ points:
       outcome.
     level: L2
     kind: principle
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Value classification takes the current intent's requested outcome as
@@ -129,9 +129,10 @@ points:
       - >-
         A test shows the same event classified differently under two
         intents.
-    rules: [TER-LEN-003]
+    rules: [TER-LEN-003, TER-LEN-009]
     verification:
-      - 'planned: passing tests tagged req for TER-LEN-003'
+      - 'test: tests/unit/test_ter4_lean_intent.py::test_the_same_edit_is_valued_against_the_current_intent'
+      - 'planned: judge exploration, reasoning and validation against the outcome with repository evidence (TER-LEN-009, L3)'
 
   - id: P007
     text: >-
@@ -147,10 +148,11 @@ points:
       - >-
         Each waste class names the resource it consumes and the progress
         signal it lacks.
-    rules: [TER-LEN-003]
+    rules: [TER-LEN-003, TER-LEN-009]
     verification:
       - 'test: tests/unit/test_ter4_lean_properties.py::test_findings_are_traceable_and_bounded'
-      - 'planned: judge value against the outcome stated in the intent (TER-LEN-003)'
+      - 'test: tests/unit/test_ter4_lean_intent.py::test_the_same_edit_is_valued_against_the_current_intent'
+      - 'planned: judge exploration, reasoning and validation against the outcome with repository evidence (TER-LEN-009, L3)'
 
   - id: P008
     text: >-
@@ -714,54 +716,57 @@ points:
       Construct a persistent representation of developer intent.
     level: L2
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Each session has one intent record in ter.domain, persisted with the
         session state.
     rules: [TER-ITN-001]
     verification:
-      - 'planned: passing tests tagged req for TER-ITN-001'
+      - 'test: tests/unit/test_ter4_lean_intent.py::test_every_prompt_updates_the_one_intent_record'
+      - 'test: tests/unit/test_ter4_lean_intent.py::test_the_intent_record_is_kept_with_the_session_state_and_redelivery_is_idempotent'
 
   - id: P046
     text: >-
       Allow intent to evolve during a session.
     level: L2
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Every intent.stated event updates the intent record, keeping its
         history.
     rules: [TER-ITN-001]
     verification:
-      - 'planned: passing tests tagged req for TER-ITN-001'
+      - 'test: tests/unit/test_ter4_lean_intent.py::test_every_prompt_updates_the_one_intent_record'
 
   - id: P047
     text: >-
       Detect explicit changes in developer intent.
     level: L2
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - An intent change is recorded with the prompt event that caused it.
     rules: [TER-ITN-002]
     verification:
-      - 'planned: passing tests tagged req for TER-ITN-002'
+      - 'test: tests/unit/test_ter4_lean_intent.py::test_an_explicit_redirect_records_a_change_with_its_prompt'
+      - 'test: tests/unit/test_ter4_lean_intent.py::test_golden_intent_shift_records_the_change_and_the_drift'
 
   - id: P048
     text: >-
       Distinguish legitimate intent changes from agent drift.
     level: L2
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Departures without a recorded intent change are labelled drift;
         departures after one are not, shown by tests.
-    rules: [TER-ITN-003]
+    rules: [TER-ITN-003, TER-ITN-006]
     verification:
-      - 'planned: passing tests tagged req for TER-ITN-003'
+      - 'test: tests/unit/test_ter4_lean_intent.py::TestIntentDrift'
+      - 'planned: drift in exploration and reasoning with repository evidence (TER-ITN-006, L3)'
 
   - id: P049
     text: >-
@@ -769,26 +774,27 @@ points:
       intent.
     level: L2
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - Every agent event has an alignment score to the current intent.
     rules: [TER-ITN-004]
     verification:
-      - 'planned: passing tests tagged req for TER-ITN-004'
+      - 'test: tests/unit/test_ter4_lean_intent.py::test_every_agent_event_is_scored_against_the_intent_in_force'
+      - 'test: tests/contract/test_alignment_scorer.py'
 
   - id: P050
     text: >-
       Detect prolonged periods of low intent alignment.
     level: L2
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Runs of low alignment above the configured length are reported as
         low-alignment periods.
     rules: [TER-ITN-005]
     verification:
-      - 'planned: passing tests tagged req for TER-ITN-005'
+      - 'test: tests/unit/test_ter4_lean_intent.py::TestLowAlignmentPeriods'
 
   - id: P051
     text: >-

@@ -20,6 +20,7 @@ from typing import Protocol
 
 from ..events import EventId, EventKind, ToolKind
 from .facts import overlap
+from .intent import IntentRelation, IntentTimeline, SubjectBasis
 from .model import (
     ActivityClass,
     CycleVerdict,
@@ -37,6 +38,7 @@ __all__ = [
     "DetectorRegistry",
     "ExcessivePlanning",
     "FragmentedEdits",
+    "IntentDrift",
     "PrematureImplementation",
     "Regeneration",
     "RepeatedExploration",
@@ -62,15 +64,23 @@ class SessionView:
     steps: tuple[Step, ...]
     completion_of: dict[int, Step] = field(default_factory=dict)
     by_id: dict[EventId, Step] = field(default_factory=dict)
+    intent: IntentTimeline = field(default_factory=IntentTimeline)
 
     @classmethod
-    def of(cls, steps: Sequence[Step]) -> SessionView:
+    def of(
+        cls, steps: Sequence[Step], intent: IntentTimeline | None = None
+    ) -> SessionView:
         completion_of = {
             s.request_index: s
             for s in steps
             if s.is_completion and s.request_index is not None
         }
-        return cls(tuple(steps), completion_of, {s.event_id: s for s in steps})
+        return cls(
+            tuple(steps),
+            completion_of,
+            {s.event_id: s for s in steps},
+            intent if intent is not None else IntentTimeline(),
+        )
 
     def requests(self) -> Iterator[Step]:
         return (s for s in self.steps if s.is_request)
@@ -913,6 +923,104 @@ class Regeneration:
         )
 
 
+@dataclass(frozen=True)
+class IntentDrift:
+    """Point 48 (TER-ITN-003): a change departing from the intent in force.
+
+    Only edits and writes are judged: they are what moves the software away
+    from the requested outcome. A departure that follows a recorded intent
+    change is measured against the new intent, so it is drift only if it
+    departs from that one too.
+    """
+
+    id: str = "intent_drift"
+    waste: LeanWaste = LeanWaste.OVERPRODUCTION
+    kind: FindingKind = FindingKind.WASTE
+    summary: str = (
+        "An edit or write about something the current intent does not ask for, "
+        "with no intent change recorded."
+    )
+    confidence_rule: str = (
+        "An edit or write whose alignment to the intent in force is below the "
+        "drift band (default 0.25), against an intent of at least 3 key terms: "
+        "0.85 when the names it defines continue a goal the developer dropped, "
+        "or the agent's own reasoning or narration since the prompt called it "
+        "additional ('also', 'while I'm at it') and names it; 0.75 when it "
+        "defines new names the intent does not mention; 0.55 (uncertain) when "
+        "it defines no names and only its added words (at least 3) depart. "
+        "Before any prompt, or against a shorter intent: no finding."
+    )
+
+    def detect(self, view: SessionView) -> Iterable[Finding]:
+        timeline = view.intent
+        band = timeline.config.drift_below
+        record = timeline.record
+        for step in view.requests():
+            if not step.is_edit:
+                continue
+            a = timeline.alignment_of(step.event_id)
+            if a is None or a.score is None or a.revision is None:
+                continue
+            if a.score >= band:
+                continue
+            intent = record.revision(a.revision)
+            if len(intent.terms) < _MIN_INTENT_TERMS:
+                continue
+            opened = intent.event_id
+            dropped = frozenset(
+                t
+                for r in record.revisions[: a.revision]
+                if r.relation is IntentRelation.CHANGED
+                for t in r.abandoned
+            )
+            announced = [
+                s
+                for s in view.steps[view.by_id[opened].index + 1 : step.index]
+                if (x := timeline.alignment_of(s.event_id)) is not None
+                and x.extra
+                and not s.is_request
+                and x.subject & a.subject
+            ]
+            evidence: list[Step] = [view.by_id[opened], *announced, *view.pair(step)]
+            what = ", ".join(a.names) if a.names else ", ".join(sorted(a.subject)[:5])
+            if a.basis is SubjectBasis.NAMES:
+                if a.subject & dropped:
+                    confidence = 0.85
+                    why = "It continues a goal the developer dropped."
+                elif announced:
+                    confidence = 0.85
+                    why = "The agent itself called it additional work."
+                else:
+                    confidence = 0.75
+                    why = "The intent does not mention what it defines."
+            else:
+                if len(a.subject) < _MIN_DRIFT_WORDS:
+                    continue
+                confidence = 0.55
+                why = (
+                    "It defines no names, so this rests on the words it adds "
+                    "and may be a necessary detail."
+                )
+            yield _finding(
+                self,
+                view,
+                confidence=confidence,
+                title=f"Edit departs from the intent: {_short(what)}",
+                explanation=(
+                    f"{step.native_name} of {_files([step])} is about {what}, which "
+                    f"scores {a.score:.2f} against intent revision {a.revision} "
+                    f"(below {band:.2f}), and no intent change was recorded. {why}"
+                ),
+                evidence=evidence,
+                waste=view.pair(step),
+                subject=what,
+            )
+
+
+_MIN_INTENT_TERMS = 3
+_MIN_DRIFT_WORDS = 3
+
+
 # ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
@@ -976,6 +1084,7 @@ DEFAULT_REGISTRY = DetectorRegistry(
         UnnecessaryHandoff(),
         RepeatedReasoning(),
         Regeneration(),
+        IntentDrift(),
     )
 )
 

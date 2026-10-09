@@ -4,6 +4,7 @@
 * :mod:`.facts`: what single events show (shell intent, validation outcome).
 * :mod:`.steps`: the incremental fold from events to steps.
 * :mod:`.detectors`: the ``WasteDetector`` protocol, registry and L2 detectors.
+* :mod:`.intent`: the persistent intent record, alignment and drift inputs.
 * :mod:`.graph`: the session Evidence Graph.
 * :mod:`.analysis`: classification, value stream, scorecard.
 * :mod:`.countermeasures` and :mod:`.a3`: what to change, as an A3 view-model.
@@ -37,6 +38,22 @@ from .detectors import (
     WasteDetector,
     validation_cycles,
 )
+from .intent import (
+    DEFAULT_INTENT_CONFIG,
+    LEXICAL_ALIGNMENT,
+    Alignment,
+    AlignmentBand,
+    AlignmentScorer,
+    IntentChange,
+    IntentConfig,
+    IntentRecord,
+    IntentRelation,
+    IntentRevision,
+    IntentTimeline,
+    LexicalAlignment,
+    LowAlignmentPeriod,
+    key_terms,
+)
 from .graph import EdgeType, EvidenceEdge, EvidenceGraph, EvidenceNode
 from .model import (
     STAGE_ORDER,
@@ -56,6 +73,20 @@ from .model import (
 from .steps import StepLog
 
 __all__ = [
+    "DEFAULT_INTENT_CONFIG",
+    "LEXICAL_ALIGNMENT",
+    "Alignment",
+    "AlignmentBand",
+    "AlignmentScorer",
+    "IntentChange",
+    "IntentConfig",
+    "IntentRecord",
+    "IntentRelation",
+    "IntentRevision",
+    "IntentTimeline",
+    "LexicalAlignment",
+    "LowAlignmentPeriod",
+    "key_terms",
     "A3_SCHEMA",
     "A3Report",
     "Action",

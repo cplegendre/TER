@@ -19,7 +19,7 @@ fold (:func:`explain`), so live and batch agree by construction.
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Protocol
 
 from ..events import Event, EventId, EventKind, ToolKind
@@ -30,6 +30,15 @@ from .detectors import (
     validation_cycles,
 )
 from .graph import EvidenceGraph, build_graph
+from .intent import (
+    DEFAULT_INTENT_CONFIG,
+    LEXICAL_ALIGNMENT,
+    AlignmentScorer,
+    IntentConfig,
+    IntentLog,
+    IntentTimeline,
+    build_intent,
+)
 from .model import (
     STAGE_ORDER,
     ActivityClass,
@@ -210,6 +219,12 @@ class LeanAnalysis:
     scorecard: Scorecard
     graph: EvidenceGraph
     detectors: tuple[tuple[str, str, str, str], ...]
+    intent: IntentTimeline = field(default_factory=IntentTimeline)
+
+    @property
+    def drift_findings(self) -> tuple[Finding, ...]:
+        """Findings of the ``intent_drift`` detector (TER-ITN-003)."""
+        return tuple(f for f in self.findings if f.detector == "intent_drift")
 
     @property
     def waste_findings(self) -> tuple[Finding, ...]:
@@ -262,6 +277,7 @@ class LeanAnalysis:
                 {"id": i, "waste": w, "kind": k, "confidence_rule": r}
                 for i, w, k, r in self.detectors
             ],
+            "intent": self.intent.as_dict([f.id for f in self.drift_findings]),
         }
         if graph:
             out["evidence_graph"] = self.graph.as_dict()
@@ -528,9 +544,15 @@ def analyse_steps(
     *,
     ter: TerMeasure | None = None,
     registry: DetectorRegistry = DEFAULT_REGISTRY,
+    intent: IntentTimeline | None = None,
 ) -> LeanAnalysis:
-    """Run every detector over ``steps`` and build the analysis."""
-    view = SessionView.of(steps)
+    """Run every detector over ``steps`` and build the analysis.
+
+    ``intent`` is the session's intent timeline (:func:`.intent.build_intent`);
+    without one, the intent detectors have nothing to judge against.
+    """
+    timeline = intent if intent is not None else IntentTimeline()
+    view = SessionView.of(steps, timeline)
     findings = registry.run(view)
     cycles = validation_cycles(view)
     classes = _classify(steps, findings, cycles)
@@ -550,6 +572,7 @@ def analyse_steps(
         detectors=tuple(
             (d.id, d.waste.value, d.kind.value, d.confidence_rule) for d in registry
         ),
+        intent=timeline,
     )
 
 
@@ -558,13 +581,17 @@ class LeanAnalyser:
 
     def __init__(self) -> None:
         self._log = StepLog()
+        self._intent = IntentLog()
         self._session_id: str | None = None
 
     def __len__(self) -> int:
         return len(self._log)
 
     def add(self, event: Event, tokens: int) -> bool:
+        before = len(self._log)
         accepted = self._log.add(event, tokens)
+        if len(self._log) > before:
+            self._intent.add(event)
         if accepted and self._session_id is None:
             self._session_id = event.session_id
         return accepted
@@ -574,9 +601,15 @@ class LeanAnalyser:
         *,
         ter: TerMeasure | None = None,
         registry: DetectorRegistry = DEFAULT_REGISTRY,
+        alignment: AlignmentScorer = LEXICAL_ALIGNMENT,
+        intent_config: IntentConfig = DEFAULT_INTENT_CONFIG,
     ) -> LeanAnalysis:
+        steps = self._log.steps()
+        timeline = build_intent(
+            steps, self._intent.reads(), scorer=alignment, config=intent_config
+        )
         return analyse_steps(
-            self._session_id, self._log.steps(), ter=ter, registry=registry
+            self._session_id, steps, ter=ter, registry=registry, intent=timeline
         )
 
 
@@ -586,9 +619,13 @@ def explain(
     *,
     ter: TerMeasure | None = None,
     registry: DetectorRegistry = DEFAULT_REGISTRY,
+    alignment: AlignmentScorer = LEXICAL_ALIGNMENT,
+    intent_config: IntentConfig = DEFAULT_INTENT_CONFIG,
 ) -> LeanAnalysis:
     """Batch L2 analysis of a whole stream: the fold of :meth:`LeanAnalyser.add`."""
     analyser = LeanAnalyser()
     for event in events:
         analyser.add(event, tokenizer.count(event.text))
-    return analyser.analysis(ter=ter, registry=registry)
+    return analyser.analysis(
+        ter=ter, registry=registry, alignment=alignment, intent_config=intent_config
+    )

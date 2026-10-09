@@ -10,6 +10,7 @@ on one landscape A3 sheet.
 
 from __future__ import annotations
 
+from collections import Counter
 from collections.abc import Sequence
 
 from ter.domain.lean import (
@@ -364,6 +365,9 @@ background:var(--ter-page);font-size:11.5px}
 .rc td.num{white-space:normal;min-width:120px}
 .rc .rank{width:28px;color:var(--ter-muted);font-variant-numeric:tabular-nums}
 .rc td.num .tag{margin-bottom:2px}
+.intent{margin:0 0 8px;padding-left:20px}
+.intent li{margin:0 0 6px}
+.intent small{display:block;color:var(--ter-ink-2)}
 .cms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .cm{border:1px solid var(--ter-grid);border-radius:8px;padding:10px 12px;min-width:0}
 .cm h3{margin:0 0 4px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
@@ -442,12 +446,77 @@ def _background(report: A3Report) -> str:
     return (
         lead
         + quotes
+        + _intent(report)
         + f'<p class="problem"><b>Problem.</b> {esc(report.problem)}</p>'
         + f'<p class="fine">{a.events} events analysed · session <code>{esc(report.session_id or "-")}</code></p>'
         + "".join(
             f'<p class="fine"><b>Limit.</b> {esc(describe_limit(limit))}</p>'
             for limit in report.usage_limits
         )
+    )
+
+
+def _intent(report: A3Report) -> str:
+    """The intent timeline: each revision, what changed it, and the drift and
+    low-alignment periods judged against it, all citing event ids."""
+    a = report.analysis
+    timeline = a.intent
+    revisions = timeline.record.revisions
+    if not revisions:
+        return ""
+    rows: list[str] = []
+    for r in revisions:
+        scored = [
+            x
+            for x in timeline.alignments
+            if x.revision == r.revision and x.score is not None
+        ]
+        bands = Counter(x.band.value for x in scored)
+        change = next(
+            (c for c in timeline.changes if c.to_revision == r.revision), None
+        )
+        detail = [
+            f'<span class="tag{" warn" if change else ""}">{esc(r.relation.value)}</span> '
+            f"<b>Revision {r.revision}</b> <code>{esc(r.event_id)}</code>"
+        ]
+        if change is not None:
+            dropped = (
+                f"; dropped {esc(', '.join(sorted(change.abandoned)))}"
+                if change.abandoned
+                else ""
+            )
+            detail.append(
+                f"<small>Changed by the developer: {esc(change.reason)}{dropped}.</small>"
+            )
+        detail.append(
+            f"<small>{len(scored)} agent event(s) scored: {bands['aligned']} aligned, "
+            f"{bands['partial']} partial, {bands['low']} low.</small>"
+        )
+        for f in a.drift_findings:
+            x = timeline.alignment_of(f.waste_events[0]) if f.waste_events else None
+            if x is None or x.revision != r.revision:
+                continue
+            unsure = ' <span class="tag warn">uncertain</span>' if f.uncertain else ""
+            detail.append(
+                f'<small><span class="tag waste">drift</span>{unsure} {esc(f.title)} '
+                f"(confidence {f.confidence:.2f})</small>{_evidence(f.evidence)}"
+            )
+        for period in timeline.periods:
+            if period.revision != r.revision:
+                continue
+            detail.append(
+                f'<small><span class="tag risk">low alignment</span> {len(period.events)} '
+                f"consecutive agent events, mean score {period.mean_score:.2f}</small>"
+                f"{_evidence(period.events)}"
+            )
+        rows.append(f"<li>{''.join(detail)}</li>")
+    cfg = timeline.config
+    return (
+        "<h3>Intent timeline</h3>"
+        f'<ol class="intent">{"".join(rows)}</ol>'
+        f'<p class="fine">Alignment: {esc(timeline.scorer)} scorer. Low alignment is a score '
+        f"below {cfg.low_below:.2f} for {cfg.min_events}+ agent events in a row; drift is an "
+        f"edit below {cfg.drift_below:.2f} with no intent change recorded.</p>"
     )
 
 

@@ -12,6 +12,7 @@ as hooks and the CLI.
 from __future__ import annotations
 
 from .driven import (
+    AlignmentScorer,
     Clock,
     Embedder,
     EventLog,
@@ -26,6 +27,7 @@ from .driving import EventIngest
 #: Driven ports a capability (``ter.capabilities`` entry point) can plug into,
 #: by the name its key uses: ``<Port>.<adapter>`` (ADR 0005).
 DRIVEN_PORTS: dict[str, type[object]] = {
+    "AlignmentScorer": AlignmentScorer,
     "Clock": Clock,
     "Embedder": Embedder,
     "EventLog": EventLog,
@@ -38,6 +40,7 @@ DRIVEN_PORTS: dict[str, type[object]] = {
 
 __all__ = [
     "DRIVEN_PORTS",
+    "AlignmentScorer",
     "Clock",
     "Embedder",
     "EventIngest",

@@ -8,6 +8,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from ..domain.events import Event, SessionTrace
+
+# Declared beside the intent model it serves (the analysis takes it as an
+# argument); re-exported here as the driven port adapters implement.
+from ..domain.lean.intent import AlignmentScorer as AlignmentScorer
 from ..domain.outcome import OutcomeEvidence
 from ..domain.pricing import Rates
 
