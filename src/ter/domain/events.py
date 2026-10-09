@@ -64,6 +64,20 @@ class EventKind(StrEnum):
     ATTEMPT_STARTED = "attempt.started"
     VERIFICATION_COMPLETED = "verification.completed"
     OUTCOME_RECORDED = "outcome.recorded"
+    # TER-EXP-002: measures TER records about a session (its TER 3 ratio and
+    # its outcome verdict), so every reported metric is recomputed from the
+    # event log alone. Records, not activity: the fold counts none of them.
+    METRIC_RECORDED = "metric.recorded"
+    VERDICT_RECORDED = "verdict.recorded"
+
+    @property
+    def is_record(self) -> bool:
+        """True for a measure TER recorded about the session (TER-EXP-002).
+
+        A record is not something the developer, the agent or a harness did:
+        no step, no count, no token figure includes it.
+        """
+        return self in (EventKind.METRIC_RECORDED, EventKind.VERDICT_RECORDED)
 
     @property
     def is_lifecycle(self) -> bool:

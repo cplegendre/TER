@@ -3010,7 +3010,7 @@ points:
       evidence data.
     level: L2
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Every reported metric can be recomputed from recorded events and
@@ -3020,7 +3020,8 @@ points:
       - 'test: tests/golden/test_ter3_characterisation.py'
       - 'test: tests/unit/test_ter4_lean_properties.py::test_explanation_is_deterministic'
       - 'test: tests/equivalence/test_recompute_from_events.py'
-      - 'planned: TER 3 ratio and outcome verdict recorded as events (TER-EXP-002, L3)'
+      - 'test: tests/equivalence/test_recompute_from_events.py::test_the_ter3_ratio_and_verdict_recompute_from_recorded_events'
+      - 'test: tests/unit/test_ter4_records.py'
 
   - id: P196
     text: >-
@@ -3028,7 +3029,7 @@ points:
       opaque agent supervisor.
     level: L6
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Code, requirements, points index and reports are open and
@@ -3045,7 +3046,8 @@ points:
       - 'test: tests/docs/test_docs.py::test_shell_examples_name_real_commands_and_options'
       - 'test: tests/requirements/test_point_origin.py'
       - 'test: tests/equivalence/test_recompute_from_events.py'
-      - 'planned: TER 3 ratio and outcome verdict recorded as events (TER-EXP-002, L3)'
+      - 'test: tests/equivalence/test_recompute_from_events.py::test_the_ter3_ratio_and_verdict_recompute_from_recorded_events'
+      - 'test: tests/unit/test_ter4_records.py'
 
   - id: P197
     text: >-

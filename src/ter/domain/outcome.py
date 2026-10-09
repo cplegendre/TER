@@ -22,6 +22,9 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 
+from .events import Event, EventKind
+from .records import record_event, record_payload
+
 __all__ = [
     "AcceptanceContract",
     "Check",
@@ -35,6 +38,8 @@ __all__ = [
     "combine_statuses",
     "judge",
     "per_verified_outcome",
+    "recorded_verdict",
+    "verdict_event",
 ]
 
 
@@ -280,3 +285,119 @@ def per_verified_outcome(
     """
     accepted = sum(1 for v in verdicts if v.accepted)
     return total / accepted if accepted else None
+
+
+# -- the verdict as a record of the session (TER-EXP-002) ---------------------
+
+
+def verdict_event(
+    session: Sequence[Event], verdict: OutcomeVerdict, offset: int = 1
+) -> Event:
+    """A ``verdict.recorded`` event holding what the verdict was judged from:
+    the run, its source, the acceptance contract and every piece of
+    evidence, with the verdict itself as a cross-check
+    (:func:`recorded_verdict` judges it again)."""
+    evidence = [e for r in verdict.results for e in r.evidence] + list(verdict.unlisted)
+    payload = {
+        "name": "outcome",
+        "verdict": verdict.verdict.value,
+        "run": verdict.run_ref,
+        "source": verdict.source,
+        "contract": {
+            "name": verdict.contract.name,
+            "checks": [
+                {"id": c.id, "required": c.required, "description": c.description}
+                for c in verdict.contract.checks
+            ],
+        },
+        "evidence": [
+            {
+                "check": e.check_id,
+                "status": e.status.value,
+                "source": e.source,
+                "detail": e.detail,
+                "seconds": e.seconds,
+            }
+            for e in evidence
+        ],
+    }
+    return record_event(session, EventKind.VERDICT_RECORDED, payload, offset)
+
+
+def _text(value: object, where: str) -> str:
+    if not isinstance(value, str):
+        raise OutcomeFormatError(f"{where} must be text")
+    return value
+
+
+def _decode(payload: dict[str, object], where: str) -> OutcomeVerdict:
+    contract = payload.get("contract")
+    items = payload.get("evidence")
+    if not isinstance(contract, dict) or not isinstance(items, list):
+        raise OutcomeFormatError(f"{where} needs a contract and evidence")
+    raw_checks = contract.get("checks")
+    if not isinstance(raw_checks, list):
+        raise OutcomeFormatError(f"{where}: the contract needs its checks")
+    try:
+        checks = tuple(
+            Check(
+                _text(c.get("id"), where),
+                c.get("required") is not False,
+                _text(c.get("description", ""), where),
+            )
+            for c in raw_checks
+            if isinstance(c, dict)
+        )
+        accepted = AcceptanceContract(_text(contract.get("name"), where), checks)
+        evidence = OutcomeEvidence(
+            _text(payload.get("run"), where),
+            _text(payload.get("source"), where),
+            tuple(
+                CheckEvidence(
+                    _text(e.get("check"), where),
+                    CheckStatus(_text(e.get("status"), where)),
+                    _text(e.get("source"), where),
+                    _text(e.get("detail", ""), where),
+                    _seconds(e.get("seconds"), where),
+                )
+                for e in items
+                if isinstance(e, dict)
+            ),
+        )
+    except ValueError as exc:
+        raise OutcomeFormatError(f"{where}: {exc}") from exc
+    verdict = judge(evidence, accepted)
+    if verdict.verdict.value != payload.get("verdict"):
+        raise OutcomeFormatError(
+            f"{where} records {payload.get('verdict')!r} but its evidence is "
+            f"judged {verdict.verdict.value!r}"
+        )
+    return verdict
+
+
+def _seconds(value: object, where: str) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, int | float) and not isinstance(value, bool):
+        return float(value)
+    raise OutcomeFormatError(f"{where}: seconds must be a number")
+
+
+def recorded_verdict(events: Iterable[Event]) -> OutcomeVerdict | None:
+    """The outcome verdict recorded among ``events`` (the last, when there
+    are several), judged again from the contract and evidence it holds;
+    ``None`` when none is recorded.
+
+    Raises :class:`OutcomeFormatError` when a record cannot be read, or
+    when its evidence no longer judges to the verdict it records.
+    """
+    found: OutcomeVerdict | None = None
+    for event in events:
+        if event.kind is not EventKind.VERDICT_RECORDED:
+            continue
+        payload = record_payload(event)
+        where = f"verdict record {event.id}"
+        if payload is None:
+            raise OutcomeFormatError(f"{where} is not a JSON object")
+        found = _decode(payload, where)
+    return found

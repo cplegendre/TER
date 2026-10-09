@@ -498,7 +498,11 @@ requirements:
       Split from TER-EXP-001: at L2 the TER 3 ratio is computed from the
       source session and the outcome verdict from outcome evidence beside
       the analysis, so neither can yet be recomputed from the event log.
-    status: planned
+      Recorded as metric.recorded and verdict.recorded events after the
+      session's last event; the fold reads the ratio and counts no record
+      as activity, and a recorded verdict is judged again from the contract
+      and evidence it holds.
+    status: verified
 
   - id: TER-ARC-007
     pattern: ubiquitous
