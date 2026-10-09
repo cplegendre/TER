@@ -10,9 +10,9 @@ rules that enforce it and how it is verified. Rules live in
 contributed from another source (an external capability, ADR 0005) and the
 Origin column names that source, its reference and author.
 
-**200 points** · ● done **80** · ◐ partial **36** · ○ not started **84**
+**200 points** · ● done **80** · ◐ partial **40** · ○ not started **80**
 
-`████████████████▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░`
+`████████████████▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░`
 
 Legend: `█` done · `▓` partial · `░` not started
 
@@ -23,7 +23,7 @@ Legend: `█` done · `▓` partial · `░` not started
 | L0 Measured | `██████████████████▓▓` | 10 | 1 | 0 | 11 |
 | L1 Observed | `███████████████████▓` | 15 | 1 | 0 | 16 |
 | L2 Explained | `█████████████████▓▓▓` | 45 | 9 | 0 | 54 |
-| L3 Grounded | `████▓▓▓▓▓▓░░░░░░░░░░` | 9 | 14 | 25 | 48 |
+| L3 Grounded | `████▓▓▓▓▓▓▓░░░░░░░░░` | 9 | 18 | 21 | 48 |
 | L4 Advisory | `▓▓░░░░░░░░░░░░░░░░░░` | 0 | 4 | 35 | 39 |
 | L5 Corrective | `██▓▓▓▓▓▓░░░░░░░░░░░░` | 1 | 4 | 8 | 13 |
 | L6 Learning | `▓▓▓░░░░░░░░░░░░░░░░░` | 0 | 3 | 16 | 19 |
@@ -42,7 +42,7 @@ Real session data: **47 points** need it (3 verified) and cannot be done on synt
 P001 ◐ ● ● ● ● ◐ ◐ ● ● ● ● ● ● ● ● ● ● ● ● ●
 P021 ● ● ● ● ● ● ● ● ● ◐ ● ● ○ ● ◐ ◐ ● ● ● ●
 P041 ● ● ● ● ● ● ● ◐ ● ● ◐ ◐ ◐ ● ● ● ◐ ● ● ◐
-P061 ● ◐ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ● ◐ ● ● ◐ ◐ ● ●
+P061 ● ◐ ◐ ◐ ◐ ◐ ○ ○ ○ ○ ◐ ◐ ● ◐ ● ● ◐ ◐ ● ●
 P081 ● ● ● ● ● ● ◐ ○ ○ ○ ◐ ◐ ● ○ ◐ ○ ○ ○ ○ ◐
 P101 ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ◐ ● ● ● ●
 P121 ◐ ● ○ ○ ◐ ○ ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ○
@@ -106,7 +106,7 @@ P181 ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ◐ ◐ ○
 | P049 | Measure distance between current agent activity and current developer intent. | vision | L2 | ● done |  | • Every agent event has an alignment score to the current intent. | `TER-ITN-004` ✓ | test: tests/unit/test_ter4_lean_intent.py::test_every_agent_event_is_scored_against_the_intent_in_force<br>test: tests/contract/test_alignment_scorer.py |
 | P050 | Detect prolonged periods of low intent alignment. | vision | L2 | ● done |  | • Runs of low alignment above the configured length are reported as low-alignment periods. | `TER-ITN-005` ✓ | test: tests/unit/test_ter4_lean_intent.py::TestLowAlignmentPeriods |
 | P051 | Extend intent analysis with software-repository evidence. | vision | L3 | ◐ partial |  | • Intent analysis takes repository evidence as an input through the RepositoryEvidence port. | `TER-EVD-001` ✓ | test: tests/contract/test_repository_evidence.py<br>test: tests/architecture/test_repository_evidence_boundary.py<br>planned: intent analysis takes repository evidence through the port (TER-ITN-006, TER-LEN-009, L3) |
-| P052 | Understand which files, symbols, tests, modules, and architectural components relate to… | vision | L3 | ◐ partial |  | • For a task, TER lists the related files, symbols, tests, modules and components with the evidence for each. | `TER-EVD-012` ✓ | test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax<br>test: tests/unit/test_ter4_repository_evidence.py::TestTestsImporting<br>planned: per-task listing of related files, symbols and tests (change surface, TER-EVD-006, L3 step 4) |
+| P052 | Understand which files, symbols, tests, modules, and architectural components relate to… | vision | L3 | ◐ partial |  | • For a task, TER lists the related files, symbols, tests, modules and components with the evidence for each. | `TER-EVD-012` ✓ | test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax<br>test: tests/unit/test_ter4_repository_evidence.py::TestTestsImporting<br>test: tests/unit/test_ter4_change_surface.py::TestChangeSurface<br>planned: per-task listing of related symbols and architectural components with their evidence (the change surface lists files and tests, TER-EVD-006) |
 | P053 | Incorporate TGV-style repository intelligence into TER's analytical model. | vision | L3 | ◐ partial |  | • TGV-style repository intelligence is available as a RepositoryEvidence adapter. | `TER-EVD-001` ✓ | test: tests/contract/test_repository_evidence.py<br>test: tests/unit/test_ter4_repository_evidence.py::TestRepositoryEnginesArePlugins<br>planned: a TGV-style repository intelligence engine behind the RepositoryEvidence port (lexical, Git and Python syntax engines exist) |
 | P054 | Build a repository evidence layer independent of individual model providers. | vision | L3 | ● done |  | • The repository evidence layer imports no model-provider SDK, enforced by an import-linter contract. | `TER-EVD-001` ✓ | test: tests/architecture/test_repository_evidence_boundary.py<br>test: tests/architecture/test_import_contracts.py::test_every_import_contract_is_kept<br>ci: Architecture import contracts |
 | P055 | Support lexical repository analysis as a deterministic baseline. | vision | L3 | ● done |  | • A lexical adapter returns deterministic results, frozen by a golden test. | `TER-EVD-002` ✓ | test: tests/unit/test_ter4_repository_evidence.py::TestLexicalDeterminism<br>test: tests/golden/test_repository_evidence_snapshot.py::test_lexical_evidence_matches_golden_snapshot |
@@ -117,10 +117,10 @@ P181 ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ◐ ◐ ○
 | P060 | Add test-to-source relationships. | vision | L3 | ◐ partial |  | • For any source module, the adapter returns every test module that imports it. | `TER-EVD-003` ✓<br>`TER-EVD-014` · | test: tests/contract/test_repository_evidence.py::test_returns_every_test_module_that_imports_a_source_module<br>test: tests/unit/test_ter4_repository_evidence.py::TestTestsImporting<br>planned: test-to-source links for languages other than Python (TER-EVD-014) |
 | P061 | Add Git history and change-awareness as optional evidence. | vision | L3 | ● done |  | • Git history per file is available when the repository is a Git working tree, and absent otherwise without error. | `TER-EVD-013` ✓ | test: tests/unit/test_ter4_repository_evidence.py::TestGitHistory<br>test: tests/unit/test_ter4_repository_evidence.py::TestGitWorkTree<br>test: tests/contract/test_repository_evidence.py::test_diff_and_history_are_version_control_evidence_or_none |
 | P062 | Understand the current Git diff during live analysis. | vision | L3 | ◐ partial |  | • Live analysis reads the current diff on each relevant event. | `TER-EVD-013` ✓ | test: tests/unit/test_ter4_repository_evidence.py::TestGitDiff<br>planned: live analysis reads the current diff on each relevant event (L3, with the change surface) |
-| P063 | Determine whether agent activity remains within the expected change surface. | vision | L3 | ○ not started |  | • Each task has a computed expected change surface, and edits are marked inside or outside it. | `TER-EVD-006` · | planned: passing tests tagged req for TER-EVD-006 |
-| P064 | Detect unnecessary expansion of the change surface. | vision | L3 | ○ not started |  | • Growth of the change surface beyond the expected one is reported. | `TER-EVD-006` · | planned: passing tests tagged req for TER-EVD-006 |
-| P065 | Detect architectural boundary violations introduced during implementation. | vision | L3 | ○ not started |  | • An edit that breaks a declared architecture contract is reported as a boundary violation. | `TER-EVD-007` · | planned: passing tests tagged req for TER-EVD-007 |
-| P066 | Detect unrelated modifications made during a focused task. | vision | L3 | ○ not started |  | • Edits unrelated to the task are reported as unrelated modifications. | `TER-EVD-006` · | planned: passing tests tagged req for TER-EVD-006 |
+| P063 | Determine whether agent activity remains within the expected change surface. | vision | L3 | ◐ partial |  | • Each task has a computed expected change surface, and edits are marked inside or outside it. | `TER-EVD-006` ✓ | test: tests/unit/test_ter4_change_surface.py::TestChangeSurface<br>test: tests/unit/test_ter4_grounded_cli.py<br>planned: real-data check on sessions with their repository and start commit (D4) |
+| P064 | Detect unnecessary expansion of the change surface. | vision | L3 | ◐ partial |  | • Growth of the change surface beyond the expected one is reported. | `TER-EVD-006` ✓ | test: tests/unit/test_ter4_change_surface.py::TestSurfaceExpansion<br>planned: real-data check on sessions with their repository and start commit (D4) |
+| P065 | Detect architectural boundary violations introduced during implementation. | vision | L3 | ◐ partial |  | • An edit that breaks a declared architecture contract is reported as a boundary violation. | `TER-EVD-007` ✓<br>`TER-EVD-015` · | test: tests/unit/test_ter4_change_surface.py::TestBoundaryViolation<br>test: tests/contract/test_architecture_contracts.py<br>test: tests/unit/test_ter4_grounded_cli.py<br>planned: other languages and contract types (TER-EVD-015); real-data check (D4) |
+| P066 | Detect unrelated modifications made during a focused task. | vision | L3 | ◐ partial |  | • Edits unrelated to the task are reported as unrelated modifications. | `TER-EVD-006` ✓ | test: tests/unit/test_ter4_change_surface.py::TestUnrelatedModification<br>test: tests/unit/test_ter4_grounded_cli.py<br>planned: real-data check on sessions with their repository and start commit (D4) |
 | P067 | Measure repository exploration against the eventual files changed. | vision | L3 | ○ not started |  | • Reports compare files explored with files eventually changed. | `TER-EVD-008` · | planned: passing tests tagged req for TER-EVD-008 |
 | P068 | Measure how much retrieved evidence contributes to subsequent actions. | vision | L3 | ○ not started |  | • Reports give the share of retrieved evidence that later actions used. | `TER-EVD-008` · | planned: passing tests tagged req for TER-EVD-008 |
 | P069 | Identify repository reads that materially influence implementation. | vision | L3 | ○ not started |  | • Reads that later decisions, edits or tests used are marked influential. | `TER-EVD-008` · | planned: passing tests tagged req for TER-EVD-008 |
