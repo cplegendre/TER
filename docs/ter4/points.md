@@ -10,9 +10,9 @@ rules that enforce it and how it is verified. Rules live in
 contributed from another source (an external capability, ADR 0005) and the
 Origin column names that source, its reference and author.
 
-**200 points** · ● done **91** · ◐ partial **43** · ○ not started **66**
+**200 points** · ● done **98** · ◐ partial **46** · ○ not started **56**
 
-`██████████████████▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░`
+`████████████████████▓▓▓▓▓▓▓▓▓░░░░░░░░░░░`
 
 Legend: `█` done · `▓` partial · `░` not started
 
@@ -22,9 +22,9 @@ Legend: `█` done · `▓` partial · `░` not started
 |---|---|---:|---:|---:|---:|
 | L0 Measured | `██████████████████▓▓` | 10 | 1 | 0 | 11 |
 | L1 Observed | `███████████████████▓` | 15 | 1 | 0 | 16 |
-| L2 Explained | `█████████████████▓▓▓` | 47 | 7 | 0 | 54 |
-| L3 Grounded | `████████▓▓▓▓▓▓▓▓░░░░` | 18 | 21 | 9 | 48 |
-| L4 Advisory | `▓▓░░░░░░░░░░░░░░░░░░` | 0 | 4 | 35 | 39 |
+| L2 Explained | `██████████████████▓▓` | 48 | 6 | 0 | 54 |
+| L3 Grounded | `██████████▓▓▓▓▓▓▓▓▓▓` | 24 | 24 | 0 | 48 |
+| L4 Advisory | `▓▓▓░░░░░░░░░░░░░░░░░` | 0 | 5 | 34 | 39 |
 | L5 Corrective | `██▓▓▓▓▓▓░░░░░░░░░░░░` | 1 | 4 | 8 | 13 |
 | L6 Learning | `▓▓▓▓▓░░░░░░░░░░░░░░░` | 0 | 5 | 14 | 19 |
 
@@ -40,13 +40,13 @@ Real session data: **47 points** need it (3 verified) and cannot be done on synt
 
 ```text
 P001 ◐ ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ●
-P021 ● ● ● ● ● ● ● ● ● ◐ ● ● ○ ● ◐ ◐ ● ● ● ●
+P021 ● ● ● ● ● ● ● ● ● ● ● ● ○ ● ◐ ◐ ● ● ● ●
 P041 ● ● ● ● ● ● ● ◐ ● ● ◐ ◐ ◐ ● ● ● ◐ ● ◐ ●
 P061 ● ◐ ◐ ◐ ◐ ◐ ◐ ◐ ◐ ◐ ● ● ● ◐ ● ● ◐ ◐ ● ●
 P081 ● ● ● ● ● ● ◐ ○ ○ ○ ◐ ◐ ● ○ ◐ ○ ○ ○ ○ ◐
 P101 ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ◐ ● ● ● ●
-P121 ◐ ● ○ ○ ◐ ○ ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ○
-P141 ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ● ● ◐ ● ◐ ◐ ● ● ● ●
+P121 ◐ ● ○ ○ ◐ ○ ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ○
+P141 ● ● ● ● ● ◐ ◐ ● ◐ ◐ ● ● ◐ ● ◐ ◐ ● ● ● ●
 P161 ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○
 P181 ◐ ◐ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ◐ ◐ ○ ○
 ```
@@ -84,7 +84,7 @@ P181 ◐ ◐ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ◐ ◐ ○
 | P027 | Detect fragmented edits where a coherent change is unnecessarily decomposed. | vision | L2 | ● done |  | • A detector flags a logical change split into more edits than the configured limit. | `TER-DET-007` ✓ | test: tests/unit/test_ter4_lean_detectors.py::TestFragmentedEdits |
 | P028 | Detect unnecessary file traversal as agentic motion waste. | vision | L2 | ● done |  | • A detector flags file traversals whose content no later event uses, as motion waste. | `TER-DET-007` ✓ | test: tests/unit/test_ter4_lean_context_motion_waiting.py::TestUnusedTraversal<br>test: tests/unit/test_ter4_lean_detectors.py::TestFragmentedEdits |
 | P029 | Detect unnecessary handoffs between subagents or models. | vision | L2 | ● done |  | • A detector flags subagent handoffs that return no evidence the parent uses. | `TER-DET-008` ✓ | test: tests/unit/test_ter4_lean_detectors.py::TestUnnecessaryHandoff<br>test: tests/unit/test_ter4_lean_context_motion_waiting.py::TestFailedRoute |
-| P030 | Detect waiting caused by avoidable external-model escalation. | vision | L2 | ◐ partial |  | • A detector flags external-model escalations whose waiting time bought no new evidence. | `TER-DET-008` ✓<br>`TER-DET-011` · | test: tests/unit/test_ter4_lean_context_motion_waiting.py::TestFailedRoute<br>planned: escalation after a successful call needs route.escalated events and answer text (TER-DET-011, L3) |
+| P030 | Detect waiting caused by avoidable external-model escalation. | vision | L2 | ● done |  | • A detector flags external-model escalations whose waiting time bought no new evidence. | `TER-DET-008` ✓<br>`TER-DET-011` ✓ | test: tests/unit/test_ter4_lean_context_motion_waiting.py::TestFailedRoute<br>test: tests/unit/test_ter4_unearned_escalation.py::TestRecordedEscalation<br>test: tests/unit/test_ter4_unearned_escalation.py::TestReattemptOnAnotherModel |
 | P031 | Model work-in-progress within an agent session. | vision | L2 | ● done |  | • The domain models open work items (hypotheses, tasks, edits, failures) per session. | `TER-WIP-001` ✓ | test: tests/unit/test_ter4_wip_scorecard.py::test_wip_is_reported_after_every_event_with_its_peak_and_open_items<br>test: tests/unit/test_ter4_wip_scorecard.py::test_wip_live_equals_batch_and_ignores_redelivery |
 | P032 | Measure concurrent unresolved hypotheses, tasks, edits, and failures. | vision | L2 | ● done |  | • Reports show WIP over the session and its peak. | `TER-WIP-001` ✓ | test: tests/unit/test_ter4_wip_scorecard.py::test_the_a3_shows_wip_over_the_session_and_its_peak<br>test: tests/unit/test_ter4_wip_scorecard.py::test_hypotheses_open_on_exploration_and_resolve_on_action_or_turn_end |
 | P033 | Investigate whether excessive agentic WIP correlates with lower efficiency or poorer… | vision | L6 | ○ not started | [#44](https://github.com/lgriffin/TER/issues/44) | • A study reports the correlation between WIP and efficiency and outcomes on the value stream dataset. | `TER-RSH-001` ·<br>`TER-EXP-010` · | planned: study notebook over the TER-RSH-001 dataset<br>planned: real-data verification in issue #44 |
@@ -192,19 +192,19 @@ P181 ◐ ◐ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ◐ ◐ ○
 | P135 | Permit TER to redirect the agent toward unresolved requirements. | vision | L4 | ○ not started |  | • TER can point the agent at unresolved requirements. | `TER-INT-005` · | planned: passing tests tagged req for TER-INT-005 |
 | P136 | Permit TER to recommend a smaller change surface. | vision | L4 | ○ not started |  | • TER can recommend a smaller change surface. | `TER-INT-005` · | planned: passing tests tagged req for TER-INT-005 |
 | P137 | Permit TER to recommend targeted tests based on changed components. | vision | L4 | ○ not started |  | • TER can recommend targeted tests for the changed components. | `TER-INT-005` · | planned: passing tests tagged req for TER-INT-005 |
-| P138 | Permit TER to recommend escalation when task complexity exceeds the current execution… | vision | L4 | ○ not started |  | • TER recommends escalation only with evidence that complexity exceeds the current strategy. | `TER-INT-005` ·<br>`TER-RTE-003` · | planned: passing tests tagged req for TER-INT-005, TER-RTE-003 |
+| P138 | Permit TER to recommend escalation when task complexity exceeds the current execution… | vision | L4 | ◐ partial |  | • TER recommends escalation only with evidence that complexity exceeds the current strategy. | `TER-INT-005` ·<br>`TER-RTE-003` ✓ | test: tests/unit/test_ter4_routing.py::TestKeepTheProfile<br>planned: recommendations delivered as interventions at L4 (TER-INT-005) |
 | P139 | Never make an intervention solely because a fixed token threshold has been exceeded. | vision | L4 | ◐ partial |  | • No policy can trigger on token count alone; policy validation rejects such a policy. | `TER-INT-007` ·<br>`TER-RPT-005` ✓ | test: tests/unit/test_ter4_lean_analysis.py::test_countermeasures_are_derived_from_findings<br>planned: policy validation rejects token-count-only policies (TER-INT-007) |
 | P140 | Require contextual evidence before intervention. | vision | L4 | ○ not started |  | • Every intervention cites contextual evidence. | `TER-INT-007` · | planned: passing tests tagged req for TER-INT-007 |
-| P141 | Borrow TGV's concept of explainable routing as part of TER's control plane. | vision | L3 | ○ not started |  | • Routing decisions carry an explanation of the task classification behind them. | `TER-RTE-005` · | planned: passing tests tagged req for TER-RTE-005 |
-| P142 | Classify software tasks by complexity, ambiguity, risk, repository scope, and validation… | vision | L3 | ○ not started |  | • Tasks are classified by complexity, ambiguity, risk, repository scope and validation needs. | `TER-RTE-005` · | planned: passing tests tagged req for TER-RTE-005 |
-| P143 | Determine whether the current agent strategy is appropriate for the observed task. | vision | L3 | ○ not started |  | • TER reports whether the current strategy fits the classified task. | `TER-RTE-005` · | planned: passing tests tagged req for TER-RTE-005 |
-| P144 | Support configurable execution profiles rather than hard-coded model names. | vision | L3 | ◐ partial |  | • Code and policies reference execution profiles, never model names. | `TER-RTE-001` · | planned: passing tests tagged req for TER-RTE-001 |
-| P145 | Allow profiles such as local-fast, local-code, frontier-standard, and frontier-deep. | vision | L3 | ○ not started |  | • local-fast, local-code, frontier-standard and frontier-deep profiles ship as defaults. | `TER-RTE-001` · | planned: passing tests tagged req for TER-RTE-001 |
-| P146 | Treat model selection as one possible Lean optimisation rather than TER's central purpose. | vision | L3 | ○ not started |  | • Model selection is one optimisation among others in the Lean model, not a separate product surface. | `TER-RTE-001` · | planned: passing tests tagged req for TER-RTE-001 |
-| P147 | Investigate whether routine analysis and retrieval can remain local. | vision | L3 | ○ not started | [#39](https://github.com/lgriffin/TER/issues/39) | • A study reports which analysis and retrieval steps keep their quality on local models. | `TER-RTE-003` ·<br>`TER-RTE-002` · | planned: passing tests tagged req for TER-RTE-003, TER-RTE-002<br>planned: real-data verification in issue #39 |
-| P148 | Escalate difficult reasoning only when evidence supports escalation. | vision | L3 | ○ not started |  | • Escalation happens only with a supporting detector signal. | `TER-RTE-003` · | planned: passing tests tagged req for TER-RTE-003 |
-| P149 | Measure whether escalation actually improves software outcomes. | vision | L3 | ○ not started | [#39](https://github.com/lgriffin/TER/issues/39) | • Every escalation records the outcome change it produced. | `TER-RTE-002` · | planned: passing tests tagged req for TER-RTE-002<br>planned: real-data verification in issue #39 |
-| P150 | Measure the cost and latency introduced by escalation. | vision | L3 | ○ not started | [#39](https://github.com/lgriffin/TER/issues/39) | • Every escalation records its cost and latency. | `TER-RTE-002` · | planned: passing tests tagged req for TER-RTE-002<br>planned: real-data verification in issue #39 |
+| P141 | Borrow TGV's concept of explainable routing as part of TER's control plane. | vision | L3 | ● done |  | • Routing decisions carry an explanation of the task classification behind them. | `TER-RTE-005` ✓ | test: tests/unit/test_ter4_routing.py::TestClassification<br>test: tests/unit/test_ter4_routing.py::test_cli_route_prints_classes_and_decisions |
+| P142 | Classify software tasks by complexity, ambiguity, risk, repository scope, and validation… | vision | L3 | ● done |  | • Tasks are classified by complexity, ambiguity, risk, repository scope and validation needs. | `TER-RTE-005` ✓ | test: tests/unit/test_ter4_routing.py::TestClassification<br>test: tests/unit/test_ter4_routing.py::TestGroundedClassification |
+| P143 | Determine whether the current agent strategy is appropriate for the observed task. | vision | L3 | ● done |  | • TER reports whether the current strategy fits the classified task. | `TER-RTE-005` ✓ | test: tests/unit/test_ter4_routing.py::TestKeepTheProfile<br>test: tests/unit/test_ter4_routing.py::TestEscalation |
+| P144 | Support configurable execution profiles rather than hard-coded model names. | vision | L3 | ● done |  | • Code and policies reference execution profiles, never model names. | `TER-RTE-001` ✓ | test: tests/architecture/test_model_roles.py::test_no_source_module_hard_codes_a_model_id<br>test: tests/contract/test_routing_profiles.py<br>test: tests/unit/test_ter4_routing.py::TestProfiles |
+| P145 | Allow profiles such as local-fast, local-code, frontier-standard, and frontier-deep. | vision | L3 | ● done |  | • local-fast, local-code, frontier-standard and frontier-deep profiles ship as defaults. | `TER-RTE-001` ✓ | test: tests/contract/test_routing_profiles.py::test_the_shipped_profiles_include_the_four_execution_profiles |
+| P146 | Treat model selection as one possible Lean optimisation rather than TER's central purpose. | vision | L3 | ◐ partial |  | • Model selection is one optimisation among others in the Lean model, not a separate product surface. | `TER-RTE-001` ✓ | test: tests/unit/test_ter4_unearned_escalation.py::test_registered_with_a_countermeasure_a_follow_up_and_a_rule<br>planned: routing decisions shown in the A3 beside the other countermeasures, not only in `ter route` |
+| P147 | Investigate whether routine analysis and retrieval can remain local. | vision | L3 | ◐ partial | [#39](https://github.com/lgriffin/TER/issues/39) | • A study reports which analysis and retrieval steps keep their quality on local models. | `TER-RTE-003` ✓<br>`TER-RTE-002` ✓ | test: tests/unit/test_ter4_routing.py::TestKeepTheProfile<br>test: tests/unit/test_ter4_routing.py::TestEscalation<br>planned: real-data verification in issue #39 |
+| P148 | Escalate difficult reasoning only when evidence supports escalation. | vision | L3 | ● done |  | • Escalation happens only with a supporting detector signal. | `TER-RTE-003` ✓ | test: tests/unit/test_ter4_routing.py::TestKeepTheProfile<br>test: tests/unit/test_ter4_routing.py::TestEscalation::test_an_evidenced_signal_escalates_with_one_event |
+| P149 | Measure whether escalation actually improves software outcomes. | vision | L3 | ◐ partial | [#39](https://github.com/lgriffin/TER/issues/39) | • Every escalation records the outcome change it produced. | `TER-RTE-002` ✓ | test: tests/unit/test_ter4_routing.py::TestEscalation<br>planned: the outcome change of each escalation, and real-data verification in issue #39 |
+| P150 | Measure the cost and latency introduced by escalation. | vision | L3 | ◐ partial | [#39](https://github.com/lgriffin/TER/issues/39) | • Every escalation records its cost and latency. | `TER-RTE-002` ✓ | test: tests/unit/test_ter4_routing.py::TestEscalation::test_the_event_records_the_token_usage_spent_before_the_signal<br>planned: real-data verification in issue #39 |
 | P151 | Adopt TGV-style deterministic context bundles. | vision | L3 | ● done |  | • The same inputs produce the same context bundle, byte for byte. | `TER-CTX-001` ✓ | test: tests/unit/test_ter4_context_bundle.py::TestDeterminism<br>test: tests/unit/test_ter4_context_bundle.py::TestCli::test_bundle_prints_the_bundle_and_records_its_supply |
 | P152 | Construct compact evidence packages containing only information relevant to the next… | vision | L3 | ● done |  | • Bundles hold only evidence selected for the next decision. | `TER-CTX-001` ✓ | test: tests/unit/test_ter4_context_bundle.py::TestSelection<br>test: tests/unit/test_ter4_context_bundle.py::TestBudget |
 | P153 | Compare full-context approaches with evidence-selected context. | vision | L3 | ◐ partial | [#42](https://github.com/lgriffin/TER/issues/42) | • A benchmark compares full-context and evidence-selected context on the same tasks. | `TER-CTX-003` ✓<br>`TER-ANL-031` · | test: tests/unit/test_ter4_context_bundle.py::TestPrecisionRecall<br>planned: passing tests tagged req for TER-ANL-031<br>planned: real-data verification in issue #42 |
