@@ -281,7 +281,7 @@
   "metadata": {
     "file-history-snapshot": 1
   },
-  "schema": "ter.event/0.4",
+  "schema": "ter.event/0.5",
   "session_id": "golden-explore",
   "source_format": "claude-code-jsonl",
   "unrecognised": {}

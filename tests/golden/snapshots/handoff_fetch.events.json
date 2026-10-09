@@ -159,7 +159,7 @@
     ]
   ],
   "metadata": {},
-  "schema": "ter.event/0.4",
+  "schema": "ter.event/0.5",
   "session_id": "golden-handoff",
   "source_format": "claude-code-jsonl",
   "unrecognised": {}

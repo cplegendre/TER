@@ -148,7 +148,7 @@
     ]
   ],
   "metadata": {},
-  "schema": "ter.event/0.4",
+  "schema": "ter.event/0.5",
   "session_id": "session-test-001",
   "source_format": "claude-code-jsonl",
   "unrecognised": {}
