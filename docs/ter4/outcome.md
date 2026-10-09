@@ -85,6 +85,16 @@ check with its evidence, unlisted evidence and
 `generated_tokens_per_verified_outcome`) only when `--outcome` is given, so
 reports without one are unchanged.
 
+## The verdict as an event (TER-EXP-002)
+
+`verdict_event(session, verdict)` records a verdict as a `verdict.recorded`
+event of its session: the run, its source, the acceptance contract and every
+piece of evidence, with the verdict as a cross-check. `recorded_verdict(events)`
+judges it again from that record, so a report rebuilt from the event log alone
+shows the same verdict (and refuses a record whose evidence judges otherwise).
+The behaviour fold never reads it. See
+[l3-grounded.md](l3-grounded.md#recorded-measures-ter-exp-002).
+
 ## Not yet
 
 - Software Value Efficiency (TER-SCR-003) reads the verdict the same way:

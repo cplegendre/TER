@@ -252,6 +252,14 @@ Each `apply` is O(1) amortised in session length: counters, hash sets and an
 insertion-ordered map of open requests. Redelivered events (same id) are
 discarded before any state changes.
 
+Records are not activity. A `metric.recorded` or `verdict.recorded` event
+(`EventKind.is_record`, TER-EXP-002) is a measure TER recorded about the
+session, its TER 3 ratio or its outcome verdict, appended after the
+session's last event so a report is recomputed from the log alone. The
+engine accepts it once by id and reads a recorded TER 3 ratio for the
+explanation, but no count, token figure or timeline row includes it (see
+[l3-grounded.md](l3-grounded.md#recorded-measures-ter-exp-002)).
+
 ## Using it
 
 ```bash
