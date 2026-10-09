@@ -67,17 +67,19 @@ can be retried.
 A hook that cannot record an event (bad JSON, a full disk) still prints `{}`
 and exits 0, and writes `ter hook: event not recorded: <reason>` to stderr.
 
-`UserPromptSubmit` carries no id for the submission, so a prompt's id includes
-the second it was received: the same text submitted twice counts twice, and
-one submission seen twice within a second (the hook registered in two settings
-files) counts once.
+`UserPromptSubmit` carries no id for the submission. The hook looks for the
+prompt's transcript record and keys the prompt by it (see
+[Shared id rules](#shared-id-rules-ter-obs-007)); when there is none yet, the
+prompt's id includes the second it was received: the same text submitted twice
+counts twice, and one submission seen twice within a second (the hook
+registered in two settings files) counts once.
 
 ## Hook to event mapping
 
 | Hook | `ter.event` output | Id key |
 |---|---|---|
-| `UserPromptSubmit` | `intent.stated` (user), text = `prompt` | session + hash of prompt + second received |
-| `PreToolUse` | `tool.requested` (assistant), tool kind from the Claude Code tool map, arguments = `tool_input` | session + `tool_use_id` (else hash of tool name and input) |
+| `UserPromptSubmit` | `intent.stated` (user), text = `prompt` | session + uuid and block of the transcript record holding the prompt (found in the `transcript_path` tail); else session + hash of prompt + second received |
+| `PreToolUse` | `tool.requested` (assistant), tool kind from the Claude Code tool map, arguments = `tool_input` | session + `tool_use_id` + kind (else hash of tool name and input) |
 | `PostToolUse` | the same `tool.requested` as PreToolUse, plus `tool.completed` (tool), text = `tool_response` | as above; the completion's `parent_id` is the request |
 | `Stop` | `task.completed` (system), empty text | session + the turn it closes (last main-chain `assistant` uuid in `transcript_path` written by the receive time); session + second received when the transcript cannot be read |
 | `SubagentStop` | `subagent.completed` (system) in the parent session, text = `agent_type` when sent | session + `agent_id` when sent, else the exact receive time (parallel subagents can finish within one second) |
@@ -88,20 +90,61 @@ PostToolUse repeats the request because many installations register only
 PostToolUse. Its request carries the id PreToolUse would produce, so where
 both hooks run the second copy is discarded by TER-OBS-004.
 
-Known limits of hook identity: prompts are told apart only by text and the
-second they were received (hooks carry no prompt id), and tool calls without
-a `tool_use_id` are keyed by content. Hook events carry `sequence = 0`; order is the order of the
-log. Prompt and tool event ids differ from transcript event ids for the same
-session; equivalence holds per event stream, not across the two sources.
+Hook events carry `sequence = 0`; order is the order of the log.
 
-Stops are the exception: one id rule serves both sides
-(`ter/adapters/claude_code_turns.py`). The session source derives a
-`task.completed` for each main-chain `system` record with subtype
-`stop_hook_summary` (Claude Code writes it after the Stop hooks ran), keyed by
-the last main-chain `assistant` record before it; the Stop hook keys its event
-by the last such record in the transcript tail when the payload arrived. Both
-use `make_event_id(session_id, turn_uuid, "stop", "task.completed")`. The
-session source derives no `subagent.completed` events.
+### Shared id rules (TER-OBS-007)
+
+The hook adapter and the session source key the same record the same way:
+one rule per kind, defined once in `ter/adapters/claude_code_ids.py` and
+called by both sides.
+
+| Kind | Id | Hook side | Session source side |
+|---|---|---|---|
+| `tool.requested`, `tool.completed` | `make_event_id(session, tool_use_id, kind)` | Pre/PostToolUse `tool_use_id` | `id` of the `tool_use` block, `tool_use_id` of the `tool_result` block |
+| `intent.stated` | `make_event_id(session, record_uuid, block_index, kind)` | the record holding the prompt, found in the transcript tail | the `user` record's text block; a `queued_command` attachment is block 0 (TER-SRC-024) |
+| `task.completed` | `make_event_id(session, turn_uuid, "stop", kind)` | the last main-chain `assistant` record in the transcript tail by the receive time | the last main-chain `assistant` record before each `stop_hook_summary` |
+| `reasoning`, `response` | `make_event_id(session, record_uuid, block_index, kind)` | no hook | every block |
+
+How each side finds the record is in `ter/adapters/claude_code_turns.py`:
+
+* **Stops.** The session source derives a `task.completed` for each main-chain
+  `system` record with subtype `stop_hook_summary` (Claude Code writes it
+  after the Stop hooks ran), keyed by the last main-chain `assistant` record
+  before it; the Stop hook keys its event by the last such record in the
+  transcript tail (at most 16 MiB) when the payload arrived (TER-OBS-005).
+* **Prompts.** The `UserPromptSubmit` hook reads the last 1 MiB of
+  `transcript_path` for the last main-chain record holding the prompt text
+  (whitespace-trimmed) that was written by the receive time: a `user` record's
+  text block, or a developer's `queued_command` attachment. A record counts as
+  written no earlier than the latest timestamp at or before it in the file
+  (the file is append-only), so a queued attachment stamped with its enqueue
+  time is not seen early. The text only finds the record: the id is the
+  record's, so a redacted session keeps its ids (TER-SRC-022).
+* **Tools.** Both sides carry the `tool_use_id`; no lookup is needed.
+
+Fallbacks, which cannot correlate and which `python -m ter hooks check`
+reports as such:
+
+* a transcript `tool_use` or `tool_result` block without an id (older
+  transcripts), or one repeating an id already used for that kind in the
+  session (a copied record), is keyed by the record rule, so ids stay unique;
+* a tool hook without `tool_use_id` is keyed by a hash of tool name and input;
+* a prompt whose record is not in the transcript when the hook runs, or a
+  payload without `transcript_path`, keeps the text-and-second key above;
+* a Stop with no readable turn is keyed by the second it arrived.
+
+Claude Code 2.1 transcripts suggest the prompt's record (and a queued
+prompt's attachment) is written only after the `UserPromptSubmit` hooks
+return: the hook's own `hook_additional_context` attachment follows the user
+record by 15 to 25 ms, less than a hook process takes to run. If the
+recordings in issue #35 confirm it, live prompts will stay on the fallback
+key and correlating them needs another key (a prompt id in the payload, or
+re-keying at the next hook).
+
+The rule change re-keyed tool events in every transcript (previously session
++ record uuid + block + kind); event ids are opaque, so the `ter.event`
+schema did not change. The session source derives no `subagent.completed`
+events.
 
 ### Checking recordings against transcripts (TER-OBS-012)
 
@@ -170,7 +213,7 @@ and an existing one that others can read is tightened. The TER 3 `ter hook monit
 | driving adapters | `ter/adapters/driving/claude_hooks/`, `ter/adapters/driving/cli.py` |
 | driven adapters | `ter/adapters/driven/event_log/` (JSONL), `InMemoryEventLog` |
 | shared data | `ter/adapters/claude_code_tools.py`: the Claude Code tool map, used by the JSONL source and the hooks adapter |
-| shared rule | `ter/adapters/claude_code_turns.py`: the turn a stop closes and the stop id, used by the JSONL source and the Stop hook |
+| shared rules | `ter/adapters/claude_code_ids.py`: the event id rule per kind; `ter/adapters/claude_code_turns.py`: the turn a stop closes and the record a prompt sits in. Both used by the JSONL source and the hooks |
 | hook check | `ter/adapters/driving/claude_hooks/check.py`: `python -m ter hooks check` |
 
 The tool map moved out of `ter.adapters.driven.claude_code` (which keeps a

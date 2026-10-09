@@ -1766,6 +1766,7 @@ points:
       - 'test: tests/unit/test_ter4_hook_lifecycle.py::test_record_writes_the_raw_payload_before_translating'
       - 'test: tests/unit/test_ter4_hook_check.py::TestStopRule::test_the_live_stop_hook_uses_the_same_id'
       - 'test: tests/unit/test_ter4_hook_check.py::TestHookCheck'
+      - 'test: tests/unit/test_ter4_hook_check.py::TestSharedIdRules::test_a_live_turn_matches_its_transcript_by_id_in_full'
       - 'planned: real-data verification of TER-OBS-005 with `python -m ter hooks check` in issue #35'
 
   - id: P116
@@ -1802,8 +1803,8 @@ points:
     verification:
       - 'test: tests/unit/test_ter4_hook_lifecycle.py::test_recordings_replay_to_the_same_events'
       - 'test: tests/unit/test_ter4_hook_check.py::TestHookCheck'
-      - 'planned: shared id rule for prompts and tool calls (the check reports them as same record, different id rule)'
-      - 'planned: real-data verification in issue #35'
+      - 'test: tests/unit/test_ter4_hook_check.py::TestSharedIdRules'
+      - 'planned: real-data verification in issue #35 (Claude Code 2.1 appears to write a prompt record after UserPromptSubmit runs, leaving live prompts on the fallback key)'
 
   - id: P118
     text: >-
@@ -1819,7 +1820,8 @@ points:
     verification:
       - 'test: tests/golden/test_event_stream_snapshot.py::test_event_stream_matches_golden_snapshot'
       - 'test: tests/unit/test_ter4_hook_check.py::TestStopRule'
-      - 'planned: hook and transcript observation of one record share an event id (TER-OBS-007)'
+      - 'test: tests/unit/test_ter4_hook_check.py::TestSharedIdRules::test_a_live_turn_matches_its_transcript_by_id_in_full'
+      - 'planned: hook and transcript observation of one record share an event id on real recordings (TER-OBS-007, issue #35)'
 
   - id: P119
     text: >-

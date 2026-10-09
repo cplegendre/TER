@@ -5,7 +5,15 @@ See ``docs/ter4/l1-observed.md`` for the hook-to-event table.
 
 from __future__ import annotations
 
-from .entry import HOOK_OUTPUT, HookResult, TurnLookup, derive, handle_hook, run_hook
+from .entry import (
+    HOOK_OUTPUT,
+    HookResult,
+    PromptLookup,
+    TurnLookup,
+    derive,
+    handle_hook,
+    run_hook,
+)
 from .record import RECORDING_SCHEMA, Recording, read_recordings, record_payload
 from .translate import LIFECYCLE_HOOKS, HookStatus, HookTranslation, translate
 
@@ -16,6 +24,7 @@ __all__ = [
     "HookResult",
     "HookStatus",
     "HookTranslation",
+    "PromptLookup",
     "TurnLookup",
     "Recording",
     "derive",

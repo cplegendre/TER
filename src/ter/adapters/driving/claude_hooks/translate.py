@@ -8,8 +8,8 @@ event each once the engine applies them (TER-OBS-004).
 ========================  ==================================================
 Hook                      Events
 ========================  ==================================================
-``UserPromptSubmit``      ``intent.stated`` (user)
-``PreToolUse``            ``tool.requested`` (assistant)
+``UserPromptSubmit``      ``intent.stated`` (user), keyed by the prompt's record
+``PreToolUse``            ``tool.requested`` (assistant), keyed by tool_use_id
 ``PostToolUse``           ``tool.requested`` and ``tool.completed`` (tool)
 ``Stop``                  ``task.completed`` (system), keyed by the turn it closes
 ``SubagentStop``          ``subagent.completed`` (system), in the parent session
@@ -20,6 +20,12 @@ anything else             none: reported as ``ignored`` with a reason
 PostToolUse repeats the request because many installations register only
 PostToolUse. Its request carries the id PreToolUse would have produced, so
 where both hooks run the second copy is discarded as a duplicate.
+
+Ids follow the rules the session source uses for the same records
+(:mod:`ter.adapters.claude_code_ids`, TER-OBS-007): tool events by session,
+``tool_use_id`` and kind; a prompt by the uuid of its transcript record, when
+the caller found it (``prompt_at``); a stop by the turn it closes (``turn``).
+Without those keys each falls back to a hook-only key that cannot correlate.
 """
 
 from __future__ import annotations
@@ -36,13 +42,15 @@ from typing import Any
 from ....domain.events import (
     Actor,
     Event,
+    EventId,
     EventKind,
     Provenance,
     ToolCall,
     make_event_id,
 )
+from ...claude_code_ids import prompt_event_id, stop_event_id, tool_event_id
 from ...claude_code_tools import tool_kind
-from ...claude_code_turns import stop_event_id
+from ...claude_code_turns import PromptRecord
 
 __all__ = [
     "LIFECYCLE_HOOKS",
@@ -93,13 +101,18 @@ def translate(
     *,
     received_at: datetime | None = None,
     turn: str | None = None,
+    prompt_at: PromptRecord | None = None,
 ) -> HookTranslation:
     """Translate one decoded hook payload. Never raises for bad input.
 
     ``turn`` is, for a Stop, the uuid of the transcript turn the stop closes
     (:func:`ter.adapters.claude_code_turns.transcript_turn`); with it the
     ``task.completed`` id is the one the session source derives for the same
-    stop (TER-OBS-005). Other hooks ignore it.
+    stop (TER-OBS-005). ``prompt_at`` is, for a UserPromptSubmit, the
+    transcript record holding the prompt
+    (:func:`ter.adapters.claude_code_turns.transcript_prompt`); with it the
+    ``intent.stated`` id is the session source's (TER-OBS-007). Other hooks
+    ignore both.
     """
     if not isinstance(payload, Mapping):
         return HookTranslation(
@@ -116,7 +129,9 @@ def translate(
     if name in LIFECYCLE_HOOKS:
         return HookTranslation(HookStatus.LIFECYCLE, name, session_id)
     try:
-        events = _translate_content(name, session_id, payload, received_at, turn)
+        events = _translate_content(
+            name, session_id, payload, received_at, turn, prompt_at
+        )
     except _Malformed as error:
         return HookTranslation(HookStatus.IGNORED, name, session_id, reason=str(error))
     if events is None:
@@ -132,6 +147,7 @@ def _translate_content(
     payload: Mapping[str, Any],
     received_at: datetime | None,
     turn: str | None = None,
+    prompt_at: PromptRecord | None = None,
 ) -> tuple[Event, ...] | None:
     source = _source(payload)
     if name == "UserPromptSubmit":
@@ -139,6 +155,28 @@ def _translate_content(
         if not isinstance(prompt, str):
             raise _Malformed("UserPromptSubmit without a prompt string")
         digest = _digest(prompt)
+        if prompt_at is not None:
+            # The shared rule: the session source keys the same record so.
+            return (
+                Event(
+                    id=prompt_event_id(
+                        session_id, prompt_at.uuid, prompt_at.block_index
+                    ),
+                    session_id=session_id,
+                    sequence=0,
+                    kind=EventKind.PROMPT,
+                    actor=Actor.USER,
+                    text=prompt,
+                    provenance=Provenance(
+                        source,
+                        prompt_at.uuid,
+                        block_index=prompt_at.block_index,
+                        fingerprint=digest,
+                    ),
+                    timestamp=received_at,
+                ),
+            )
+        # Fallback, when the transcript holds no record for the prompt yet.
         # The payload carries no id for the submission itself, so the second
         # it was received tells two submissions of the same text apart, while
         # one submission seen twice within that second (the same hook set up
@@ -265,7 +303,7 @@ def _request(
         # current Claude Code releases always send one.
         key = f"hook:{_digest(tool_name + chr(0) + text)}"
     event = Event(
-        id=make_event_id(_SOURCE, session_id, key, EventKind.TOOL_REQUESTED.value),
+        id=_tool_id(session_id, key, EventKind.TOOL_REQUESTED),
         session_id=session_id,
         sequence=0,
         kind=EventKind.TOOL_REQUESTED,
@@ -294,7 +332,7 @@ def _completion(
     response = payload.get("tool_response")
     text = response if isinstance(response, str) else _canonical(response)
     return Event(
-        id=make_event_id(_SOURCE, session_id, key, EventKind.TOOL_COMPLETED.value),
+        id=_tool_id(session_id, key, EventKind.TOOL_COMPLETED),
         session_id=session_id,
         sequence=0,
         kind=EventKind.TOOL_COMPLETED,
@@ -311,6 +349,13 @@ def _completion(
         ),
         parent_id=request.id,
     )
+
+
+def _tool_id(session_id: str, key: str, kind: EventKind) -> EventId:
+    if key.startswith("hook:"):
+        # No tool_use_id: a hook-only key, which cannot match the transcript.
+        return make_event_id(_SOURCE, session_id, key, kind.value)
+    return tool_event_id(session_id, key, kind)
 
 
 def _source(payload: Mapping[str, Any]) -> str:

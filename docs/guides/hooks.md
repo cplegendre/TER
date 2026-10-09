@@ -162,23 +162,26 @@ argument. For each session the check:
    transcript-derived events;
 4. reports, per event kind, how many hook events have an event with the same
    id in the transcript stream (TER-OBS-007), their ids, and for each one
-   that does not, why: no transcript, same `tool_use_id` (or same prompt
-   text) but a different id rule, the session source derives no events of
-   that kind, or no counterpart at all;
+   that does not, why: no transcript; the hook fell back to its own key (a
+   prompt whose record was not in the transcript when the hook ran, a tool
+   call without `tool_use_id`, a stop with no turn); same `tool_use_id` (or
+   same prompt text) but a different id rule; the session source derives no
+   events of that kind; or no counterpart at all;
 5. reports, for each Stop payload, whether its `task.completed` id equals the
    id the session source derives for the same stop (TER-OBS-005).
 
 ```text
 TER hooks check · 1 session(s)
-  hook events matching a transcript event id  1/4 (25.0%)   (TER-OBS-007)
+  hook events matching a transcript event id  3/4 (75.0%)   (TER-OBS-007)
   Stop payloads matching the transcript stop  1/1 (100.0%)   (TER-OBS-005)
 
 session 3f0c9a1e-hook-demo
   transcript     transcripts-dir
   payloads       PostToolUse 1 · PreToolUse 1 · SessionStart 1 · Stop 1 · UserPromptSubmit 1
   ...
-    tool.requested      0/1 matched · 1 transcript-only
-      1 × same tool_use_id in the transcript, different id rule
+    intent.stated       0/1 matched · 1 transcript-only
+      1 × hook prompt keyed by its text: its transcript record was not there when the hook ran (written later, or no transcript_path)
+    tool.requested      1/1 matched · 0 transcript-only
 ```
 
 The report is content-free: counts, event ids (hashes), hook names, field
@@ -196,11 +199,29 @@ before each `stop_hook_summary`. Both then use
 `make_event_id(session_id, turn_uuid, "stop", "task.completed")`
 (`ter/adapters/claude_code_turns.py`). If the hook cannot read the
 transcript, the stop is keyed by the second it arrived, as before, and the
-check reports it as unkeyed. Today prompts and tool calls still have
-different id rules on the two sides (hook: session + `tool_use_id` or prompt
-hash; transcript: record uuid + block index), so expect those to show as
-"same record, different id rule" until that is unified; the session source
-also derives no `subagent.completed` events, and the check says so.
+check reports it as unkeyed.
+
+Prompts and tool calls follow the same principle, one id rule per kind
+shared by both sides (`ter/adapters/claude_code_ids.py`; the full table is in
+[L1 Observed](../ter4/l1-observed.md#shared-id-rules-ter-obs-007)):
+
+- **Tool calls** are keyed by session + `tool_use_id` + kind. Pre/PostToolUse
+  payloads and the transcript's `tool_use`/`tool_result` blocks all carry the
+  `tool_use_id`. A transcript block without one (older transcripts) keeps the
+  record rule (uuid + block index), and a hook payload without one is keyed
+  by its input; neither can match.
+- **Prompts** are keyed by the transcript record that holds them: the hook
+  reads the last 1 MiB of `transcript_path` for the last main-chain `user`
+  record (or queued-prompt attachment) with the same text written by the
+  time the payload arrived, and uses that record's uuid and block, as the
+  session source does. The id never depends on the text, so redacted
+  sessions keep their ids. When no record holds the prompt yet, the prompt
+  keeps its text-and-second key and the check reports it as unkeyed.
+
+Claude Code 2.1 transcripts suggest the prompt's record is written only
+after the `UserPromptSubmit` hooks return, in which case live prompts stay
+unkeyed; your recordings will tell (issue #35). The session source derives no
+`subagent.completed` events, and the check says so.
 
 ### Guarantees
 
@@ -221,12 +242,13 @@ also derives no `subagent.completed` events, and the check says so.
 - **Passive.** While the maturity ceiling is L1, the hook returns an empty
   response (TER-OBS-008). Advisory interventions are L4 work.
 
-Known limits: a prompt's id includes the second it was received (hooks carry
-no prompt id), so the same text submitted twice counts twice, while one
-submission seen twice within a second (the hook registered in two settings
-files) counts once. Tool calls without a `tool_use_id` are keyed by content,
-and prompt and tool event ids differ from transcript event ids for the same
-session (stops share one id; `python -m ter hooks check` shows which match).
+Known limits: a prompt whose transcript record the hook cannot find yet is
+keyed by its text and the second it was received (hooks carry no prompt id),
+so the same text submitted twice counts twice, while one submission seen
+twice within a second (the hook registered in two settings files) counts
+once; such a prompt's id differs from the transcript's. Tool calls without a
+`tool_use_id` are keyed by content. `python -m ter hooks check` shows which
+ids match.
 
 ## The live waste monitor (TER 3)
 

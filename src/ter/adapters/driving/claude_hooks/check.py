@@ -6,7 +6,9 @@
 source, and reports how the two event streams correlate:
 
 * for every hook-derived event, whether the transcript-derived stream has an
-  event with the same id (TER-OBS-007), and if not, why;
+  event with the same id (TER-OBS-007), and if not, why: a different id rule,
+  or a hook that fell back to its own key (no ``tool_use_id``; a prompt whose
+  record was not written yet; a stop with no turn);
 * for every Stop payload, whether its ``task.completed`` id equals the id the
   session source derives for the same stop (TER-OBS-005).
 
@@ -26,7 +28,13 @@ from pathlib import Path
 from typing import Any
 
 from ....domain.events import Event, EventKind, SessionTrace
-from ...claude_code_turns import last_turn, read_records, stop_records
+from ...claude_code_turns import (
+    PromptRecord,
+    last_turn,
+    prompt_record,
+    read_records,
+    stop_records,
+)
 from .entry import derive
 from .record import Recording, read_recordings
 from .translate import HookStatus
@@ -66,6 +74,12 @@ class Reason:
     KIND_NOT_DERIVED = "the session source derives no events of this kind"
     SAME_TOOL_CALL = "same tool_use_id in the transcript, different id rule"
     SAME_PROMPT = "same prompt text in the transcript, different id rule"
+    TOOL_UNKEYED = "hook tool call has no tool_use_id: keyed by its input"
+    PROMPT_WRITTEN_LATER = (
+        "hook prompt keyed by its text: its transcript record was not there when"
+        " the hook ran (written later, or no transcript_path)"
+    )
+    PROMPT_UNKEYED = "hook prompt keyed by its text: no transcript record holds it"
     NO_COUNTERPART = "no transcript event for the same record"
     STOP_UNKEYED = (
         "hook stop keyed by receive time: no transcript turn was found at the stop"
@@ -239,6 +253,13 @@ def _check_session(
     def turns(_path: str, before: datetime | None) -> str | None:
         return last_turn(transcript.records, before) if transcript.records else None
 
+    def prompts(
+        _path: str, prompt: str, before: datetime | None
+    ) -> PromptRecord | None:
+        # The records written by the time the payload arrived, as the live
+        # hook would have read them.
+        return prompt_record(transcript.records, prompt, before)
+
     hook_counts: Counter[str] = Counter()
     fields: dict[str, set[str]] = {}
     ignored: Counter[str] = Counter()
@@ -252,7 +273,7 @@ def _check_session(
         if payload is None:
             ignored["invalid JSON"] += 1
             continue
-        translation = derive(payload, recording.received_at, turns)
+        translation = derive(payload, recording.received_at, turns, prompts)
         if translation.status is HookStatus.IGNORED:
             ignored[translation.reason or "ignored"] += 1
         for event in translation.events:
@@ -373,8 +394,15 @@ def _reason(
         return Reason.KIND_NOT_DERIVED
     if event.tool is not None and event.tool.call_id in calls:
         return Reason.SAME_TOOL_CALL
-    if event.kind is EventKind.PROMPT and event.provenance.fingerprint in prompts:
-        return Reason.SAME_PROMPT
+    if event.tool is not None and (event.tool.call_id or "").startswith("hook:"):
+        return Reason.TOOL_UNKEYED
+    if event.kind is EventKind.PROMPT:
+        same_text = event.provenance.fingerprint in prompts
+        if event.provenance.record_id.startswith("prompt:"):
+            # The fallback key: no record held the prompt when the hook ran.
+            return Reason.PROMPT_WRITTEN_LATER if same_text else Reason.PROMPT_UNKEYED
+        if same_text:
+            return Reason.SAME_PROMPT
     return Reason.NO_COUNTERPART
 
 

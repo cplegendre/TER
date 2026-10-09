@@ -16,16 +16,31 @@ from typing import Any
 
 import pytest
 
+from ter.adapters.claude_code_ids import (
+    prompt_event_id,
+    record_event_id,
+    tool_event_id,
+)
 from ter.adapters.claude_code_turns import (
+    PROMPT_TAIL,
     TAIL_START,
+    PromptRecord,
     last_turn,
+    prompt_record,
     stop_event_id,
+    transcript_prompt,
     transcript_turn,
 )
 from ter.adapters.driven.claude_code import ClaudeCodeJsonlSource
 from ter.adapters.driven.in_memory import FixedClock, InMemoryEventLog
 from ter.adapters.driven.tokenizers import RegexTokenizer
-from ter.adapters.driving.claude_hooks import handle_hook, record_payload, translate
+from ter.adapters.driving.claude_hooks import (
+    derive,
+    handle_hook,
+    record_payload,
+    run_hook,
+    translate,
+)
 from ter.adapters.driving.claude_hooks.check import (
     HookCheck,
     Reason,
@@ -35,7 +50,7 @@ from ter.adapters.driving.claude_hooks.check import (
 )
 from ter.adapters.driving.cli import CliServices, main
 from ter.application import ObserveEvent
-from ter.domain import EventKind
+from ter.domain import EventKind, SessionTrace
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "hooks"
 T0 = datetime(2026, 10, 8, 12, 0, 0, tzinfo=UTC)
@@ -85,6 +100,32 @@ class Transcript:
                 "type": "user",
                 "timestamp": stamp(seconds),
                 "message": {"role": "user", "content": text},
+            }
+        )
+
+    def prompt_blocks(self, seconds: float, *blocks: Any, **extra: Any) -> str:
+        """A user record whose content is a list of blocks (an image, a text)."""
+        return self._add(
+            {
+                "type": "user",
+                "timestamp": stamp(seconds),
+                **extra,
+                "message": {"role": "user", "content": list(blocks)},
+            }
+        )
+
+    def queued(self, seconds: float, text: str = PROMPT) -> str:
+        """A prompt typed while the agent worked (TER-SRC-024)."""
+        return self._add(
+            {
+                "type": "attachment",
+                "timestamp": stamp(seconds),
+                "attachment": {
+                    "type": "queued_command",
+                    "commandMode": "prompt",
+                    "prompt": text,
+                    "origin": {"kind": "human"},
+                },
             }
         )
 
@@ -384,9 +425,7 @@ class TestHookCheck:
         assert dict(session.payloads) == {"SessionEnd": 1, "SessionStart": 1, "Stop": 1}
         assert check.share == 1.0
 
-    def test_a_full_turn_reports_matches_and_why_the_rest_differ(
-        self, tmp_path: Path
-    ) -> None:
+    def test_a_full_turn_reports_every_kind_matched(self, tmp_path: Path) -> None:
         transcript = Transcript()
         full_turn(transcript)
         path = transcript.write(transcript_file(tmp_path))
@@ -402,13 +441,9 @@ class TestHookCheck:
             "tool.completed",
             "task.completed",
         }
-        assert len(by_kind["task.completed"].matched) == 1
-        # Tool and prompt ids follow different rules on the two sides today:
-        # the check finds the same record and says the id rule differs.
-        assert dict(by_kind["tool.requested"].reasons) == {Reason.SAME_TOOL_CALL: 1}
-        assert dict(by_kind["tool.completed"].reasons) == {Reason.SAME_TOOL_CALL: 1}
-        assert dict(by_kind["intent.stated"].reasons) == {Reason.SAME_PROMPT: 1}
-        assert (session.matched, session.total) == (1, 4)
+        # One id rule per kind on both sides: every hook event matches.
+        assert all(not c.unmatched and c.source_only == 0 for c in by_kind.values())
+        assert (session.matched, session.total) == (4, 4)
         # PreToolUse and PostToolUse requests are one event.
         assert dict(session.hook_events)["tool.requested"] == 1
         assert dict(session.source_events)["task.completed"] == 1
@@ -545,8 +580,7 @@ class TestHooksCheckCommand:
             str(out_json),
         )
         assert (code, err) == (0, "")
-        assert "1/4 (25.0%)" in out and "1/1 (100.0%)" in out
-        assert Reason.SAME_TOOL_CALL in out
+        assert "4/4 (100.0%)" in out and "1/1 (100.0%)" in out
         data = json.loads(out_json.read_text(encoding="utf-8"))
         assert data["schema"] == "ter.hook-check/1"
         assert data["stops"] == {"total": 1, "matched": 1}
@@ -581,3 +615,308 @@ class TestHooksCheckCommand:
             "hooks", "check", str(tmp_path / "rec"), str(projects(tmp_path))
         )
         assert code == 0 and Reason.NO_TRANSCRIPT in out
+
+
+# --- one id rule per kind on both sides (TER-OBS-007, TER-OBS-005) -------------
+#
+# These tests prove the mechanism on synthetic transcripts. Both requirements
+# stay planned until `python -m ter hooks check` shows it on real recordings
+# (issue #35): Claude Code 2.1 appears to write a prompt's record only after
+# the UserPromptSubmit hooks ran, which the fallback cases below cover.
+
+
+def read_source(path: Path) -> SessionTrace:
+    return ClaudeCodeJsonlSource().read(path)
+
+
+class LiveSession:
+    """Drives the live hook as Claude Code would while the transcript grows.
+
+    Before each hook the transcript file holds only the records written so
+    far; each payload is recorded (``ter hook --record``) and applied to an
+    event log.
+    """
+
+    def __init__(self, tmp_path: Path, transcript: Transcript) -> None:
+        self.transcript = transcript
+        self.path = transcript_file(tmp_path)
+        self.recordings = tmp_path / "rec"
+        self.log = InMemoryEventLog()
+
+    def written(self, upto: int) -> None:
+        Transcript(records=self.transcript.records[:upto]).write(self.path)
+
+    def hook(
+        self, name: str, seconds: float, upto: int | None = None, **fields: Any
+    ) -> None:
+        if upto is not None:
+            self.written(upto)
+        payload = fixture(name) | {"transcript_path": str(self.path)} | fields
+        out = io.StringIO()
+        result = run_hook(
+            io.StringIO(json.dumps(payload)),
+            out,
+            ObserveEvent(RegexTokenizer(), self.log),
+            clock=FixedClock(at(seconds)),
+            record_to=self.recordings,
+        )
+        assert out.getvalue() == "{}\n" and result.record_error == ""
+
+    def finish(self) -> SessionTrace:
+        self.written(len(self.transcript.records))
+        return read_source(self.path)
+
+
+def live_turn(tmp_path: Path, *, prompt_first: bool = True) -> LiveSession:
+    """Prompt, PreToolUse, PostToolUse and Stop through the live hook.
+
+    With ``prompt_first`` the prompt's record (stamped 0) is in the transcript
+    when UserPromptSubmit fires; without it the hook fires first and the
+    record is written after, as Claude Code 2.1 appears to do.
+    """
+    transcript = Transcript()
+    full_turn(transcript)
+    live = LiveSession(tmp_path, transcript)
+    tool = {"tool_input": {"file_path": TOOL_INPUT}}
+    live.hook("session_start", -1, upto=0)
+    if prompt_first:
+        live.hook("user_prompt_submit", 0.5, upto=1, prompt=PROMPT)
+    else:
+        live.hook("user_prompt_submit", -0.5, upto=0, prompt=PROMPT)
+    live.hook("pre_tool_use_read", 2.5, upto=2, **tool)
+    live.hook(
+        "post_tool_use_read",
+        3.5,
+        upto=3,
+        **tool,
+        tool_response={"type": "text", "file": {"content": TOOL_OUTPUT}},
+    )
+    live.hook("stop", 5.1, upto=5)
+    return live
+
+
+@pytest.mark.req("TER-OBS-007", "TER-OBS-005")
+class TestSharedIdRules:
+    def test_a_live_turn_matches_its_transcript_by_id_in_full(
+        self, tmp_path: Path
+    ) -> None:
+        live = live_turn(tmp_path)
+        source = live.finish()
+
+        hook_events = live.log.events(SESSION)
+        assert sorted(e.kind.value for e in hook_events) == [
+            "intent.stated",
+            "task.completed",
+            "tool.completed",
+            "tool.requested",  # PreToolUse and PostToolUse: one request
+        ]
+        by_id = {e.id: e for e in source.events}
+        for event in hook_events:
+            assert by_id[event.id].kind is event.kind
+        # Every source event of a kind the hooks observe has its hook event.
+        observed = {e.kind for e in hook_events}
+        assert {e.id for e in source.events if e.kind in observed} == {
+            e.id for e in hook_events
+        }
+
+        # The recordings replay to the same verdict.
+        check = check_recordings(live.recordings, projects(tmp_path), read_source)
+        [session] = check.sessions
+        assert (session.matched, session.total, session.share) == (4, 4, 1.0)
+        assert [s.matched for s in session.stops] == [True]
+
+    def test_tool_events_are_keyed_by_session_tool_use_id_and_kind(
+        self, tmp_path: Path
+    ) -> None:
+        live = live_turn(tmp_path)
+        source = live.finish()
+        call = "toolu_01ReadParser"
+        for kind in (EventKind.TOOL_REQUESTED, EventKind.TOOL_COMPLETED):
+            [hook] = [e for e in live.log.events(SESSION) if e.kind is kind]
+            [recorded] = [e for e in source.events if e.kind is kind]
+            assert hook.id == recorded.id == tool_event_id(SESSION, call, kind)
+        pre = translate(fixture("pre_tool_use_read")).events
+        post = translate(fixture("post_tool_use_read")).events
+        assert pre[0].id == post[0].id  # one request, de-duplicated (TER-OBS-004)
+        assert post[1].parent_id == post[0].id
+
+    def test_a_prompt_written_after_the_hook_ran_stays_unkeyed(
+        self, tmp_path: Path
+    ) -> None:
+        live = live_turn(tmp_path, prompt_first=False)
+        source = live.finish()
+        [prompt] = [e for e in live.log.events(SESSION) if e.kind is EventKind.PROMPT]
+        assert prompt.provenance.record_id.startswith("prompt:")  # the old key
+        assert prompt.id not in {e.id for e in source.events}
+
+        [session] = check_recordings(
+            live.recordings, projects(tmp_path), read_source
+        ).sessions
+        by_kind = {c.kind: c for c in session.correlation}
+        assert dict(by_kind["intent.stated"].reasons) == {
+            Reason.PROMPT_WRITTEN_LATER: 1
+        }
+        assert (session.matched, session.total) == (3, 4)
+
+    def test_without_transcript_path_prompts_and_stops_fall_back(
+        self, tmp_path: Path
+    ) -> None:
+        transcript = Transcript()
+        full_turn(transcript)
+        transcript.write(transcript_file(tmp_path))
+        record_full_turn(Recorder(tmp_path / "rec"), transcript_path=None)
+
+        [session] = run_check(tmp_path).sessions
+        assert session.transcript == "transcripts-dir"
+        by_kind = {c.kind: c for c in session.correlation}
+        # Tool ids need no transcript; the prompt and the stop do. The check
+        # finds the transcript by session id and says why they differ.
+        assert len(by_kind["tool.requested"].matched) == 1
+        assert len(by_kind["tool.completed"].matched) == 1
+        assert dict(by_kind["intent.stated"].reasons) == {
+            Reason.PROMPT_WRITTEN_LATER: 1
+        }
+        assert dict(by_kind["task.completed"].reasons) == {Reason.STOP_UNKEYED: 1}
+        unrooted = {"transcript_path": None}
+        prompt = derive(fixture("user_prompt_submit") | unrooted, T0).events[0]
+        assert prompt.provenance.record_id.startswith("prompt:")
+        stop = derive(fixture("stop") | unrooted, T0).events[0]
+        assert stop.provenance.record_id.startswith("stop:")
+        assert not stop.provenance.record_id.startswith("stop:turn:")
+
+    def test_a_tool_block_without_an_id_keeps_the_record_rule(
+        self, tmp_path: Path
+    ) -> None:
+        transcript = Transcript()
+        transcript.prompt(0)
+        use = transcript.tool_use(1)
+        transcript.records[-1]["message"]["content"][0].pop("id")
+        trace = read_source(transcript.write(tmp_path / "t.jsonl"))
+        [request] = [e for e in trace.events if e.kind is EventKind.TOOL_REQUESTED]
+        assert request.id == record_event_id(SESSION, use, 0, EventKind.TOOL_REQUESTED)
+
+    def test_a_repeated_tool_use_id_falls_back_so_ids_stay_unique(
+        self, tmp_path: Path
+    ) -> None:
+        transcript = Transcript()
+        transcript.tool_use(1)
+        copy = transcript.tool_use(2)  # the same tool_use_id, as a copied record
+        trace = read_source(transcript.write(tmp_path / "t.jsonl"))
+        kind = EventKind.TOOL_REQUESTED
+        ids = [e.id for e in trace.events if e.kind is kind]
+        assert ids == [
+            tool_event_id(SESSION, "toolu_01ReadParser", kind),
+            record_event_id(SESSION, copy, 0, kind),
+        ]
+
+    def test_a_hook_tool_call_without_tool_use_id_is_reported_unkeyed(
+        self, tmp_path: Path
+    ) -> None:
+        transcript = Transcript()
+        full_turn(transcript)
+        path = transcript.write(transcript_file(tmp_path))
+        recorder = Recorder(tmp_path / "rec")
+        recorder.record(
+            "pre_tool_use_read",
+            2.5,
+            tool_input={"file_path": TOOL_INPUT},
+            tool_use_id=None,
+            transcript_path=str(path),
+        )
+        [session] = run_check(tmp_path).sessions
+        [requested] = session.correlation
+        assert dict(requested.reasons) == {Reason.TOOL_UNKEYED: 1}
+
+    def test_a_queued_prompt_is_keyed_by_its_attachment(self, tmp_path: Path) -> None:
+        transcript = Transcript()
+        transcript.prompt(0, "first")
+        transcript.tool_use(1)
+        queued = transcript.queued(1.5, PROMPT)
+        path = transcript.write(tmp_path / "t.jsonl")
+        payload = fixture("user_prompt_submit") | {
+            "prompt": PROMPT,
+            "transcript_path": str(path),
+        }
+        [event] = derive(payload, at(2)).events
+        assert event.id == prompt_event_id(SESSION, queued)
+        source = read_source(path)
+        [recorded] = [e for e in source.events if e.provenance.record_id == queued]
+        assert recorded.kind is EventKind.PROMPT and recorded.id == event.id
+
+    def test_an_attachment_written_after_a_later_record_is_not_seen_early(
+        self,
+    ) -> None:
+        # Stamped when queued (1.5) but written after a record stamped 3: a
+        # hook received at 2 could not have read it.
+        records: list[dict[str, Any]] = [
+            {"type": "assistant", "uuid": "a1", "timestamp": stamp(1)},
+            {"type": "user", "uuid": "u1", "timestamp": stamp(3), "message": {}},
+            {
+                "type": "attachment",
+                "uuid": "q1",
+                "timestamp": stamp(1.5),
+                "attachment": {
+                    "type": "queued_command",
+                    "commandMode": "prompt",
+                    "prompt": PROMPT,
+                },
+            },
+        ]
+        assert prompt_record(records, PROMPT, at(2)) is None
+        assert prompt_record(records, PROMPT, at(3)) == PromptRecord("q1", 0)
+        assert prompt_record(records, PROMPT, None) == PromptRecord("q1", 0)
+
+    def test_a_prompt_beside_an_image_keeps_its_block_index(
+        self, tmp_path: Path
+    ) -> None:
+        transcript = Transcript()
+        image = {"type": "image", "source": {"type": "base64", "data": "AAAA"}}
+        uuid = transcript.prompt_blocks(0, image, {"type": "text", "text": PROMPT})
+        path = transcript.write(tmp_path / "t.jsonl")
+        payload = fixture("user_prompt_submit") | {
+            "prompt": PROMPT,
+            "transcript_path": str(path),
+        }
+        [event] = derive(payload, at(1)).events
+        assert event.id == prompt_event_id(SESSION, uuid, 1)
+        assert event.id in {e.id for e in read_source(path).events}
+
+    def test_the_same_prompt_twice_keys_each_submission_to_its_record(
+        self, tmp_path: Path
+    ) -> None:
+        transcript = Transcript()
+        first = transcript.prompt(0, "continue")
+        transcript.answer(1)
+        second = transcript.prompt(5, "continue")
+        transcript.prompt_blocks(
+            6, {"type": "text", "text": "side note"}, isSidechain=True
+        )
+        path = transcript.write(tmp_path / "t.jsonl")
+        assert transcript_prompt(path, "continue", at(2)) == PromptRecord(first, 0)
+        assert transcript_prompt(path, "continue", at(5)) == PromptRecord(second, 0)
+        assert transcript_prompt(path, " continue\n", None) == PromptRecord(second, 0)
+        assert transcript_prompt(path, "side note", None) is None  # a sidechain
+        assert transcript_prompt(path, "never typed", None) is None
+
+    def test_the_prompt_lookup_reads_a_bounded_tail(self, tmp_path: Path) -> None:
+        path = tmp_path / "long.jsonl"
+        early = json.dumps(
+            {"type": "user", "uuid": "u1", "message": {"content": PROMPT}}
+        )
+        filler = json.dumps({"type": "attachment", "pad": "x" * 1000}) + "\n"
+        path.write_text(
+            early + "\n" + filler * (PROMPT_TAIL // len(filler) + 1), encoding="utf-8"
+        )
+        assert transcript_prompt(path, PROMPT, None) is None  # beyond the tail
+        path.write_text(early + "\n" + filler * 10, encoding="utf-8")
+        assert transcript_prompt(path, PROMPT, None) == PromptRecord("u1", 0)
+        assert transcript_prompt(tmp_path / "missing.jsonl", PROMPT, None) is None
+
+    def test_a_failing_lookup_leaves_the_hook_open(self) -> None:
+        def broken(*_: object) -> None:
+            raise RuntimeError("disk gone")
+
+        [prompt] = derive(fixture("user_prompt_submit"), T0, prompts=broken).events
+        assert prompt.provenance.record_id.startswith("prompt:")
+        [stop] = derive(fixture("stop"), T0, turns=broken).events
+        assert not stop.provenance.record_id.startswith("stop:turn:")

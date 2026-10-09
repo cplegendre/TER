@@ -28,10 +28,17 @@ from ....domain.events import (
     TokenUsage,
     ToolCall,
     UnrecognisedRecord,
-    make_event_id,
+)
+from ...claude_code_ids import (
+    TOOL_KINDS,
+    prompt_event_id,
+    queued_prompt_text,
+    record_event_id,
+    stop_event_id,
+    tool_event_id,
 )
 from ...claude_code_tools import tool_kind
-from ...claude_code_turns import read_records, record_time, stop_event_id, stop_records
+from ...claude_code_turns import read_records, record_time, stop_records
 
 #: Record types that carry conversation content and are mapped to events.
 _CONTENT_TYPES = frozenset({"user", "assistant"})
@@ -71,14 +78,14 @@ def record_class(record_type: str) -> str:
     return "unrecognised"
 
 
-#: An attachment carrying a prompt the developer typed while the agent was
-#: working: Claude Code delivers it as ``queued_command`` rather than as a
-#: user record, so it is the developer's intent and maps to ``intent.stated``.
-_QUEUED = "queued_command"
-
-
 class ClaudeCodeJsonlSource:
-    """Reads Claude Code ``.jsonl`` session transcripts."""
+    """Reads Claude Code ``.jsonl`` session transcripts.
+
+    Event ids follow the shared rules in :mod:`ter.adapters.claude_code_ids`,
+    so the hook adapter derives the same id for the same record (TER-OBS-007):
+    tool requests and completions by ``tool_use_id``, everything else by
+    record uuid and block index.
+    """
 
     format_name = "claude-code-jsonl"
 
@@ -92,6 +99,7 @@ class ClaudeCodeJsonlSource:
 
         events: list[Event] = []
         requests: dict[str, ToolCall] = {}
+        keyed: set[EventId] = set()
         previous: EventId | None = None
 
         def flush_queued(before: int | None) -> None:
@@ -99,9 +107,7 @@ class ClaudeCodeJsonlSource:
             nonlocal previous
             while queued and (before is None or queued[0].line < before):
                 prompt = queued.pop(0)
-                event_id = make_event_id(
-                    session.session_id, prompt.uuid, 0, EventKind.PROMPT.value
-                )
+                event_id = prompt_event_id(session.session_id, prompt.uuid)
                 events.append(
                     Event(
                         id=event_id,
@@ -139,8 +145,8 @@ class ClaudeCodeJsonlSource:
                     and tool.call_id
                 ):
                     requests[tool.call_id] = tool
-                event_id = make_event_id(
-                    session.session_id, message.uuid, block_index, kind.value
+                event_id = _event_id(
+                    session.session_id, message.uuid, block_index, kind, tool, keyed
                 )
                 events.append(
                     Event(
@@ -176,6 +182,28 @@ class ClaudeCodeJsonlSource:
             unrecognised=scan.unrecognised,
             metadata=scan.metadata,
         )
+
+
+def _event_id(
+    session_id: str,
+    record_uuid: str,
+    block_index: int,
+    kind: EventKind,
+    tool: ToolCall | None,
+    keyed: set[EventId],
+) -> EventId:
+    """The shared id rule for one block (:mod:`ter.adapters.claude_code_ids`).
+
+    A tool block is keyed by its ``tool_use_id``, as the hooks key it. A
+    block without one, or one repeating an id already given in this session
+    (a copied record), falls back to the record rule so ids stay unique.
+    """
+    if kind in TOOL_KINDS and tool is not None and tool.call_id:
+        event_id = tool_event_id(session_id, tool.call_id, kind)
+        if event_id not in keyed:
+            keyed.add(event_id)
+            return event_id
+    return record_event_id(session_id, record_uuid, block_index, kind)
 
 
 #: Usage facts the TER 3 loader drops, by source line: the model named on the
@@ -245,23 +273,12 @@ def _scan(path: Path) -> _Scan:
 def _queued_prompt(line: int, record: dict[str, object]) -> _QueuedPrompt | None:
     """A ``queued_command`` attachment the developer typed, else ``None``.
 
-    Only a typed prompt counts: ``commandMode`` is ``prompt``, it is not a
-    harness meta message, and its origin, when given, is a human. Task
-    notifications and messages from other agents are harness context.
+    The rule (:func:`ter.adapters.claude_code_ids.queued_prompt_text`) is the
+    one the hook adapter uses to find a queued prompt's record.
     """
-    if record.get("type") != "attachment":
-        return None
-    attachment = record.get("attachment")
-    if not isinstance(attachment, dict) or attachment.get("type") != _QUEUED:
-        return None
-    if attachment.get("commandMode") != "prompt" or attachment.get("isMeta"):
-        return None
-    origin = attachment.get("origin")
-    if isinstance(origin, dict) and origin.get("kind") not in (None, "human"):
-        return None
-    text = attachment.get("prompt")
+    text = queued_prompt_text(record)
     uuid = record.get("uuid")
-    if not isinstance(text, str) or not text or not isinstance(uuid, str):
+    if text is None or not isinstance(uuid, str):
         return None
     return _QueuedPrompt(line, uuid, text, _timestamp(record.get("timestamp")))
 
