@@ -420,8 +420,8 @@ def test_a3_structure() -> None:
         "countermeasures",
         "follow_up",
         "detectors",
-        "context_inventory",
         "lean_concepts",
+        "context_inventory",
     ]
     assert d["schema"] == "ter.a3/0.1"
     assert "avoidable" in report.problem and "risk" in report.problem
