@@ -25,6 +25,7 @@ __all__ = [
     "normalise_command",
     "overlap",
     "question_words",
+    "runs_check",
     "shell_intent",
     "source_lines",
     "tool_paths",
@@ -54,6 +55,7 @@ _VALIDATE = re.compile(
     r"|go\s+(?:test|vet|build)|cargo\s+(?:test|check|clippy|build)|mvn|gradlew?\s+\S*(?:test|check|build)"
     r"|dotnet\s+(?:test|build)|make\s+(?:test|check|lint|ci)|(?:npm|yarn|pnpm)\s+(?:run\s+)?(?:test|lint|check|build|typecheck)"
     r"|playwright\s+test|cypress\s+run|bazel\s+test|swift\s+test"
+    r"|pre-commit\s+run|gh\s+(?:pr\s+checks|run\s+(?:watch|view))"
     r")(?:\s|$)"
 )
 # Running code to check it by hand: ``python -c``, ``python - <<EOF``,
@@ -246,6 +248,23 @@ def shell_intent(command: str) -> ShellIntent:
     if _EXPLORE.match(heads[0]):
         return ShellIntent.EXPLORE
     return ShellIntent.OTHER
+
+
+def runs_check(command: str) -> bool:
+    """Whether any simple command in the line runs a named check tool.
+
+    Unlike :func:`shell_intent`, a change elsewhere in the line does not hide
+    the check: ``sed -i ... && pytest`` edits and then validates. Real
+    sessions chain checks this way often (15 of 260 check-running lines in
+    this project's own transcripts were classified as changes). Ad hoc runs
+    (``python - <<EOF``) do not count here: beside a change they are more
+    often an editing script than a check.
+    """
+    heads = _command_heads(command)
+    unwrapped = [
+        h.split(" ", 2)[2] if re.match(r"python3?\s+-m\s+\S", h) else h for h in heads
+    ]
+    return any(_VALIDATE.match(h) for h in [*heads, *unwrapped])
 
 
 def validation_outcome(output: str) -> Outcome:

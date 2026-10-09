@@ -82,6 +82,36 @@ class TestRepeatedToolCall:
         s.read("a.py")
         assert found(s, "repeated_tool_call") == []
 
+    # Calibrated on real transcripts: a turn-ending call (a "no reply needed"
+    # tool) repeated once per turn was the whole of the confident findings.
+    def test_turn_ending_call_repeated_across_prompts_is_uncertain(self) -> None:
+        s = Script()
+        for message in ("first wake", "second wake", "third wake"):
+            s.prompt(message)
+            s.call("end_turn", ToolKind.OTHER, {"reason": "other"}, "ok")
+        findings = found(s, "repeated_tool_call")
+        assert len(findings) == 2
+        assert all(f.uncertain and f.confidence == 0.5 for f in findings)
+        assert "new prompt" in findings[0].explanation
+
+    def test_repeat_within_one_turn_after_a_response_is_still_waste(self) -> None:
+        s = Script()
+        s.prompt("check devices")
+        s.call("list_devices", ToolKind.OTHER, {}, "laptop")
+        s.say("One device.")
+        s.call("list_devices", ToolKind.OTHER, {}, "laptop")
+        [f] = found(s, "repeated_tool_call")
+        assert f.confidence == 0.9 and not f.uncertain
+
+    def test_boundary_validation_rerun_across_a_prompt_is_uncertain(self) -> None:
+        s = Script()
+        s.prompt("run the tests")
+        s.bash("pytest -q", PASS)
+        s.prompt("run them again")
+        s.bash("pytest -q", PASS)
+        [f] = found(s, "repeated_tool_call")
+        assert f.uncertain and f.confidence == 0.5
+
 
 # --- repeated_exploration ----------------------------------------------------
 
@@ -276,6 +306,47 @@ class TestUnvalidatedImplementation:
         [f] = found(s, "unvalidated_implementation")
         assert "src/a.py" in f.subject
 
+    # Calibrated on real transcripts: checks are often chained after a change
+    # in one shell line, which the shell intent reads as a change.
+    def test_check_chained_after_a_change_validates_the_edits(self) -> None:
+        s = Script()
+        s.prompt("fix it")
+        s.read("src/a.py")
+        s.edit("src/a.py")
+        s.bash("sed -i 's/x/y/' src/b.py && pytest -q tests/unit", PASS)
+        s.say("Done.")
+        assert found(s, "unvalidated_implementation") == []
+
+    def test_check_before_a_commit_validates_the_edits(self) -> None:
+        s = Script()
+        s.edit("src/a.py")
+        s.bash("ruff check src && git add -A && git commit -qm fix", "ok")
+        s.say("Done.")
+        assert found(s, "unvalidated_implementation") == []
+
+    def test_ci_checks_validate_the_edits(self) -> None:
+        s = Script()
+        s.edit("src/a.py")
+        s.bash("gh pr checks 12 --watch", "build pass")
+        s.say("Done.")
+        assert found(s, "unvalidated_implementation") == []
+
+    def test_change_line_without_a_check_does_not_validate(self) -> None:
+        s = Script()
+        s.edit("src/a.py")
+        s.bash("git add -A && git commit -qm fix", "ok")
+        s.say("Done.")
+        [f] = found(s, "unvalidated_implementation")
+        assert f.confidence == 0.85
+
+    def test_boundary_ad_hoc_script_beside_a_change_is_not_a_check(self) -> None:
+        s = Script()
+        s.edit("src/a.py")
+        s.bash("mkdir -p out && python3 - <<'EOF'\nprint(1)\nEOF", "1")
+        s.say("Done.")
+        [f] = found(s, "unvalidated_implementation")
+        assert f.confidence == 0.85
+
 
 # --- premature_implementation -----------------------------------------------
 
@@ -313,6 +384,29 @@ class TestPrematureImplementation:
         s.write("src/new.py", "x = 1")
         s.edit("src/new.py")
         assert found(s, "premature_implementation") == []
+
+    # Calibrated on real transcripts: the one confident finding was a file
+    # read with ``cat`` in the shell, whose output never names the file.
+    def test_file_read_through_the_shell_counts_as_seen(self) -> None:
+        s = Script()
+        s.prompt("fix the builder")
+        s.bash("sed -n 1,40p tests/a.py; cat tests/builder.py", "def f():\n    pass")
+        s.edit("/repo/tests/builder.py")
+        assert found(s, "premature_implementation") == []
+
+    def test_shell_command_naming_another_file_does_not_count(self) -> None:
+        s = Script()
+        s.bash("cat tests/other.py", "def f():\n    pass")
+        s.edit("/repo/tests/builder.py")
+        [f] = found(s, "premature_implementation")
+        assert f.confidence == 0.75
+
+    def test_boundary_shell_read_after_the_edit_does_not_count(self) -> None:
+        s = Script()
+        s.edit("/repo/tests/builder.py")
+        s.bash("cat tests/builder.py", "def f():\n    pass")
+        [f] = found(s, "premature_implementation")
+        assert f.confidence == 0.75
 
 
 # --- excessive_planning ------------------------------------------------------
@@ -495,6 +589,36 @@ class TestUnnecessaryHandoff:
         s = Script()
         s.task("Research requests changelog", "Find breaking changes in requests")
         s.read("pyproject.toml")
+        assert found(s, "unnecessary_handoff") == []
+
+    # Calibrated on real transcripts: an orchestrator that hands long briefs
+    # to parallel workers, then reviews and merges their output, shares a few
+    # words of each brief with every short command it runs.
+    def test_reviewing_a_long_brief_with_a_short_command_is_fine(self) -> None:
+        brief = (
+            "Implement the scorecard in src/lean/analysis.py: add flow efficiency, "
+            "peak work in progress and waiting time per stage; extend the golden "
+            "snapshots, document the scorecard section, run pytest, ruff and mypy, "
+            "commit on your branch and report the commit ids and check results."
+        )
+        s = Script()
+        s.prompt("Build the scorecard with a worker")
+        s.task("Lean scorecard", brief, "Async agent launched")
+        s.bash("sed -n 1,80p src/lean/analysis.py", "def scorecard(): ...")
+        s.bash("git merge --no-edit worker-scorecard", "Merge made")
+        assert found(s, "unnecessary_handoff") == []
+
+    def test_boundary_half_of_the_task_covered_is_uncertain(self) -> None:
+        s = Script()
+        s.task("Fetch release notes", "alpha beta gamma")
+        s.bash("curl https://x.invalid/notes/release/fetch", "notes")
+        [f] = found(s, "unnecessary_handoff")
+        assert f.uncertain and f.confidence == 0.65
+
+    def test_boundary_less_than_half_of_the_task_is_fine(self) -> None:
+        s = Script()
+        s.task("Fetch release notes", "alpha beta gamma delta")
+        s.bash("curl https://x.invalid/notes/release/fetch", "notes")
         assert found(s, "unnecessary_handoff") == []
 
 

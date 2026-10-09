@@ -20,7 +20,6 @@ from pathlib import PurePosixPath
 from typing import Protocol
 
 from ..events import EventId, EventKind, ToolKind
-from .facts import overlap
 from .intent import IntentRelation, IntentTimeline, SubjectBasis
 from .model import (
     ActivityClass,
@@ -203,17 +202,24 @@ class RepeatedToolCall:
     kind: FindingKind = FindingKind.WASTE
     summary: str = "A tool call repeated with unchanged input and unchanged output."
     confidence_rule: str = (
-        "0.90 when input and output are identical and nothing was edited in "
-        "between; 0.85 for a validation re-run with no edit in between; 0.75 "
-        "when edits happened in between but the output is still identical; "
-        "0.50 (uncertain) when an output was not observed. Different output: "
-        "no finding. File reads and searches are left to repeated_exploration; "
-        "a validation re-run after edits is left to rework_cycle."
+        "Within one prompt's turn: 0.90 when input and output are identical "
+        "and nothing was edited in between; 0.85 for a validation re-run with "
+        "no edit in between; 0.75 when edits happened in between but the "
+        "output is still identical. 0.50 (uncertain) when an output was not "
+        "observed, or when a new prompt arrived between the two calls (the "
+        "repeat may answer it). Different output: no finding. File reads and "
+        "searches are left to repeated_exploration; a validation re-run after "
+        "edits is left to rework_cycle."
     )
 
     def detect(self, view: SessionView) -> Iterable[Finding]:
         last: dict[str, Step] = {}
-        for step in view.requests():
+        last_prompt = -1
+        for step in view.steps:
+            if step.kind is EventKind.PROMPT:
+                last_prompt = step.index
+            if not step.is_request:
+                continue
             key = step.call_key
             if key is None or step.tool_kind in _EXPLORE_KINDS:
                 continue
@@ -231,6 +237,14 @@ class RepeatedToolCall:
                 note = "One of the two results was not observed, so the output may have differed."
             elif before.output_hash != after.output_hash:
                 continue
+            elif last_prompt > earlier.index:
+                # Calibrated on this project's own transcripts: all 13
+                # confident repeats there crossed a prompt (a turn-ending
+                # no_reply_needed in each new turn, a device list re-checked
+                # when asked again, a tool schema re-loaded in a later turn),
+                # and none was waste. A new prompt is new information.
+                confidence = 0.5
+                note = "A new prompt arrived in between, so the repeat may answer it."
             elif step.is_validation:
                 confidence = 0.85
                 note = "No file was edited between the two runs, so the second could not tell the agent anything new."
@@ -425,15 +439,17 @@ class UnvalidatedImplementation:
     kind: FindingKind = FindingKind.RISK
     summary: str = "Edits the agent reported on without running a check after them, or a last check that failed."
     confidence_rule: str = (
-        "Judged per prompt, once the agent has responded after its edits. 0.85 "
-        "when no validation ran in the whole session; 0.75 when validation ran "
-        "earlier but not after these edits; 0.50 (uncertain) when every "
-        "unvalidated edit is documentation. 0.85 when the last validation "
-        "before the response failed."
+        "Judged per prompt, once the agent has responded after its edits. A "
+        "check is a validation run or any shell line that runs a named check "
+        "tool, even beside a change (sed -i … && pytest). 0.85 when no check "
+        "ran in the whole session; 0.75 when checks ran earlier but not after "
+        "these edits; 0.50 (uncertain) when every unvalidated edit is "
+        "documentation. 0.85 when the last validation before the response "
+        "failed."
     )
 
     def detect(self, view: SessionView) -> Iterable[Finding]:
-        any_validation = any(s.is_validation for s in view.steps)
+        any_validation = any(s.checks for s in view.steps)
         start = 0
         while start < len(view.steps):
             end = view.segment_end(start)
@@ -448,7 +464,10 @@ class UnvalidatedImplementation:
         for step in steps:
             if step.is_edit:
                 pending.append(step)
-            elif step.is_validation:
+            elif step.checks:
+                # A check chained after a change (``sed -i … && pytest``)
+                # validates the edits too, but its outcome is not read: it
+                # also ends the run whose failure would be reported.
                 pending = []
                 last_run = step
         responses = [s for s in steps if s.kind is EventKind.RESPONSE]
@@ -515,9 +534,11 @@ class PrematureImplementation:
         "An edit to a file the agent had not read, written or seen in a search."
     )
     confidence_rule: str = (
-        "0.75 for an in-place edit of a file never read, written or named in an "
-        "earlier search or shell output; 0.45 (uncertain) for writing a new file "
-        "before any exploration at all in the session. One finding per file."
+        "0.75 for an in-place edit of a file never read, written, named in an "
+        "earlier shell command (cat, sed -n, head, grep …) or named in an "
+        "earlier search or shell output; 0.45 (uncertain) for writing a new "
+        "file before any exploration at all in the session. One finding per "
+        "file."
     )
 
     def detect(self, view: SessionView) -> Iterable[Finding]:
@@ -535,6 +556,12 @@ class PrematureImplementation:
                 continue
             if step.stage is Stage.EXPLORE:
                 explored = True
+            if step.tool_kind is ToolKind.EXEC_SHELL:
+                # A file read through the shell (``cat f``, ``sed -n 1,80p f``)
+                # is named in the command, not in its output. On this
+                # project's own transcripts the one confident finding was
+                # such a file, read with ``cat`` before the edit.
+                seen_names |= step.words
             if step.is_edit:
                 for path in step.paths:
                     base = _basename(path).lower()
@@ -802,8 +829,8 @@ class UnnecessaryHandoff:
     summary: str = "A subagent handoff whose task the agent then did itself."
     confidence_rule: str = (
         "A later tool call by the agent itself shares at least 3 content words "
-        "and at least half of the smaller word set with the handoff's task. "
-        "Confidence 0.45 + 0.40 × overlap, capped at 0.85. The handoff (and "
+        "with the handoff's task and covers at least half of the task's words. "
+        "Confidence 0.45 + 0.40 × coverage, capped at 0.85. The handoff (and "
         "its waiting time) is the waste; the agent's own call is kept."
     )
 
@@ -815,8 +842,15 @@ class UnnecessaryHandoff:
             for later in view.steps[handoff.index + 1 :]:
                 if not later.is_request or later.tool_kind is ToolKind.AGENT_HANDOFF:
                     continue
+                # Coverage of the delegated task, not overlap with the
+                # smaller set: a short command (``sed -n … analysis.py``, a
+                # branch merge) always sits mostly inside a long brief. On
+                # this project's own transcripts the smaller-set overlap
+                # flagged all 9 handoffs of an orchestrator that reviewed and
+                # merged its parallel workers' output (5 confident); none was
+                # redone.
                 shared = handoff.words & later.words
-                score = overlap(handoff.words, later.words)
+                score = len(shared) / len(handoff.words)
                 if (
                     len(shared) >= 3
                     and score >= 0.5
