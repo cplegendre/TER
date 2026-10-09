@@ -676,19 +676,30 @@ def _restating_steps(run: Sequence[Step], prompt: frozenset[str]) -> list[Step]:
 
 @dataclass(frozen=True)
 class FragmentedEdits:
-    """Points 27, 28: one coherent change split into many round trips (motion)."""
+    """Points 27, 28: one coherent change split into many round trips (motion).
+
+    A round trip is one model turn: the agent waits for a result before it
+    sends the next call. Edits sent together in one turn (parallel tool
+    calls, all requested before the first result arrives) are one round trip,
+    however many calls they take. Claude Code's Edit tool changes one string
+    per call, so several calls are how a multi-hunk change is made; only the
+    turns between them are overhead. Calibrated on this project's own
+    transcripts: all 4 confident findings there were 3 or 4 Edit calls sent
+    in one turn, which is the batching this detector recommends.
+    """
 
     id: str = "fragmented_edits"
     waste: LeanWaste = LeanWaste.MOTION
     kind: FindingKind = FindingKind.WASTE
-    summary: str = (
-        "Three or more edits in a row to the same file, each its own round trip."
-    )
+    summary: str = "Edits to one file spread over three or more round trips in a row."
     confidence_rule: str = (
-        "At least 3 consecutive edit calls to one file with only reasoning and "
-        "their results in between. 0.70 for 3, plus 0.05 per extra edit, capped "
-        "at 0.85. Only the round-trip overhead (results and waiting of edits "
-        "after the first) is counted as waste, never the change itself."
+        "Consecutive edit calls to one file, with only reasoning and the "
+        "results of those edits in between, spread over at least 3 round "
+        "trips (a round trip ends when a result arrives; calls sent together "
+        "before any result are one round trip). 0.70 for 3 round trips, plus "
+        "0.05 per extra, capped at 0.85. Only the round-trip overhead (the "
+        "results of edits after the first round trip) is counted as waste, "
+        "never the change itself."
     )
     minimum: int = 3
 
@@ -697,47 +708,66 @@ class FragmentedEdits:
         for step in (*view.requests(), None):
             if (
                 step is not None
-                and step.tool_kind is ToolKind.FS_EDIT
-                and len(step.paths) == 1
-                and (not run or run[-1].paths == step.paths)
-                and (not run or _only_thinking_between(view, run[-1], step))
+                and _single_file_edit(step)
+                and run
+                and run[-1].paths == step.paths
+                and _only_run_results_between(view, run, step)
             ):
                 run.append(step)
                 continue
-            if len(run) >= self.minimum:
-                overhead = [
-                    view.completion_of[s.index]
-                    for s in run[1:]
-                    if s.index in view.completion_of
-                ]
-                yield _finding(
-                    self,
-                    view,
-                    confidence=min(0.85, 0.7 + 0.05 * (len(run) - self.minimum)),
-                    title=f"{len(run)} separate edits to {_short(run[0].paths[0])}",
-                    explanation=(
-                        f"{len(run)} consecutive edits to {run[0].paths[0]}, each a separate "
-                        "tool round trip, where one multi-edit would do."
-                    ),
-                    evidence=[s for e in run for s in view.pair(e)],
-                    waste=overhead,
-                    subject=run[0].paths[0],
-                )
-            run = (
-                [step]
-                if step is not None
-                and step.tool_kind is ToolKind.FS_EDIT
-                and len(step.paths) == 1
-                else []
-            )
+            if run:
+                yield from self._judge(view, run)
+            run = [step] if step is not None and _single_file_edit(step) else []
+
+    def _judge(self, view: SessionView, run: list[Step]) -> Iterable[Finding]:
+        trips = _round_trips(view, run)
+        if len(trips) < self.minimum:
+            return
+        path = run[0].paths[0]
+        overhead = [
+            view.completion_of[s.index]
+            for trip in trips[1:]
+            for s in trip
+            if s.index in view.completion_of
+        ]
+        yield _finding(
+            self,
+            view,
+            confidence=min(0.85, 0.7 + 0.05 * (len(trips) - self.minimum)),
+            title=f"{len(run)} edits to {_short(path)} over {len(trips)} round trips",
+            explanation=(
+                f"{len(run)} consecutive edits to {path} took {len(trips)} round "
+                "trips, each waiting for the previous result. Edits planned "
+                "together can be sent in one turn as parallel Edit calls."
+            ),
+            evidence=[s for e in run for s in view.pair(e)],
+            waste=overhead,
+            subject=path,
+        )
 
 
-def _only_thinking_between(view: SessionView, a: Step, b: Step) -> bool:
+def _single_file_edit(step: Step) -> bool:
+    return step.tool_kind is ToolKind.FS_EDIT and len(step.paths) == 1
+
+
+def _only_run_results_between(view: SessionView, run: list[Step], b: Step) -> bool:
+    """Only reasoning and results of the run's own edits since its last edit."""
+    mine = {s.index for s in run}
     return all(
-        s.kind is EventKind.REASONING
-        or (s.is_completion and s.request_index == a.index)
-        for s in view.steps[a.index + 1 : b.index]
+        s.kind is EventKind.REASONING or (s.is_completion and s.request_index in mine)
+        for s in view.steps[run[-1].index + 1 : b.index]
     )
+
+
+def _round_trips(view: SessionView, run: list[Step]) -> list[list[Step]]:
+    """The run split into model turns: a result between two calls ends a turn."""
+    trips: list[list[Step]] = [[run[0]]]
+    for before, step in zip(run, run[1:], strict=False):
+        if any(s.is_completion for s in view.steps[before.index + 1 : step.index]):
+            trips.append([step])
+        else:
+            trips[-1].append(step)
+    return trips
 
 
 @dataclass(frozen=True)

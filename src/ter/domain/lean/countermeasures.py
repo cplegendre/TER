@@ -207,10 +207,10 @@ echo "$sig" > "$last"
 
 _NO_WRITE_SCRIPT = """#!/usr/bin/env bash
 # .claude/hooks/edit-not-write.sh: PreToolUse(Write). Blocks whole-file rewrites
-# of files that already exist, so changes go through Edit/MultiEdit.
+# of files that already exist, so changes go through Edit.
 file=$(jq -r '.tool_input.file_path // empty')
 if [ -n "$file" ] && [ -f "$file" ]; then
-  echo "$file exists: change it with Edit or MultiEdit instead of rewriting it." >&2
+  echo "$file exists: change it with Edit instead of rewriting it." >&2
   exit 2
 fi
 """
@@ -333,7 +333,7 @@ def _unvalidated(ctx: _Context) -> tuple[str, list[Action]]:
                     ActionKind.PRACTICE,
                     "No check ran in this session, so no edit hook is generated. Once the "
                     "project has a test command, add a PostToolUse hook on "
-                    f"Edit|MultiEdit|Write that runs it {edited}.",
+                    f"Edit|Write that runs it {edited}.",
                 ),
             ],
         )
@@ -354,7 +354,7 @@ def _unvalidated(ctx: _Context) -> tuple[str, list[Action]]:
         {
             "PostToolUse": [
                 {
-                    "matcher": "Edit|MultiEdit|Write",
+                    "matcher": "Edit|Write",
                     "hooks": [{"type": "command", "command": check, "timeout": 300}],
                 }
             ]
@@ -429,9 +429,11 @@ def _fragmented(ctx: _Context) -> tuple[str, list[Action]]:
         [
             Action(
                 ActionKind.CLAUDE_MD,
-                "Ask for one call per coherent change.",
-                "- Make related changes to one file in a single MultiEdit call rather than "
-                f"one Edit per hunk (fragmented: {_list(ctx.subjects)}).",
+                "Ask for one round trip per coherent change.",
+                "- Plan the whole change to a file before editing it, then send its "
+                "Edit calls together in one turn (parallel tool calls) rather than "
+                "one hunk per turn, waiting for each result "
+                f"(fragmented: {_list(ctx.subjects)}).",
                 "markdown",
             )
         ],
@@ -503,7 +505,7 @@ def _regeneration(ctx: _Context) -> tuple[str, list[Action]]:
             Action(
                 ActionKind.CLAUDE_MD,
                 "Reserve whole-file writes for new files.",
-                "- Change existing files with Edit or MultiEdit; use Write only for new files "
+                "- Change existing files with Edit; use Write only for new files "
                 "or rewrites the user asked for.",
                 "markdown",
             ),
@@ -723,7 +725,7 @@ _MEASURES: dict[str, tuple[str, str]] = {
     ),
     "premature_implementation": ("Edits to files not read first", "0"),
     "excessive_planning": ("Planning runs of 4+ steps without action", "0"),
-    "fragmented_edits": ("Runs of 3+ separate edits to one file", "0"),
+    "fragmented_edits": ("Edit runs to one file over 3+ round trips", "0"),
     "unused_context": ("Files read and never used (uncertain)", "fewer"),
     "unnecessary_handoff": ("Handoffs redone by the agent", "0"),
     "repeated_reasoning": ("Restated reasoning blocks", "fewer"),

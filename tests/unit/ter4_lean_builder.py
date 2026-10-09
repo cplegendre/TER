@@ -90,6 +90,18 @@ class Script:
         )
         return request, result
 
+    def complete(self, request: Event, output: str = "ok") -> Event:
+        """The result of a request made with ``output=None``: lets a script
+        issue several calls in one model turn (parallel tool calls) before
+        their results arrive, as a transcript records them."""
+        assert request.tool is not None
+        tool = request.tool
+        return self._add(
+            EventKind.TOOL_COMPLETED,
+            output,
+            ToolCall(tool.native_name, tool.kind, tool.call_id),
+        )
+
     def read(
         self, path: str, output: str = "x = 1\n", **extra: Any
     ) -> tuple[Event, Event | None]:
