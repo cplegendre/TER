@@ -204,8 +204,9 @@ report, not waste.
 departs from the intent in force with no change recorded. Its finding claims
 the edit, so a change the developer did not ask for is not value-adding
 (TER-LEN-003). Departures in exploration and reasoning show only as low
-alignment until L3 can tell relevant exploration from drift (TER-ITN-006,
-TER-LEN-009). `IntentConfig(low_below, min_events, drift_below)` holds the
+alignment unless the session is grounded: with `--repo`, L3 tells relevant
+exploration from drift (TER-ITN-006, TER-LEN-009,
+[l3-grounded.md](l3-grounded.md#exploration-drift-ter-itn-006-point-48)). `IntentConfig(low_below, min_events, drift_below)` holds the
 thresholds: similarity bands and counts of events, never token counts.
 
 The timeline is `LeanAnalysis.intent`; the JSON carries it under `intent`
@@ -392,7 +393,7 @@ existed map as follows.
 | TER-LEAN-016 | TER-DET-007 | verified: `fragmented_edits` and `unused_traversal` are motion; unused traversals stay uncertain until L3 evidence | `test_ter4_lean_detectors.py`, `test_ter4_lean_context_motion_waiting.py` |
 | TER-LEAN-017 | TER-DET-004 | verified: unused and re-read context in tokens | `test_ter4_lean_detectors.py`, `tests/unit/test_ter4_context_cost.py` |
 | (new) | TER-ANL-040, TER-ANL-041 | verified: priced at the session date's prices; no cache fields → estimated | `tests/unit/test_ter4_context_cost.py`, `tests/contract/test_price_book.py` |
-| (new) | TER-EXP-001 | verified: stream report and A3 (cost included) recomputed from a reloaded event log; the TER 3 ratio and outcome verdict are TER-EXP-002 (L3, planned) | `tests/equivalence/test_recompute_from_events.py` |
+| (new) | TER-EXP-001 | verified: stream report and A3 (cost included) recomputed from a reloaded event log; the TER 3 ratio and outcome verdict are TER-EXP-002 (L3, verified) | `tests/equivalence/test_recompute_from_events.py` |
 | TER-LEAN-018 | TER-DET-008, TER-DET-011 (L3) | verified: redone handoffs, failed routes (`route.failover`) and escalations that added no evidence (`unearned_escalation`) | `test_ter4_lean_detectors.py`, `test_ter4_lean_context_motion_waiting.py`, `test_ter4_unearned_escalation.py` |
 | TER-LEAN-019 | TER-LEN-004 | verified: `excessive_planning` and `repeated_reasoning` never claim a step that adds a decision or new evidence | `test_ter4_lean_detectors.py` |
 | (new) | TER-DET-003 | verified: `excessive_context` (uncertain) and `insufficient_context` against a configurable structural band | `test_ter4_lean_context_motion_waiting.py` |

@@ -7,7 +7,9 @@ TER 3 by strangler fig: each step ships, keeps `ter analyze` working, and is
 protected by the golden tests of every level below it.
 
 The full design is the TER 4 Blueprint. This page covers what is in the
-repository today and the rules the code must follow.
+repository today and the rules the code must follow. L0 to L3 are met; where
+TER goes next (L4 Advisory to L6 Learning) is in
+[strategy.md](strategy.md).
 
 ## The hexagon
 
@@ -34,6 +36,9 @@ flowchart LR
         EMB["embedders<br/>lexical hash"]
         PRICE["pricing<br/>dated price book"]
         LOG["event_log<br/>JSONL · live mode"]
+        REPO["repository<br/>lexical · git · python-ast · syntax (L3)"]
+        CON["contracts<br/>import-linter · dependency-cruiser (L3)"]
+        RTP["routing_profiles<br/>JSON role profiles (L3)"]
         MEM["in_memory<br/>fakes · clocks"]
     end
 
@@ -43,6 +48,9 @@ flowchart LR
     EMB -. implements .-> PORTS
     PRICE -. implements .-> PORTS
     LOG -. implements .-> PORTS
+    REPO -. implements .-> PORTS
+    CON -. implements .-> PORTS
+    RTP -. implements .-> PORTS
     MEM -. implements .-> PORTS
     BOOT["bootstrap<br/>composition root"] --> driving
     BOOT --> driven
@@ -55,9 +63,9 @@ flowchart LR
 
 | Package | Holds | May import |
 |---|---|---|
-| `ter.domain` | Event model, maturity levels, TER scoring (`scoring`: phase scores, weighted aggregate, raw ratio, aligned/waste accounting), pricing (`pricing`: `Rates`, dated `PriceSchedule`, cost arithmetic), the incremental `AnalysisEngine` (L1), the `SessionReport` view-model (`report`), the Lean model, detectors, evidence graph, scorecard and A3 view-model (`ter.domain.lean`, L2), outcome and acceptance verdicts (`outcome`, see [outcome.md](outcome.md)), capability value types (`capabilities`) | stdlib, numpy |
-| `ter.ports` | Driven: `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `PriceBook`, `EventLog`, `TerScorer`, `OutcomeSource`, `RepositoryEvidence`, `ArchitectureContracts`. Driving: `EventIngest` | `ter.domain` |
-| `ter.application` | Use cases: `ObserveEvent`, `RecordEvent`, `AnalyseTrace`, `AnalyseEventLog` (L1), `ExplainSession` (L2) | ports, domain |
+| `ter.domain` | Event model, maturity levels, TER scoring (`scoring`: phase scores, weighted aggregate, raw ratio, aligned/waste accounting), pricing (`pricing`: `Rates`, dated `PriceSchedule`, cost arithmetic), the incremental `AnalysisEngine` (L1), the `SessionReport` view-model (`report`), the Lean model, detectors, evidence graph, scorecard and A3 view-model (`ter.domain.lean`, L2), outcome and acceptance verdicts (`outcome`, see [outcome.md](outcome.md)), capability value types (`capabilities`), repository evidence values and rules (`repository`), change surface and grounded detectors (`lean.surface`, `lean.grounding`), context bundles and their measures (`context_bundle`, `context_metrics`), routing (`routing`), session languages and stack (`stack`, `stack_comparison`) (L3) | stdlib, numpy |
+| `ter.ports` | Driven: `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `PriceBook`, `EventLog`, `TerScorer`, `OutcomeSource`, `RepositoryEvidence`, `ArchitectureContracts`, `RoutingProfiles`. Driving: `EventIngest` | `ter.domain` |
+| `ter.application` | Use cases: `ObserveEvent`, `RecordEvent`, `AnalyseTrace`, `AnalyseEventLog` (L1), `ExplainSession` (L2; grounded with `repository=` and `contracts=` at L3), `ground_session`, `ContextBuilder`, `SupplyContext`, `MeasureContext`, `RouteSession`, `read_stack`, `CompareByStack` (L3) | ports, domain |
 | `ter.adapters` | Everything that knows a vendor, format or IO | anything inward, plus `ter_calculator` |
 | `ter.bootstrap` | Wiring, the capability registry (`ter.capabilities` entry points, ADR 0005) and the maturity ceiling | everything |
 
@@ -77,6 +85,33 @@ and `tests/architecture` fail when one breaks:
 6. **report-renderers**: the SVG, HTML and A3 renderers read only their view-models (`SessionReport`, `A3Report`), never TER 3 types (see [reports.md](reports.md), [l2-explained.md](l2-explained.md)).
 7. **behaviour-blind-to-outcome**: the modules that compute behaviour measures (events, pricing, scoring, the L1 engine, the Lean analysis, detectors, steps, graph and countermeasures) never import `ter.domain.outcome`, so no measure reads the outcome verdict (point 5, [outcome.md](outcome.md)).
 8. **provider-neutral-evidence**: the repository evidence values and engines import no model SDK, tokenizer, embedder, TER 3 internals or external capability stack (P054, [l3-grounded.md](l3-grounded.md)).
+
+### Ports and adapters
+
+Every driven adapter is a capability named `<Port>.<adapter>`, declared in
+`ter.bootstrap.capabilities` and as a `ter.capabilities` entry point
+(ADR 0005).
+
+| Port | Real adapters (capability names) | Fake | Level |
+|---|---|---|---|
+| `SessionSource` | `claude-code` (Claude Code JSONL), `gare` (GARE run export, [gare.md](gare.md)) | `InMemorySessionSource` | L0, L6 |
+| `Tokenizer` | `regex`, `tiktoken` | regex | L0 |
+| `Embedder` | `hashing` | same | L0 |
+| `PriceBook` | `json` (`ter/data/price_book.json`) | `InMemoryPriceBook` | L0 |
+| `TerScorer` | `ter3` | `FixedTerScorer` | L0 |
+| `EventLog` | `jsonl` | `InMemoryEventLog` | L1 |
+| `OutcomeSource` | `junit` | `InMemoryOutcomeSource` | L2 |
+| `RepositoryEvidence` | `lexical` (deterministic baseline), `git` (+ diff, history), `python-ast` (+ Python symbols, imports, calls), `syntax` (python-ast plus TypeScript, JavaScript, Svelte and Vue imports and call edges) | `InMemoryRepositoryEvidence` | L3 |
+| `ArchitectureContracts` | `import-linter` (forbidden, layers, independence, protected, acyclic_siblings), `dependency-cruiser` (forbidden path rules) | `InMemoryArchitectureContracts` | L3 |
+| `RoutingProfiles` | `json` (`ter/data/routing_profiles/*.json`, model roles only) | `InMemoryRoutingProfiles` | L3 |
+| `EventIngest` (driving) | `ObserveEvent`, `RecordEvent` | n/a | L1 |
+
+Two L3 readers are adapters without a port of their own: the critical
+evidence reader (`ter.adapters.driven.critical_evidence`, JSON or CSV lists
+for context recall, TER-EVD-005) and the context CLI
+(`ter.adapters.driving.context_cli`, `python -m ter context bundle|report`),
+which appends `context.supplied` events to the event log. Every port has a
+contract suite in `tests/contract/` that real adapters and fakes both pass.
 
 ## Strangler moves so far
 
@@ -142,18 +177,22 @@ reports its coverage.
 ```mermaid
 flowchart LR
     L0["L0 Measured<br/>TER 3 parity"]:::done --> L1["L1 Observed<br/>event stream, live = batch"]:::done
-    L1 --> L2["L2 Explained<br/>Lean classes, evidence, A3"]:::now
-    L2 --> L3["L3 Grounded<br/>repository evidence"]
-    L3 --> L4["L4 Advisory<br/>policies, ledger"]
-    L4 --> L5["L5 Corrective<br/>routing, opt-in actions"]
+    L1 --> L2["L2 Explained<br/>Lean classes, evidence, A3"]:::done
+    L2 --> L3["L3 Grounded<br/>repository evidence, bundles, routing"]:::done
+    L3 --> L4["L4 Advisory (next)<br/>policies, ledger"]:::now
+    L4 --> L5["L5 Corrective<br/>calibration, opt-in actions"]
     L5 --> L6["L6 Learning<br/>closed loop, 2nd harness"]
     classDef done fill:#dff1ee,stroke:#0d7a6f,color:#16212a
     classDef now fill:#fff4d6,stroke:#9a6b00,color:#16212a
 ```
 
-L0 and L1 are complete; L2 is built and its gate is below. `ter.domain.Maturity` models the levels. A level is both a build gate (every
+L0 to L3 are met: every requirement at those levels is verified by a passing
+test (25, 22, 54 and 34). L4 Advisory is next; [strategy.md](strategy.md)
+maps L4 to L6, their entry criteria, exit gates and build order.
+`ter.domain.Maturity` models the levels. A level is both a build gate (every
 requirement at that level verified) and a runtime ceiling
-(`Maturity.permits`).
+(`Maturity.permits`). Below L4 TER delivers no intervention: every hook
+answers `{}` (TER-INT-001, `tests/architecture/test_no_intervention.py`).
 
 ### L0 gate, as built
 
@@ -183,25 +222,27 @@ the hook-to-event table and a sequence diagram are in
 
 ### L2 gate, as built
 
-Every event is classified on an agentic value stream, eleven plugin
-detectors cite the events behind each finding, and the A3 turns findings into
+Every event is classified on an agentic value stream, plugin detectors
+cite the events behind each finding, and the A3 turns findings into
 countermeasures. Details, the detector catalogue and the per-point definition
 of done are in [l2-explained.md](l2-explained.md); the model is ADR 0004.
 
 | Check | Where | Requirement |
 |---|---|---|
 | Every finding cites existing events; confidence bounded; uncertain never counted | `tests/unit/test_ter4_lean_properties.py` | TER-DET-001, TER-ANL-020, TER-ANL-021 |
-| Each detector: positive, negative, iteration-vs-rework boundary | `tests/unit/test_ter4_lean_detectors.py` | TER-DET-002, 005, 006, 010 (004, 007, 008 planned) |
+| Each detector: positive, negative, iteration-vs-rework boundary | `tests/unit/test_ter4_lean_detectors.py` | TER-DET-002 to TER-DET-010 |
 | Live explanation = batch explanation | `tests/equivalence/test_live_static.py` | TER-ANL-010 |
 | Findings, scorecard, A3 JSON and HTML frozen | `tests/golden/test_lean_snapshots.py` | TER-LEN-008, TER-RPT-003, TER-RPT-004 |
 | A3 self-contained and accessible; countermeasures from findings only | `tests/unit/test_ter4_a3.py`, `test_ter4_lean_analysis.py` | TER-RPT-004, TER-RPT-005 |
 | `TerScorer` adapters meet one contract | `tests/contract/test_ter_scorer.py` | TER-ANL-012 |
 
-### L3 gate, in progress
+### L3 gate, as built
 
-Repository evidence comes through one provider-neutral port with three
-engines loaded as capabilities. Details are in
-[l3-grounded.md](l3-grounded.md).
+Repository evidence comes through one provider-neutral port with four
+engines loaded as capabilities; the analysis grounds each task's change
+surface, boundary violations, evidence usage and drift in it; context
+bundles and the advisory router are built on the same evidence. Details are
+in [l3-grounded.md](l3-grounded.md).
 
 | Check | Where | Requirement |
 |---|---|---|
@@ -210,6 +251,18 @@ engines loaded as capabilities. Details are in
 | Lexical answers depend on content only; frozen | `tests/unit/test_ter4_repository_evidence.py`, `tests/golden/test_repository_evidence_snapshot.py` | TER-EVD-002 |
 | Python symbols, imports, call edges; Git diff and history | `tests/unit/test_ter4_repository_evidence.py` | TER-EVD-012, TER-EVD-013 |
 | Engines load through the capability registry | same | TER-ARC-007 |
+| TypeScript, JavaScript, Svelte and Vue imports, tests and call edges | `tests/unit/test_ter4_ecmascript_evidence.py`, golden `repository/syntax.json` | TER-EVD-014, TER-EVD-016 |
+| Change surface per task, edits outside it, session roots | `tests/unit/test_ter4_change_surface.py`, `tests/unit/test_ter4_session_roots.py` | TER-EVD-006, TER-EVD-017 to TER-EVD-020 |
+| Architecture contract violations (import-linter, dependency-cruiser) | `tests/contract/test_architecture_contracts.py`, `tests/unit/test_ter4_contract_kinds.py` | TER-EVD-007, TER-EVD-015 |
+| Evidence usage, outcome value, drift, grounded evidence graph | `tests/unit/test_ter4_evidence_usage.py` | TER-EVD-008, TER-LEN-009, TER-ITN-006, TER-GRF-001 |
+| Deterministic context bundles, `context.supplied`, precision, recall, inventory cost | `tests/unit/test_ter4_context_bundle.py` | TER-CTX-001, TER-EVD-004, TER-CTX-003, TER-EVD-005, TER-CTX-004 |
+| Routing by role only; classes; escalation only on evidence | `tests/architecture/test_model_roles.py`, `tests/contract/test_routing_profiles.py`, `tests/unit/test_ter4_routing.py` | TER-RTE-001, TER-RTE-002, TER-RTE-003, TER-RTE-005, TER-DET-011 |
+| TER ratio and outcome recorded as events; metrics recomputed from events | `tests/equivalence/test_recompute_from_events.py` | TER-EXP-002 |
+
+CI runs `ter-req trace --gate L3`; the next level is on the
+[roadmap](strategy.md#l4-advisory). The
+calibration of the grounded detectors on real sessions (9 October 2026) is
+in [l3-grounded.md](l3-grounded.md#checking-the-grounded-detectors-on-real-sessions).
 
 Tests carry `@pytest.mark.req("<id>")`. The EARS requirement catalogue and
 the CI traceability gate that checks these links are described in
