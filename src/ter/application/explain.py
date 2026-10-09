@@ -68,7 +68,10 @@ class ExplainSession:
         verdict = self._judge(outcome_ref, contract)
         intents = tuple(e.text for e in trace.events if e.kind is EventKind.PROMPT)
         return ExplainedSession(
-            trace, analysis, build_a3(analysis, intents, verdict), verdict
+            trace,
+            analysis,
+            build_a3(analysis, intents, verdict, trace.usage_limits),
+            verdict,
         )
 
     def _judge(
