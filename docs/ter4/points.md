@@ -10,9 +10,9 @@ rules that enforce it and how it is verified. Rules live in
 contributed from another source (an external capability, ADR 0005) and the
 Origin column names that source, its reference and author.
 
-**200 points** · ● done **72** · ◐ partial **32** · ○ not started **96**
+**200 points** · ● done **74** · ◐ partial **30** · ○ not started **96**
 
-`██████████████▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░`
+`███████████████▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░`
 
 Legend: `█` done · `▓` partial · `░` not started
 
@@ -21,7 +21,7 @@ Legend: `█` done · `▓` partial · `░` not started
 | Level | Progress | Done | Partial | Not started | Total |
 |---|---|---:|---:|---:|---:|
 | L0 Measured | `██████████████████▓▓` | 10 | 1 | 0 | 11 |
-| L1 Observed | `████████████████▓▓▓▓` | 13 | 3 | 0 | 16 |
+| L1 Observed | `███████████████████▓` | 15 | 1 | 0 | 16 |
 | L2 Explained | `█████████████████▓▓▓` | 45 | 9 | 0 | 54 |
 | L3 Grounded | `█▓▓▓▓░░░░░░░░░░░░░░░` | 3 | 8 | 37 | 48 |
 | L4 Advisory | `▓▓░░░░░░░░░░░░░░░░░░` | 0 | 4 | 35 | 39 |
@@ -32,7 +32,7 @@ Kinds: capability 136 · principle 37 · research 27
 
 Origins: Leigh's vision 200
 
-Real session data: **47 points** need it (2 verified) and cannot be done on synthetic tests alone. Tracked in [#34](https://github.com/lgriffin/TER/issues/34), [#35](https://github.com/lgriffin/TER/issues/35), [#36](https://github.com/lgriffin/TER/issues/36), [#37](https://github.com/lgriffin/TER/issues/37), [#38](https://github.com/lgriffin/TER/issues/38), [#39](https://github.com/lgriffin/TER/issues/39), [#40](https://github.com/lgriffin/TER/issues/40), [#41](https://github.com/lgriffin/TER/issues/41), [#42](https://github.com/lgriffin/TER/issues/42), [#43](https://github.com/lgriffin/TER/issues/43), [#44](https://github.com/lgriffin/TER/issues/44), [#45](https://github.com/lgriffin/TER/issues/45), [#46](https://github.com/lgriffin/TER/issues/46), [#55](https://github.com/lgriffin/TER/issues/55).
+Real session data: **47 points** need it (3 verified) and cannot be done on synthetic tests alone. Tracked in [#34](https://github.com/lgriffin/TER/issues/34), [#35](https://github.com/lgriffin/TER/issues/35), [#36](https://github.com/lgriffin/TER/issues/36), [#37](https://github.com/lgriffin/TER/issues/37), [#38](https://github.com/lgriffin/TER/issues/38), [#39](https://github.com/lgriffin/TER/issues/39), [#40](https://github.com/lgriffin/TER/issues/40), [#41](https://github.com/lgriffin/TER/issues/41), [#42](https://github.com/lgriffin/TER/issues/42), [#43](https://github.com/lgriffin/TER/issues/43), [#44](https://github.com/lgriffin/TER/issues/44), [#45](https://github.com/lgriffin/TER/issues/45), [#46](https://github.com/lgriffin/TER/issues/46), [#55](https://github.com/lgriffin/TER/issues/55).
 
 ## Map
 
@@ -44,7 +44,7 @@ P021 ● ● ● ● ● ● ● ● ● ◐ ● ● ○ ● ◐ ◐ ● ● ●
 P041 ● ● ● ● ● ● ● ◐ ● ● ○ ○ ○ ○ ○ ○ ○ ○ ○ ○
 P061 ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ● ◐ ● ● ◐ ◐ ● ●
 P081 ● ● ● ● ● ● ◐ ○ ○ ○ ◐ ◐ ● ○ ◐ ○ ○ ○ ○ ◐
-P101 ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ◐ ◐ ◐ ● ●
+P101 ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ◐ ● ● ● ●
 P121 ◐ ● ○ ○ ◐ ○ ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ○
 P141 ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ◐ ◐ ○ ○ ○ ○ ○ ○ ○ ○
 P161 ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○
@@ -171,8 +171,8 @@ P181 ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ◐ ◐ ◐ ◐ ○
 | P114 | Capture tool outcomes after execution where supported. | vision | L1 | ● done |  | • PostToolUse hooks emit tool.completed events. | `TER-OBS-002` ✓<br>`TER-OBS-003` ✓ | test: tests/contract/test_hook_payloads.py::test_fixture_translates_to_the_pinned_events<br>test: tests/unit/test_ter4_claude_hooks.py::TestHandleHook::test_records_events_through_the_ingest |
 | P115 | Capture task completion events. | vision | L1 | ● done | [#35](https://github.com/lgriffin/TER/issues/35) ✓ | • Stop hooks emit a task completion event. | `TER-OBS-002` ✓<br>`TER-OBS-005` ✓<br>`TER-OBS-009` ✓<br>`TER-OBS-010` ✓<br>`TER-OBS-012` ✓ | test: tests/unit/test_ter4_hook_lifecycle.py::test_stop_appends_one_task_completed_event<br>test: tests/unit/test_ter4_hook_lifecycle.py::test_record_writes_the_raw_payload_before_translating<br>test: tests/unit/test_ter4_hook_check.py::TestStopRule::test_the_live_stop_hook_uses_the_same_id<br>test: tests/unit/test_ter4_hook_check.py::TestHookCheck<br>test: tests/unit/test_ter4_hook_check.py::TestSharedIdRules::test_a_live_turn_matches_its_transcript_by_id_in_full<br>test: tests/unit/test_ter4_hook_check.py::test_the_real_hooks_check_summary_records_every_stop_matched |
 | P116 | Capture subagent activity where supported. | vision | L1 | ◐ partial | [#35](https://github.com/lgriffin/TER/issues/35) | • SubagentStop and subagent tool hooks emit events attributed to the subagent. | `TER-OBS-002` ✓<br>`TER-OBS-006` ✓<br>`TER-OBS-010` ✓ | test: tests/unit/test_ter4_hook_lifecycle.py::test_subagent_stop_joins_the_parent_session<br>test: tests/unit/test_ter4_hook_check.py::TestSubagentRule<br>planned: subagent tool hooks attributed to the subagent<br>planned: real-data verification in issue #35 |
-| P117 | Correlate hook events with persisted session records. | vision | L1 | ◐ partial | [#35](https://github.com/lgriffin/TER/issues/35) | • Every hook event correlates with its JSONL record by event id, including prompts. | `TER-OBS-007` ·<br>`TER-OBS-005` ✓<br>`TER-OBS-010` ✓<br>`TER-OBS-012` ✓ | test: tests/unit/test_ter4_hook_lifecycle.py::test_recordings_replay_to_the_same_events<br>test: tests/unit/test_ter4_hook_check.py::TestHookCheck<br>test: tests/unit/test_ter4_hook_check.py::TestSharedIdRules<br>test: tests/unit/test_ter4_hook_check.py::TestSubagentRule<br>test: tests/unit/test_ter4_hook_check.py::test_the_real_hooks_check_summary_records_every_stop_matched<br>planned: one re-run of `python -m ter hooks check` on real sessions with subagents (TER-OBS-007, issue #35); the 9 Oct 2026 run matched prompts, tools and stops in full (87 of 94), missing only subagent.completed |
-| P118 | Assign stable identities across static and live observations. | vision | L1 | ◐ partial |  | • Static and live observation of the same record produce the same event id. | `TER-OBS-007` ·<br>`TER-SRC-004` ✓<br>`TER-OBS-012` ✓ | test: tests/golden/test_event_stream_snapshot.py::test_event_stream_matches_golden_snapshot<br>test: tests/unit/test_ter4_hook_check.py::TestStopRule<br>test: tests/unit/test_ter4_hook_check.py::TestSharedIdRules::test_a_live_turn_matches_its_transcript_by_id_in_full<br>test: tests/unit/test_ter4_hook_check.py::TestSubagentRule::test_a_finished_subagent_gets_the_subagent_stop_hooks_id<br>test: tests/unit/test_ter4_hook_check.py::TestSubagentRule::test_a_redacted_session_derives_the_same_subagent_ids<br>planned: hook and transcript observation of one subagent share an event id on real recordings (TER-OBS-007, issue #35); every other kind matched on the 9 Oct 2026 run |
+| P117 | Correlate hook events with persisted session records. | vision | L1 | ● done | [#35](https://github.com/lgriffin/TER/issues/35) ✓ | • Every hook event correlates with its JSONL record by event id, including prompts. | `TER-OBS-007` ✓<br>`TER-OBS-005` ✓<br>`TER-OBS-010` ✓<br>`TER-OBS-012` ✓<br>`TER-OBS-013` ✓ | test: tests/unit/test_ter4_hook_lifecycle.py::test_recordings_replay_to_the_same_events<br>test: tests/unit/test_ter4_hook_check.py::TestHookCheck<br>test: tests/unit/test_ter4_hook_check.py::TestSharedIdRules<br>test: tests/unit/test_ter4_hook_check.py::TestSubagentRule<br>test: tests/unit/test_ter4_hook_check.py::test_the_real_hooks_check_summary_records_every_stop_matched<br>test: tests/unit/test_ter4_hook_check.py::TestInternalHelperAgents |
+| P118 | Assign stable identities across static and live observations. | vision | L1 | ● done |  | • Static and live observation of the same record produce the same event id. | `TER-OBS-007` ✓<br>`TER-SRC-004` ✓<br>`TER-OBS-012` ✓<br>`TER-OBS-013` ✓ | test: tests/golden/test_event_stream_snapshot.py::test_event_stream_matches_golden_snapshot<br>test: tests/unit/test_ter4_hook_check.py::TestStopRule<br>test: tests/unit/test_ter4_hook_check.py::TestSharedIdRules::test_a_live_turn_matches_its_transcript_by_id_in_full<br>test: tests/unit/test_ter4_hook_check.py::TestSubagentRule::test_a_finished_subagent_gets_the_subagent_stop_hooks_id<br>test: tests/unit/test_ter4_hook_check.py::TestSubagentRule::test_a_redacted_session_derives_the_same_subagent_ids<br>test: tests/unit/test_ter4_hook_check.py::TestInternalHelperAgents<br>test: tests/unit/test_ter4_hook_check.py::test_the_real_hooks_check_summary_records_every_stop_matched |
 | P119 | Ensure duplicate events do not distort analysis. | vision | L1 | ● done |  | • Re-delivered events are discarded without changing analysis state. | `TER-OBS-004` ✓ | test: tests/unit/test_ter4_stream.py::test_redelivered_event_is_discarded_without_changing_state<br>test: tests/contract/test_event_ingest.py::test_redelivery_changes_nothing<br>test: tests/equivalence/test_live_static.py::test_live_with_redelivery_through_the_log_equals_batch<br>test: tests/contract/test_event_ingest.py::test_hook_processes_that_record_again_leave_the_report_unchanged |
 | P120 | Make hook processing sufficiently lightweight that TER does not become a source of… | vision | L1 | ● done |  | • Hook processing completes within 50 ms at p95 in a benchmark run in CI. | `TER-OBS-003` ✓ | test: tests/unit/test_ter4_claude_hooks.py::test_post_tool_use_is_appended_within_50ms_at_p95<br>test: tests/unit/test_ter4_claude_hooks.py::test_a_fresh_hook_process_appends_within_50ms_at_p95 |
 | P121 | Separate observation from intervention. | vision | L4 | ◐ partial |  | • Observation and intervention live in separate engines with no import from analysis to intervention. | `TER-INT-006` ·<br>`TER-INT-001` · | planned: passing tests tagged req for TER-INT-006, TER-INT-001 |
