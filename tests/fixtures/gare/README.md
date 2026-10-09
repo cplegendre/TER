@@ -1,4 +1,17 @@
-# GARE run fixtures (mock)
+# GARE run fixtures
+
+`runs/` holds **real** recorded runs; the two folders beside it are mock runs.
+
+## Real runs
+
+| Folder | Run | What it shows |
+|---|---|---|
+| `runs/c2ffdf8f1b09/` | GARE 0.0.50 `gare mission --execute --max-repairs 1` with a local Ollama model (issue #55) | A real repair mission: two coder attempts, a diagnosis, a reviewer `revise` verdict and a `needs_review` outcome; an unavailable route ranked first and never called. No failover, no cloud provider, no latency (see its README). |
+
+The real run passes the session source contract suite, which verifies
+TER-SRC-010. Failover is still covered by mock data only.
+
+## Mock runs
 
 Two runs exported from GARE v0.46 (commit 206a97e) with its own commands, then
 with sandbox paths replaced by `/sandbox`:
@@ -10,8 +23,8 @@ gare explain RUN --json > explain.json
 
 **These are mock runs, not real ones.** Every response comes from GARE's
 `mock` provider. Under the real-data rule they exercise the GARE adapter but
-never mark P103, P105 or TER-SRC-010 done; that waits on a real recorded run
-(issue #55).
+prove nothing about real runs on their own; `failover-run/` is still the only
+failover TER has seen.
 
 | Folder | Run | What it shows |
 |---|---|---|

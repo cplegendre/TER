@@ -186,7 +186,7 @@ def test_unknown_model_raises(book: PriceBook) -> None:
 
 | Suite | Port | Adapters |
 |---|---|---|
-| `test_session_source.py` | `SessionSource` | `ClaudeCodeJsonlSource`, `InMemorySessionSource` |
+| `test_session_source.py` | `SessionSource` | `ClaudeCodeJsonlSource`, `GareRunSource` (mock runs and a real recorded run), `InMemorySessionSource` |
 | `test_price_book.py` | `PriceBook` | `JsonPriceBook`, `InMemoryPriceBook` |
 | `test_event_log.py` | `EventLog` | `JsonlEventLog`, `InMemoryEventLog` |
 | `test_ter_scorer.py` | `TerScorer` | `Ter3Scorer` (offline), `FixedTerScorer` |

@@ -1,0 +1,222 @@
+{
+  "run": {
+    "id": "c2ffdf8f1b09",
+    "goal": "Fix the off-by-one bug in toy/stats.py last_n so tests/test_stats.py passes",
+    "status": "needs_review",
+    "workflow": "mission",
+    "created_at": "2026-10-09T10:20:39.311409+00:00",
+    "finished_at": "2026-10-09T10:21:55.256895+00:00"
+  },
+  "tasks": [
+    {
+      "id": "mission-coder-1-1c03ca90",
+      "run_id": "c2ffdf8f1b09",
+      "title": "Generate patch attempt 1",
+      "role": "coder",
+      "status": "succeeded",
+      "provider": "ollama",
+      "model": "qwen3-coder-next:latest",
+      "input_tokens": 878,
+      "output_tokens": 247,
+      "error": null,
+      "artifact_path": "/sandbox",
+      "created_at": "2026-10-09T10:20:39.520080+00:00",
+      "finished_at": "2026-10-09T10:21:28.512391+00:00"
+    },
+    {
+      "id": "mission-investigate-1-89076b61",
+      "run_id": "c2ffdf8f1b09",
+      "title": "Diagnose failed patch attempt 1",
+      "role": "reviewer",
+      "status": "succeeded",
+      "provider": "ollama",
+      "model": "qwen3-coder-next:latest",
+      "input_tokens": 387,
+      "output_tokens": 293,
+      "error": null,
+      "artifact_path": null,
+      "created_at": "2026-10-09T10:21:28.555666+00:00",
+      "finished_at": "2026-10-09T10:21:36.312264+00:00"
+    },
+    {
+      "id": "mission-coder-2-c3359cfc",
+      "run_id": "c2ffdf8f1b09",
+      "title": "Generate patch attempt 2",
+      "role": "coder",
+      "status": "succeeded",
+      "provider": "ollama",
+      "model": "qwen3-coder-next:latest",
+      "input_tokens": 1168,
+      "output_tokens": 327,
+      "error": null,
+      "artifact_path": "/sandbox",
+      "created_at": "2026-10-09T10:21:36.399191+00:00",
+      "finished_at": "2026-10-09T10:21:43.975555+00:00"
+    },
+    {
+      "id": "mission-reviewer-review-2-24651b43",
+      "run_id": "c2ffdf8f1b09",
+      "title": "Reviewer review · attempt 2",
+      "role": "reviewer",
+      "status": "succeeded",
+      "provider": "ollama",
+      "model": "qwen3-coder-next:latest",
+      "input_tokens": 381,
+      "output_tokens": 659,
+      "error": null,
+      "artifact_path": null,
+      "created_at": "2026-10-09T10:21:44.371507+00:00",
+      "finished_at": "2026-10-09T10:21:55.254230+00:00"
+    }
+  ],
+  "events": [
+    {
+      "state": "created",
+      "created_at": "2026-10-09T10:20:39.311469+00:00",
+      "detail": {
+        "goal": "Fix the off-by-one bug in toy/stats.py last_n so tests/test_stats.py passes",
+        "mode": "local"
+      }
+    },
+    {
+      "state": "worktree_ready",
+      "created_at": "2026-10-09T10:20:39.447331+00:00",
+      "detail": {
+        "path": "/sandbox",
+        "base_sha": "bb3c37f5c44cb4183c5368f27fd345d72e2d57ce"
+      }
+    },
+    {
+      "state": "route_decision",
+      "created_at": "2026-10-09T10:20:41.551098+00:00",
+      "detail": {
+        "task_id": "mission-coder-1-1c03ca90",
+        "capability": "coding",
+        "candidates": [
+          {
+            "provider": "ollama_down",
+            "model": "qwen3-coder-next:notpulled",
+            "score": 21.31
+          },
+          {
+            "provider": "ollama",
+            "model": "qwen3-coder-next:latest",
+            "score": 12.55
+          }
+        ]
+      }
+    },
+    {
+      "state": "route_decision",
+      "created_at": "2026-10-09T10:21:30.625952+00:00",
+      "detail": {
+        "task_id": "mission-investigate-1-89076b61",
+        "capability": "reasoning",
+        "candidates": [
+          {
+            "provider": "ollama_down",
+            "model": "qwen3-coder-next:notpulled",
+            "score": 21.31
+          },
+          {
+            "provider": "ollama",
+            "model": "qwen3-coder-next:latest",
+            "score": 12.55
+          }
+        ]
+      }
+    },
+    {
+      "state": "diagnosis",
+      "created_at": "2026-10-09T10:21:36.312517+00:00",
+      "detail": {
+        "attempt": 1,
+        "status": "ready",
+        "reason": "diagnosis is structured, novel, and sufficiently confident",
+        "confidence": 0.95,
+        "fingerprint": "2204ca0c8bae10291a1a"
+      }
+    },
+    {
+      "state": "route_decision",
+      "created_at": "2026-10-09T10:21:37.422405+00:00",
+      "detail": {
+        "task_id": "mission-coder-2-c3359cfc",
+        "capability": "coding",
+        "candidates": [
+          {
+            "provider": "ollama_down",
+            "model": "qwen3-coder-next:notpulled",
+            "score": 21.31
+          },
+          {
+            "provider": "ollama",
+            "model": "qwen3-coder-next:latest",
+            "score": 12.55
+          }
+        ]
+      }
+    },
+    {
+      "state": "route_decision",
+      "created_at": "2026-10-09T10:21:44.869697+00:00",
+      "detail": {
+        "task_id": "mission-reviewer-review-2-24651b43",
+        "capability": "review",
+        "candidates": [
+          {
+            "provider": "ollama",
+            "model": "qwen3-coder-next:latest",
+            "score": 12.55
+          }
+        ]
+      }
+    },
+    {
+      "state": "persona_review",
+      "created_at": "2026-10-09T10:21:55.254292+00:00",
+      "detail": {
+        "attempt": 2,
+        "role": "reviewer",
+        "persona": "Reviewer",
+        "order": 1,
+        "verdict": "revise"
+      }
+    },
+    {
+      "state": "attempt_complete",
+      "created_at": "2026-10-09T10:21:55.256155+00:00",
+      "detail": {
+        "attempt": 2,
+        "score": 20,
+        "test_exit_code": 1,
+        "review_pass": false
+      }
+    },
+    {
+      "state": "needs_review",
+      "created_at": "2026-10-09T10:21:55.257122+00:00",
+      "detail": {
+        "score": 20,
+        "attempts": 2,
+        "diagnoses": 1
+      }
+    }
+  ],
+  "errors": [],
+  "routes": {
+    "ollama/qwen3-coder-next:latest": {
+      "calls": 4,
+      "successes": 4,
+      "input_tokens": 2814,
+      "output_tokens": 1526,
+      "avg_latency_ms": null,
+      "success_rate": 1.0,
+      "tokens": 4340
+    }
+  },
+  "audit": {
+    "valid": true,
+    "root": "ac52bef0fb0f5beaeb5055b93efe65d1cc28f676b2b763e1c95efdcb88711d68"
+  }
+}

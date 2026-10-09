@@ -41,7 +41,7 @@ count against coverage as `other-run:<id>`.
 | GARE | `ter.event` kind | Actor |
 |---|---|---|
 | run event `created` (the goal) | `intent.stated` | user |
-| `route_decision` (the top candidate) | `route.selected` | system |
+| `route_decision` (the highest-ranked candidate the run called) | `route.selected` | system |
 | `task_started`, or the first route of mission coder attempt *n* | `attempt.started` | assistant |
 | `gare.ter.usage.v2` row with tokens | `response`, with its tokens | assistant |
 | `gare.ter.usage.v2` row with no tokens and no success | `route.failover`, with the error code from `explain.json` | system |
@@ -54,6 +54,15 @@ Only `route.failover` is a Lean step (a failed model call the run waited on,
 classified by the `failed_route` detector as *waiting*, TER-DET-008); the
 others add none. Only `response` events are generated work.
 
+- GARE ranks a decision's candidates before it checks them, and skips an
+  unavailable provider without calling it. So `route.selected` names the
+  highest-ranked candidate the run called for that task (from the usage rows,
+  the recorded errors and the task's final route), and lists any candidate
+  ranked above it as not called:
+  `mission-coder-1-…: ollama/qwen3-coder-next:latest (rank 2 of 2; not called:
+  ollama_down/qwen3-coder-next:notpulled)`. A skipped route made no call, so it
+  is not a failover. When the run called none of the candidates, the top one
+  stands.
 - Run event states TER knows but does not model (`planned`,
   `execution_mode`, `worktree_ready`, `diagnosis`, `repair_stopped` and
   similar) produce no event.
@@ -87,9 +96,12 @@ others add none. Only `response` events are generated work.
 - **No row ids or attempt numbers in the usage export.** TER keys rows by
   their line in the file, and mission attempts by the attempt number in the
   task id (`mission-coder-<n>-…`).
-- **Repair fingerprints are not exported.** GARE fingerprints each repair
-  hypothesis (`mission_diagnoses`), but neither export carries it, so the
-  repair-loop detector (capability 7) waits on a GARE change.
+- **No latency.** The usage export has a `latency_ms` field, but the real run
+  recorded so far leaves it `null`; TER reads no latency from GARE.
+- **Diagnoses map to no event.** The `diagnosis` run event carries a status,
+  a confidence and a fingerprint of the repair hypothesis, but `ter.event`
+  has no kind for a hypothesis yet, so TER leaves it out and the repair-loop
+  detector (capability 7) does not see GARE repairs.
 - **Gate receipts** (`gare.gate-receipt.v1`) are CI release receipts with no
   link to a run, so TER does not read them as run outcomes.
 - **Prices.** Mock and local models have no price book entry, and cost from
@@ -97,7 +109,26 @@ others add none. Only `response` events are generated work.
 
 ## Fixtures
 
-`tests/fixtures/gare/` holds two **mock** runs exported from GARE v0.46: a
-failover run and a repair mission (see its README). They exercise the adapter
-and the session source contract suite. Under the real-data rule, P103 and
-TER-SRC-010 are proven only by a real recorded run (issue #55).
+`tests/fixtures/gare/` holds (see its README):
+
+- **One real recorded run** (issue #55), `runs/c2ffdf8f1b09/`: GARE 0.0.50
+  `gare mission --execute --max-repairs 1` on a toy repository with an
+  off-by-one bug, served by a local Ollama model (`qwen3-coder-next:latest`,
+  $0 spent). Two coder attempts with an investigation and its diagnosis
+  between them, a reviewer
+  `revise` verdict, and a final `needs_review` state (score 20/100, tests
+  still failing); 2,814 input and 1,526 output tokens over 4 calls. A
+  deliberately unavailable route, `ollama_down`, was ranked first and never
+  called. It passes the session source contract suite, which verifies
+  TER-SRC-010 and the real-data part of P103. Reading it also found the
+  ranked-but-never-called route that `route.selected` used to name.
+- **Two mock runs** exported from GARE v0.46: a failover run and a repair
+  mission. Every response comes from GARE's mock provider.
+
+What the real run does **not** prove:
+
+- **Failover.** Its unavailable route was skipped before any call, so it has
+  no `route.failover`. Failover (and the `failed_route` detector on GARE data)
+  is still proven on the mock `failover-run/` only.
+- **Cloud providers and prices.** Only a local model ran.
+- **Latency.** `latency_ms` is `null` throughout.
