@@ -24,6 +24,7 @@ ROOT = Path(__file__).resolve().parents[2]
 LINKED_PAGES: tuple[Path, ...] = (
     ROOT / "README.md",
     *sorted((ROOT / "docs").rglob("*.md")),
+    *sorted((ROOT / "presentation").glob("*.md")),
 )
 
 #: Pages whose fenced shell examples must name real commands and options.
@@ -32,6 +33,7 @@ COMMAND_PAGES: tuple[Path, ...] = (
     *sorted((ROOT / "docs" / "guides").glob("*.md")),
     *sorted((ROOT / "docs" / "ter4").glob("*.md")),
     ROOT / "docs" / "hooks-guide.md",
+    *sorted((ROOT / "presentation").glob("*.md")),
 )
 
 SHELL_LANGUAGES = {"bash", "sh", "shell", "console"}
