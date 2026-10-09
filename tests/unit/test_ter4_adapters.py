@@ -78,14 +78,11 @@ class TestClaudeCodeJsonlSource:
             ],
         )
         trace = ClaudeCodeJsonlSource().read(path)
-        assert trace.unrecognised_by_type == {
-            "summary": 1,
-            "system": 1,
-            "list": 1,
-            "<missing>": 1,
-        }
-        assert [r.line for r in trace.unrecognised] == [1, 3, 4, 5]
-        assert trace.coverage == pytest.approx(1 / 5)
+        # summary and system are documented metadata: accounted for, no event.
+        assert trace.unrecognised_by_type == {"list": 1, "<missing>": 1}
+        assert trace.metadata_by_type == {"summary": 1, "system": 1}
+        assert [r.line for r in trace.unrecognised] == [4, 5]
+        assert trace.coverage == pytest.approx(3 / 5)
 
     @pytest.mark.req("TER-SRC-001")
     def test_tool_results_inherit_their_request_kind(self, tmp_path: Path) -> None:

@@ -1,5 +1,5 @@
 {
-  "coverage": 0.933333,
+  "coverage": 1.0,
   "events": [
     [
       0,
@@ -218,10 +218,11 @@
       40
     ]
   ],
+  "metadata": {
+    "summary": 1
+  },
   "schema": "ter.event/0.4",
   "session_id": "golden-iterate",
   "source_format": "claude-code-jsonl",
-  "unrecognised": {
-    "summary": 1
-  }
+  "unrecognised": {}
 }

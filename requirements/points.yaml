@@ -1417,7 +1417,8 @@ points:
     rules: [TER-BEN-001, TER-SRC-005, TER-SRC-023]
     verification:
       - 'test: tests/unit/test_ter4_corpus.py::test_manifest_lists_every_session_with_dates_coverage_and_redactions'
-      - 'planned: passing tests tagged req for TER-BEN-001, TER-SRC-005'
+      - 'test: tests/unit/test_ter4_corpus_coverage.py::test_the_reference_corpus_is_at_least_99_percent_accounted_for'
+      - 'planned: passing tests tagged req for TER-BEN-001'
       - 'planned: real-data verification in issue #34'
 
   - id: P093
@@ -1570,9 +1571,10 @@ points:
     status: done
     definition_of_done:
       - The Claude Code adapter converts JSONL to ter.event events.
-    rules: [TER-SRC-001, TER-OBS-001]
+    rules: [TER-SRC-001, TER-OBS-001, TER-SRC-024]
     verification:
       - 'test: tests/unit/test_ter4_adapters.py::TestClaudeCodeJsonlSource::test_tool_results_inherit_their_request_kind'
+      - 'test: tests/unit/test_ter4_corpus_coverage.py::test_a_queued_human_prompt_becomes_intent_in_file_order'
 
   - id: P103
     text: >-

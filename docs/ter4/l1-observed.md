@@ -15,6 +15,8 @@ the batch report of the same events are the same value.
 | TER-OBS-004 | If an event arrives with an identity already recorded, then TER shall discard it without changing analysis state. | `tests/unit/test_ter4_stream*.py`, `tests/contract/test_event_ingest.py`, `tests/contract/test_hook_payloads.py` |
 | TER-ANL-010 | TER shall produce identical reports for a session analysed incrementally and analysed in batch. | `tests/equivalence/test_live_static.py`, property tests, `tests/golden/test_stream_report_snapshot.py` |
 | TER-OBS-008 | While the maturity ceiling is L1 Observed, the hook adapter shall return an empty hook response to Claude Code. | `tests/unit/test_ter4_claude_hooks.py::TestRunHook`, `tests/unit/test_ter4_cli.py` (hook commands print `{}`) |
+| TER-SRC-005 | The session source shall account for at least 99 percent of records in every session of the reference corpus, each record either mapped to events or classified as a documented metadata type. | `tests/unit/test_ter4_corpus_coverage.py` against `tests/fixtures/corpus/reference-record-types.json` (real sessions; see [corpus.md](corpus.md#coverage-of-real-record-types)) |
+| TER-SRC-024 | When a Claude Code session records a prompt that the developer queued while the agent was working, the session source shall emit one intent.stated event for it in file order. | `tests/unit/test_ter4_corpus_coverage.py` |
 
 ## Flow
 

@@ -178,15 +178,23 @@ requirements:
   - id: TER-SRC-005
     pattern: ubiquitous
     text: >-
-      The session source shall map at least 99 percent of records in every
-      session of the reference corpus to events.
+      The session source shall account for at least 99 percent of records in
+      every session of the reference corpus, each record either mapped to
+      events or classified as a documented metadata type that carries no
+      agent activity.
     level: L1
     port: SessionSource
     source_points: [92]
     rationale: >-
       Issue #34: real sessions contain record types the synthetic corpus
-      never produced.
-    status: planned
+      never produced. Leigh's first import (286 sessions, 9 Oct 2026) put
+      every session below 99 percent: Claude Code 2.1 writes titles, queue
+      and permission bookkeeping, harness notices and injected context as
+      their own record types. Those are now documented metadata; a type not
+      in the list stays unrecognised, so the measure still catches new ones.
+      The reference corpus is the content-free record-type fingerprint in
+      tests/fixtures/corpus/.
+    status: verified
 
   - id: TER-SRC-006
     pattern: event-driven
@@ -250,4 +258,21 @@ requirements:
     rationale: >-
       Issue #34: a corpus is reproducible and describable only if every
       session in it is listed with what was done to it.
+    status: verified
+
+  - id: TER-SRC-024
+    pattern: event-driven
+    text: >-
+      When a Claude Code session records a prompt that the developer queued
+      while the agent was working, the session source shall emit one
+      intent.stated event for it in file order.
+    level: L1
+    port: SessionSource
+    source_points: [102]
+    rationale: >-
+      Found on real sessions (issue #34): Claude Code 2.1 delivers a prompt
+      typed mid-turn as a queued_command attachment, not a user record, so
+      the developer's change of intent was silently dropped. Task
+      notifications and messages from other agents in the same queue are
+      harness context, not intent.
     status: verified

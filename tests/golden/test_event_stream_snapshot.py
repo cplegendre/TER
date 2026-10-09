@@ -23,6 +23,7 @@ def project(trace: SessionTrace) -> dict[str, Any]:
         "source_format": trace.source_format,
         "coverage": round(trace.coverage, 6),
         "unrecognised": dict(sorted(trace.unrecognised_by_type.items())),
+        "metadata": dict(sorted(trace.metadata_by_type.items())),
         "events": [
             [
                 e.sequence,
