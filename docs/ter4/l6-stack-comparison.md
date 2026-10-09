@@ -17,6 +17,8 @@ and P185 stay `partial`.
 |---|---|---|
 | TER-STK-010 | The stack comparison shall report, for each stratum of dominant language or repository stack by task category label and outcome label, the stratum's session count and the median generated tokens, context tokens, flow efficiency, unused context share and rework, regeneration and exploration rates of its sessions. | `tests/unit/test_ter4_stack_comparison.py` (`TestStratification`, `test_session_measures_read_the_scorecard_and_the_waste_allocation`, the script smoke tests) |
 | TER-STK-011 | If a stratum holds fewer sessions than the stated minimum, then the stack comparison shall mark the stratum insufficient and report no measure and no comparison for it. | `TestInsufficientStrata`, `test_compare_by_stack_counts_failures_and_stratifies` |
+| TER-STK-012 | The stack comparison shall report, beside each median a stratum reports, the 25th and 75th percentiles of that measure, and for each waste rate the share of the stratum's sessions with a value whose rate is above zero. | `TestSpread`, `test_the_script_reads_raw_transcripts_and_labels` |
+| TER-STK-013 | If a session reads and edits no file, then the stack comparison shall group it by language as none (no files) and leave that group out of every comparison. | `TestNoFiles` |
 
 ## Why stratify
 
@@ -37,12 +39,16 @@ labels of the corpus (`unlabelled` when missing). A **stratum** is one
 stratum with fewer than `--min-sessions` sessions (default **5**) is
 *insufficient* and reports no measure. Groups are compared only inside one
 (task category, outcome) cell, and only when at least two of its groups are
-sufficient; those cells are listed under `comparisons`. Repository size is
+sufficient; those cells are listed under `comparisons`. A session that read
+and edited no file has the language group `none (no files)` (a session whose
+files no table knows stays `unknown`); that group is reported with its
+measures but never compared, since it says nothing about a language
+(TER-STK-013). Repository size is
 not a stratum yet: the stack label groups sessions of one repository
 together, so read a stack comparison as a comparison of repositories as much
 as of stacks.
 
-## Measures (per session, then the stratum median)
+## Measures (per session, then the stratum median and spread)
 
 | Measure | Definition |
 |---|---|
@@ -57,6 +63,15 @@ Rates come from the scorecard's waste allocation, so each generated token is
 charged to at most one finding and uncertain findings (below 0.70) are never
 counted. A measure with a zero denominator is left out of that stratum's
 median, and `with_value` says how many sessions had one.
+
+Beside each `median`, a sufficient stratum reports `p25` and `p75`, the 25th
+and 75th percentiles (Python's `statistics.quantiles`, inclusive method, so
+both lie between the smallest and the largest value; one value is both).
+Most sessions have no waste of a given kind, so on the owner's 52 sessions
+every median waste rate was 0. `nonzero_share` gives, for each of the three
+waste rates, the share of the stratum's sessions with a value whose rate is
+above zero: "1 session in 5 had rework" is the comparison the median hides
+(TER-STK-012).
 
 ## Running it
 
@@ -77,7 +92,8 @@ python scripts/corpus_by_stack.py raw labels-d4.csv ~/.claude/projects \
     --work ~/ter-data/grounded --out by-stack.json --min-sessions 5
 ```
 
-The output (`ter.corpus-by-stack/1`) holds counts, medians and ratios only:
+The output (`ter.corpus-by-stack/1`) holds counts, medians, percentiles and
+ratios only:
 language names, stack labels (framework names), label values and numbers. No
 prompt, path, code or repository name, so it can be shared from a private
 corpus.

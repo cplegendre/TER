@@ -16,6 +16,7 @@ from pathlib import Path
 from ..domain.stack import stack_label
 from ..domain.stack_comparison import (
     DEFAULT_MIN_SESSIONS,
+    NO_FILES,
     UNLABELLED,
     Dimension,
     SessionMeasures,
@@ -58,8 +59,12 @@ def session_measures(
     for finding_id, tokens in by_finding.items():
         by_detector[detector_of.get(finding_id, finding_id)] += tokens
     inventory = explained.a3.inventory
+    profile = analysis.profile
+    touched = bool(profile.languages or profile.unrecognised)
     return SessionMeasures(
-        language=analysis.profile.dominant or "unknown",
+        # A session that named files no table knows is ``unknown``; one that
+        # named no file at all says nothing about a language (TER-STK-013).
+        language=profile.dominant or ("unknown" if touched else NO_FILES),
         stack=stack_label(analysis.profile.stack),
         task_category=labels.get("task_category") or UNLABELLED,
         outcome=labels.get("outcome") or UNLABELLED,

@@ -4,9 +4,12 @@ Explains every session (TER off) and groups sessions by dominant language and
 by repository stack, each crossed with the ``task_category`` and ``outcome``
 labels (TER-STK-010). Every stratum reports its session count; a stratum with
 fewer than ``--min-sessions`` sessions (default 5) is marked insufficient and
-reports no measure (TER-STK-011). The output holds counts, medians and ratios
-only: no prompt, path, code or repository name, so it can be shared from a
-private corpus.
+reports no measure (TER-STK-011). Each median comes with its 25th and 75th
+percentiles, and each waste rate with the share of sessions above zero
+(TER-STK-012); sessions that touch no file form the language group
+``none (no files)``, which is never compared (TER-STK-013). The output holds
+counts, medians, percentiles and ratios only: no prompt, path, code or
+repository name, so it can be shared from a private corpus.
 
 Two inputs:
 

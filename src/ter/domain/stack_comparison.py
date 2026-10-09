@@ -5,9 +5,15 @@ comparison by language mostly measures which tasks were done in which
 language. This module only compares like with like: sessions are grouped into
 strata of (language or stack) x task category x outcome label, every stratum
 reports its session count, and a stratum with fewer than ``min_sessions``
-sessions is marked *insufficient* and reports no measure. Groups are compared
-only inside one (task category, outcome) cell and only when at least two of
-its groups are sufficient.
+sessions is marked *insufficient* and reports no measure. Each measure of a
+sufficient stratum is reported as a median with its interquartile range
+(25th and 75th percentiles), and each waste rate also as the share of
+sessions whose rate is above zero: most sessions have no waste of a given
+kind, so the median of a rate is usually 0 and says little on its own
+(TER-STK-012). Groups are compared only inside one (task category, outcome)
+cell and only when at least two of its groups are sufficient; the language
+group of sessions that touch no file (``none (no files)``) is never compared
+(TER-STK-013).
 
 Every number is a count, a median or a ratio of token counts: nothing here
 holds a prompt, a path or code, so the result can be shared from a private
@@ -18,12 +24,14 @@ from __future__ import annotations
 
 import statistics
 from collections.abc import Callable, Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 
 __all__ = [
     "DEFAULT_MIN_SESSIONS",
     "MEASURES",
+    "NO_FILES",
+    "RATES",
     "UNLABELLED",
     "Dimension",
     "SessionMeasures",
@@ -36,6 +44,9 @@ __all__ = [
 DEFAULT_MIN_SESSIONS = 5
 #: The task category and outcome of a session with no label.
 UNLABELLED = "unlabelled"
+#: The language group of a session that read and edited no file: it says
+#: nothing about a language, so it is reported but never compared.
+NO_FILES = "none (no files)"
 
 
 class Dimension(StrEnum):
@@ -82,6 +93,9 @@ MEASURES: Mapping[str, Callable[[SessionMeasures], float | None]] = {
     "exploration_rate": lambda m: m.exploration_rate,
 }
 
+#: The waste rates, each also reported as the share of sessions above zero.
+RATES: tuple[str, ...] = ("rework_rate", "regeneration_rate", "exploration_rate")
+
 
 @dataclass(frozen=True)
 class Stratum:
@@ -94,6 +108,19 @@ class Stratum:
     sufficient: bool
     #: Measure -> (median, sessions with a value); empty when insufficient.
     medians: Mapping[str, tuple[float | None, int]]
+    #: Measure -> (25th, 75th percentile); empty when insufficient.
+    quartiles: Mapping[str, tuple[float | None, float | None]] = field(
+        default_factory=dict
+    )
+    #: Waste rate -> share of sessions with a value whose rate is above zero
+    #: (``None`` when no session has a value); empty when insufficient.
+    nonzero: Mapping[str, float | None] = field(default_factory=dict)
+
+    @property
+    def comparable(self) -> bool:
+        """Sufficient, and a group that says something about its language or
+        stack (not sessions that touched no file)."""
+        return self.sufficient and self.group != NO_FILES
 
     def as_dict(self) -> dict[str, object]:
         out: dict[str, object] = {
@@ -109,6 +136,9 @@ class Stratum:
                 for k, (v, _) in self.medians.items()
             }
             out["with_value"] = {k: n for k, (_, n) in self.medians.items()}
+            out["p25"] = {k: _round(lo) for k, (lo, _) in self.quartiles.items()}
+            out["p75"] = {k: _round(hi) for k, (_, hi) in self.quartiles.items()}
+            out["nonzero_share"] = {k: _round(v) for k, v in self.nonzero.items()}
         return out
 
 
@@ -122,10 +152,11 @@ class StackComparison:
 
     @property
     def comparable_cells(self) -> tuple[tuple[str, str], ...]:
-        """(task category, outcome) cells holding two or more sufficient groups."""
+        """(task category, outcome) cells holding two or more sufficient
+        groups, leaving out sessions that touched no file."""
         counts: dict[tuple[str, str], int] = {}
         for s in self.strata:
-            if s.sufficient:
+            if s.comparable:
                 key = (s.task_category, s.outcome)
                 counts[key] = counts.get(key, 0) + 1
         return tuple(sorted(k for k, n in counts.items() if n >= 2))
@@ -156,7 +187,7 @@ class StackComparison:
                     "groups": [
                         s.group
                         for s in self.strata
-                        if s.sufficient
+                        if s.comparable
                         and (s.task_category, s.outcome) == (task, outcome)
                     ],
                 }
@@ -165,9 +196,30 @@ class StackComparison:
         }
 
 
+def _round(value: float | None) -> float | None:
+    return None if value is None else round(value, 4)
+
+
 def _median(values: Iterable[float | None]) -> tuple[float | None, int]:
     present = [v for v in values if v is not None]
     return (statistics.median(present) if present else None, len(present))
+
+
+def _quartiles(values: Iterable[float | None]) -> tuple[float | None, float | None]:
+    """The 25th and 75th percentiles (inclusive method: they lie between the
+    smallest and largest value); one value is both."""
+    present = [v for v in values if v is not None]
+    if not present:
+        return None, None
+    if len(present) == 1:
+        return present[0], present[0]
+    q1, _, q3 = statistics.quantiles(present, n=4, method="inclusive")
+    return q1, q3
+
+
+def _nonzero(values: Iterable[float | None]) -> float | None:
+    present = [v for v in values if v is not None]
+    return sum(1 for v in present if v > 0) / len(present) if present else None
 
 
 def compare_strata(
@@ -201,6 +253,22 @@ def compare_strata(
                     {
                         name: _median(read(m) for m in members)
                         for name, read in MEASURES.items()
+                    }
+                    if sufficient
+                    else {}
+                ),
+                quartiles=(
+                    {
+                        name: _quartiles(read(m) for m in members)
+                        for name, read in MEASURES.items()
+                    }
+                    if sufficient
+                    else {}
+                ),
+                nonzero=(
+                    {
+                        name: _nonzero(MEASURES[name](m) for m in members)
+                        for name in RATES
                     }
                     if sufficient
                     else {}

@@ -227,3 +227,32 @@ requirements:
     rationale: >-
       A median of two sessions is an anecdote; the default minimum is five.
     status: verified
+
+  - id: TER-STK-012
+    pattern: ubiquitous
+    text: >-
+      The stack comparison shall report, beside each median a stratum
+      reports, the 25th and 75th percentiles of that measure, and for each
+      waste rate the share of the stratum's sessions with a value whose rate
+      is above zero.
+    level: L6
+    source_points: [182, 185]
+    rationale: >-
+      On the owner's 52 sessions every median waste rate was 0, because most
+      sessions have no waste of a given kind. The share of sessions with any
+      such waste and the interquartile range show what the median hides.
+    status: verified
+
+  - id: TER-STK-013
+    pattern: unwanted
+    text: >-
+      If a session reads and edits no file, then the stack comparison shall
+      group it by language as none (no files) and leave that group out of
+      every comparison.
+    level: L6
+    source_points: [182, 185]
+    rationale: >-
+      A session with no file says nothing about a language; grouping it as
+      unknown mixed it with sessions whose files no table knows, and let it
+      be compared as if it were a language.
+    status: verified

@@ -26,6 +26,8 @@ from ter.application.explain import ExplainedSession
 from ter.domain import SessionTrace
 from ter.domain.stack_comparison import (
     MEASURES,
+    NO_FILES,
+    RATES,
     UNLABELLED,
     Dimension,
     SessionMeasures,
@@ -260,6 +262,7 @@ def test_the_script_compares_an_imported_corpus(tmp_path: Path) -> None:
 
 
 @STK10
+@pytest.mark.req("TER-STK-012")
 def test_the_script_reads_raw_transcripts_and_labels(tmp_path: Path) -> None:
     sample = ROOT / "sample_sessions" / "example_session.jsonl"
     projects = tmp_path / "projects"
@@ -286,3 +289,99 @@ def test_the_script_reads_raw_transcripts_and_labels(tmp_path: Path) -> None:
         True,
     )
     assert set(s["median"]) == set(MEASURES)
+    # TER-STK-012: the spread and the share with waste reach the output.
+    assert set(s["p25"]) == set(s["p75"]) == set(MEASURES)
+    assert set(s["nonzero_share"]) == set(RATES)
+
+
+# --- spread and the share of sessions with waste (TER-STK-012) -----------------
+
+
+STK12 = pytest.mark.req("TER-STK-012")
+STK13 = pytest.mark.req("TER-STK-013")
+
+
+@STK12
+class TestSpread:
+    def test_a_rate_most_sessions_lack_reports_its_nonzero_share(self) -> None:
+        rows = many(4, rework_rate=0.0) + many(1, rework_rate=0.4)
+        [s] = compare_strata(rows, Dimension.LANGUAGE).strata
+        assert s.medians["rework_rate"] == (0.0, 5)  # the median hides it
+        assert s.nonzero["rework_rate"] == pytest.approx(0.2)
+        assert s.nonzero["regeneration_rate"] == 0.0
+        assert s.nonzero["exploration_rate"] == 1.0
+        assert set(s.nonzero) == set(RATES)
+        assert s.as_dict()["nonzero_share"] == {
+            "rework_rate": 0.2,
+            "regeneration_rate": 0.0,
+            "exploration_rate": 1.0,
+        }
+
+    def test_every_median_has_its_interquartile_range(self) -> None:
+        rows = [replace(BASE, generated_tokens=n) for n in (100, 200, 300, 400, 500)]
+        [s] = compare_strata(rows, Dimension.LANGUAGE).strata
+        assert set(s.quartiles) == set(MEASURES)
+        assert s.quartiles["generated_tokens"] == (200.0, 400.0)
+        assert s.medians["generated_tokens"] == (300.0, 5)
+        d = s.as_dict()
+        p25, p75 = d["p25"], d["p75"]
+        assert isinstance(p25, dict) and isinstance(p75, dict)
+        assert (p25["generated_tokens"], p75["generated_tokens"]) == (200.0, 400.0)
+        # Identical values: no spread.
+        assert p25["flow_efficiency"] == p75["flow_efficiency"] == 0.8
+
+    def test_boundaries_one_value_and_no_value(self) -> None:
+        rows = many(4, unused_context=None, rework_rate=None) + many(
+            1, unused_context=0.3, rework_rate=None
+        )
+        [s] = compare_strata(rows, Dimension.LANGUAGE).strata
+        assert s.quartiles["unused_context"] == (0.3, 0.3)
+        assert s.quartiles["rework_rate"] == (None, None)
+        assert s.nonzero["rework_rate"] is None
+        shares = s.as_dict()["nonzero_share"]
+        assert isinstance(shares, dict) and shares["rework_rate"] is None
+
+    def test_an_insufficient_stratum_reports_no_spread(self) -> None:
+        [s] = compare_strata(many(2), Dimension.LANGUAGE).strata
+        assert (dict(s.quartiles), dict(s.nonzero)) == ({}, {})
+        assert "p25" not in s.as_dict() and "nonzero_share" not in s.as_dict()
+
+
+# --- sessions that touch no file (TER-STK-013) -----------------------------------
+
+
+@STK13
+class TestNoFiles:
+    def test_a_session_that_touches_no_file_is_its_own_language_group(
+        self,
+    ) -> None:
+        s = Script("chat")
+        s.prompt("What does TER stand for?")
+        s.say("Token Efficiency Ratio.")
+        assert session_measures(_explain(s)).language == NO_FILES
+
+    def test_a_session_with_only_unknown_files_stays_unknown(self) -> None:
+        s = Script("odd")
+        s.prompt("Look at the data")
+        s.read("/w/p/data.qqq")
+        s.say("Done.")
+        assert session_measures(_explain(s)).language == "unknown"
+
+    def test_the_no_files_group_is_reported_but_never_compared(self) -> None:
+        rows = many(5) + many(5, language=NO_FILES)
+        c = compare_strata(rows, Dimension.LANGUAGE)
+        no_files = c.stratum(NO_FILES, "feature", "merged")
+        assert no_files is not None and no_files.sufficient
+        assert not no_files.comparable
+        assert no_files.medians  # still measured
+        assert c.comparable_cells == ()
+        assert c.as_dict()["comparisons"] == []
+        # With a second real language the cell compares only those two.
+        c = compare_strata(rows + many(5, language="Python"), Dimension.LANGUAGE)
+        assert c.as_dict()["comparisons"] == [
+            {
+                "task_category": "feature",
+                "outcome": "merged",
+                "groups": ["Python", "TypeScript"],
+            }
+        ]
