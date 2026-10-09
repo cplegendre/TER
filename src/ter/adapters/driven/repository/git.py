@@ -25,6 +25,7 @@ import os
 import shutil
 import subprocess
 from collections.abc import Sequence
+from datetime import datetime
 from pathlib import Path
 
 from ....domain.repository import (
@@ -55,6 +56,12 @@ _STATUS = {
 }
 
 _RECORD, _FIELD = "\x1e", "\x1f"
+
+
+def _iso(stamp: str) -> str:
+    """Git's strict ISO 8601 date in one spelling: newer Git writes UTC as
+    ``Z``, older Git as ``+00:00``."""
+    return datetime.fromisoformat(stamp).isoformat()
 
 
 def _count(value: str) -> int | None:
@@ -235,6 +242,8 @@ class GitRepositoryEvidence(LexicalRepositoryEvidence):
                 # A rename is written "a\tr\t" then the old and new names.
                 name = written or (tokens[2] if len(tokens) > 2 else name)
             commits.append(
-                FileCommit(sha, committed_at, author, subject, name, added, removed)
+                FileCommit(
+                    sha, _iso(committed_at), author, subject, name, added, removed
+                )
             )
         return tuple(commits)

@@ -733,3 +733,12 @@ class TestRepositoryEnginesArePlugins:
             "RepositoryEvidence.syntax",
         }
         assert CapabilityRegistry(discover=None).check("RepositoryEvidence") == ()
+
+
+@pytest.mark.req("TER-EVD-013")
+def test_git_dates_read_the_same_from_any_git_version() -> None:
+    from ter.adapters.driven.repository.git import _iso
+
+    assert _iso("2026-01-04T00:00:00Z") == "2026-01-04T00:00:00+00:00"
+    assert _iso("2026-01-04T00:00:00+00:00") == "2026-01-04T00:00:00+00:00"
+    assert _iso("2026-01-04T01:00:00+01:00") == "2026-01-04T01:00:00+01:00"
