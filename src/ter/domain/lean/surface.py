@@ -406,7 +406,8 @@ class UnrelatedModification:
         "0.65 (uncertain) when the seeds were inherited from an earlier prompt "
         "the intent continues; 0.55 (uncertain) when the file has no import "
         "evidence (not Python, or it did not parse) or the seed is only the "
-        "task's first edit. Files outside the repository: no finding."
+        "task's first edit, or when the file is a test module the task "
+        "created. Files outside the repository: no finding."
     )
 
     def detect(self, view: SessionView) -> Iterable[Finding]:
@@ -415,6 +416,17 @@ class UnrelatedModification:
             return
 
         def confidence(surface: ChangeSurface, path: str) -> tuple[float, str]:
+            # Calibration on a real session (9 Oct 2026): a test module the
+            # task created to verify its change imported the code under test
+            # only through a facade (the CLI), so it showed no import link to
+            # the seeds. A new test is how a change gets verified, not extra
+            # work, so it never counts as confident waste.
+            if path not in g.files and is_test_module(path):
+                return 0.55, (
+                    "The task created this test module; a new test usually "
+                    "verifies the change through an entry point the import "
+                    "graph does not tie to the files asked for."
+                )
             if not _imports_read(g, view, path):
                 return 0.55, (
                     "The repository has no import evidence for this file, so it "

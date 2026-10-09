@@ -257,7 +257,7 @@ repository evidence, so an L2 analysis lists exactly the L2 detectors.
 
 | Detector | Waste | Kind | Confidence rule |
 |---|---|---|---|
-| `unrelated_modification` | overproduction | waste | Per task and file outside the surface and not one import link beyond it: **0.80** when the prompt named the seeds and the file's imports were read from a syntax tree; 0.65 (uncertain) when the seeds were inherited; 0.55 (uncertain) when the file has no import evidence (not Python, did not parse, or a `lexical` engine) or the seed is the task's first edit. |
+| `unrelated_modification` | overproduction | waste | Per task and file outside the surface and not one import link beyond it: **0.80** when the prompt named the seeds and the file's imports were read from a syntax tree; 0.65 (uncertain) when the seeds were inherited; 0.55 (uncertain) when the file has no import evidence (not Python, did not parse, or a `lexical` engine) or the seed is the task's first edit, or the file is a test module the task created (on a real session, a new test reached the code under test only through the CLI). |
 | `surface_expansion` | overproduction | waste | Per task and file one import link beyond the surface: 0.60 (uncertain) when the prompt named the seeds, 0.50 otherwise. Always uncertain: callers often have to change with what they call. |
 | `boundary_violation` | defects | risk | Per added import and broken contract: **0.90** when the import is still there after the session's last edit of the file; 0.70 when a later edit could not be replayed; 0.55 (uncertain) when a later edit removed it. |
 
@@ -322,3 +322,19 @@ The pure rules every engine and the fake share live in
   tree, and the Git engine asks `git` each time.
 - The change surface reads only Python imports; a non-Python file is inside
   it only when the prompt names it, so its findings are uncertain.
+
+## Checking the grounded detectors on real sessions
+
+`scripts/corpus_grounded.py` runs `explain --repo` over real sessions at the
+commit each one started from. It takes a labels file with `session_id`, `repo`,
+`cwd` and `commit` columns, exports each repository at that commit with
+`git archive` (the repository itself is only read), and writes two files:
+counts per repository (placements and grounded findings, safe to share) and a
+review CSV with one row per grounded finding (edited path and the task's seed
+files, kept on the owner's machine) with an empty `verdict` column to mark
+`true` or `false`.
+
+```bash
+python scripts/corpus_grounded.py labels-d4.csv ~/.claude/projects \
+    --work ~/ter-data/grounded --out grounded.json --review review.csv
+```

@@ -457,6 +457,29 @@ class TestUnrelatedModification:
         assert first.id in f.waste_events and second.id in f.waste_events
         assert f.id == f"unrelated_modification:{first.id}"
 
+    def test_a_new_test_module_with_no_link_is_uncertain(self, shop: Path) -> None:
+        s = Script()
+        pricing_task(s)
+        s.write(
+            at("tests/test_cli_smoke.py"),
+            "from app.cli import main\n\n\ndef test_main():\n    assert main([]) == 0\n",
+        )
+        [f] = found(analyse(s, shop), "unrelated_modification")
+        assert f.subject == "tests/test_cli_smoke.py"
+        assert f.confidence == 0.55 and f.uncertain
+
+    def test_an_existing_test_module_with_no_link_stays_confident(
+        self, shop: Path
+    ) -> None:
+        s = Script()
+        pricing_task(s)
+        s.write(at("src/app/reports/test_like.py"), "X = 1\n")
+        s.edit(at(SUMMARY), "len(rows)", "len(list(rows))")
+        found_ = {
+            f.subject: f for f in found(analyse(s, shop), "unrelated_modification")
+        }
+        assert found_[SUMMARY].confidence == 0.8
+
     def test_a_file_without_import_evidence_is_uncertain(self, shop: Path) -> None:
         s = Script()
         pricing_task(s)
