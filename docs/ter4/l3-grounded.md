@@ -11,9 +11,11 @@ This page covers what is built so far: the port and four engines (steps 1
 to 3 of the L3 plan, with TypeScript, JavaScript, Svelte and Vue imports
 beside Python's), and the first detectors grounded on them: each task's
 expected change surface with the edits outside it, and imports that break
-the repository's architecture contracts (step 4). Evidence usage, context
-bundles and model routing come in later steps, and the requirements for them
-stay `planned` in `requirements/l3_grounded.yaml`.
+the repository's architecture contracts (step 4), then evidence usage,
+outcome value, exploration drift and the grounded evidence graph
+([below](#evidence-usage-outcome-value-drift-and-the-evidence-graph)).
+Requirements for later steps stay `planned` in
+`requirements/l3_grounded.yaml`.
 
 ## Requirements
 
@@ -37,10 +39,8 @@ stay `planned` in `requirements/l3_grounded.yaml`.
 
 Unless named otherwise, the test classes are in
 `tests/unit/test_ter4_repository_evidence.py` (engines) or
-`tests/unit/test_ter4_change_surface.py` (grounded detectors). Intent
-analysis does not take repository evidence yet (TER-ITN-006, TER-LEN-009),
-and live analysis does not read the diff (P062), so P051 and P062 stay
-partial.
+`tests/unit/test_ter4_change_surface.py` (grounded detectors). Live
+analysis does not read the diff (P062), so P051 and P062 stay partial.
 
 **Real data still needed.** TER-EVD-006 and TER-EVD-007 are verified on
 synthetic sessions and synthetic repositories committed with Git. The points
@@ -451,6 +451,160 @@ The pure rules every engine and the fake share live in
 | driven adapters | `ter/adapters/driven/repository/`: `lexical.py`, `python_ast.py`, `git.py`, `syntax.py` with the ECMAScript reader `ecmascript.py`; `ter/adapters/driven/import_linter.py`; fakes `InMemoryRepositoryEvidence`, `InMemoryArchitectureContracts` in `ter/adapters/driven/in_memory.py` |
 | application | `ter/application/ground.py`: `ground_session`; `ExplainSession(repository=, contracts=)` |
 | composition | `ter/bootstrap/capabilities.py`: `repository_evidence(root, engine)`; `ter/bootstrap`: `make_contracts()`, `--repo` wiring |
+
+## Evidence usage, outcome value, drift and the evidence graph
+
+| Id | Requirement | Verified by |
+|---|---|---|
+| TER-EVD-008 | TER shall report, for each repository read, whether a later decision, edit or test used its content. | `tests/unit/test_ter4_evidence_usage.py::TestEvidenceUsage` |
+| TER-GRF-001 | TER shall build an evidence graph that links the intent, observations, decisions, actions, changes and validation events of each session. | `TestEvidenceGraph` |
+| TER-LEN-009 | TER shall judge the value of each exploration, reasoning and validation event against the software outcome stated in the current intent, using repository evidence of what the outcome required. | `TestOutcomeValue` |
+| TER-ITN-006 | If agent exploration or reasoning departs from the current intent without a recorded intent change, and repository evidence shows it touches nothing the intended change depends on, then TER shall classify the departure as drift. | `TestExplorationDrift` |
+
+All four need `--repo`; without it `explain` and `a3` are unchanged. They
+are computed when the analysis is asked for, from the folded steps and the
+`RepositoryGrounding`, so batch equals incremental
+(`test_the_graph_is_deterministic_and_batch_equals_incremental`). On a real
+session of about 1,300 events they add about 0.2 s.
+
+### Evidence usage (TER-EVD-008, points 67 to 70)
+
+`ter.domain.lean.usage`. A **repository read** is a `Read` of a repository
+file, or a shell command that only reads (`ShellIntent.EXPLORE`: `cat`,
+`head`, `grep`, ...; or a `sed -n` print) naming repository files by path,
+relative or absolute under a session root (one read per file; the output's
+tokens are shared between them). On a real session most reads were shell
+commands, so leaving them out would miss most of the evidence. Each read is
+searched forward for a structural use; the first use of each kind is
+recorded with its event id:
+
+| Use | Rule | Material |
+|---|---|---|
+| `edited` | a later edit or write changes the same file | yes |
+| `imported_by_edit` | a later edit changes a file that imports the read file (start commit, or after that edit) | yes |
+| `named_in_edit` | a later edit's text (not its own path) names the file | yes |
+| `named_in_command` | a later shell command that neither checks nor reads names the file | yes |
+| `tested` | a later check names the file or a test module that imports it | yes |
+| `named_in_decision` | a later reasoning block or response names the file | no |
+
+A file is **named** by its base name, a distinctive stem
+(`fragment_store`), its dotted module name, or a distinctive symbol it
+defines (from the repository's syntax, or from the read's own text), each
+counted only when no other file shares it: `__init__.py`, `index.ts` or a
+`run` defined twice name nothing. Reading the file again is not a use.
+
+Status: `used` (any use), `unused` (none, and a response followed the read)
+or `pending` (no response yet; a live read is not judged early). `material`
+marks reads a change, a command or a check acted on (influential, P069);
+unused reads carry their context tokens (P070). The summary gives the share
+of judged reads that were used (P068) and the files read against the files
+changed (P067). `explain --json`: `evidence_usage`; A3 JSON:
+`analysis.evidence_usage`; text: one `evidence usage` line.
+
+**Limits.** An ad-hoc script run (`python - <<EOF`) is read as a check by
+the L2 shell reading, so a script that rewrites a file it names shows as
+`tested`; it is a material use either way. Changes made by such scripts are
+not edits, so "files changed" counts edit and write tools only.
+
+### Outcome value (TER-LEN-009, points 6, 7)
+
+`ter.domain.lean.value`. Per task (a prompt and the work up to the next),
+what the outcome **required** is the task's change surface (seeds named by
+the prompt, their import neighbours and tests) plus the files the task
+edited. Every exploration request, reasoning block and check is judged
+against it, with the evidence usage of its reads. Each judgement names its
+rule, the files, and the evidence ids (the event and its result, the
+prompt, the events that used it). Value classes:
+
+| Class | Meaning |
+|---|---|
+| `required` | it touched what the outcome required and the change or its check used it |
+| `supporting` | it fed the work from off the surface, or touched the surface without being used, or the task changed nothing |
+| `no_value` | off the surface and nothing later used it; always uncertain |
+| `unjudged` | no repository evidence either way (names no repository file, or no response yet) |
+
+| Rule | Class | Confidence |
+|---|---|---|
+| `explore.surface_used` | required | 0.85 |
+| `explore.off_surface_used` | supporting | 0.75 |
+| `explore.surface_unused`, `explore.decision_only`, `explore.no_change_used` | supporting | 0.60 |
+| `explore.unused` | no_value | 0.65 |
+| `explore.no_change_unused` | no_value | 0.55 |
+| `reasoning.surface_then_change` | required | 0.75 |
+| `reasoning.surface_no_change`, `reasoning.off_surface_used` | supporting | 0.60 |
+| `reasoning.off_surface_unused` | no_value | 0.55 |
+| `validation.covers_surface` (after an edit, names a surface file or test) | required | 0.85 |
+| `validation.suite_after_change` (after an edit, names no file) | required | 0.75 |
+| `validation.off_surface`, `validation.baseline` | supporting | 0.60 |
+| `validation.no_new_change` (no edit since the task's previous check) | no_value | 0.55 |
+| `validation.no_change` | supporting | 0.55 |
+| `*.no_evidence` | unjudged | 0 |
+
+Below 0.70 a judgement is uncertain. Searches and other exploration are
+judged by the files their request or output names that a later read or
+edit touched. The judgements are a view for the reader: they do not change
+activity classes or the scorecard. `explain --json`: `outcome_value` (with
+`rules`); A3 JSON: `analysis.outcome_value`; text: one `outcome value` line.
+
+### Exploration drift (TER-ITN-006, point 48)
+
+A grounded detector, `exploration_drift` (`ter.domain.lean.drift`, waste
+*motion*), with a countermeasure (keep exploration on what the change
+depends on) and a follow-up measure. It joins the registry with the other
+grounded detectors only when the analysis has repository evidence
+(`EVIDENCE_DETECTORS`), so an L2 analysis lists exactly the L2 detectors.
+
+Within a task that changed something, a read (tool or shell) or a reasoning
+block naming repository files is a departure when its intent alignment is
+not in the aligned band and **every** file it touches is independent of the
+change. A file is **dependent** when it is on the surface, edited by the
+task, one import link from the surface, used later by a change, command or
+check, or a **test, doc, CI or config file** (`file_role`). The last rule
+is the calibration lesson above: import-graph evidence alone gave 0 true
+positives in 29 judged `unrelated_modification` findings, because tasks
+need tests, docs, CI, config and modules an issue names. A new prompt (a
+recorded intent change) starts a new task and surface, so following it is
+never drift.
+
+| Case | Confidence |
+|---|---|
+| read, prompt named the seeds, source file in a different top-level package (`src/app`, `scripts`, `packages/web`) from every seed and edited file, nothing later named it | **0.75** |
+| read in the same top-level package, or named later by a decision | 0.60 (uncertain) |
+| surface inherited from an earlier prompt | 0.60 (uncertain) |
+| surface grown from the task's first edit (the prompt named no file) | 0.50 (uncertain) |
+| reasoning naming only independent files | 0.50 (uncertain) |
+
+No finding before a response follows (live), or in a task that changed
+nothing. **Real data still needed**: the confident case is a rule, not a
+calibration; P048 stays partial until findings on judged real sessions
+(D4) show true positives, as `unrelated_modification` was checked.
+
+### The grounded evidence graph (TER-GRF-001, points 71, 72, 77)
+
+`ter.domain.lean.evidence_graph`, schema `ter.evidence-graph/1`. Nodes are
+events with a role: `intent` (prompt), `observation` (tool result),
+`agent_decision` (reasoning, planning call), `action` (other tool requests),
+`change` (edit, write), `validation` (a check) and `response`. Edges point
+from the later event to the one it rests on, each type drawn by one rule:
+
+| Edge | Rule |
+|---|---|
+| `observes` | observation -> the request whose result it is |
+| `pursues` | every decision, action, change, validation and response -> the prompt in force |
+| `based_on` | decision -> every observation since the previous decision or prompt |
+| `decided_by` | action, change or validation -> the latest decision since the prompt |
+| `motivated_by` | action, change, validation or response -> the latest observation since the prompt |
+| `uses` | a later event -> the read whose content it used (evidence usage) |
+| `validates` | validation -> every change since the previous validation |
+| `corrects` | change -> the latest failed check result not yet followed by a pass |
+
+Every decision has at least one evidence edge (`pursues`, and `based_on`
+when it saw observations: P072). `reconstruct(event)` follows the edges
+back and returns the events a change rests on, in session order (P077; no
+command prints it yet). Nodes are in session order and edges sorted, so the
+JSON is deterministic. `explain --json`: `grounded_evidence_graph` (with the
+rules and counts per role and edge type); A3 JSON: `analysis.evidence_graph`.
+The L2 graph (`evidence_graph`, `ter.evidence/0.1`) is unchanged.
 
 ## Known limits
 

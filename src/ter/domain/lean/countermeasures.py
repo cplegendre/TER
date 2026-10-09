@@ -680,6 +680,28 @@ def _expansion(ctx: _Context) -> tuple[str, list[Action]]:
     )
 
 
+def _exploration_drift(ctx: _Context) -> tuple[str, list[Action]]:
+    return (
+        "Keep exploration on what the change depends on",
+        [
+            Action(
+                ActionKind.CLAUDE_MD,
+                "Point the agent at the code the task depends on before it explores.",
+                "- Explore the files the request names, what they import or what "
+                "imports them, and their tests, docs and config first. Before "
+                "reading another package, say what you expect to find there.",
+                "markdown",
+            ),
+            Action(
+                ActionKind.PRACTICE,
+                f"Verify first: {_list(ctx.subjects)} lay off the change surface "
+                "and nothing later used them. If they were needed, name them in "
+                "the prompt or CLAUDE.md so the dependency is on record.",
+            ),
+        ],
+    )
+
+
 _LINT_IMPORTS_HOOK = (
     'cd "$CLAUDE_PROJECT_DIR" && lint-imports >/dev/null 2>&1 '
     "|| { echo 'lint-imports: an import breaks an architecture contract; "
@@ -748,6 +770,7 @@ _CATALOGUE: dict[str, Callable[[_Context], tuple[str, list[Action]]]] = {
     "unrelated_modification": _unrelated,
     "surface_expansion": _expansion,
     "boundary_violation": _boundary,
+    "exploration_drift": _exploration_drift,
 }
 
 
@@ -835,6 +858,10 @@ _MEASURES: dict[str, tuple[str, str]] = {
         "fewer",
     ),
     "boundary_violation": ("Imports that break an architecture contract", "0"),
+    "exploration_drift": (
+        "Reads off what the change depends on, with no intent change",
+        "0",
+    ),
 }
 
 
