@@ -1,0 +1,976 @@
+{
+  "engine": "syntax",
+  "files": [
+    "apps/web/node_modules/dep/index.js",
+    "apps/web/node_modules/dep/index.test.js",
+    "apps/web/node_modules/dep/package.json",
+    "apps/web/package.json",
+    "apps/web/src/lib/Card.svelte",
+    "apps/web/src/lib/api.spec.ts",
+    "apps/web/src/lib/api.ts",
+    "apps/web/src/lib/index.ts",
+    "apps/web/src/lib/theme.ts",
+    "apps/web/src/routes/+page.svelte",
+    "apps/web/src/routes/+page.ts",
+    "apps/web/svelte.config.js",
+    "apps/web/tests/home.spec.ts",
+    "apps/web/tsconfig.json",
+    "package.json",
+    "packages/model/package.json",
+    "packages/model/src/__tests__/lab.ts",
+    "packages/model/src/course.test.ts",
+    "packages/model/src/course.ts",
+    "packages/model/src/index.ts",
+    "packages/model/src/lab.ts",
+    "packages/shared/package.json",
+    "packages/shared/src/util.ts",
+    "pnpm-workspace.yaml",
+    "tsconfig.base.json"
+  ],
+  "loads": {
+    "apps/web/node_modules/dep/index.js": [],
+    "apps/web/node_modules/dep/index.test.js": [
+      "apps/web/node_modules/dep/index.js"
+    ],
+    "apps/web/src/lib/Card.svelte": [
+      "apps/web/src/lib/api.ts"
+    ],
+    "apps/web/src/lib/api.spec.ts": [
+      "apps/web/src/lib/api.ts"
+    ],
+    "apps/web/src/lib/api.ts": [
+      "packages/model/src/index.ts",
+      "packages/shared/src/util.ts",
+      null
+    ],
+    "apps/web/src/lib/index.ts": [
+      "apps/web/src/lib/api.ts"
+    ],
+    "apps/web/src/lib/theme.ts": [],
+    "apps/web/src/routes/+page.svelte": [
+      "apps/web/src/lib/api.ts",
+      "apps/web/src/lib/Card.svelte"
+    ],
+    "apps/web/src/routes/+page.ts": [
+      "apps/web/src/lib/index.ts"
+    ],
+    "apps/web/svelte.config.js": [
+      null
+    ],
+    "apps/web/tests/home.spec.ts": [
+      null,
+      "packages/shared/src/util.ts"
+    ],
+    "packages/model/src/__tests__/lab.ts": [
+      "packages/model/src/lab.ts"
+    ],
+    "packages/model/src/course.test.ts": [
+      null,
+      "packages/model/src/course.ts"
+    ],
+    "packages/model/src/course.ts": [
+      "packages/model/src/lab.ts"
+    ],
+    "packages/model/src/index.ts": [
+      "packages/model/src/course.ts",
+      "packages/model/src/lab.ts"
+    ],
+    "packages/model/src/lab.ts": [],
+    "packages/shared/src/util.ts": []
+  },
+  "structure": {
+    "apps/web/node_modules/dep/index.js": {
+      "calls": [],
+      "error": null,
+      "imports": [],
+      "language": "ecmascript",
+      "module": "apps/web/node_modules/dep/index.js",
+      "path": "apps/web/node_modules/dep/index.js",
+      "symbols": []
+    },
+    "apps/web/node_modules/dep/index.test.js": {
+      "calls": [],
+      "error": null,
+      "imports": [
+        {
+          "candidates": [
+            "apps/web/node_modules/dep/index.js",
+            "apps/web/node_modules/dep/index.ts",
+            "apps/web/node_modules/dep/index.tsx",
+            "apps/web/node_modules/dep/index.js.ts",
+            "apps/web/node_modules/dep/index.js.tsx",
+            "apps/web/node_modules/dep/index.js.d.ts",
+            "apps/web/node_modules/dep/index.js.mts",
+            "apps/web/node_modules/dep/index.js.cts",
+            "apps/web/node_modules/dep/index.js.js",
+            "apps/web/node_modules/dep/index.js.jsx",
+            "apps/web/node_modules/dep/index.js.mjs",
+            "apps/web/node_modules/dep/index.js.cjs",
+            "apps/web/node_modules/dep/index.js.svelte",
+            "apps/web/node_modules/dep/index.js.vue",
+            "apps/web/node_modules/dep/index.js.json",
+            "apps/web/node_modules/dep/index.js/index.ts",
+            "apps/web/node_modules/dep/index.js/index.tsx",
+            "apps/web/node_modules/dep/index.js/index.d.ts",
+            "apps/web/node_modules/dep/index.js/index.js",
+            "apps/web/node_modules/dep/index.js/index.jsx",
+            "apps/web/node_modules/dep/index.js/index.mjs",
+            "apps/web/node_modules/dep/index.js/index.cjs",
+            "apps/web/node_modules/dep/index.js/index.svelte"
+          ],
+          "line": 1,
+          "module": "./index.js",
+          "names": [
+            "default"
+          ]
+        }
+      ],
+      "language": "ecmascript",
+      "module": "apps/web/node_modules/dep/index.test.js",
+      "path": "apps/web/node_modules/dep/index.test.js",
+      "symbols": []
+    },
+    "apps/web/src/lib/Card.svelte": {
+      "calls": [],
+      "error": null,
+      "imports": [
+        {
+          "candidates": [
+            "apps/web/src/lib/api",
+            "apps/web/src/lib/api.ts",
+            "apps/web/src/lib/api.tsx",
+            "apps/web/src/lib/api.d.ts",
+            "apps/web/src/lib/api.mts",
+            "apps/web/src/lib/api.cts",
+            "apps/web/src/lib/api.js",
+            "apps/web/src/lib/api.jsx",
+            "apps/web/src/lib/api.mjs",
+            "apps/web/src/lib/api.cjs",
+            "apps/web/src/lib/api.svelte",
+            "apps/web/src/lib/api.vue",
+            "apps/web/src/lib/api.json",
+            "apps/web/src/lib/api/index.ts",
+            "apps/web/src/lib/api/index.tsx",
+            "apps/web/src/lib/api/index.d.ts",
+            "apps/web/src/lib/api/index.js",
+            "apps/web/src/lib/api/index.jsx",
+            "apps/web/src/lib/api/index.mjs",
+            "apps/web/src/lib/api/index.cjs",
+            "apps/web/src/lib/api/index.svelte"
+          ],
+          "line": 3,
+          "module": "./api",
+          "names": []
+        }
+      ],
+      "language": "ecmascript",
+      "module": "apps/web/src/lib/Card.svelte",
+      "path": "apps/web/src/lib/Card.svelte",
+      "symbols": [
+        {
+          "end_line": 6,
+          "kind": "class",
+          "line": 1,
+          "name": "Card"
+        },
+        {
+          "end_line": 3,
+          "kind": "function",
+          "line": 3,
+          "name": "more"
+        }
+      ]
+    },
+    "apps/web/src/lib/api.spec.ts": {
+      "calls": [],
+      "error": null,
+      "imports": [
+        {
+          "candidates": [
+            "apps/web/src/lib/api",
+            "apps/web/src/lib/api.ts",
+            "apps/web/src/lib/api.tsx",
+            "apps/web/src/lib/api.d.ts",
+            "apps/web/src/lib/api.mts",
+            "apps/web/src/lib/api.cts",
+            "apps/web/src/lib/api.js",
+            "apps/web/src/lib/api.jsx",
+            "apps/web/src/lib/api.mjs",
+            "apps/web/src/lib/api.cjs",
+            "apps/web/src/lib/api.svelte",
+            "apps/web/src/lib/api.vue",
+            "apps/web/src/lib/api.json",
+            "apps/web/src/lib/api/index.ts",
+            "apps/web/src/lib/api/index.tsx",
+            "apps/web/src/lib/api/index.d.ts",
+            "apps/web/src/lib/api/index.js",
+            "apps/web/src/lib/api/index.jsx",
+            "apps/web/src/lib/api/index.mjs",
+            "apps/web/src/lib/api/index.cjs",
+            "apps/web/src/lib/api/index.svelte"
+          ],
+          "line": 1,
+          "module": "./api",
+          "names": []
+        }
+      ],
+      "language": "ecmascript",
+      "module": "apps/web/src/lib/api.spec.ts",
+      "path": "apps/web/src/lib/api.spec.ts",
+      "symbols": []
+    },
+    "apps/web/src/lib/api.ts": {
+      "calls": [],
+      "error": null,
+      "imports": [
+        {
+          "candidates": [
+            "packages/model/dist/index.d.ts",
+            "packages/model/dist/index.js",
+            "packages/model/dist/index.ts",
+            "packages/model/dist/index.tsx",
+            "packages/model/src/index",
+            "packages/model/src/index.ts",
+            "packages/model/src/index.tsx",
+            "packages/model/src/index.d.ts",
+            "packages/model/src/index.mts",
+            "packages/model/src/index.cts",
+            "packages/model/src/index.js",
+            "packages/model/src/index.jsx",
+            "packages/model/src/index.mjs",
+            "packages/model/src/index.cjs",
+            "packages/model/src/index.svelte",
+            "packages/model/src/index.vue",
+            "packages/model/src/index.json",
+            "packages/model/src/index/index.ts",
+            "packages/model/src/index/index.tsx",
+            "packages/model/src/index/index.d.ts",
+            "packages/model/src/index/index.js",
+            "packages/model/src/index/index.jsx",
+            "packages/model/src/index/index.mjs",
+            "packages/model/src/index/index.cjs",
+            "packages/model/src/index/index.svelte",
+            "packages/model/src/lib/index",
+            "packages/model/src/lib/index.ts",
+            "packages/model/src/lib/index.tsx",
+            "packages/model/src/lib/index.d.ts",
+            "packages/model/src/lib/index.mts",
+            "packages/model/src/lib/index.cts",
+            "packages/model/src/lib/index.js",
+            "packages/model/src/lib/index.jsx",
+            "packages/model/src/lib/index.mjs",
+            "packages/model/src/lib/index.cjs",
+            "packages/model/src/lib/index.svelte",
+            "packages/model/src/lib/index.vue",
+            "packages/model/src/lib/index.json",
+            "packages/model/src/lib/index/index.ts",
+            "packages/model/src/lib/index/index.tsx",
+            "packages/model/src/lib/index/index.d.ts",
+            "packages/model/src/lib/index/index.js",
+            "packages/model/src/lib/index/index.jsx",
+            "packages/model/src/lib/index/index.mjs",
+            "packages/model/src/lib/index/index.cjs",
+            "packages/model/src/lib/index/index.svelte",
+            "packages/model/index",
+            "packages/model/index.ts",
+            "packages/model/index.tsx",
+            "packages/model/index.d.ts",
+            "packages/model/index.mts",
+            "packages/model/index.cts",
+            "packages/model/index.js",
+            "packages/model/index.jsx",
+            "packages/model/index.mjs",
+            "packages/model/index.cjs",
+            "packages/model/index.svelte",
+            "packages/model/index.vue",
+            "packages/model/index.json",
+            "packages/model/index/index.ts",
+            "packages/model/index/index.tsx",
+            "packages/model/index/index.d.ts",
+            "packages/model/index/index.js",
+            "packages/model/index/index.jsx",
+            "packages/model/index/index.mjs",
+            "packages/model/index/index.cjs",
+            "packages/model/index/index.svelte"
+          ],
+          "line": 1,
+          "module": "@mono/model",
+          "names": [
+            "Course"
+          ]
+        },
+        {
+          "candidates": [
+            "packages/shared/src/util",
+            "packages/shared/src/util.ts",
+            "packages/shared/src/util.tsx",
+            "packages/shared/src/util.d.ts",
+            "packages/shared/src/util.mts",
+            "packages/shared/src/util.cts",
+            "packages/shared/src/util.js",
+            "packages/shared/src/util.jsx",
+            "packages/shared/src/util.mjs",
+            "packages/shared/src/util.cjs",
+            "packages/shared/src/util.svelte",
+            "packages/shared/src/util.vue",
+            "packages/shared/src/util.json",
+            "packages/shared/src/util/index.ts",
+            "packages/shared/src/util/index.tsx",
+            "packages/shared/src/util/index.d.ts",
+            "packages/shared/src/util/index.js",
+            "packages/shared/src/util/index.jsx",
+            "packages/shared/src/util/index.mjs",
+            "packages/shared/src/util/index.cjs",
+            "packages/shared/src/util/index.svelte",
+            "@shared/util",
+            "@shared/util.ts",
+            "@shared/util.tsx",
+            "@shared/util.d.ts",
+            "@shared/util.mts",
+            "@shared/util.cts",
+            "@shared/util.js",
+            "@shared/util.jsx",
+            "@shared/util.mjs",
+            "@shared/util.cjs",
+            "@shared/util.svelte",
+            "@shared/util.vue",
+            "@shared/util.json",
+            "@shared/util/index.ts",
+            "@shared/util/index.tsx",
+            "@shared/util/index.d.ts",
+            "@shared/util/index.js",
+            "@shared/util/index.jsx",
+            "@shared/util/index.mjs",
+            "@shared/util/index.cjs",
+            "@shared/util/index.svelte"
+          ],
+          "line": 2,
+          "module": "@shared/util",
+          "names": [
+            "formatTitle"
+          ]
+        },
+        {
+          "candidates": [
+            "svelte/store",
+            "svelte/store.ts",
+            "svelte/store.tsx",
+            "svelte/store.d.ts",
+            "svelte/store.mts",
+            "svelte/store.cts",
+            "svelte/store.js",
+            "svelte/store.jsx",
+            "svelte/store.mjs",
+            "svelte/store.cjs",
+            "svelte/store.svelte",
+            "svelte/store.vue",
+            "svelte/store.json",
+            "svelte/store/index.ts",
+            "svelte/store/index.tsx",
+            "svelte/store/index.d.ts",
+            "svelte/store/index.js",
+            "svelte/store/index.jsx",
+            "svelte/store/index.mjs",
+            "svelte/store/index.cjs",
+            "svelte/store/index.svelte"
+          ],
+          "line": 3,
+          "module": "svelte/store",
+          "names": [
+            "writable"
+          ]
+        }
+      ],
+      "language": "ecmascript",
+      "module": "apps/web/src/lib/api.ts",
+      "path": "apps/web/src/lib/api.ts",
+      "symbols": [
+        {
+          "end_line": 11,
+          "kind": "function",
+          "line": 7,
+          "name": "loadCourse"
+        }
+      ]
+    },
+    "apps/web/src/lib/index.ts": {
+      "calls": [],
+      "error": null,
+      "imports": [
+        {
+          "candidates": [
+            "apps/web/src/lib/api",
+            "apps/web/src/lib/api.ts",
+            "apps/web/src/lib/api.tsx",
+            "apps/web/src/lib/api.d.ts",
+            "apps/web/src/lib/api.mts",
+            "apps/web/src/lib/api.cts",
+            "apps/web/src/lib/api.js",
+            "apps/web/src/lib/api.jsx",
+            "apps/web/src/lib/api.mjs",
+            "apps/web/src/lib/api.cjs",
+            "apps/web/src/lib/api.svelte",
+            "apps/web/src/lib/api.vue",
+            "apps/web/src/lib/api.json",
+            "apps/web/src/lib/api/index.ts",
+            "apps/web/src/lib/api/index.tsx",
+            "apps/web/src/lib/api/index.d.ts",
+            "apps/web/src/lib/api/index.js",
+            "apps/web/src/lib/api/index.jsx",
+            "apps/web/src/lib/api/index.mjs",
+            "apps/web/src/lib/api/index.cjs",
+            "apps/web/src/lib/api/index.svelte"
+          ],
+          "line": 1,
+          "module": "./api",
+          "names": [
+            "*"
+          ]
+        }
+      ],
+      "language": "ecmascript",
+      "module": "apps/web/src/lib/index.ts",
+      "path": "apps/web/src/lib/index.ts",
+      "symbols": []
+    },
+    "apps/web/src/lib/theme.ts": {
+      "calls": [],
+      "error": null,
+      "imports": [],
+      "language": "ecmascript",
+      "module": "apps/web/src/lib/theme.ts",
+      "path": "apps/web/src/lib/theme.ts",
+      "symbols": []
+    },
+    "apps/web/src/routes/+page.svelte": {
+      "calls": [],
+      "error": null,
+      "imports": [
+        {
+          "candidates": [
+            "apps/web/src/lib/api",
+            "apps/web/src/lib/api.ts",
+            "apps/web/src/lib/api.tsx",
+            "apps/web/src/lib/api.d.ts",
+            "apps/web/src/lib/api.mts",
+            "apps/web/src/lib/api.cts",
+            "apps/web/src/lib/api.js",
+            "apps/web/src/lib/api.jsx",
+            "apps/web/src/lib/api.mjs",
+            "apps/web/src/lib/api.cjs",
+            "apps/web/src/lib/api.svelte",
+            "apps/web/src/lib/api.vue",
+            "apps/web/src/lib/api.json",
+            "apps/web/src/lib/api/index.ts",
+            "apps/web/src/lib/api/index.tsx",
+            "apps/web/src/lib/api/index.d.ts",
+            "apps/web/src/lib/api/index.js",
+            "apps/web/src/lib/api/index.jsx",
+            "apps/web/src/lib/api/index.mjs",
+            "apps/web/src/lib/api/index.cjs",
+            "apps/web/src/lib/api/index.svelte"
+          ],
+          "line": 2,
+          "module": "$lib/api",
+          "names": [
+            "loadCourse"
+          ]
+        },
+        {
+          "candidates": [
+            "apps/web/src/lib/Card.svelte",
+            "apps/web/src/lib/Card.svelte.ts",
+            "apps/web/src/lib/Card.svelte.tsx",
+            "apps/web/src/lib/Card.svelte.d.ts",
+            "apps/web/src/lib/Card.svelte.mts",
+            "apps/web/src/lib/Card.svelte.cts",
+            "apps/web/src/lib/Card.svelte.js",
+            "apps/web/src/lib/Card.svelte.jsx",
+            "apps/web/src/lib/Card.svelte.mjs",
+            "apps/web/src/lib/Card.svelte.cjs",
+            "apps/web/src/lib/Card.svelte.svelte",
+            "apps/web/src/lib/Card.svelte.vue",
+            "apps/web/src/lib/Card.svelte.json",
+            "apps/web/src/lib/Card.svelte/index.ts",
+            "apps/web/src/lib/Card.svelte/index.tsx",
+            "apps/web/src/lib/Card.svelte/index.d.ts",
+            "apps/web/src/lib/Card.svelte/index.js",
+            "apps/web/src/lib/Card.svelte/index.jsx",
+            "apps/web/src/lib/Card.svelte/index.mjs",
+            "apps/web/src/lib/Card.svelte/index.cjs",
+            "apps/web/src/lib/Card.svelte/index.svelte"
+          ],
+          "line": 3,
+          "module": "$lib/Card.svelte",
+          "names": [
+            "default"
+          ]
+        }
+      ],
+      "language": "ecmascript",
+      "module": "apps/web/src/routes/+page.svelte",
+      "path": "apps/web/src/routes/+page.svelte",
+      "symbols": [
+        {
+          "end_line": 7,
+          "kind": "function",
+          "line": 5,
+          "name": "handleClick"
+        }
+      ]
+    },
+    "apps/web/src/routes/+page.ts": {
+      "calls": [],
+      "error": null,
+      "imports": [
+        {
+          "candidates": [
+            "apps/web/src/lib",
+            "apps/web/src/lib.ts",
+            "apps/web/src/lib.tsx",
+            "apps/web/src/lib.d.ts",
+            "apps/web/src/lib.mts",
+            "apps/web/src/lib.cts",
+            "apps/web/src/lib.js",
+            "apps/web/src/lib.jsx",
+            "apps/web/src/lib.mjs",
+            "apps/web/src/lib.cjs",
+            "apps/web/src/lib.svelte",
+            "apps/web/src/lib.vue",
+            "apps/web/src/lib.json",
+            "apps/web/src/lib/index.ts",
+            "apps/web/src/lib/index.tsx",
+            "apps/web/src/lib/index.d.ts",
+            "apps/web/src/lib/index.js",
+            "apps/web/src/lib/index.jsx",
+            "apps/web/src/lib/index.mjs",
+            "apps/web/src/lib/index.cjs",
+            "apps/web/src/lib/index.svelte"
+          ],
+          "line": 1,
+          "module": "$lib",
+          "names": [
+            "loadCourse"
+          ]
+        }
+      ],
+      "language": "ecmascript",
+      "module": "apps/web/src/routes/+page.ts",
+      "path": "apps/web/src/routes/+page.ts",
+      "symbols": [
+        {
+          "end_line": 3,
+          "kind": "function",
+          "line": 3,
+          "name": "load"
+        }
+      ]
+    },
+    "apps/web/svelte.config.js": {
+      "calls": [],
+      "error": null,
+      "imports": [
+        {
+          "candidates": [
+            "@sveltejs/adapter-static",
+            "@sveltejs/adapter-static.ts",
+            "@sveltejs/adapter-static.tsx",
+            "@sveltejs/adapter-static.d.ts",
+            "@sveltejs/adapter-static.mts",
+            "@sveltejs/adapter-static.cts",
+            "@sveltejs/adapter-static.js",
+            "@sveltejs/adapter-static.jsx",
+            "@sveltejs/adapter-static.mjs",
+            "@sveltejs/adapter-static.cjs",
+            "@sveltejs/adapter-static.svelte",
+            "@sveltejs/adapter-static.vue",
+            "@sveltejs/adapter-static.json",
+            "@sveltejs/adapter-static/index.ts",
+            "@sveltejs/adapter-static/index.tsx",
+            "@sveltejs/adapter-static/index.d.ts",
+            "@sveltejs/adapter-static/index.js",
+            "@sveltejs/adapter-static/index.jsx",
+            "@sveltejs/adapter-static/index.mjs",
+            "@sveltejs/adapter-static/index.cjs",
+            "@sveltejs/adapter-static/index.svelte"
+          ],
+          "line": 1,
+          "module": "@sveltejs/adapter-static",
+          "names": [
+            "default"
+          ]
+        }
+      ],
+      "language": "ecmascript",
+      "module": "apps/web/svelte.config.js",
+      "path": "apps/web/svelte.config.js",
+      "symbols": []
+    },
+    "apps/web/tests/home.spec.ts": {
+      "calls": [],
+      "error": null,
+      "imports": [
+        {
+          "candidates": [
+            "@playwright/test",
+            "@playwright/test.ts",
+            "@playwright/test.tsx",
+            "@playwright/test.d.ts",
+            "@playwright/test.mts",
+            "@playwright/test.cts",
+            "@playwright/test.js",
+            "@playwright/test.jsx",
+            "@playwright/test.mjs",
+            "@playwright/test.cjs",
+            "@playwright/test.svelte",
+            "@playwright/test.vue",
+            "@playwright/test.json",
+            "@playwright/test/index.ts",
+            "@playwright/test/index.tsx",
+            "@playwright/test/index.d.ts",
+            "@playwright/test/index.js",
+            "@playwright/test/index.jsx",
+            "@playwright/test/index.mjs",
+            "@playwright/test/index.cjs",
+            "@playwright/test/index.svelte"
+          ],
+          "line": 1,
+          "module": "@playwright/test",
+          "names": [
+            "test"
+          ]
+        },
+        {
+          "candidates": [
+            "packages/shared/src/util",
+            "packages/shared/src/util.ts",
+            "packages/shared/src/util.tsx",
+            "packages/shared/src/util.d.ts",
+            "packages/shared/src/util.mts",
+            "packages/shared/src/util.cts",
+            "packages/shared/src/util.js",
+            "packages/shared/src/util.jsx",
+            "packages/shared/src/util.mjs",
+            "packages/shared/src/util.cjs",
+            "packages/shared/src/util.svelte",
+            "packages/shared/src/util.vue",
+            "packages/shared/src/util.json",
+            "packages/shared/src/util/index.ts",
+            "packages/shared/src/util/index.tsx",
+            "packages/shared/src/util/index.d.ts",
+            "packages/shared/src/util/index.js",
+            "packages/shared/src/util/index.jsx",
+            "packages/shared/src/util/index.mjs",
+            "packages/shared/src/util/index.cjs",
+            "packages/shared/src/util/index.svelte",
+            "@shared/util",
+            "@shared/util.ts",
+            "@shared/util.tsx",
+            "@shared/util.d.ts",
+            "@shared/util.mts",
+            "@shared/util.cts",
+            "@shared/util.js",
+            "@shared/util.jsx",
+            "@shared/util.mjs",
+            "@shared/util.cjs",
+            "@shared/util.svelte",
+            "@shared/util.vue",
+            "@shared/util.json",
+            "@shared/util/index.ts",
+            "@shared/util/index.tsx",
+            "@shared/util/index.d.ts",
+            "@shared/util/index.js",
+            "@shared/util/index.jsx",
+            "@shared/util/index.mjs",
+            "@shared/util/index.cjs",
+            "@shared/util/index.svelte"
+          ],
+          "line": 2,
+          "module": "@shared/util",
+          "names": [
+            "formatTitle"
+          ]
+        }
+      ],
+      "language": "ecmascript",
+      "module": "apps/web/tests/home.spec.ts",
+      "path": "apps/web/tests/home.spec.ts",
+      "symbols": []
+    },
+    "packages/model/src/__tests__/lab.ts": {
+      "calls": [],
+      "error": null,
+      "imports": [
+        {
+          "candidates": [
+            "packages/model/src/lab.js",
+            "packages/model/src/lab.ts",
+            "packages/model/src/lab.tsx",
+            "packages/model/src/lab.js.ts",
+            "packages/model/src/lab.js.tsx",
+            "packages/model/src/lab.js.d.ts",
+            "packages/model/src/lab.js.mts",
+            "packages/model/src/lab.js.cts",
+            "packages/model/src/lab.js.js",
+            "packages/model/src/lab.js.jsx",
+            "packages/model/src/lab.js.mjs",
+            "packages/model/src/lab.js.cjs",
+            "packages/model/src/lab.js.svelte",
+            "packages/model/src/lab.js.vue",
+            "packages/model/src/lab.js.json",
+            "packages/model/src/lab.js/index.ts",
+            "packages/model/src/lab.js/index.tsx",
+            "packages/model/src/lab.js/index.d.ts",
+            "packages/model/src/lab.js/index.js",
+            "packages/model/src/lab.js/index.jsx",
+            "packages/model/src/lab.js/index.mjs",
+            "packages/model/src/lab.js/index.cjs",
+            "packages/model/src/lab.js/index.svelte"
+          ],
+          "line": 1,
+          "module": "../lab.js",
+          "names": [
+            "loadLab"
+          ]
+        }
+      ],
+      "language": "ecmascript",
+      "module": "packages/model/src/__tests__/lab.ts",
+      "path": "packages/model/src/__tests__/lab.ts",
+      "symbols": []
+    },
+    "packages/model/src/course.test.ts": {
+      "calls": [],
+      "error": null,
+      "imports": [
+        {
+          "candidates": [],
+          "line": 1,
+          "module": "vitest",
+          "names": [
+            "describe",
+            "it",
+            "expect"
+          ]
+        },
+        {
+          "candidates": [
+            "packages/model/src/course",
+            "packages/model/src/course.ts",
+            "packages/model/src/course.tsx",
+            "packages/model/src/course.d.ts",
+            "packages/model/src/course.mts",
+            "packages/model/src/course.cts",
+            "packages/model/src/course.js",
+            "packages/model/src/course.jsx",
+            "packages/model/src/course.mjs",
+            "packages/model/src/course.cjs",
+            "packages/model/src/course.svelte",
+            "packages/model/src/course.vue",
+            "packages/model/src/course.json",
+            "packages/model/src/course/index.ts",
+            "packages/model/src/course/index.tsx",
+            "packages/model/src/course/index.d.ts",
+            "packages/model/src/course/index.js",
+            "packages/model/src/course/index.jsx",
+            "packages/model/src/course/index.mjs",
+            "packages/model/src/course/index.cjs",
+            "packages/model/src/course/index.svelte"
+          ],
+          "line": 2,
+          "module": "./course",
+          "names": [
+            "Course"
+          ]
+        }
+      ],
+      "language": "ecmascript",
+      "module": "packages/model/src/course.test.ts",
+      "path": "packages/model/src/course.test.ts",
+      "symbols": []
+    },
+    "packages/model/src/course.ts": {
+      "calls": [],
+      "error": null,
+      "imports": [
+        {
+          "candidates": [
+            "packages/model/src/lab",
+            "packages/model/src/lab.ts",
+            "packages/model/src/lab.tsx",
+            "packages/model/src/lab.d.ts",
+            "packages/model/src/lab.mts",
+            "packages/model/src/lab.cts",
+            "packages/model/src/lab.js",
+            "packages/model/src/lab.jsx",
+            "packages/model/src/lab.mjs",
+            "packages/model/src/lab.cjs",
+            "packages/model/src/lab.svelte",
+            "packages/model/src/lab.vue",
+            "packages/model/src/lab.json",
+            "packages/model/src/lab/index.ts",
+            "packages/model/src/lab/index.tsx",
+            "packages/model/src/lab/index.d.ts",
+            "packages/model/src/lab/index.js",
+            "packages/model/src/lab/index.jsx",
+            "packages/model/src/lab/index.mjs",
+            "packages/model/src/lab/index.cjs",
+            "packages/model/src/lab/index.svelte"
+          ],
+          "line": 1,
+          "module": "./lab",
+          "names": [
+            "Lab"
+          ]
+        }
+      ],
+      "language": "ecmascript",
+      "module": "packages/model/src/course.ts",
+      "path": "packages/model/src/course.ts",
+      "symbols": [
+        {
+          "end_line": 8,
+          "kind": "class",
+          "line": 3,
+          "name": "Course"
+        },
+        {
+          "end_line": 7,
+          "kind": "method",
+          "line": 5,
+          "name": "Course.count"
+        }
+      ]
+    },
+    "packages/model/src/index.ts": {
+      "calls": [],
+      "error": null,
+      "imports": [
+        {
+          "candidates": [
+            "packages/model/src/course",
+            "packages/model/src/course.ts",
+            "packages/model/src/course.tsx",
+            "packages/model/src/course.d.ts",
+            "packages/model/src/course.mts",
+            "packages/model/src/course.cts",
+            "packages/model/src/course.js",
+            "packages/model/src/course.jsx",
+            "packages/model/src/course.mjs",
+            "packages/model/src/course.cjs",
+            "packages/model/src/course.svelte",
+            "packages/model/src/course.vue",
+            "packages/model/src/course.json",
+            "packages/model/src/course/index.ts",
+            "packages/model/src/course/index.tsx",
+            "packages/model/src/course/index.d.ts",
+            "packages/model/src/course/index.js",
+            "packages/model/src/course/index.jsx",
+            "packages/model/src/course/index.mjs",
+            "packages/model/src/course/index.cjs",
+            "packages/model/src/course/index.svelte"
+          ],
+          "line": 1,
+          "module": "./course",
+          "names": [
+            "*"
+          ]
+        },
+        {
+          "candidates": [
+            "packages/model/src/lab",
+            "packages/model/src/lab.ts",
+            "packages/model/src/lab.tsx",
+            "packages/model/src/lab.d.ts",
+            "packages/model/src/lab.mts",
+            "packages/model/src/lab.cts",
+            "packages/model/src/lab.js",
+            "packages/model/src/lab.jsx",
+            "packages/model/src/lab.mjs",
+            "packages/model/src/lab.cjs",
+            "packages/model/src/lab.svelte",
+            "packages/model/src/lab.vue",
+            "packages/model/src/lab.json",
+            "packages/model/src/lab/index.ts",
+            "packages/model/src/lab/index.tsx",
+            "packages/model/src/lab/index.d.ts",
+            "packages/model/src/lab/index.js",
+            "packages/model/src/lab/index.jsx",
+            "packages/model/src/lab/index.mjs",
+            "packages/model/src/lab/index.cjs",
+            "packages/model/src/lab/index.svelte"
+          ],
+          "line": 2,
+          "module": "./lab",
+          "names": [
+            "Lab",
+            "loadLab"
+          ]
+        }
+      ],
+      "language": "ecmascript",
+      "module": "packages/model/src/index.ts",
+      "path": "packages/model/src/index.ts",
+      "symbols": []
+    },
+    "packages/model/src/lab.ts": {
+      "calls": [],
+      "error": null,
+      "imports": [],
+      "language": "ecmascript",
+      "module": "packages/model/src/lab.ts",
+      "path": "packages/model/src/lab.ts",
+      "symbols": [
+        {
+          "end_line": 7,
+          "kind": "function",
+          "line": 5,
+          "name": "loadLab"
+        }
+      ]
+    },
+    "packages/shared/src/util.ts": {
+      "calls": [],
+      "error": null,
+      "imports": [],
+      "language": "ecmascript",
+      "module": "packages/shared/src/util.ts",
+      "path": "packages/shared/src/util.ts",
+      "symbols": [
+        {
+          "end_line": 4,
+          "kind": "function",
+          "line": 3,
+          "name": "formatTitle"
+        }
+      ]
+    }
+  },
+  "tests_importing": {
+    "apps/web/node_modules/dep/index.js": [],
+    "apps/web/node_modules/dep/index.test.js": [],
+    "apps/web/src/lib/Card.svelte": [],
+    "apps/web/src/lib/api.spec.ts": [],
+    "apps/web/src/lib/api.ts": [
+      "apps/web/src/lib/api.spec.ts"
+    ],
+    "apps/web/src/lib/index.ts": [],
+    "apps/web/src/lib/theme.ts": [],
+    "apps/web/src/routes/+page.svelte": [],
+    "apps/web/src/routes/+page.ts": [],
+    "apps/web/svelte.config.js": [],
+    "apps/web/tests/home.spec.ts": [],
+    "packages/model/src/__tests__/lab.ts": [],
+    "packages/model/src/course.test.ts": [],
+    "packages/model/src/course.ts": [
+      "packages/model/src/course.test.ts"
+    ],
+    "packages/model/src/index.ts": [],
+    "packages/model/src/lab.ts": [
+      "packages/model/src/__tests__/lab.ts"
+    ],
+    "packages/shared/src/util.ts": [
+      "apps/web/tests/home.spec.ts"
+    ]
+  }
+}
