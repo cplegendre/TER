@@ -160,7 +160,7 @@
       "waste": "defects"
     },
     {
-      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary; the rest as waste.",
+      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary. A later step is waste only when it adds no decision: a reasoning block with at most 25% content words new to the prompt and the run so far, or a to-do update identical to an earlier one in the run. A step that adds a decision is never waste, and a run with no such restating step is not a finding.",
       "id": "excessive_planning",
       "kind": "waste",
       "waste": "over_processing"
@@ -169,7 +169,7 @@
       "confidence_rule": "At least 3 consecutive edit calls to one file with only reasoning and their results in between. 0.70 for 3, plus 0.05 per extra edit, capped at 0.85. Only the round-trip overhead (results and waiting of edits after the first) is counted as waste, never the change itself.",
       "id": "fragmented_edits",
       "kind": "waste",
-      "waste": "over_processing"
+      "waste": "motion"
     },
     {
       "confidence_rule": "Judged only once the agent has responded after the read. A read counts as used when a later reasoning, response or tool call names the file, or names something the file defines, or edits it. Otherwise 0.65 when the file defined names that were never used, 0.55 when it defined none. Always uncertain: reading to rule something out is legitimate, and only repository evidence (L3) can tell.",
@@ -184,7 +184,7 @@
       "waste": "handoffs"
     },
     {
-      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, and at most 25% of its content words are new (in neither the earlier block nor the prompt). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
+      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, at most 25% of its content words are new (in neither the earlier block nor the prompt), and none of its new words comes from a tool result observed since the earlier block (that would be new evidence). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
       "id": "repeated_reasoning",
       "kind": "waste",
       "waste": "over_processing"
@@ -194,6 +194,30 @@
       "id": "regeneration",
       "kind": "waste",
       "waste": "overproduction"
+    },
+    {
+      "confidence_rule": "Per task (prompt), counting distinct context items (file reads, searches, fetches, handoffs, exploring shell commands) before the first edit: a finding when they exceed per_file (3) × files the task changes + slack (3). Items past the band that are not reads of a changed file are the waste. Confidence 0.55 + 0.02 per item over the band, capped at 0.65: always uncertain at L2, since only repository scope (L3) can tell whether the extra context was needed.",
+      "id": "excessive_context",
+      "kind": "waste",
+      "waste": "inventory"
+    },
+    {
+      "confidence_rule": "Per task (prompt): when the task first edits its n-th distinct file in place (Edit, not a new-file Write), it must have acquired at least min_per_file (1) × n distinct context items (reads, searches, fetches, handoffs, exploring shell). The first edit below that bound is the finding: 0.70 when that file was never read or written earlier in the session; 0.55 (uncertain) when it was, since context carried from an earlier task may suffice. A risk: it claims no cost.",
+      "id": "insufficient_context",
+      "kind": "risk",
+      "waste": "defects"
+    },
+    {
+      "confidence_rule": "Judged only once the agent has responded after it. A search (Grep, Glob) or traversing shell command (ls, find, tree, rg, grep) whose output lists file names, none of which a later event reads, edits or names: 0.60. Always uncertain at L2: a traversal can rule a place out, and only repository evidence (L3) can tell. Empty or unobserved output and repeats of an earlier traversal (left to repeated_exploration) are not findings.",
+      "id": "unused_traversal",
+      "kind": "waste",
+      "waste": "motion"
+    },
+    {
+      "confidence_rule": "A route.failover event (a model call that returned no tokens and did not succeed). 0.80 when a later response completed the work on another route, so the failed call added only waiting; 0.55 (uncertain) when no later response followed. The failover's wall time is the waste; it generated no tokens.",
+      "id": "failed_route",
+      "kind": "waste",
+      "waste": "waiting"
     }
   ],
   "events": 14,
@@ -411,6 +435,7 @@
     "schema": "ter.evidence/0.1",
     "session_id": "golden-shift"
   },
+  "exploration": [],
   "findings": [
     {
       "activity_class": "avoidable",
@@ -428,6 +453,28 @@
       "share": 0.0,
       "subject": "src/stats.py",
       "title": "Changed src/stats.py before reading it",
+      "tokens": 0,
+      "uncertain": true,
+      "waste": "defects",
+      "waste_events": []
+    },
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.55,
+      "context_tokens": 0,
+      "detector": "insufficient_context",
+      "evidence": [
+        "952a574075aacf7c",
+        "3a726cf05dd3f436",
+        "915dd336f4f690a2"
+      ],
+      "explanation": "The task had acquired 0 context item(s) when it edited src/stats.py in place; the band asks for 1 (at least 1 item(s) per file edited in place, at most 3 per file changed plus 3). The file was read or written in an earlier task, so carried context may be enough.",
+      "id": "insufficient_context:3a726cf05dd3f436",
+      "kind": "risk",
+      "seconds": 0.0,
+      "share": 0.0,
+      "subject": "src/stats.py",
+      "title": "Changed src/stats.py with too little context",
       "tokens": 0,
       "uncertain": true,
       "waste": "defects",
@@ -494,7 +541,7 @@
     "generated_tokens": 421,
     "iterations": 0,
     "rework_cycles": 0,
-    "risks": 1,
+    "risks": 2,
     "ter": {
       "method": "TER 3, offline (regex-v1 tokens, lexical-hash-384 embeddings)",
       "value": 0.9316
@@ -541,7 +588,8 @@
       "avoidable_tokens": 0,
       "context_tokens": 32,
       "findings": [
-        "premature_implementation:ff2bdafc4174f0ae"
+        "premature_implementation:ff2bdafc4174f0ae",
+        "insufficient_context:3a726cf05dd3f436"
       ],
       "seconds": 9.0,
       "stage": "implement",

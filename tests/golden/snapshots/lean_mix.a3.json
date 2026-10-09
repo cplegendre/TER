@@ -8,21 +8,26 @@
         "waste": "overproduction"
       },
       {
-        "findings": 4,
-        "tokens": 132,
+        "findings": 2,
+        "tokens": 29,
         "waste": "over_processing"
+      },
+      {
+        "findings": 1,
+        "tokens": 0,
+        "waste": "motion"
       }
     ],
     "scorecard": {
       "activity_seconds": {
-        "avoidable": 32.5,
-        "necessary_non_value_adding": 24.0,
+        "avoidable": 17.5,
+        "necessary_non_value_adding": 39.0,
         "uncertain": 0.0,
         "value_adding": 27.5
       },
       "activity_tokens": {
-        "avoidable": 270,
-        "necessary_non_value_adding": 83,
+        "avoidable": 167,
+        "necessary_non_value_adding": 186,
         "uncertain": 0,
         "value_adding": 344
       },
@@ -31,12 +36,12 @@
         "components": [
           {
             "name": "Flow efficiency (tokens)",
-            "value": 0.6126,
+            "value": 0.7604,
             "weight": 0.3333
           },
           {
             "name": "Flow efficiency (time)",
-            "value": 0.6131,
+            "value": 0.7917,
             "weight": 0.3333
           },
           {
@@ -46,26 +51,26 @@
           }
         ],
         "formula": "Unweighted mean of Flow efficiency (tokens), Flow efficiency (time), TER.",
-        "value": 0.6657
+        "value": 0.7745
       },
       "context_tokens": 196,
       "developer_seconds": 0.0,
-      "findings": 5,
-      "flow_efficiency_time": 0.6131,
-      "flow_efficiency_tokens": 0.6126,
+      "findings": 4,
+      "flow_efficiency_time": 0.7917,
+      "flow_efficiency_tokens": 0.7604,
       "flow_seconds": {
         "inventory": 0.0,
-        "progressing": 51.5,
+        "progressing": 66.5,
         "recovering": 0.0,
-        "repeating": 27.0,
+        "repeating": 12.0,
         "reworking": 5.5,
         "waiting": 0.0
       },
       "flow_tokens": {
         "inventory": 0,
-        "progressing": 427,
+        "progressing": 530,
         "recovering": 0,
-        "repeating": 132,
+        "repeating": 29,
         "reworking": 138,
         "waiting": 0
       },
@@ -79,9 +84,9 @@
       },
       "uncertain_findings": 0,
       "uncertain_waste_tokens": 0,
-      "waste_context_tokens": 76,
-      "waste_seconds": 32.5,
-      "waste_tokens": 270
+      "waste_context_tokens": 72,
+      "waste_seconds": 17.5,
+      "waste_tokens": 167
     }
   },
   "background": {
@@ -114,30 +119,6 @@
       "title": "Edit in place instead of rewriting files",
       "uncertain": false,
       "waste": "overproduction"
-    },
-    {
-      "actions": [
-        {
-          "kind": "claude_md",
-          "language": "markdown",
-          "snippet": "- After planning, take the first concrete action (read, edit or run) before refining the plan; update the to-do list when a step completes.",
-          "text": "Bound planning by action, not by length."
-        },
-        {
-          "kind": "practice",
-          "language": null,
-          "snippet": null,
-          "text": "For multi-step work, approve a short plan in plan mode once, then let the agent execute without re-planning between steps."
-        }
-      ],
-      "addresses": [
-        "excessive_planning:afa62c3fc87da043"
-      ],
-      "detector": "excessive_planning",
-      "rationale": "1 finding(s), 103 generated tokens: 5 planning steps without acting.",
-      "title": "Turn plans into the first action sooner",
-      "uncertain": false,
-      "waste": "over_processing"
     },
     {
       "actions": [
@@ -210,7 +191,7 @@
       "rationale": "1 finding(s), 0 generated tokens: 3 separate edits to src/net.py.",
       "title": "Batch edits to one file",
       "uncertain": false,
-      "waste": "over_processing"
+      "waste": "motion"
     }
   ],
   "current_state": {
@@ -238,11 +219,9 @@
         "uncertain_tokens": 0
       },
       {
-        "avoidable_tokens": 103,
+        "avoidable_tokens": 0,
         "context_tokens": 4,
-        "findings": [
-          "excessive_planning:afa62c3fc87da043"
-        ],
+        "findings": [],
         "seconds": 21.0,
         "stage": "plan",
         "steps": 5,
@@ -321,7 +300,7 @@
       "waste": "defects"
     },
     {
-      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary; the rest as waste.",
+      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary. A later step is waste only when it adds no decision: a reasoning block with at most 25% content words new to the prompt and the run so far, or a to-do update identical to an earlier one in the run. A step that adds a decision is never waste, and a run with no such restating step is not a finding.",
       "id": "excessive_planning",
       "kind": "waste",
       "waste": "over_processing"
@@ -330,7 +309,7 @@
       "confidence_rule": "At least 3 consecutive edit calls to one file with only reasoning and their results in between. 0.70 for 3, plus 0.05 per extra edit, capped at 0.85. Only the round-trip overhead (results and waiting of edits after the first) is counted as waste, never the change itself.",
       "id": "fragmented_edits",
       "kind": "waste",
-      "waste": "over_processing"
+      "waste": "motion"
     },
     {
       "confidence_rule": "Judged only once the agent has responded after the read. A read counts as used when a later reasoning, response or tool call names the file, or names something the file defines, or edits it. Otherwise 0.65 when the file defined names that were never used, 0.55 when it defined none. Always uncertain: reading to rule something out is legitimate, and only repository evidence (L3) can tell.",
@@ -345,7 +324,7 @@
       "waste": "handoffs"
     },
     {
-      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, and at most 25% of its content words are new (in neither the earlier block nor the prompt). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
+      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, at most 25% of its content words are new (in neither the earlier block nor the prompt), and none of its new words comes from a tool result observed since the earlier block (that would be new evidence). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
       "id": "repeated_reasoning",
       "kind": "waste",
       "waste": "over_processing"
@@ -355,6 +334,30 @@
       "id": "regeneration",
       "kind": "waste",
       "waste": "overproduction"
+    },
+    {
+      "confidence_rule": "Per task (prompt), counting distinct context items (file reads, searches, fetches, handoffs, exploring shell commands) before the first edit: a finding when they exceed per_file (3) × files the task changes + slack (3). Items past the band that are not reads of a changed file are the waste. Confidence 0.55 + 0.02 per item over the band, capped at 0.65: always uncertain at L2, since only repository scope (L3) can tell whether the extra context was needed.",
+      "id": "excessive_context",
+      "kind": "waste",
+      "waste": "inventory"
+    },
+    {
+      "confidence_rule": "Per task (prompt): when the task first edits its n-th distinct file in place (Edit, not a new-file Write), it must have acquired at least min_per_file (1) × n distinct context items (reads, searches, fetches, handoffs, exploring shell). The first edit below that bound is the finding: 0.70 when that file was never read or written earlier in the session; 0.55 (uncertain) when it was, since context carried from an earlier task may suffice. A risk: it claims no cost.",
+      "id": "insufficient_context",
+      "kind": "risk",
+      "waste": "defects"
+    },
+    {
+      "confidence_rule": "Judged only once the agent has responded after it. A search (Grep, Glob) or traversing shell command (ls, find, tree, rg, grep) whose output lists file names, none of which a later event reads, edits or names: 0.60. Always uncertain at L2: a traversal can rule a place out, and only repository evidence (L3) can tell. Empty or unobserved output and repeats of an earlier traversal (left to repeated_exploration) are not findings.",
+      "id": "unused_traversal",
+      "kind": "waste",
+      "waste": "motion"
+    },
+    {
+      "confidence_rule": "A route.failover event (a model call that returned no tokens and did not succeed). 0.80 when a later response completed the work on another route, so the failed call added only waiting; 0.55 (uncertain) when no later response followed. The failover's wall time is the waste; it generated no tokens.",
+      "id": "failed_route",
+      "kind": "waste",
+      "waste": "waiting"
     }
   ],
   "findings": [
@@ -379,38 +382,6 @@
       "waste": "overproduction",
       "waste_events": [
         "bbef9c623af73c14"
-      ]
-    },
-    {
-      "activity_class": "avoidable",
-      "confidence": 0.8,
-      "context_tokens": 4,
-      "detector": "excessive_planning",
-      "evidence": [
-        "11dd3be920e41229",
-        "62fcd90f604b8a22",
-        "afa62c3fc87da043",
-        "885640dbc628de1c",
-        "787b76f5878f0c56",
-        "4c20d65d717bf537",
-        "f7059ba8a701f037"
-      ],
-      "explanation": "5 reasoning or to-do steps in a row before the agent explored, edited, checked or answered anything.",
-      "id": "excessive_planning:afa62c3fc87da043",
-      "kind": "waste",
-      "seconds": 15.0,
-      "share": 1.0,
-      "subject": "5 planning steps",
-      "title": "5 planning steps without acting",
-      "tokens": 103,
-      "uncertain": false,
-      "waste": "over_processing",
-      "waste_events": [
-        "afa62c3fc87da043",
-        "885640dbc628de1c",
-        "787b76f5878f0c56",
-        "4c20d65d717bf537",
-        "f7059ba8a701f037"
       ]
     },
     {
@@ -487,7 +458,7 @@
       "title": "3 separate edits to src/net.py",
       "tokens": 0,
       "uncertain": false,
-      "waste": "over_processing",
+      "waste": "motion",
       "waste_events": [
         "0c363a14eea9043e",
         "8529cea01d42b188"
@@ -525,12 +496,6 @@
     },
     {
       "current": "1",
-      "how": "findings[detector=excessive_planning]",
-      "metric": "Planning runs of 4+ steps without action",
-      "target": "0"
-    },
-    {
-      "current": "1",
       "how": "findings[detector=fragmented_edits]",
       "metric": "Runs of 3+ separate edits to one file",
       "target": "0"
@@ -548,19 +513,19 @@
       "target": "0"
     },
     {
-      "current": "61%",
+      "current": "76%",
       "how": "scorecard.flow_efficiency_tokens",
       "metric": "Agentic flow efficiency (tokens)",
       "target": "higher"
     },
     {
-      "current": "39%",
+      "current": "24%",
       "how": "scorecard.activity_tokens.avoidable",
       "metric": "Avoidable share of generated tokens",
       "target": "lower"
     }
   ],
-  "problem": "39% of the 697 tokens the agent generated went to avoidable work across 5 confident finding(s); flow efficiency is 61% of tokens and 61% of agent time; 1 risk(s) to the outcome were flagged.",
+  "problem": "24% of the 697 tokens the agent generated went to avoidable work across 4 confident finding(s); flow efficiency is 76% of tokens and 79% of agent time; 1 risk(s) to the outcome were flagged.",
   "root_causes": [
     {
       "activity_class": "avoidable",
@@ -583,38 +548,6 @@
       "waste": "overproduction",
       "waste_events": [
         "bbef9c623af73c14"
-      ]
-    },
-    {
-      "activity_class": "avoidable",
-      "confidence": 0.8,
-      "context_tokens": 4,
-      "detector": "excessive_planning",
-      "evidence": [
-        "11dd3be920e41229",
-        "62fcd90f604b8a22",
-        "afa62c3fc87da043",
-        "885640dbc628de1c",
-        "787b76f5878f0c56",
-        "4c20d65d717bf537",
-        "f7059ba8a701f037"
-      ],
-      "explanation": "5 reasoning or to-do steps in a row before the agent explored, edited, checked or answered anything.",
-      "id": "excessive_planning:afa62c3fc87da043",
-      "kind": "waste",
-      "seconds": 15.0,
-      "share": 1.0,
-      "subject": "5 planning steps",
-      "title": "5 planning steps without acting",
-      "tokens": 103,
-      "uncertain": false,
-      "waste": "over_processing",
-      "waste_events": [
-        "afa62c3fc87da043",
-        "885640dbc628de1c",
-        "787b76f5878f0c56",
-        "4c20d65d717bf537",
-        "f7059ba8a701f037"
       ]
     },
     {
@@ -691,7 +624,7 @@
       "title": "3 separate edits to src/net.py",
       "tokens": 0,
       "uncertain": false,
-      "waste": "over_processing",
+      "waste": "motion",
       "waste_events": [
         "0c363a14eea9043e",
         "8529cea01d42b188"
