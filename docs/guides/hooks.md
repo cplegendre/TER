@@ -378,8 +378,8 @@ the next session.
 | `repeated_exploration` | PreToolUse (`Read`) | `no-reread.sh` | Blocks re-reading a file whose contents have not changed since this session read the same range |
 | `repeated_tool_call` | PreToolUse (`Bash`) | `no-repeat.sh` | Blocks an identical command while `git diff` and `git status` are unchanged since it last ran |
 | `rework_cycle` | PostToolUse (`Bash`) | `same-failure.sh` | When a check fails with the same signature as last time, tells the agent to stop patching and re-diagnose |
-| `unvalidated_implementation` | PostToolUse (`Edit\|MultiEdit\|Write`) | inline command | Runs the session's own test command after each edit and feeds a failure back |
-| `regeneration` | PreToolUse (`Write`) | `edit-not-write.sh` | Blocks whole-file rewrites of files that exist, so changes go through Edit or MultiEdit |
+| `unvalidated_implementation` | PostToolUse (`Edit\|Write`) | inline command | Runs the session's own test command after each edit and feeds a failure back |
+| `regeneration` | PreToolUse (`Write`) | `edit-not-write.sh` | Blocks whole-file rewrites of files that exist, so changes go through Edit |
 
 The other detectors recommend settings or CLAUDE.md lines instead:
 `premature_implementation` suggests `"permissions": {"defaultMode": "plan"}`,
@@ -417,10 +417,10 @@ The snippet is the settings JSON, a blank line, then the script. For
 ```bash
 #!/usr/bin/env bash
 # .claude/hooks/edit-not-write.sh: PreToolUse(Write). Blocks whole-file rewrites
-# of files that already exist, so changes go through Edit/MultiEdit.
+# of files that already exist, so changes go through Edit.
 file=$(jq -r '.tool_input.file_path // empty')
 if [ -n "$file" ] && [ -f "$file" ]; then
-  echo "$file exists: change it with Edit or MultiEdit instead of rewriting it." >&2
+  echo "$file exists: change it with Edit instead of rewriting it." >&2
   exit 2
 fi
 ```

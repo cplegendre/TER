@@ -769,13 +769,13 @@
         {
           "kind": "claude_md",
           "language": "markdown",
-          "snippet": "- Change existing files with Edit or MultiEdit; use Write only for new files or rewrites the user asked for.",
+          "snippet": "- Change existing files with Edit; use Write only for new files or rewrites the user asked for.",
           "text": "Reserve whole-file writes for new files."
         },
         {
           "kind": "hook",
           "language": "json+bash",
-          "snippet": "{\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"Write\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"\\\"$CLAUDE_PROJECT_DIR\\\"/.claude/hooks/edit-not-write.sh\"\n          }\n        ]\n      }\n    ]\n  }\n}\n\n#!/usr/bin/env bash\n# .claude/hooks/edit-not-write.sh: PreToolUse(Write). Blocks whole-file rewrites\n# of files that already exist, so changes go through Edit/MultiEdit.\nfile=$(jq -r '.tool_input.file_path // empty')\nif [ -n \"$file\" ] && [ -f \"$file\" ]; then\n  echo \"$file exists: change it with Edit or MultiEdit instead of rewriting it.\" >&2\n  exit 2\nfi\n",
+          "snippet": "{\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"Write\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"\\\"$CLAUDE_PROJECT_DIR\\\"/.claude/hooks/edit-not-write.sh\"\n          }\n        ]\n      }\n    ]\n  }\n}\n\n#!/usr/bin/env bash\n# .claude/hooks/edit-not-write.sh: PreToolUse(Write). Blocks whole-file rewrites\n# of files that already exist, so changes go through Edit.\nfile=$(jq -r '.tool_input.file_path // empty')\nif [ -n \"$file\" ] && [ -f \"$file\" ]; then\n  echo \"$file exists: change it with Edit instead of rewriting it.\" >&2\n  exit 2\nfi\n",
           "text": "Block whole-file rewrites of existing files (rewritten: `src/retry.py`)."
         }
       ],
@@ -830,7 +830,7 @@
         {
           "kind": "hook",
           "language": "json",
-          "snippet": "{\n  \"hooks\": {\n    \"PostToolUse\": [\n      {\n        \"matcher\": \"Edit|MultiEdit|Write\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"cd \\\"$CLAUDE_PROJECT_DIR\\\" && pytest tests/test_net.py -q >/dev/null 2>&1 || { echo 'pytest tests/test_net.py -q fails after this edit' >&2; exit 2; }\",\n            \"timeout\": 300\n          }\n        ]\n      }\n    ]\n  }\n}",
+          "snippet": "{\n  \"hooks\": {\n    \"PostToolUse\": [\n      {\n        \"matcher\": \"Edit|Write\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"cd \\\"$CLAUDE_PROJECT_DIR\\\" && pytest tests/test_net.py -q >/dev/null 2>&1 || { echo 'pytest tests/test_net.py -q fails after this edit' >&2; exit 2; }\",\n            \"timeout\": 300\n          }\n        ]\n      }\n    ]\n  }\n}",
           "text": "Run the check after every edit and feed a failure back to the agent (edited without validation: `pytest tests/test_net.py -q`)."
         }
       ],
@@ -848,15 +848,15 @@
         {
           "kind": "claude_md",
           "language": "markdown",
-          "snippet": "- Make related changes to one file in a single MultiEdit call rather than one Edit per hunk (fragmented: `src/net.py`).",
-          "text": "Ask for one call per coherent change."
+          "snippet": "- Plan the whole change to a file before editing it, then send its Edit calls together in one turn (parallel tool calls) rather than one hunk per turn, waiting for each result (fragmented: `src/net.py`).",
+          "text": "Ask for one round trip per coherent change."
         }
       ],
       "addresses": [
         "fragmented_edits:325bf58465a44796"
       ],
       "detector": "fragmented_edits",
-      "rationale": "1 finding(s), 0 generated tokens: 3 separate edits to src/net.py.",
+      "rationale": "1 finding(s), 0 generated tokens: 3 edits to src/net.py over 3 round trips.",
       "title": "Batch edits to one file",
       "uncertain": false,
       "waste": "motion"
@@ -974,7 +974,7 @@
       "waste": "over_processing"
     },
     {
-      "confidence_rule": "At least 3 consecutive edit calls to one file with only reasoning and their results in between. 0.70 for 3, plus 0.05 per extra edit, capped at 0.85. Only the round-trip overhead (results and waiting of edits after the first) is counted as waste, never the change itself.",
+      "confidence_rule": "Consecutive edit calls to one file, with only reasoning and the results of those edits in between, spread over at least 3 round trips (a round trip ends when a result arrives; calls sent together before any result are one round trip). 0.70 for 3 round trips, plus 0.05 per extra, capped at 0.85. Only the round-trip overhead (the results of edits after the first round trip) is counted as waste, never the change itself.",
       "id": "fragmented_edits",
       "kind": "waste",
       "waste": "motion"
@@ -1123,13 +1123,13 @@
         "12bb38c11ea216b3",
         "15982991b6d5b880"
       ],
-      "explanation": "3 consecutive edits to src/net.py, each a separate tool round trip, where one multi-edit would do.",
+      "explanation": "3 consecutive edits to src/net.py took 3 round trips, each waiting for the previous result. Edits planned together can be sent in one turn as parallel Edit calls.",
       "id": "fragmented_edits:325bf58465a44796",
       "kind": "waste",
       "seconds": 0.0,
       "share": 1.0,
       "subject": "src/net.py",
-      "title": "3 separate edits to src/net.py",
+      "title": "3 edits to src/net.py over 3 round trips",
       "tokens": 0,
       "uncertain": false,
       "waste": "motion",
@@ -1171,7 +1171,7 @@
     {
       "current": "1",
       "how": "findings[detector=fragmented_edits]",
-      "metric": "Runs of 3+ separate edits to one file",
+      "metric": "Edit runs to one file over 3+ round trips",
       "target": "0"
     },
     {
@@ -1451,13 +1451,13 @@
         "12bb38c11ea216b3",
         "15982991b6d5b880"
       ],
-      "explanation": "3 consecutive edits to src/net.py, each a separate tool round trip, where one multi-edit would do.",
+      "explanation": "3 consecutive edits to src/net.py took 3 round trips, each waiting for the previous result. Edits planned together can be sent in one turn as parallel Edit calls.",
       "id": "fragmented_edits:325bf58465a44796",
       "kind": "waste",
       "seconds": 0.0,
       "share": 1.0,
       "subject": "src/net.py",
-      "title": "3 separate edits to src/net.py",
+      "title": "3 edits to src/net.py over 3 round trips",
       "tokens": 0,
       "uncertain": false,
       "waste": "motion",

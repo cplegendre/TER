@@ -80,7 +80,7 @@ at L3 and L4.
 | `unvalidated_implementation` (25) | defects (risk) | unvalidated edits and the response | per prompt, after a response: 0.85 no check in the session; 0.75 checks only earlier; 0.50 docs only; 0.85 responded after a failing check. A check is a validation run, or any shell line that runs a named check tool beside a change (`sed -i … && pytest`, `ruff check && git commit`; real sessions chain checks this way) | CLAUDE.md "validation is part of done" with the session's own test command; PostToolUse(Edit\|Write) hook running it |
 | `premature_implementation` (22, 23) | defects (risk) | the prompt and the edit | 0.75 in-place edit of a file never read, written, named in an earlier shell command (`cat f`, `sed -n 1,80p f`) or named in output; 0.45 new file before any exploration | CLAUDE.md "read before editing"; `permissions.defaultMode: plan` |
 | `excessive_planning` (8, 24) | over-processing | the planning run | ≥ 4 planning steps with no action between; 0.55 + 0.05 per step, ≤ 0.90; a step beyond the second is waste only when it adds no decision (reasoning ≤ 25% new words, or a repeated to-do update); no restating step, no finding | CLAUDE.md "act after planning"; plan-mode practice |
-| `fragmented_edits` (27, 28) | motion | the edits and results | ≥ 3 consecutive edits to one file; 0.70 + 0.05 per extra, ≤ 0.85; only round-trip overhead is waste | CLAUDE.md "one MultiEdit per coherent change" |
+| `fragmented_edits` (27, 28) | motion | the edits and results | consecutive edits to one file (only reasoning and their own results between) over ≥ 3 round trips; a round trip ends when a result arrives, so edits sent together in one turn (parallel calls) count once; 0.70 + 0.05 per extra round trip, ≤ 0.85; only the results of edits after the first round trip are waste | CLAUDE.md "plan the change to a file, then send its Edit calls together in one turn" (Claude Code has no multi-edit tool: one Edit changes one string) |
 | `unused_context` (21, 34, 35) | inventory | the read and its result | after a response, nothing later names the file or what it defines: 0.65 (defines names) or 0.55 — always uncertain at L2 | CLAUDE.md "read with a purpose"; verify first, then map or `/compact` |
 | `unnecessary_handoff` (29, 30) | handoffs | handoff, result, the agent's own call | a later own call shares ≥ 3 key words with the handoff's task and covers ≥ 50% of the task's words: 0.45 + 0.40 × coverage, ≤ 0.85. Overlap with the smaller set flagged an orchestrator's every short review or merge command against its long worker briefs | CLAUDE.md "when to delegate"; `permissions.deny: ["Task"]` for small tasks |
 | `repeated_reasoning` (8, 17) | over-processing | both reasoning blocks | same prompt, no edit between, ≥ 3 shared words, ≤ 25% new words, none of them from a tool result seen since (new evidence): 0.85 − novelty (− 0.10 under 6 words) | CLAUDE.md "act instead of restating" |
@@ -109,8 +109,8 @@ Detectors are calibrated against real Claude Code transcripts: run
 corpus), read the events each confident finding cites and judge it. A rule
 with false positives is fixed structurally or its branch is lowered below
 0.70, with the evidence in a code comment. On this project's own cloud
-transcripts (one orchestrator session and eight worker subagents, 2026-10)
-the four largest confident detectors of a 286-session private corpus
+transcripts (one orchestrator session and its worker subagents, 2026-10)
+the largest confident detectors of a 286-session private corpus
 measured:
 
 | Detector | Confident before | True | Cause of the false positives | Fix | Confident after |
@@ -119,9 +119,22 @@ measured:
 | `unnecessary_handoff` | 5 (+4 uncertain) | 0 | parallel workers given long briefs; the orchestrator's later `sed -n` or merge shared a few words of each brief, which overlap with the smaller set counted as a match | coverage of the delegated task's words | 0 |
 | `premature_implementation` | 1 | 0 | file read with `cat` in the shell before the edit | shell command words count as seen | 0 |
 | `unvalidated_implementation` | 0 | – | none here; 15 of 260 check-running shell lines chained the check after a change and read as changes, which would hide the check | named check tools anywhere in a shell line count as a check; `gh pr checks`, `gh run watch/view` and `pre-commit run` are validation | 0 |
+| `fragmented_edits` | 4 | 0 | 3 or 4 Edit calls to one file sent in one turn (parallel tool calls), counted as 3 or 4 round trips | count round trips, not calls: a result between two calls ends a round trip; a run continues past the results of its own earlier edits | 0 |
 
 The sample is small and from one project, so these are precision fixes, not
 a precision estimate; the private corpus counts are the next check.
+
+The shared event ids (TER-OBS-007) changed what the detectors see. Before
+them, parallel tool calls of one assistant message (one transcript record
+each, one API message id) were merged into one message and given one id per
+kind, so the engine, idempotent by event id, kept only the first: on these
+transcripts 161 of 1,205 tool requests (13%; 10 edits, 5 writes, 6 reads, 98
+shell calls) were silently dropped. With every call keyed by its
+`tool_use_id`, parallel edits became visible as separate calls, which is why
+`fragmented_edits` rose (16 to 72 confident on the private corpus) until it
+counted round trips; `regeneration` and `repeated_exploration` rose for the
+same reason (more writes and reads are seen), with no confident finding of
+either here to judge.
 
 ## Exploration drivers
 

@@ -526,6 +526,40 @@ class TestFragmentedEdits:
             s.edit("a.py", str(i))
         assert found(s, "fragmented_edits")[0].confidence == 0.8
 
+    def test_edits_sent_in_one_turn_are_one_round_trip(self) -> None:
+        # Parallel Edit calls: all requested before the first result arrives.
+        s = Script()
+        s.read("a.py")
+        calls = [s.edit("a.py", str(i), output=None)[0] for i in range(4)]
+        for call in calls:
+            s.complete(call, "updated")
+        assert found(s, "fragmented_edits") == []
+
+    def test_two_round_trips_are_fine_however_many_calls(self) -> None:
+        s = Script()
+        first = [s.edit("a.py", str(i), output=None)[0] for i in range(3)]
+        for call in first:
+            s.complete(call, "updated")
+        s.think("one more hunk")
+        s.edit("a.py", "3")
+        assert found(s, "fragmented_edits") == []
+
+    def test_round_trips_not_calls_are_counted(self) -> None:
+        s = Script()
+        first = [s.edit("a.py", str(i), output=None)[0] for i in range(3)]
+        first_results = [s.complete(call, "updated") for call in first]
+        _, second = s.edit("a.py", "3")
+        _, third = s.edit("a.py", "4")
+        [f] = found(s, "fragmented_edits")
+        assert f.confidence == 0.7
+        assert f.title.startswith("5 edits to a.py over 3 round trips")
+        assert "parallel Edit calls" in f.explanation
+        assert "multi-edit" not in f.explanation.lower()
+        # The first round trip is the change; only later results are overhead.
+        assert second is not None and third is not None
+        assert f.waste_events == (second.id, third.id)
+        assert not set(f.waste_events) & {r.id for r in first_results}
+
 
 # --- unused_context ----------------------------------------------------------
 
