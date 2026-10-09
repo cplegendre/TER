@@ -2337,12 +2337,13 @@ points:
       Adopt TGV-style deterministic context bundles.
     level: L3
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - The same inputs produce the same context bundle, byte for byte.
     rules: [TER-CTX-001]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-001'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestDeterminism'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestCli::test_bundle_prints_the_bundle_and_records_its_supply'
 
   - id: P152
     text: >-
@@ -2350,19 +2351,20 @@ points:
       relevant to the next decision.
     level: L3
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - Bundles hold only evidence selected for the next decision.
     rules: [TER-CTX-001]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-001'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestSelection'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestBudget'
 
   - id: P153
     text: >-
       Compare full-context approaches with evidence-selected context.
     level: L3
     kind: research
-    status: not-started
+    status: partial
     issue: 42
     real_data: true
     definition_of_done:
@@ -2371,7 +2373,8 @@ points:
         the same tasks.
     rules: [TER-CTX-003, TER-ANL-031]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-003, TER-ANL-031'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestPrecisionRecall'
+      - 'planned: passing tests tagged req for TER-ANL-031'
       - 'planned: real-data verification in issue #42'
 
   - id: P154
@@ -2380,12 +2383,13 @@ points:
       subsequently used.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - Context precision is reported per bundle.
     rules: [TER-CTX-003]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-003'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestPrecisionRecall'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestCli::test_report_prints_the_measures'
 
   - id: P155
     text: >-
@@ -2393,14 +2397,16 @@ points:
       available when needed.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     issue: 42
     real_data: true
     definition_of_done:
       - Context recall is reported per bundle.
     rules: [TER-CTX-003, TER-EVD-005]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-003, TER-EVD-005'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestPrecisionRecall'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestCriticalRecall'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestCriticalFile'
       - 'planned: real-data verification in issue #42'
 
   - id: P156
@@ -2408,7 +2414,7 @@ points:
       Investigate context selection as a Lean inventory problem.
     level: L3
     kind: research
-    status: not-started
+    status: partial
     issue: 42
     real_data: true
     definition_of_done:
@@ -2417,7 +2423,7 @@ points:
         with measures.
     rules: [TER-CTX-004]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-004'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestInventoryAndRisk'
       - 'planned: real-data verification in issue #42'
 
   - id: P157
@@ -2425,50 +2431,52 @@ points:
       Treat excessive context as inventory carrying cost.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - Unused context is costed as inventory carrying cost.
     rules: [TER-CTX-004]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-004'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestInventoryAndRisk'
 
   - id: P158
     text: >-
       Treat missing context as a potential defect source.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - Missing context is reported as defect risk.
     rules: [TER-CTX-004]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-004'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestInventoryAndRisk::test_missing_context_names_the_edits_that_depended_on_it'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestPrecisionRecall::test_recall_falls_when_the_session_edits_a_file_the_bundle_lacked'
 
   - id: P159
     text: >-
       Optimise context for sufficient evidence rather than minimum size.
     level: L3
     kind: principle
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Context selection targets sufficient evidence, and tests show a
         bundle is not shrunk below the evidence needed.
     rules: [TER-CTX-001]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-001'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestBudget::test_a_seed_is_never_dropped_for_lower_ranked_evidence'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestSelection::test_a_prompt_naming_nothing_selects_nothing_and_says_so'
 
   - id: P160
     text: >-
       Record why each context fragment was selected.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - Every context fragment records why it was selected.
     rules: [TER-EVD-004]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-004'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestSupplied'
 
   - id: P161
     text: >-

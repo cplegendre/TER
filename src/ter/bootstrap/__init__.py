@@ -278,7 +278,10 @@ def cli_services() -> CliServices:
 
         return check_recordings(recordings, transcripts, ClaudeCodeJsonlSource().read)
 
+    from .context import context_services
+
     return CliServices(
+        context=context_services(session_source_for, make_tokenizer),
         hooks_check=hooks_check,
         capabilities=capabilities,
         import_corpus=import_corpus,

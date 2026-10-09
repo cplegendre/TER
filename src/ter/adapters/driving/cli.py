@@ -16,6 +16,7 @@ Commands::
                                    [--repo DIR [--repo-engine NAME]]
     python -m ter hooks check RECORDINGS TRANSCRIPTS [--json FILE]
     python -m ter capabilities                # adapters per port, and problems
+    python -m ter context bundle|report ...   # L3 context bundles (context_cli)
     python -m ter corpus import SRC... --out DIR [--labels CSV]
                                 [--max-tool-output N] [--keep-tool NAME]
                                 [--quote-files]
@@ -43,6 +44,7 @@ from ...domain.stream import StreamReport
 from ...ports.driven import Clock
 from ...ports.driving import EventIngest
 from .claude_hooks import HookStatus, run_hook
+from .context_cli import ContextServices, add_context_parser, run_context
 
 if TYPE_CHECKING:
     from ..driven.claude_code.corpus import CorpusImport
@@ -136,6 +138,8 @@ class CliServices:
     #: ``hooks_check(recordings, transcripts)``; raises ``OSError`` or
     #: ``ValueError`` when the recordings cannot be read.
     hooks_check: Callable[[Path, Path], "HookCheck"] | None = None
+    #: L3 context bundles: ``python -m ter context`` (TER-CTX-001).
+    context: ContextServices | None = None
 
 
 def main(
@@ -165,7 +169,7 @@ def main(
         if result.status is HookStatus.IGNORED and result.reason:
             err.write(f"ter hook: event not recorded: {result.reason}\n")
         return 0
-    if args.command in ("observe", "explain", "a3"):
+    if args.command in ("observe", "explain", "a3", "context"):
         known = TOKENIZERS if services.tokenizers is None else services.tokenizers()
         if args.tokenizer not in known:
             err.write(
@@ -182,6 +186,8 @@ def main(
         return _corpus(args, services, out, err)
     if args.command == "hooks":
         return _hooks_check(args, services, out, err)
+    if args.command == "context":
+        return run_context(args, services.context, out, err)
     return _observe(args, services, out, err)
 
 
@@ -521,6 +527,8 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
     a3.add_argument("--outcome", type=Path, metavar="FILE", help=OUTCOME_HELP)
     a3.add_argument("--repo", type=Path, metavar="DIR", help=REPO_HELP)
     a3.add_argument("--repo-engine", default="syntax", help=REPO_ENGINE_HELP)
+
+    add_context_parser(commands, default_log_dir, TOKENIZER_HELP, REPO_ENGINE_HELP)
 
     commands.add_parser(
         "capabilities",

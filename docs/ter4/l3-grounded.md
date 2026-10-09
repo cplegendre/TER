@@ -11,9 +11,10 @@ This page covers what is built so far: the port and four engines (steps 1
 to 3 of the L3 plan, with TypeScript, JavaScript, Svelte and Vue imports
 beside Python's), and the first detectors grounded on them: each task's
 expected change surface with the edits outside it, and imports that break
-the repository's architecture contracts (step 4). Evidence usage, context
-bundles and model routing come in later steps, and the requirements for them
-stay `planned` in `requirements/l3_grounded.yaml`.
+the repository's architecture contracts (step 4). [Context bundles](#context-bundles) select the evidence for
+the next decision and measure how much of it was used. Evidence usage and
+model routing come in later steps, and the requirements for them stay
+`planned` in `requirements/l3_grounded.yaml`.
 
 ## Requirements
 
@@ -451,6 +452,177 @@ The pure rules every engine and the fake share live in
 | driven adapters | `ter/adapters/driven/repository/`: `lexical.py`, `python_ast.py`, `git.py`, `syntax.py` with the ECMAScript reader `ecmascript.py`; `ter/adapters/driven/import_linter.py`; fakes `InMemoryRepositoryEvidence`, `InMemoryArchitectureContracts` in `ter/adapters/driven/in_memory.py` |
 | application | `ter/application/ground.py`: `ground_session`; `ExplainSession(repository=, contracts=)` |
 | composition | `ter/bootstrap/capabilities.py`: `repository_evidence(root, engine)`; `ter/bootstrap`: `make_contracts()`, `--repo` wiring |
+
+## Context bundles
+
+Instead of letting the agent read its way to the evidence, TER can hand it
+a *context bundle*: the repository evidence selected for the next decision,
+inside a token budget, with every fragment's reason recorded. TER then
+measures, from what the session went on to do, how much of the bundle was
+used and what it lacked (issue #42).
+
+| Id | Requirement | Verified by |
+|---|---|---|
+| TER-CTX-001 | TER shall build deterministic context bundles that hold only the evidence selected for the next decision. | `tests/unit/test_ter4_context_bundle.py` (`TestSelection`, `TestDeterminism`, `TestBudget`, `TestCli`) |
+| TER-EVD-004 | When TER supplies a context fragment to the agent, TER shall append one context.supplied event holding the fragment id, its source and the reason it was selected. | `TestSupplied`, `TestCli::test_bundle_prints_the_bundle_and_records_its_supply` |
+| TER-CTX-003 | TER shall report context precision and context recall for each context bundle. | `TestPrecisionRecall`, `TestCli::test_report_prints_the_measures` |
+| TER-EVD-005 | When a critical evidence list is given for a session, TER shall report context recall as the share of listed items present in context before the first dependent edit. | `TestCriticalRecall`, `TestCriticalFile` |
+| TER-CTX-004 | TER shall report unused context as inventory carrying cost and missing context as defect risk. | `TestInventoryAndRisk` |
+
+The TER 3 context orchestrator (`ter_calculator.fragment_store`,
+`context_graph`, `budget_optimizer`, `delta_composer`) was the inspiration;
+nothing of it is imported. Selection is rebuilt on the `RepositoryEvidence`
+port and the change surface.
+
+### Building a bundle (TER-CTX-001)
+
+Selection follows the [change surface](#the-expected-change-surface-ter-evd-006)
+at the start commit (`surface_of` and `files_named` in
+`ter.domain.lean.surface`), in this order:
+
+1. **seeds**: the files the prompt names (file name, path, dotted module,
+   distinctive symbol). A prompt that names none inherits the seeds of the
+   last earlier prompt of the session that named some; with nothing to
+   inherit the bundle is empty and marked `insufficient`;
+2. **tests of a seed**: test modules importing a seed (or that a seed
+   imports);
+3. **neighbours**: files a seed imports or is imported by;
+4. **tests of a neighbour**.
+
+Within a rank files come in path order; third-party code is never selected.
+Nothing outside the surface is ever in a bundle.
+
+**Packing.** Seeds and their tests are supplied whole (`file`) when they
+fit the remaining budget, else as their **outline** (imports and
+definitions with line ranges, from `structure()`); neighbours and their
+tests in their smaller form, usually the outline. What fits in no form is
+listed under `omitted` with the tokens its smallest form needs. Packing
+walks the ranks in order, so a lower-ranked file never displaces a seed; a
+bundle that could not hold every seed in some form, or has no seed, says
+`insufficient` instead of passing for complete: sufficiency, not minimum
+size (P159).
+
+**Fragments.** Each has an `id` (`ctx-` + a hash of source, form and text),
+`source` (repository path), `role`, `form`, `reason` (`named by the prompt`,
+`test linked to seed src/app/domain/pricing.py`,
+`imports seed src/app/domain/pricing.py`, ...), `tokens` (the tokenizer's
+count of the text) and the `text`. The bundle's `tokens` never exceed its
+`budget`.
+
+**Determinism.** A bundle is a pure function of the prompt text, budget,
+repository content and tokenizer. Ids are content hashes, every list is
+sorted, and the JSON (`ter.context-bundle/1`, keys sorted) and Markdown
+forms are canonical, so the same inputs give byte-identical bundles
+wherever the repository is checked out. The prompt itself is not stored,
+only its digest; the build time is not in the bundle.
+
+### Supplying it (TER-EVD-004)
+
+```bash
+# the next decision of a live session recorded by `ter hook`:
+python -m ter context bundle --event-log ~/.cache/ter/events --session <id> --repo .
+# a prompt not yet sent, a transcript, a budget, a file:
+python -m ter context bundle session.jsonl --prompt "Fix pricing.py" \
+    --repo ../shop-at-start --budget 4000 --out bundle.md
+```
+
+`bundle` prints the bundle (Markdown; `--json` for JSON) for the session's
+last prompt, or `--prompt`, and appends one `context.supplied` event per
+fragment to the event log (`--event-log`, default the hook's log;
+`--no-record` appends nothing). The event's text is JSON naming the bundle,
+the fragment id, source, reason, role, form and tokens (not the fragment's
+text); its parent is the prompt event the bundle answers. Ids derive from
+the session, bundle and fragment, so supplying the same bundle twice is a
+redelivery the analysis reads once.
+
+`context.supplied` is a lifecycle kind (`ter.event/0.5`): counted, never
+scored, no Lean step, so recording a supply changes no L1 or L2 measure.
+
+The bundle reaches the agent through whoever ran the command (a person, a
+skill, a slash command). It is **never** written into a hook response:
+below L4 TER delivers no intervention (TER-INT-001,
+`tests/architecture/test_no_intervention.py`).
+
+### Measuring it (TER-CTX-003, TER-EVD-005, TER-CTX-004)
+
+```bash
+python -m ter context report session.jsonl --repo ../shop-at-start \
+    [--critical critical.json] [--budget N] [--json]
+python -m ter context report --event-log DIR --session <id> --repo .
+```
+
+A session whose events hold `context.supplied` events is measured on the
+bundles it was supplied. A recorded session without them is measured on
+the bundles TER **would have** supplied: one per prompt, built at the start
+commit and placed right after the prompt (`simulated` in the JSON; "rebuilt
+for each prompt" in the text). That is how evidence-selected context is
+compared with what a full-context session actually used (P153).
+
+**Window.** A bundle's window runs from its first `context.supplied` event
+to the next bundle, the next task's prompt (the first prompt after a tool
+request in the window, so a bundle built ahead of its prompt keeps that
+prompt's task), or the end of the session.
+
+| Measure | Rule |
+|---|---|
+| used fragment | in the window, an edit or write changes its file; or an edit's new text or a shell command names a distinctive symbol its file defines; or a shell command names its path or file name (running its tests). Reading it again is not use. |
+| precision | used fragments / fragments (`None` for an empty bundle) |
+| needed | repository files (present at the start commit) edited in the window, and test modules a shell command in the window names; with a critical list, the listed items whose first dependent edit is in the window |
+| recall | needed items the bundle held / needed (`None` when nothing was needed) |
+| unused inventory | tokens of unused fragments, carried from the supply to the end of the session: priced at the first model turn after it at the cache-write rate when that turn shows caching (else input), then each later turn at cache-read (else input), with each turn's model's rates from the `PriceBook` port, as `ter.domain.costing` prices context inventory (P157) |
+| missing context (defect risk) | needed items the bundle lacked, each with the edits or test runs that depended on it and the agent's own reads of it in the window (`read_by` empty: the edit ran without that evidence in context) (P158) |
+
+The used rule is deliberately small and local. A general evidence-usage
+model (`ter.domain.lean.usage`, TER-EVD-008) is being built separately; the
+two should converge on one rule, after which precision reads it.
+
+**Critical evidence list (TER-EVD-005).** A person lists, per session, the
+evidence the task cannot do without, as JSON or CSV
+(`ter.adapters.driven.critical_evidence`):
+
+```json
+{
+  "schema": "ter.critical-evidence/1",
+  "sessions": {
+    "<session id>": [
+      "src/shop/pricing.py",
+      {"path": "src/shop/tax.py", "symbol": "vat_rate"}
+    ]
+  }
+}
+```
+
+```csv
+session_id,path,symbol
+<session id>,src/shop/pricing.py,
+<session id>,src/shop/tax.py,vat_rate
+```
+
+Paths are repository paths (`/`-separated; `./` and backslashes are
+normalised; absolute paths are refused). For each item, the **first
+dependent edit** is the first edit that changes its file, changes a file
+that imports it (at the start commit or after the edit), or whose new text
+names its symbol. The item was **in context** when a bundle supplied its
+file or the agent read the file before that edit. Critical recall is the
+share of items with a dependent edit that were in context; items no edit
+depended on are listed (`not_depended_on`) and left out of the share. A
+file in a bundle counts as holding every symbol it defines, outline or not.
+
+**Code.** domain `ter/domain/context_bundle.py` (selection, packing,
+`supplied_events`, `read_supplied`) and `ter/domain/context_metrics.py`
+(`measure_context`, `CriticalEvidence`); application
+`ter/application/context.py` (`ContextBuilder`, `SupplyContext`,
+`MeasureContext`); adapters `ter/adapters/driven/critical_evidence.py`,
+`ter/adapters/driving/context_cli.py`; composition
+`ter/bootstrap/context.py`.
+
+**Limits.** Bundles are built from the start commit's text, so a later
+prompt's bundle does not see the session's own edits. Selection is the
+import graph and prompt names only: the evidence beyond imports that the
+`unrelated_modification` calibration found (issues a prompt names, CI
+config, docs) is not selected. Precision and recall are verified on
+synthetic sessions only; P153, P155 and P156 stay `partial` until bundles
+are compared with real sessions (issue #42).
 
 ## Known limits
 

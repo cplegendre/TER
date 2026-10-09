@@ -66,6 +66,8 @@ __all__ = [
     "SurfaceExpansion",
     "UnrelatedModification",
     "change_surfaces",
+    "files_named",
+    "surface_of",
 ]
 
 
@@ -217,6 +219,34 @@ class _Graph:
         return set(self.g.importers.get(path, ())) | self.into.get(path, set())
 
 
+def _expand(graph: _Graph, seeds: set[str]) -> tuple[set[str], set[str]]:
+    """The neighbours and tests of a surface grown from ``seeds``."""
+    linked = set().union(*(graph.linked(s) for s in seeds)) - seeds
+    neighbours = {p for p in linked if not is_test_module(p)}
+    core = seeds | neighbours
+    tests = (linked - neighbours) | {
+        t for p in core for t in graph.importers(p) if is_test_module(t)
+    } - core
+    return neighbours, tests
+
+
+def files_named(g: RepositoryGrounding, words: frozenset[str]) -> tuple[str, ...]:
+    """The repository files a prompt's content words name, by file name,
+    dotted module name or distinctive symbol: a task's named seeds."""
+    return _Names(g).named(words)
+
+
+def surface_of(
+    g: RepositoryGrounding, seeds: Iterable[str]
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """The neighbours and tests of the surface grown from ``seeds`` over the
+    start commit's import graph, each sorted (the rules of
+    :func:`change_surfaces`, before any edit). Context bundles select from it
+    (TER-CTX-001)."""
+    neighbours, tests = _expand(_Graph(g, ()), set(seeds))
+    return tuple(sorted(neighbours)), tuple(sorted(tests))
+
+
 def _place(
     task: _Task,
     g: RepositoryGrounding,
@@ -227,13 +257,8 @@ def _place(
     grounded = [g.edits[e.event_id] for e in task.edits if e.event_id in g.edits]
     graph = _Graph(g, grounded)
     seed_set = set(seeds)
-    linked = set().union(*(graph.linked(s) for s in seed_set)) - seed_set
-    neighbours = {p for p in linked if not is_test_module(p)}
-    core = seed_set | neighbours
-    tests = (linked - neighbours) | {
-        t for p in core for t in graph.importers(p) if is_test_module(t)
-    } - core
-    surface = core | tests
+    neighbours, tests = _expand(graph, seed_set)
+    surface = seed_set | neighbours | tests
     created = {e.path for e in grounded if e.created} & surface
     role = {
         **{p: "a test of the surface" for p in tests},

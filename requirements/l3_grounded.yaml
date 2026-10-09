@@ -12,7 +12,7 @@ requirements:
     source_points: [151, 152, 159]
     rationale: >-
       Evidence-selected context aims at sufficiency, not minimum size.
-    status: planned
+    status: verified
 
   - id: TER-CTX-003
     pattern: ubiquitous
@@ -24,7 +24,7 @@ requirements:
     rationale: >-
       Precision and recall compare full-context and selected-context
       strategies.
-    status: planned
+    status: verified
 
   - id: TER-CTX-004
     pattern: ubiquitous
@@ -35,7 +35,7 @@ requirements:
     source_points: [156, 157, 158]
     rationale: >-
       Context selection is a Lean inventory problem.
-    status: planned
+    status: verified
 
   - id: TER-EVD-001
     pattern: ubiquitous
@@ -89,7 +89,7 @@ requirements:
     rationale: >-
       Issue #42: bundle contents and reads are scored the same way, and
       selection reasons are auditable.
-    status: planned
+    status: verified
 
   - id: TER-EVD-005
     pattern: event-driven
@@ -102,7 +102,7 @@ requirements:
     rationale: >-
       Issue #42: recall needs a human-authored ground truth of the evidence
       a task cannot do without.
-    status: planned
+    status: verified
 
   - id: TER-EVD-006
     pattern: ubiquitous
