@@ -64,6 +64,11 @@ class EventKind(StrEnum):
     ATTEMPT_STARTED = "attempt.started"
     VERIFICATION_COMPLETED = "verification.completed"
     OUTCOME_RECORDED = "outcome.recorded"
+    # Model routing (L3, TER-RTE-002, TER-DET-011): a router moved a task to
+    # a higher role of its routing profile. The text holds the triggering
+    # signal, both roles, the latency and the token usage
+    # (``ter.domain.routing.RouteEscalation``).
+    ROUTE_ESCALATED = "route.escalated"
 
     @property
     def is_lifecycle(self) -> bool:
@@ -94,6 +99,7 @@ _LIFECYCLE = frozenset(
         EventKind.ATTEMPT_STARTED,
         EventKind.VERIFICATION_COMPLETED,
         EventKind.OUTCOME_RECORDED,
+        EventKind.ROUTE_ESCALATED,
     }
 )
 

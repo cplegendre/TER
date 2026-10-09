@@ -1,0 +1,15 @@
+{
+  "schema": "ter.routing_profile/1",
+  "name": "local-fast",
+  "description": "Everything on a small local model, escalating to the local coding model; nothing leaves the machine.",
+  "source": "TER L3 example profile (P145); Ollama model tags, not priced (local models have no price book entry).",
+  "roles": {
+    "explore": {"provider": "ollama", "model": "qwen3:4b"},
+    "implement": {"provider": "ollama", "model": "qwen3:4b"},
+    "review": {"provider": "ollama", "model": "qwen3:4b"},
+    "escalate": {"provider": "ollama", "model": "qwen3-coder-next:latest"}
+  },
+  "task_roles": {"read_only": "explore", "validate": "review", "change": "implement"},
+  "escalation": {"explore": "escalate", "implement": "escalate", "review": "escalate"},
+  "escalate_on": ["rework_cycle", "repeated_reasoning", "regeneration", "boundary_violation"]
+}

@@ -499,7 +499,7 @@ points:
       Detect waiting caused by avoidable external-model escalation.
     level: L2
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         A detector flags external-model escalations whose waiting time
@@ -507,7 +507,8 @@ points:
     rules: [TER-DET-008, TER-DET-011]
     verification:
       - 'test: tests/unit/test_ter4_lean_context_motion_waiting.py::TestFailedRoute'
-      - 'planned: escalation after a successful call needs route.escalated events and answer text (TER-DET-011, L3)'
+      - 'test: tests/unit/test_ter4_unearned_escalation.py::TestRecordedEscalation'
+      - 'test: tests/unit/test_ter4_unearned_escalation.py::TestReattemptOnAnotherModel'
 
   - id: P031
     text: >-
@@ -2150,14 +2151,15 @@ points:
       current execution strategy.
     level: L4
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         TER recommends escalation only with evidence that complexity exceeds
         the current strategy.
     rules: [TER-INT-005, TER-RTE-003]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-005, TER-RTE-003'
+      - 'test: tests/unit/test_ter4_routing.py::TestKeepTheProfile'
+      - 'planned: recommendations delivered as interventions at L4 (TER-INT-005)'
 
   - id: P139
     text: >-
@@ -2193,14 +2195,15 @@ points:
       plane.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Routing decisions carry an explanation of the task classification
         behind them.
     rules: [TER-RTE-005]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-005'
+      - 'test: tests/unit/test_ter4_routing.py::TestClassification'
+      - 'test: tests/unit/test_ter4_routing.py::test_cli_route_prints_classes_and_decisions'
 
   - id: P142
     text: >-
@@ -2208,14 +2211,15 @@ points:
       scope, and validation requirements.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Tasks are classified by complexity, ambiguity, risk, repository
         scope and validation needs.
     rules: [TER-RTE-005]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-005'
+      - 'test: tests/unit/test_ter4_routing.py::TestClassification'
+      - 'test: tests/unit/test_ter4_routing.py::TestGroundedClassification'
 
   - id: P143
     text: >-
@@ -2223,12 +2227,13 @@ points:
       observed task.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - TER reports whether the current strategy fits the classified task.
     rules: [TER-RTE-005]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-005'
+      - 'test: tests/unit/test_ter4_routing.py::TestKeepTheProfile'
+      - 'test: tests/unit/test_ter4_routing.py::TestEscalation'
 
   - id: P144
     text: >-
@@ -2236,12 +2241,14 @@ points:
       names.
     level: L3
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - Code and policies reference execution profiles, never model names.
     rules: [TER-RTE-001]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-001'
+      - 'test: tests/architecture/test_model_roles.py::test_no_source_module_hard_codes_a_model_id'
+      - 'test: tests/contract/test_routing_profiles.py'
+      - 'test: tests/unit/test_ter4_routing.py::TestProfiles'
 
   - id: P145
     text: >-
@@ -2249,14 +2256,14 @@ points:
       frontier-deep.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         local-fast, local-code, frontier-standard and frontier-deep profiles
         ship as defaults.
     rules: [TER-RTE-001]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-001'
+      - 'test: tests/contract/test_routing_profiles.py::test_the_shipped_profiles_include_the_four_execution_profiles'
 
   - id: P146
     text: >-
@@ -2264,21 +2271,22 @@ points:
       TER's central purpose.
     level: L3
     kind: principle
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Model selection is one optimisation among others in the Lean model,
         not a separate product surface.
     rules: [TER-RTE-001]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-001'
+      - 'test: tests/unit/test_ter4_unearned_escalation.py::test_registered_with_a_countermeasure_a_follow_up_and_a_rule'
+      - 'planned: routing decisions shown in the A3 beside the other countermeasures, not only in `ter route`'
 
   - id: P147
     text: >-
       Investigate whether routine analysis and retrieval can remain local.
     level: L3
     kind: research
-    status: not-started
+    status: partial
     issue: 39
     real_data: true
     definition_of_done:
@@ -2287,7 +2295,8 @@ points:
         quality on local models.
     rules: [TER-RTE-003, TER-RTE-002]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-003, TER-RTE-002'
+      - 'test: tests/unit/test_ter4_routing.py::TestKeepTheProfile'
+      - 'test: tests/unit/test_ter4_routing.py::TestEscalation'
       - 'planned: real-data verification in issue #39'
 
   - id: P148
@@ -2295,41 +2304,42 @@ points:
       Escalate difficult reasoning only when evidence supports escalation.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - Escalation happens only with a supporting detector signal.
     rules: [TER-RTE-003]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-003'
+      - 'test: tests/unit/test_ter4_routing.py::TestKeepTheProfile'
+      - 'test: tests/unit/test_ter4_routing.py::TestEscalation::test_an_evidenced_signal_escalates_with_one_event'
 
   - id: P149
     text: >-
       Measure whether escalation actually improves software outcomes.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     issue: 39
     real_data: true
     definition_of_done:
       - Every escalation records the outcome change it produced.
     rules: [TER-RTE-002]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-002'
-      - 'planned: real-data verification in issue #39'
+      - 'test: tests/unit/test_ter4_routing.py::TestEscalation'
+      - 'planned: the outcome change of each escalation, and real-data verification in issue #39'
 
   - id: P150
     text: >-
       Measure the cost and latency introduced by escalation.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     issue: 39
     real_data: true
     definition_of_done:
       - Every escalation records its cost and latency.
     rules: [TER-RTE-002]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-002'
+      - 'test: tests/unit/test_ter4_routing.py::TestEscalation::test_the_event_records_the_token_usage_spent_before_the_signal'
       - 'planned: real-data verification in issue #39'
 
   - id: P151

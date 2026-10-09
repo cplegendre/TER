@@ -69,6 +69,7 @@ BUILTIN_CAPABILITIES: dict[str, str] = {
     "RepositoryEvidence.lexical": "ter.adapters.driven.repository:LexicalRepositoryEvidence",
     "RepositoryEvidence.python-ast": "ter.adapters.driven.repository:PythonSyntaxEvidence",
     "RepositoryEvidence.syntax": "ter.adapters.driven.repository:SourceSyntaxEvidence",
+    "RoutingProfiles.json": "ter.adapters.driven.routing_profiles:JsonRoutingProfiles",
     "SessionSource.claude-code": "ter.adapters.driven.claude_code:ClaudeCodeJsonlSource",
     "SessionSource.gare": "ter.adapters.driven.gare:GareRunSource",
     "TerScorer.ter3": "ter.adapters.driven.ter3:Ter3Scorer",

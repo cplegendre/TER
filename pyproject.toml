@@ -52,6 +52,7 @@ ter-req = "ter.adapters.driving.req_cli:main"
 "RepositoryEvidence.lexical" = "ter.adapters.driven.repository:LexicalRepositoryEvidence"
 "RepositoryEvidence.python-ast" = "ter.adapters.driven.repository:PythonSyntaxEvidence"
 "RepositoryEvidence.syntax" = "ter.adapters.driven.repository:SourceSyntaxEvidence"
+"RoutingProfiles.json" = "ter.adapters.driven.routing_profiles:JsonRoutingProfiles"
 "SessionSource.claude-code" = "ter.adapters.driven.claude_code:ClaudeCodeJsonlSource"
 "SessionSource.gare" = "ter.adapters.driven.gare:GareRunSource"
 "TerScorer.ter3" = "ter.adapters.driven.ter3:Ter3Scorer"
@@ -62,7 +63,7 @@ ter-req = "ter.adapters.driving.req_cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-ter = ["py.typed", "data/*.json"]
+ter = ["py.typed", "data/*.json", "data/routing_profiles/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -236,6 +237,7 @@ modules = [
     "ter.adapters.driven.pricing",
     "ter.adapters.driven.repository",
     "ter.adapters.driven.requirements_yaml",
+    "ter.adapters.driven.routing_profiles",
     "ter.adapters.driven.ter3",
 ]
 # TER 3 sits outside the hexagon and reads its prices through the pricing

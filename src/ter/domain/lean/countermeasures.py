@@ -637,6 +637,28 @@ def _failed_route(ctx: _Context) -> tuple[str, list[Action]]:
     )
 
 
+def _unearned_escalation(ctx: _Context) -> tuple[str, list[Action]]:
+    return (
+        "Escalate only on evidence, and give the escalated model something new",
+        [
+            Action(
+                ActionKind.SETTING,
+                "In the routing profile, escalate only on a detector signal with "
+                "evidence (a failing check that does not move, a rework cycle), not "
+                f"after any completed answer ({_list(ctx.subjects)} added nothing "
+                "the earlier call lacked).",
+            ),
+            Action(
+                ActionKind.PRACTICE,
+                "When a task does escalate, hand the stronger model new evidence: the "
+                "failing test output, the files the first answer did not read. An "
+                "escalation that sees what the first model saw tends to answer the "
+                "same way, after a wait.",
+            ),
+        ],
+    )
+
+
 def _unrelated(ctx: _Context) -> tuple[str, list[Action]]:
     return (
         "Keep each task's edits inside its change surface",
@@ -745,6 +767,7 @@ _CATALOGUE: dict[str, Callable[[_Context], tuple[str, list[Action]]]] = {
     "insufficient_context": _insufficient_context,
     "unused_traversal": _unused_traversal,
     "failed_route": _failed_route,
+    "unearned_escalation": _unearned_escalation,
     "unrelated_modification": _unrelated,
     "surface_expansion": _expansion,
     "boundary_violation": _boundary,
@@ -829,6 +852,7 @@ _MEASURES: dict[str, tuple[str, str]] = {
     "insufficient_context": ("Tasks with context below the band", "0"),
     "unused_traversal": ("Traversals whose files were never used (uncertain)", "fewer"),
     "failed_route": ("Failed model routes waited on", "0"),
+    "unearned_escalation": ("Escalations that added no evidence", "0"),
     "unrelated_modification": ("Edits with no import link to the task", "0"),
     "surface_expansion": (
         "Edits one import link beyond the change surface (uncertain)",

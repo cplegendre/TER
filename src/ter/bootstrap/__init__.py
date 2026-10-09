@@ -16,6 +16,7 @@ from ..adapters.driving.cli import CliServices
 from ..adapters.driving.cli import main as cli_main
 from ..adapters.driven.in_memory import SystemClock
 from ..application.explain import ExplainedSession, ExplainSession
+from ..application.route import RoutedSession, RouteSession
 from .capabilities import (
     CapabilityRegistry,
     default_registry,
@@ -230,6 +231,33 @@ def cli_services() -> CliServices:
         )
         return use_case(path, outcome)
 
+    def route_transcript(
+        path: Path,
+        tokenizer: str,
+        profile: str | None = None,
+        repo: Path | None = None,
+        repo_engine: str = "syntax",
+        profiles_dir: Path | None = None,
+    ) -> RoutedSession:
+        from ..adapters.driven.routing_profiles import (
+            JsonRoutingProfiles,
+            default_routing_profiles,
+        )
+
+        # Advisory routing (L3): decisions and route.escalated events for
+        # analysis, never sent to a live session (TER-INT-001).
+        use_case = RouteSession(
+            session_source_for(path),
+            make_tokenizer(tokenizer),
+            default_routing_profiles()
+            if profiles_dir is None
+            else JsonRoutingProfiles(profiles_dir),
+            lambda: make_ingest(tokenizer),
+            repository_evidence(repo, repo_engine) if repo is not None else None,
+            make_contracts() if repo is not None else None,
+        )
+        return use_case(path, profile)
+
     def capabilities() -> tuple[tuple[Capability, ...], tuple[CapabilityProblem, ...]]:
         registry = default_registry()
         problems = registry.check()
@@ -290,6 +318,7 @@ def cli_services() -> CliServices:
         default_log_dir=default_event_log_dir(),
         hook_clock=SystemClock(),
         explain_transcript=explain_transcript,
+        route_transcript=route_transcript,
     )
 
 

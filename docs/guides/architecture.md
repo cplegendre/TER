@@ -178,7 +178,8 @@ Every harness adapter translates its native records into one neutral stream,
 and `tool.completed`, plus lifecycle kinds that are never scored
 (`task.completed` and `subagent.completed` from hooks, and the routing kinds
 `route.selected`, `route.failover`, `attempt.started`,
-`verification.completed` and `outcome.recorded` from GARE), each with a stable id, provenance and a tool *kind*
+`verification.completed` and `outcome.recorded` from GARE, and
+`route.escalated` from a model router), each with a stable id, provenance and a tool *kind*
 (`fs.read`, `fs.edit`, `exec.shell`, …) rather than a native tool name.
 Detectors reason about kinds, so a second harness needs a new
 `SessionSource` adapter and nothing else. See

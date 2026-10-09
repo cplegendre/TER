@@ -12,8 +12,9 @@ to 3 of the L3 plan, with TypeScript, JavaScript, Svelte and Vue imports
 beside Python's), and the first detectors grounded on them: each task's
 expected change surface with the edits outside it, and imports that break
 the repository's architecture contracts (step 4). Evidence usage, context
-bundles and model routing come in later steps, and the requirements for them
-stay `planned` in `requirements/l3_grounded.yaml`.
+bundles come in later steps, and the requirements for them stay `planned`
+in `requirements/l3_grounded.yaml`. Advisory model routing by role is
+described in [Model routing (advisory)](#model-routing-advisory).
 
 ## Requirements
 
@@ -451,6 +452,146 @@ The pure rules every engine and the fake share live in
 | driven adapters | `ter/adapters/driven/repository/`: `lexical.py`, `python_ast.py`, `git.py`, `syntax.py` with the ECMAScript reader `ecmascript.py`; `ter/adapters/driven/import_linter.py`; fakes `InMemoryRepositoryEvidence`, `InMemoryArchitectureContracts` in `ter/adapters/driven/in_memory.py` |
 | application | `ter/application/ground.py`: `ground_session`; `ExplainSession(repository=, contracts=)` |
 | composition | `ter/bootstrap/capabilities.py`: `repository_evidence(root, engine)`; `ter/bootstrap`: `make_contracts()`, `--repo` wiring |
+
+## Model routing (advisory)
+
+TER can say which model *role* each task of a recorded session should have
+run on, and where it should have escalated. At L3 the router is advisory and
+offline: it produces decisions and `route.escalated` events for analysis and
+the A3's recommendations; it never answers a hook or changes a live session
+(TER-INT-001, `tests/architecture/test_no_intervention.py`).
+
+```bash
+python -m ter route session.jsonl                       # classes, roles, decisions
+python -m ter route session.jsonl --profile local-code --json
+python -m ter route session.jsonl --repo ../shop-at-start  # grounded classes
+```
+
+| Id | Requirement | Verified by |
+|---|---|---|
+| TER-RTE-001 | TER shall reference language models only through the role names defined in the active routing profile. | `tests/architecture/test_model_roles.py` (no `ter` module spells a model id in a string literal), `tests/contract/test_routing_profiles.py` (JSON adapter and fake), `tests/unit/test_ter4_routing.py::TestProfiles` (decisions survive a model swap) |
+| TER-RTE-005 | TER shall classify each task by complexity, ambiguity, risk, repository scope and validation needs, and record the evidence for each class. | `TestClassification`, `TestGroundedClassification`, `test_cli_route_prints_classes_and_decisions` |
+| TER-RTE-002 | When the model router escalates a request, the model router shall append one route.escalated event holding the triggering signal, the source role, the target role, the latency and the token usage. | `TestEscalation` |
+| TER-RTE-003 | If no detector signal with evidence supports escalation, then TER shall keep the current execution profile. | `TestKeepTheProfile` |
+| TER-DET-011 | When a session records a model escalation after a completed model call, TER shall report the escalation as waiting waste unless the escalated call adds evidence that the earlier call did not. | `tests/unit/test_ter4_unearned_escalation.py` |
+
+Test classes without a file are in `tests/unit/test_ter4_routing.py`.
+
+### Routing profiles are data
+
+A routing profile (`ter.routing_profile/1`, one JSON file each under
+`ter/data/routing_profiles/`) names **roles** and what each means, a
+provider and a model id; which role each kind of task starts on
+(`read_only`, `validate`, `change`); which role each role escalates to; and
+`escalate_on`, the detectors whose confident findings may move a task. It
+carries a mandatory `source` note, like the price book (ADR 0003). The
+`RoutingProfiles` port (`JsonRoutingProfiles`, fake `InMemoryRoutingProfiles`)
+serves them; `--profiles DIR` reads another directory. A profile that maps a
+task kind or an escalation to a role it does not define, or escalates in a
+cycle, is refused.
+
+| Profile | explore | implement | review | escalate |
+|---|---|---|---|---|
+| `default` | small hosted | mid hosted | mid hosted | large hosted |
+| `local-fast` | small local | small local | small local | local coder |
+| `local-code` | local coder | local coder | mid hosted | mid hosted |
+| `frontier-standard` | mid hosted | mid hosted | mid hosted | large hosted |
+| `frontier-deep` | mid hosted | large hosted | large hosted | (none) |
+
+Hosted model ids are price book entries, so every hosted role can be priced
+(`test_every_hosted_role_is_priced`). Everything TER decides names roles;
+swapping the models behind them changes no decision and no event text.
+
+### Task classes (TER-RTE-005)
+
+A task is a prompt and the steps up to the next prompt (steps before the
+first prompt form a task with no prompt). Each task gets a kind and five
+classes, each with the events it rests on and its published rule
+(`CLASSIFICATION_RULES`). All rules are structural; none reads a token count
+(`test_classes_never_depend_on_token_counts`).
+
+| Dimension | Classes | Rule |
+|---|---|---|
+| kind | read_only, validate, change | edits or writes make a change; otherwise any check makes it validate |
+| complexity | low, medium, high | distinct files edited: 0-1 low, 2-3 medium, 4+ high; one level higher when the task's checks fail with 2 or more distinct failure signatures |
+| ambiguity | low, medium, high | low when the prompt names a file (path or file name; with `--repo`, a repository file, module or distinctive symbol: the change surface's `named` seeds); medium when it names none but refines or acknowledges the earlier intent, or asks no question; high when it names no file and asks a question, or there is no prompt |
+| risk | low, medium, high | high for a build, dependency or CI file, a destructive shell command (`rm -r`, `git reset --hard`, forced push, `drop table`), and with `--repo` an unrelated edit, a broken architecture contract, or an edited file 3 or more repository files import; medium for any other non-test source edit; low otherwise |
+| repository scope | none, file, directory, repository | the files edited (or, with no edit, read or searched), as repository paths with `--repo`: one file, one directory, several directories |
+| validation needs | none, check, tests | nothing edited; only documentation or configuration (a lint or build check); source edited (tests), citing with `--repo` the change surface's test modules |
+
+### The router (TER-RTE-002, TER-RTE-003)
+
+`ter.domain.routing.route_session` starts each task on the role its profile
+gives its kind. It escalates the task, once, to the role the profile names
+above that one when a **signal** supports it: a confident finding (0.70 or
+more) of a detector in `escalate_on` that cites an event of the task. The
+first such finding in session order is the trigger. Without one the task
+keeps its role and the decision says so; an uncertain finding, a finding of
+another detector, a finding of another task, or a role with nothing above it
+never escalates.
+
+Each escalation yields exactly one `route.escalated` event (actor `system`,
+id from the session, the task's prompt and the finding, so re-running gives
+the same id; its `parent_id` is the triggering step). The events are
+numbered after the session's own events. The text holds the record:
+
+```text
+escalated implement -> escalate on rework_cycle (finding=rework_cycle:… latency_ms=4000 input=1200 output=300 cache_read=0 cache_write=0)
+```
+
+The latency and token usage are what the task had spent on the source role
+when the signal fired: the cost an escalation has to earn back (issue #39).
+They travel in the text (`RouteEscalation.parse` reads them back) rather than
+in the event's `usage`, because usage fields are summed as spend and these
+tokens are already counted on the calls they summarise.
+
+### Escalation without new evidence (TER-DET-011)
+
+`route.escalated` is a lifecycle kind (counted, never scored) and, like
+`route.failover`, a Lean step at the Respond stage: the session waited on it.
+The `unearned_escalation` detector (waiting) reads two kinds of escalation:
+
+- a `route.escalated` step;
+- a re-attempt: the first response after an `attempt.started` served by
+  another model (`usage.model`) than the response before it. A routing
+  harness such as GARE records attempts this way. A failover inside an
+  attempt is left to `failed_route`, and two roles of one attempt on
+  different models are not an escalation.
+
+It counts only after a completed model call: a response of the same task
+before the escalation. The escalated call **adds evidence** when, before the
+next prompt or the next escalation, the session gains something no step
+before the escalation held: a file read or searched that was not read
+before, a check result (command, outcome and failure signature) not seen
+before, or another tool output whose fingerprint is new. An edit's own
+result is not evidence, and response text is not compared. With no new
+evidence the escalation marker and the escalated response are waiting waste:
+0.80 for a recorded `route.escalated` with an escalated response; 0.60
+(uncertain) for a re-attempt on another model, because a harness's
+verification results are not steps and the change may be lateral; 0.50
+(uncertain) when no escalated response was recorded. The countermeasure asks
+the routing profile to escalate only on evidence and to hand the stronger
+model new evidence; the follow-up measure is the count of such findings.
+
+The three GARE fixtures hold no escalation (every attempt ran on one model),
+so the detector is verified on synthetic sessions; P030 needs no real data,
+while P147, P149 and P150 stay partial until issue #39 records real
+escalations, their outcome change, cost and latency.
+
+### Where the routing code lives
+
+| Layer | Module |
+|---|---|
+| domain | `ter/domain/routing.py`: `RoutingProfile`, `ModelBinding`, `TaskKind`, `classify_tasks`, `TaskClassification`, `ClassEvidence`, `CLASSIFICATION_RULES`, `route_session`, `RouteDecision`, `RoutingPlan`, `RouteEscalation`; `ter/domain/lean/detectors.py`: `UnearnedEscalation` |
+| ports | `ter/ports/driven.py`: `RoutingProfiles` |
+| driven adapters | `ter/adapters/driven/routing_profiles.py`: `JsonRoutingProfiles`; data `ter/data/routing_profiles/*.json`; fake `InMemoryRoutingProfiles` |
+| application | `ter/application/route.py`: `RouteSession` |
+| driving | `python -m ter route` (`cli.py`, `route_report.py`) |
+
+Limits: the router reads a recorded session after the fact, so its
+escalations are what *should* have happened, not what did; decisions are not
+yet shown in the A3 (P146 partial); and the recommendation is not delivered
+to a live session before L4 (P138, TER-INT-005).
 
 ## Known limits
 
