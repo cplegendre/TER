@@ -38,8 +38,11 @@ from ter.adapters.driven.claude_code.redaction import RedactionPolicy, Redactor
 from ter.adapters.driven.in_memory import FixedClock, InMemoryEventLog
 from ter.adapters.driven.tokenizers import RegexTokenizer
 from ter.adapters.driving.claude_hooks import (
+    INTERNAL_HELPER,
+    HookStatus,
     derive,
     handle_hook,
+    is_internal_helper,
     record_payload,
     run_hook,
     translate,
@@ -452,6 +455,45 @@ class TestHookCheck:
         assert dict(session.source_events)["task.completed"] == 1
         assert session.stops[0].matched
         assert "subagent.completed" in " ".join(session.notes)
+
+    @pytest.mark.req("TER-OBS-012")
+    def test_a_tool_call_after_the_last_record_is_not_yet_written(
+        self, tmp_path: Path
+    ) -> None:
+        # The check ran inside the live session: the call running it fired
+        # its hooks after the last record the transcript held (5.4 s).
+        transcript = Transcript()
+        full_turn(transcript)
+        path = transcript.write(transcript_file(tmp_path))
+        recorder = Recorder(tmp_path / "rec")
+        record_full_turn(recorder, transcript_path=str(path))
+        late = {"tool_input": {"command": "ter hooks check"}}
+        recorder.record("pre_tool_use_read", 9, tool_use_id="toolu_late", **late)
+        recorder.record("post_tool_use_read", 9.5, tool_use_id="toolu_late", **late)
+        # Boundary: a call the transcript never recorded although it had
+        # records after it (5.4 s) is still a miss.
+        recorder.record("pre_tool_use_read", 5.2, tool_use_id="toolu_lost", **late)
+
+        check = run_check(tmp_path)
+        [session] = check.sessions
+        by_kind = {c.kind: c for c in session.correlation}
+        request, completion = by_kind["tool.requested"], by_kind["tool.completed"]
+        late_request = tool_event_id(SESSION, "toolu_late", EventKind.TOOL_REQUESTED)
+        assert request.pending == (late_request,)
+        assert completion.pending == (
+            tool_event_id(SESSION, "toolu_late", EventKind.TOOL_COMPLETED),
+        )
+        assert request.unmatched == (
+            tool_event_id(SESSION, "toolu_lost", EventKind.TOOL_REQUESTED),
+        )
+        assert dict(request.reasons) == {Reason.NO_COUNTERPART: 1}
+        assert completion.unmatched == () and not completion.reasons
+        # Not yet written is outside the share: 4 matched of 5.
+        assert (session.matched, session.total) == (4, 5)
+        kind = check.to_dict()["by_session"][0]["by_kind"]["tool.requested"]
+        assert kind["not_yet_written"] == 1
+        assert kind["not_yet_written_ids"] == [late_request]
+        assert f"1 × {Reason.NOT_YET_WRITTEN} (not counted)" in format_hook_check(check)
 
     def test_payload_field_names_are_reported_never_values(
         self, tmp_path: Path
@@ -1200,17 +1242,21 @@ class TestSubagentRule:
 REAL_CHECK = FIXTURES / "real-check-2026-10-09.md"
 
 
-@pytest.mark.req("TER-OBS-005", "TER-OBS-012")
+@pytest.mark.req("TER-OBS-005", "TER-OBS-007", "TER-OBS-012", "TER-OBS-013")
 def test_the_real_hooks_check_summary_records_every_stop_matched() -> None:
-    """The real evidence for TER-OBS-005: 10 of 10 real Stop payloads matched.
+    """The real evidence for TER-OBS-005 and TER-OBS-007: every real Stop
+    payload matched on all three runs (10, 11, then 15), and in the third run
+    the first real Agent-tool subagent matched too.
 
-    The summary is hand-copied from the owner's report; this test keeps its
-    arithmetic honest and its content free of anything the report omits.
+    The summary is hand-copied from the owner's reports; this test keeps its
+    arithmetic honest and its content free of anything the reports omit.
     """
     text = REAL_CHECK.read_text(encoding="utf-8")
+    first, rest = text.split("## Second run")
+    second, third = rest.split("## Third run")
     rows = {
         match[0]: (int(match[1]), int(match[2]))
-        for match in re.findall(r"^\| `([a-z.]+)` \| (\d+) \| (\d+) \|", text, re.M)
+        for match in re.findall(r"^\| `([a-z.]+)` \| (\d+) \| (\d+) \|", first, re.M)
     }
     assert rows == {
         "intent.stated": (11, 0),
@@ -1222,7 +1268,220 @@ def test_the_real_hooks_check_summary_records_every_stop_matched() -> None:
     matched = sum(m for m, _ in rows.values())
     total = sum(m + u for m, u in rows.values())
     assert (matched, total) == (87, 94)
-    assert f"{matched} of {total} hook events ({matched / total:.1%})" in text
-    assert "10 of 10 real Stop payloads" in text
-    # Content-free: no event id (16+ hex digits), path or session id.
-    assert not re.search(r"[0-9a-f]{16}|[A-Za-z]:\\|/home/|/Users/", text)
+    assert f"{matched} of {total} hook events ({matched / total:.1%})" in first
+    assert "10 of 10 real Stop payloads" in first
+
+    # The second run, per session: every prompt, tool and stop matched.
+    cells = r"^\| `([a-z.]+)` \| (\d+) \| (\d+) \| (\d+) \| (\d+) \|"
+    per_session = {
+        match[0]: tuple(int(n) for n in match[1:])
+        for match in re.findall(cells, second, re.M)
+    }
+    assert per_session == {
+        "intent.stated": (9, 3, 12, 0),
+        "tool.requested": (31, 6, 37, 0),
+        "tool.completed": (29, 6, 35, 0),
+        "task.completed": (8, 3, 11, 0),
+    }
+    for remote, other, both, missed in per_session.values():
+        assert remote + other == both and missed == 0
+    total = sum(row[2] for row in per_session.values())
+    assert total == 95
+    assert f"{total} of {total} prompt, tool and stop events (100.0%)" in second
+    assert f"{total} of {total} hook events matched, with 9 internal" in second
+    assert "The 9 SubagentStop payloads (7 in the Remote Control session" in second
+    assert "11 of 11 real Stop payloads" in second
+
+    # The third run: one Agent-tool subagent matched; 10 internal helpers and
+    # one tool call most likely not yet written missed.
+    rows3 = {
+        match[0]: tuple(int(n) for n in match[1:])
+        for match in re.findall(cells, third, re.M)
+    }
+    assert rows3 == {
+        "intent.stated": (13, 3, 16, 0),
+        "tool.requested": (39, 6, 45, 1),
+        "tool.completed": (36, 6, 42, 1),
+        "task.completed": (12, 3, 15, 0),
+        "subagent.completed": (1, 0, 1, 10),
+    }
+    for remote, other, both, _ in rows3.values():
+        assert remote + other == both
+    matched3 = sum(row[2] for row in rows3.values())
+    missed3 = sum(row[3] for row in rows3.values())
+    assert (matched3, missed3) == (119, 12)
+    assert f"| **Total** | | | **{matched3}** | **{missed3}** |" in third
+    helpers = 10
+    assert f"The {helpers} other SubagentStops (8 in the Remote Control" in third
+    counted = matched3 + missed3 - helpers
+    assert f"{matched3} of {counted} hook events matched, with {helpers}" in third
+    assert "15 of 15 real Stop payloads" in third
+    # Content-free: no event or session id (8+ hex digits) and no path.
+    assert not re.search(r"[0-9a-f]{8}|[A-Za-z]:\\|/home/|/Users/", text)
+
+
+# --- internal helper agents (the 9 Oct 2026 re-run) ---------------------------
+
+
+def helper_stop(tmp_path: Path, agent: str, **fields: Any) -> dict[str, Any]:
+    """A SubagentStop as Claude Code 2.1 on Windows sends it: ``agent_type``
+    and ``agent_transcript_path`` beside ``agent_id``."""
+    return fixture("subagent_stop") | {
+        "agent_id": agent,
+        "agent_type": "",
+        "agent_transcript_path": str(subagent_file(tmp_path, agent)),
+        **fields,
+    }
+
+
+@pytest.mark.req("TER-OBS-013")
+class TestInternalHelperAgents:
+    def test_a_typed_agent_with_its_file_keeps_its_event(self, tmp_path: Path) -> None:
+        subagent_run(tmp_path)
+        payload = helper_stop(tmp_path, AGENT, agent_type="general-purpose")
+        translation = derive(payload, at(15))
+        assert translation.status is HookStatus.RECORDED
+        [event] = translation.events
+        assert event.id == subagent_event_id(SESSION, AGENT) == subagent_stop_id(AGENT)
+
+    def test_an_untyped_stop_without_its_file_is_an_internal_helper(
+        self, tmp_path: Path
+    ) -> None:
+        payload = helper_stop(tmp_path, AGENT)
+        translation = derive(payload, at(15))
+        assert translation.status is HookStatus.INTERNAL
+        assert translation.events == () and translation.reason == INTERNAL_HELPER
+        # A missing agent_type, or a blank one, is untyped too.
+        del payload["agent_type"]
+        assert derive(payload, at(15)).status is HookStatus.INTERNAL
+        payload["agent_type"] = "  "
+        assert derive(payload, at(15)).status is HookStatus.INTERNAL
+
+    def test_the_live_hook_records_the_payload_but_applies_nothing(
+        self, tmp_path: Path
+    ) -> None:
+        def ingest() -> InMemoryEventLog:
+            raise AssertionError("an internal helper reaches no event log")
+
+        out = io.StringIO()
+        result = run_hook(
+            io.StringIO(json.dumps(helper_stop(tmp_path, AGENT))),
+            out,
+            ingest,
+            clock=FixedClock(at(15)),
+            record_to=tmp_path / "rec",
+        )
+        assert result.status is HookStatus.INTERNAL and result.appended == 0
+        assert result.recorded_to is not None and result.recorded_to.is_file()
+        assert out.getvalue().strip() == "{}"
+
+    def test_an_untyped_stop_whose_file_exists_keeps_its_event(
+        self, tmp_path: Path
+    ) -> None:
+        # Boundary: untyped alone is not enough; the file decides.
+        subagent_run(tmp_path, agent_type=None)
+        translation = derive(helper_stop(tmp_path, AGENT), at(15))
+        assert translation.status is HookStatus.RECORDED
+        assert [e.id for e in translation.events] == [subagent_stop_id(AGENT)]
+
+    def test_a_typed_agent_without_its_file_keeps_its_event(
+        self, tmp_path: Path
+    ) -> None:
+        payload = helper_stop(tmp_path, AGENT, agent_type="Explore")
+        translation = derive(payload, at(15))
+        assert translation.status is HookStatus.RECORDED
+        assert [e.id for e in translation.events] == [subagent_stop_id(AGENT)]
+
+    def test_without_agent_transcript_path_the_stop_is_as_before(self) -> None:
+        for payload in (
+            fixture("subagent_stop") | {"agent_id": AGENT, "agent_type": ""},
+            fixture("subagent_stop") | {"agent_id": AGENT, "agent_transcript_path": ""},
+        ):
+            translation = derive(payload, at(15))
+            assert translation.status is HookStatus.RECORDED
+            assert [e.id for e in translation.events] == [subagent_stop_id(AGENT)]
+
+    def test_a_failing_stat_fails_open_and_keeps_the_event(
+        self, tmp_path: Path
+    ) -> None:
+        def broken(_path: str) -> bool:
+            raise PermissionError("denied")
+
+        translation = derive(helper_stop(tmp_path, AGENT), at(15), exists=broken)
+        assert translation.status is HookStatus.RECORDED
+        # Pure translation does no IO: without the caller's answer, no helper.
+        assert translate(helper_stop(tmp_path, AGENT)).status is HookStatus.RECORDED
+        assert not is_internal_helper(helper_stop(tmp_path, AGENT), False)
+        assert is_internal_helper(helper_stop(tmp_path, AGENT), True)
+
+    def test_the_hooks_check_reports_helpers_apart_from_the_match(
+        self, tmp_path: Path
+    ) -> None:
+        transcript = Transcript()
+        parent_with_agent(transcript)
+        transcript.write(transcript_file(tmp_path))
+        subagent_run(tmp_path)
+        missing = "0123456789abcdef0"
+        recorder = Recorder(tmp_path / "rec")
+        # Typed with its file: matched.
+        recorder.record(
+            "subagent_stop",
+            14.1,
+            agent_id=AGENT,
+            agent_type="general-purpose",
+            agent_transcript_path=str(subagent_file(tmp_path, AGENT)),
+        )
+        # Untyped, file never written: internal helpers, twice.
+        for n, agent in enumerate(("feedfeedfeedfeed0", "feedfeedfeedfeed1")):
+            recorder.record(
+                "subagent_stop",
+                15 + n,
+                agent_id=agent,
+                agent_type="",
+                agent_transcript_path=str(subagent_file(tmp_path, agent)),
+            )
+        # Typed, file missing: a real miss.
+        recorder.record(
+            "subagent_stop",
+            17,
+            agent_id=missing,
+            agent_type="Explore",
+            agent_transcript_path=str(subagent_file(tmp_path, missing)),
+        )
+
+        check = run_check(tmp_path)
+        [session] = check.sessions
+        assert session.internal_helpers == check.internal_helpers == 2
+        [sub] = session.correlation
+        assert sub.matched == (subagent_event_id(SESSION, AGENT),)
+        assert sub.unmatched == (subagent_event_id(SESSION, missing),)
+        assert dict(sub.reasons) == {Reason.SUBAGENT_NO_TRANSCRIPT: 1}
+        assert (session.matched, session.total) == (1, 2)
+        assert check.to_dict()["internal_helpers"] == 2
+        assert check.to_dict()["by_session"][0]["internal_helpers"] == 2
+        text = format_hook_check(check)
+        assert "internal helper SubagentStops               2" in text
+        assert "2 SubagentStop(s) with no agent_type and no transcript file" in text
+        assert "no transcript by design" in text
+
+    def test_the_check_finds_helper_files_copied_beside_the_transcript(
+        self, tmp_path: Path
+    ) -> None:
+        # Recorded on Windows, checked elsewhere: the payload's path does not
+        # exist here, but the subagent's file was copied with the transcript.
+        transcript = Transcript()
+        parent_with_agent(transcript)
+        transcript.write(transcript_file(tmp_path))
+        subagent_run(tmp_path, agent_type=None)
+        windows = f"C:\\Users\\dev\\.claude\\projects\\p\\{SESSION}\\subagents"
+        Recorder(tmp_path / "rec").record(
+            "subagent_stop",
+            15,
+            agent_id=AGENT,
+            agent_type="",
+            agent_transcript_path=f"{windows}\\agent-{AGENT}.jsonl",
+        )
+        [session] = run_check(tmp_path).sessions
+        assert session.internal_helpers == 0
+        [sub] = session.correlation
+        assert sub.matched == (subagent_event_id(SESSION, AGENT),)

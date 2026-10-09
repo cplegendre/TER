@@ -1804,40 +1804,45 @@ points:
       Correlate hook events with persisted session records.
     level: L1
     kind: capability
-    status: partial
+    status: done
+    # Real hooks check of 9 Oct 2026, third run (Claude Code, Windows): every
+    # hook event whose record the transcript held matched, including the
+    # first Agent-tool subagent (tests/fixtures/hooks/real-check-2026-10-09.md).
     issue: 35
     real_data: true
+    real_data_verified: true
     definition_of_done:
       - >-
         Every hook event correlates with its JSONL record by event id,
         including prompts.
-    rules: [TER-OBS-007, TER-OBS-005, TER-OBS-010, TER-OBS-012]
+    rules: [TER-OBS-007, TER-OBS-005, TER-OBS-010, TER-OBS-012, TER-OBS-013]
     verification:
       - 'test: tests/unit/test_ter4_hook_lifecycle.py::test_recordings_replay_to_the_same_events'
       - 'test: tests/unit/test_ter4_hook_check.py::TestHookCheck'
       - 'test: tests/unit/test_ter4_hook_check.py::TestSharedIdRules'
       - 'test: tests/unit/test_ter4_hook_check.py::TestSubagentRule'
       - 'test: tests/unit/test_ter4_hook_check.py::test_the_real_hooks_check_summary_records_every_stop_matched'
-      - 'planned: one re-run of `python -m ter hooks check` on real sessions with subagents (TER-OBS-007, issue #35); the 9 Oct 2026 run matched prompts, tools and stops in full (87 of 94), missing only subagent.completed'
+      - 'test: tests/unit/test_ter4_hook_check.py::TestInternalHelperAgents'
 
   - id: P118
     text: >-
       Assign stable identities across static and live observations.
     level: L1
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Static and live observation of the same record produce the same
         event id.
-    rules: [TER-OBS-007, TER-SRC-004, TER-OBS-012]
+    rules: [TER-OBS-007, TER-SRC-004, TER-OBS-012, TER-OBS-013]
     verification:
       - 'test: tests/golden/test_event_stream_snapshot.py::test_event_stream_matches_golden_snapshot'
       - 'test: tests/unit/test_ter4_hook_check.py::TestStopRule'
       - 'test: tests/unit/test_ter4_hook_check.py::TestSharedIdRules::test_a_live_turn_matches_its_transcript_by_id_in_full'
       - 'test: tests/unit/test_ter4_hook_check.py::TestSubagentRule::test_a_finished_subagent_gets_the_subagent_stop_hooks_id'
       - 'test: tests/unit/test_ter4_hook_check.py::TestSubagentRule::test_a_redacted_session_derives_the_same_subagent_ids'
-      - 'planned: hook and transcript observation of one subagent share an event id on real recordings (TER-OBS-007, issue #35); every other kind matched on the 9 Oct 2026 run'
+      - 'test: tests/unit/test_ter4_hook_check.py::TestInternalHelperAgents'
+      - 'test: tests/unit/test_ter4_hook_check.py::test_the_real_hooks_check_summary_records_every_stop_matched'
 
   - id: P119
     text: >-

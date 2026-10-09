@@ -127,10 +127,16 @@ requirements:
       matched every prompt, tool request, tool completion and stop (87 of 94
       events); the 7 misses were SubagentStop events, which the session
       source did not derive then. It now derives subagent.completed from
-      each finished subagent's transcript with the hook's id, so this waits
-      on one re-run of the hooks check on sessions with subagents
-      (tests/fixtures/hooks/real-check-2026-10-09.md).
-    status: planned
+      each finished subagent's transcript with the hook's id. A second run
+      the same day matched every prompt, tool and stop again (95 of 95); its
+      9 SubagentStops were all Claude Code internal helper agents with no
+      transcript (TER-OBS-013), not Agent-tool subagents. A third run, after
+      a session spawned an Agent-tool subagent, matched that subagent's
+      SubagentStop too, with every prompt, stop and tool event whose record
+      the transcript held (119 events); the rest were 10 internal helper
+      stops and one tool call most likely not yet written to the transcript
+      when the check read it (tests/fixtures/hooks/real-check-2026-10-09.md).
+    status: verified
 
   - id: TER-OBS-008
     pattern: state-driven
@@ -198,6 +204,30 @@ requirements:
       check` replays them through the live hook path and reports counts, ids,
       reasons and field names, so the result can be shared when the
       recordings cannot.
+    status: verified
+
+  - id: TER-OBS-013
+    pattern: event-driven
+    text: >-
+      When a SubagentStop hook payload has no agent_type and names a
+      subagent session file that does not exist, the hook adapter shall emit
+      no event for the payload.
+    level: L1
+    port: EventIngest
+    source_points: [117, 118]
+    rationale: >-
+      The second real hooks check of 9 October 2026 (Claude Code on Windows)
+      found 9 SubagentStop payloads with an empty agent_type whose
+      agent_transcript_path was never written, 7 of them from a session that
+      started no Agent-tool subagent: Claude Code internal helper agents
+      (10 such stops in the third run, beside one real subagent that
+      matched). No
+      transcript can ever record them, so a live subagent.completed would
+      differ from the batch read of the same session and count a handoff
+      the agent never made. The raw payload is still recorded, and the hooks
+      check counts such payloads on their own line ("no transcript by
+      design"), outside the TER-OBS-007 share; a typed agent whose file is
+      missing stays a real miss.
     status: verified
 
   - id: TER-SRC-005

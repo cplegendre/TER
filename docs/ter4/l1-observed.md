@@ -17,7 +17,9 @@ the batch report of the same events are the same value.
 | TER-OBS-008 | While the maturity ceiling is L1 Observed, the hook adapter shall return an empty hook response to Claude Code. | `tests/unit/test_ter4_claude_hooks.py::TestRunHook`, `tests/unit/test_ter4_cli.py` (hook commands print `{}`) |
 | TER-SRC-005 | The session source shall account for at least 99 percent of records in every session of the reference corpus, each record either mapped to events or classified as a documented metadata type. | `tests/unit/test_ter4_corpus_coverage.py` against `tests/fixtures/corpus/reference-record-types.json` (real sessions; see [corpus.md](corpus.md#coverage-of-real-record-types)) |
 | TER-SRC-024 | When a Claude Code session records a prompt that the developer queued while the agent was working, the session source shall emit one intent.stated event for it in file order. | `tests/unit/test_ter4_corpus_coverage.py` |
+| TER-OBS-007 | The hook adapter shall assign each hook event the event id that the session source assigns to the same record. | `tests/unit/test_ter4_hook_check.py` (`TestSharedIdRules`, `TestStopRule`, `TestSubagentRule`, and the real run summary `tests/fixtures/hooks/real-check-2026-10-09.md`) |
 | TER-OBS-012 | When the hook check runs on recorded hook payloads and transcripts, TER shall report for each session the share of hook events whose id matches a session-source event, without reproducing payload content. | `tests/unit/test_ter4_hook_check.py` |
+| TER-OBS-013 | When a SubagentStop hook payload has no agent_type and names a subagent session file that does not exist, the hook adapter shall emit no event for the payload. (The hooks check counts such payloads apart from the id match.) | `tests/unit/test_ter4_hook_check.py::TestInternalHelperAgents` |
 
 ## Flow
 
@@ -82,7 +84,7 @@ registered in two settings files) counts once.
 | `PreToolUse` | `tool.requested` (assistant), tool kind from the Claude Code tool map, arguments = `tool_input` | session + `tool_use_id` + kind (else hash of tool name and input) |
 | `PostToolUse` | the same `tool.requested` as PreToolUse, plus `tool.completed` (tool), text = `tool_response` | as above; the completion's `parent_id` is the request |
 | `Stop` | `task.completed` (system), empty text | session + the turn it closes (last main-chain `assistant` uuid in `transcript_path` written by the receive time); session + second received when the transcript cannot be read |
-| `SubagentStop` | `subagent.completed` (system) in the parent session, text = `agent_type` when sent | session + `agent_id` when sent (the shared rule below), else the exact receive time (parallel subagents can finish within one second) |
+| `SubagentStop` | `subagent.completed` (system) in the parent session, text = `agent_type` when sent; none for an internal helper agent (status `internal`, below) | session + `agent_id` when sent (the shared rule below), else the exact receive time (parallel subagents can finish within one second) |
 | `SessionStart`, `SessionEnd`, `SubagentStart`, `PreCompact`, `Notification` | none (status `lifecycle`) | n/a |
 | anything else, or a malformed payload | none (status `ignored`, with a reason) | n/a |
 
@@ -91,6 +93,23 @@ PostToolUse. Its request carries the id PreToolUse would produce, so where
 both hooks run the second copy is discarded by TER-OBS-004.
 
 Hook events carry `sequence = 0`; order is the order of the log.
+
+**Internal helper agents (TER-OBS-013).** Claude Code fires `SubagentStop`
+for its own helper agents too. Real payloads (Windows, 9 October 2026) had
+an empty `agent_type` and an `agent_transcript_path` that was never written,
+and came even from a session that started no Agent-tool subagent. A
+SubagentStop with a missing or blank `agent_type` whose
+`agent_transcript_path` names a file that does not exist yields no event
+(status `internal`, reason fixed); `--record` still saves the raw payload.
+Why no event: no transcript will ever hold the helper, so the session source
+cannot derive its `subagent.completed`, and emitting one live would break
+batch == incremental for that session; it would also count a handoff the
+agent never made for any analysis that reads subagent stops. The `stat`
+happens in `claude_hooks.entry.derive` (translation stays pure) and fails
+open: a stat that raises keeps the event. A typed agent whose file is
+missing keeps its event (the hooks check reports it as a real miss), and a
+payload without `agent_transcript_path` is handled as before. Ids of real
+subagents do not change.
 
 ### Shared id rules (TER-OBS-007)
 
@@ -157,7 +176,8 @@ reports as such:
 * a prompt whose record is not in the transcript when the hook runs, or a
   payload without `transcript_path`, keeps the text-and-second key above;
 * a Stop with no readable turn is keyed by the second it arrived;
-* a SubagentStop without `agent_id` is keyed by the exact time it arrived.
+* a SubagentStop without `agent_id` is keyed by the exact time it arrived;
+* an internal helper agent's SubagentStop yields no event at all (above).
 
 Claude Code 2.1 transcripts suggested the prompt's record might be written
 only after the `UserPromptSubmit` hooks return. The real recordings of
@@ -190,8 +210,29 @@ events: every `intent.stated` (11), `tool.requested` (34), `tool.completed`
 (32) and `task.completed` (10 of 10 Stop payloads). TER-OBS-005 is
 therefore verified. The 7 misses were all `subagent.completed`, which the
 session source did not derive then; it now does (above), so TER-OBS-007
-stays `planned` and awaits one re-run of the hooks check on that machine
-with sessions that use subagents.
+stays `planned`.
+
+A second run the same day, after that change, matched every
+`intent.stated` (12), `tool.requested` (37), `tool.completed` (35) and
+`task.completed` (11 of 11). Its 9 SubagentStops all missed with "no
+subagent transcript", and none was an Agent-tool subagent: all had an empty
+`agent_type` and a transcript file that was never written (internal helper
+agents). The check now counts those on their own line ("no transcript by
+design") outside the TER-OBS-007 share, and keeps "no subagent transcript"
+for a typed agent whose file is missing.
+
+A third run (at `cdd2cb9`, from inside the still-running Remote Control
+session, which had by then spawned one Agent-tool subagent) matched that
+subagent's SubagentStop (`agent_type` `general-purpose`) to the session
+source's `subagent.completed`, and every `intent.stated` (16),
+`task.completed` (15 of 15), 45 `tool.requested` and 42 `tool.completed`.
+The misses were 10 internal helper stops and one tool request and its
+completion with "no transcript event for the same record", most likely the
+call running the check, whose records were not in the transcript yet. The
+check now reports a hook event that has no counterpart and was received
+after the transcript's last record as "not yet written to the transcript",
+outside the share. Every hook event whose record the transcript held got
+the transcript's id, so TER-OBS-007 is verified on real data.
 
 ## Observables (`StreamReport`)
 

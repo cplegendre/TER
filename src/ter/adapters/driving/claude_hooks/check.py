@@ -14,7 +14,14 @@ source, and reports how the two event streams correlate:
 * for every SubagentStop, whether the session source derived the same
   ``subagent.completed`` from the subagent's transcript
   (``<session>/subagents/agent-<agent_id>.jsonl``), and if not, whether the
-  payload had no ``agent_id``, the file is missing or it shows no finish.
+  payload had no ``agent_id``, the file is missing or it shows no finish;
+* SubagentStops of Claude Code internal helper agents (no ``agent_type`` and
+  no transcript file, :func:`.translate.is_internal_helper`) apart: they
+  yield no event, so they are counted separately ("no transcript by design")
+  and are not in the TER-OBS-007 denominator;
+* hook events received after the transcript's last record (the check ran
+  inside the live session, before the transcript held them) apart, as "not
+  yet written to the transcript", also outside the denominator.
 
 The report is content-free: counts, event ids (hashes), hook names, payload
 field names and fixed reason strings. It never holds a prompt, a tool input
@@ -24,6 +31,7 @@ or a tool response, so it can be shared when the recordings cannot.
 from __future__ import annotations
 
 import hashlib
+import re
 from collections import Counter
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
@@ -33,12 +41,13 @@ from typing import Any
 
 from ....domain.events import Event, EventKind, SessionTrace
 from ...claude_code_ids import subagent_event_id
-from ...claude_code_subagents import subagent_transcripts
+from ...claude_code_subagents import AGENT_PREFIX, subagent_transcripts
 from ...claude_code_turns import (
     PromptRecord,
     last_turn,
     prompt_record,
     read_records,
+    record_time,
     stop_records,
 )
 from .entry import derive
@@ -87,6 +96,10 @@ class Reason:
     )
     PROMPT_UNKEYED = "hook prompt keyed by its text: no transcript record holds it"
     NO_COUNTERPART = "no transcript event for the same record"
+    NOT_YET_WRITTEN = (
+        "not yet written to the transcript: the hook arrived after its last"
+        " record (checked while the session was still running)"
+    )
     STOP_UNKEYED = (
         "hook stop keyed by receive time: no transcript turn was found at the stop"
     )
@@ -111,6 +124,10 @@ class KindCorrelation:
     reasons: tuple[tuple[str, int], ...]
     #: Transcript events of this kind with no hook event of the same id.
     source_only: int
+    #: Hook events that arrived after the transcript's last record: the
+    #: transcript was read before it could hold them. Not a miss, and not
+    #: in :attr:`total`.
+    pending: tuple[str, ...] = ()
 
     @property
     def total(self) -> int:
@@ -152,6 +169,9 @@ class SessionCheck:
     correlation: tuple[KindCorrelation, ...]
     stops: tuple[StopCheck, ...]
     notes: tuple[str, ...] = ()
+    #: SubagentStops of internal helper agents: no event, no transcript by
+    #: design, so outside the id match.
+    internal_helpers: int = 0
 
     @property
     def matched(self) -> int:
@@ -184,6 +204,10 @@ class HookCheck:
     def share(self) -> float | None:
         return self.matched / self.total if self.total else None
 
+    @property
+    def internal_helpers(self) -> int:
+        return sum(s.internal_helpers for s in self.sessions)
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "schema": "ter.hook-check/1",
@@ -191,6 +215,7 @@ class HookCheck:
             "hook_events": self.total,
             "matched": self.matched,
             "share": self.share,
+            "internal_helpers": self.internal_helpers,
             "stops": {
                 "total": sum(len(s.stops) for s in self.sessions),
                 "matched": sum(
@@ -245,6 +270,8 @@ class _Transcript:
     stop_turns: set[str] = field(default_factory=set)
     #: Agent ids with a transcript under ``<session>/subagents``.
     agents: set[str] = field(default_factory=set)
+    #: The latest record timestamp in the transcript.
+    last_written: datetime | None = None
 
 
 def _check_session(
@@ -276,7 +303,18 @@ def _check_session(
         # hook would have read them.
         return prompt_record(transcript.records, prompt, before)
 
+    def exists(path: str) -> bool:
+        # The file the payload names, or its copy beside the transcript the
+        # check reads (recordings checked on another machine).
+        name = re.split(r"[\\/]", path)[-1]
+        agent = name[len(AGENT_PREFIX) : -len(".jsonl")]
+        if name.startswith(AGENT_PREFIX) and name.endswith(".jsonl"):
+            if agent in transcript.agents:
+                return True
+        return Path(path).is_file()
+
     hook_counts: Counter[str] = Counter()
+    internal = 0
     fields: dict[str, set[str]] = {}
     ignored: Counter[str] = Counter()
     hook_events: dict[str, Event] = {}
@@ -289,7 +327,9 @@ def _check_session(
         if payload is None:
             ignored["invalid JSON"] += 1
             continue
-        translation = derive(payload, recording.received_at, turns, prompts)
+        translation = derive(payload, recording.received_at, turns, prompts, exists)
+        if translation.status is HookStatus.INTERNAL:
+            internal += 1
         if translation.status is HookStatus.IGNORED:
             ignored[translation.reason or "ignored"] += 1
         for event in translation.events:
@@ -331,6 +371,7 @@ def _check_session(
         correlation=correlation,
         stops=tuple(_stops(stop_payloads, source, transcript)),
         notes=tuple(notes),
+        internal_helpers=internal,
     )
 
 
@@ -364,6 +405,9 @@ def _load(
         trace=trace,
         records=records,
         stop_turns=stop_turns,
+        last_written=max(
+            (t for t in map(record_time, records) if t is not None), default=None
+        ),
         agents=set(subagent_transcripts(path)),
     )
 
@@ -381,18 +425,24 @@ def _correlate(
     prompts = {_digest(e.text) for e in theirs}
     matched: list[str] = []
     unmatched: list[str] = []
+    pending: list[str] = []
     reasons: Counter[str] = Counter()
     for event in mine:
         if event.id in ids:
             matched.append(event.id)
             continue
+        reason = _reason(event, transcript, theirs, calls, prompts)
+        if reason == Reason.NOT_YET_WRITTEN:
+            pending.append(event.id)
+            continue
         unmatched.append(event.id)
-        reasons[_reason(event, transcript, theirs, calls, prompts)] += 1
+        reasons[reason] += 1
     hook_ids = {e.id for e in mine}
     return KindCorrelation(
         kind=kind.value,
         matched=tuple(matched),
         unmatched=tuple(unmatched),
+        pending=tuple(pending),
         reasons=tuple(sorted(reasons.items())),
         source_only=sum(1 for e in theirs if e.id not in hook_ids),
     )
@@ -433,6 +483,15 @@ def _reason(
             return Reason.PROMPT_WRITTEN_LATER if same_text else Reason.PROMPT_UNKEYED
         if same_text:
             return Reason.SAME_PROMPT
+    if (
+        event.timestamp is not None
+        and transcript.last_written is not None
+        and event.timestamp > transcript.last_written
+    ):
+        # The hook ran after the last record the transcript held when read:
+        # its own record (typically the tool call running the check) is not
+        # there yet.
+        return Reason.NOT_YET_WRITTEN
     return Reason.NO_COUNTERPART
 
 
@@ -505,10 +564,13 @@ def _session_dict(check: SessionCheck) -> dict[str, Any]:
         "matched": check.matched,
         "total": check.total,
         "share": check.share,
+        "internal_helpers": check.internal_helpers,
         "by_kind": {
             c.kind: {
                 "matched": len(c.matched),
                 "unmatched": len(c.unmatched),
+                "not_yet_written": len(c.pending),
+                "not_yet_written_ids": list(c.pending),
                 "source_only": c.source_only,
                 "reasons": dict(c.reasons),
                 "matched_ids": list(c.matched),
@@ -549,6 +611,9 @@ def format_hook_check(check: HookCheck) -> str:
         f"{_share(check.matched, check.total)}   (TER-OBS-007)",
         f"  Stop payloads matching the transcript stop  "
         f"{_share(sum(s.matched for s in stops), len(stops))}   (TER-OBS-005)",
+        f"  internal helper SubagentStops               "
+        f"{check.internal_helpers:,}   (no transcript by design;"
+        " not in TER-OBS-007)",
     ]
     for session in check.sessions:
         lines += [
@@ -562,6 +627,12 @@ def format_hook_check(check: HookCheck) -> str:
             f"  source events  {_pairs(session.source_events)}",
             f"  id matches     {_share(session.matched, session.total)}",
         ]
+        if session.internal_helpers:
+            lines.append(
+                f"  internal       {session.internal_helpers:,} SubagentStop(s)"
+                " with no agent_type and no transcript file: internal helper"
+                " agents, no transcript by design (no event; not matched)"
+            )
         for c in session.correlation:
             lines.append(
                 f"    {c.kind:<19} {len(c.matched):,}/{c.total:,} matched"
@@ -569,6 +640,10 @@ def format_hook_check(check: HookCheck) -> str:
             )
             for reason, n in c.reasons:
                 lines.append(f"      {n:,} × {reason}")
+            if c.pending:
+                lines.append(
+                    f"      {len(c.pending):,} × {Reason.NOT_YET_WRITTEN} (not counted)"
+                )
             if c.unmatched:
                 shown = ", ".join(c.unmatched[:TEXT_IDS])
                 more = len(c.unmatched) - TEXT_IDS

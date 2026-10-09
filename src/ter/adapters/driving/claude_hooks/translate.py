@@ -13,7 +13,8 @@ Hook                      Events
 ``PostToolUse``           ``tool.requested`` and ``tool.completed`` (tool)
 ``Stop``                  ``task.completed`` (system), keyed by the turn it closes
 ``SubagentStop``          ``subagent.completed`` (system), in the parent session,
-                          keyed by ``agent_id``
+                          keyed by ``agent_id``; none for an internal helper
+                          agent (status ``internal``, see below)
 ``SessionStart`` etc.     none: lifecycle only, reported as ``lifecycle``
 anything else             none: reported as ``ignored`` with a reason
 ========================  ==================================================
@@ -28,6 +29,19 @@ Ids follow the rules the session source uses for the same records
 the caller found it (``prompt_at``); a stop by the turn it closes (``turn``);
 a subagent stop by the payload's ``agent_id``.
 Without those keys each falls back to a hook-only key that cannot correlate.
+
+Internal helper agents. Claude Code also fires ``SubagentStop`` for helper
+agents of its own (observed on Windows, 9 October 2026: an empty
+``agent_type``, an ``agent_transcript_path`` that is never written, and stops
+in sessions that started no Agent-tool subagent). Such a stop is not a
+handoff the developer's agent made and no transcript will ever record it, so
+it yields no event: status ``internal``. An event would put a
+``subagent.completed`` in the live stream that the session source can never
+derive (live would no longer equal the batch read of the same session) and
+would count a handoff the agent never made. The caller says whether the
+transcript file is missing (``agent_transcript_missing``); this module does
+no IO. A typed agent whose file is missing still gets its event: that is a
+real miss, and the hooks check reports it as one.
 """
 
 from __future__ import annotations
@@ -61,8 +75,10 @@ from ...claude_code_turns import PromptRecord
 
 __all__ = [
     "LIFECYCLE_HOOKS",
+    "INTERNAL_HELPER",
     "HookStatus",
     "HookTranslation",
+    "is_internal_helper",
     "translate",
 ]
 
@@ -86,6 +102,14 @@ class HookStatus(StrEnum):
     RECORDED = "recorded"
     LIFECYCLE = "lifecycle"
     IGNORED = "ignored"
+    #: A SubagentStop of a Claude Code internal helper agent: no event.
+    INTERNAL = "internal"
+
+
+#: The reason an internal helper agent's SubagentStop carries.
+INTERNAL_HELPER = (
+    "internal helper agent: no agent_type and no transcript file (by design)"
+)
 
 
 @dataclass(frozen=True)
@@ -109,6 +133,7 @@ def translate(
     received_at: datetime | None = None,
     turn: str | None = None,
     prompt_at: PromptRecord | None = None,
+    agent_transcript_missing: bool = False,
 ) -> HookTranslation:
     """Translate one decoded hook payload. Never raises for bad input.
 
@@ -118,8 +143,11 @@ def translate(
     stop (TER-OBS-005). ``prompt_at`` is, for a UserPromptSubmit, the
     transcript record holding the prompt
     (:func:`ter.adapters.claude_code_turns.transcript_prompt`); with it the
-    ``intent.stated`` id is the session source's (TER-OBS-007). Other hooks
-    ignore both.
+    ``intent.stated`` id is the session source's (TER-OBS-007).
+    ``agent_transcript_missing`` is, for a SubagentStop, whether the file its
+    ``agent_transcript_path`` names does not exist; with an empty
+    ``agent_type`` that makes it an internal helper agent
+    (:func:`is_internal_helper`). Other hooks ignore all three.
     """
     if not isinstance(payload, Mapping):
         return HookTranslation(
@@ -135,6 +163,10 @@ def translate(
         )
     if name in LIFECYCLE_HOOKS:
         return HookTranslation(HookStatus.LIFECYCLE, name, session_id)
+    if name == "SubagentStop" and is_internal_helper(payload, agent_transcript_missing):
+        return HookTranslation(
+            HookStatus.INTERNAL, name, session_id, reason=INTERNAL_HELPER
+        )
     try:
         events = _translate_content(
             name, session_id, payload, received_at, turn, prompt_at
@@ -146,6 +178,23 @@ def translate(
             HookStatus.IGNORED, name, session_id, reason=f"unsupported hook {name}"
         )
     return HookTranslation(HookStatus.RECORDED, name, session_id, events)
+
+
+def is_internal_helper(
+    payload: Mapping[str, Any], agent_transcript_missing: bool
+) -> bool:
+    """Whether a SubagentStop payload is a Claude Code internal helper's.
+
+    All three must hold: the payload has no ``agent_type`` (missing, not a
+    string, or blank), it names an ``agent_transcript_path``, and that file
+    does not exist (``agent_transcript_missing``, found by the caller). A
+    payload without ``agent_transcript_path`` (older releases) is never one.
+    """
+    agent_type = payload.get("agent_type")
+    if isinstance(agent_type, str) and agent_type.strip():
+        return False
+    path = payload.get("agent_transcript_path")
+    return isinstance(path, str) and bool(path) and agent_transcript_missing
 
 
 def _translate_content(

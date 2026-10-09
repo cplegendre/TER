@@ -20,12 +20,13 @@ from ....ports.driven import Clock
 from ....ports.driving import EventIngest
 from ...claude_code_turns import PromptRecord, transcript_prompt, transcript_turn
 from .record import record_payload
-from .translate import HookStatus, HookTranslation, translate
+from .translate import HookStatus, HookTranslation, is_internal_helper, translate
 
 __all__ = [
     "HookResult",
     "PromptLookup",
     "TurnLookup",
+    "TranscriptExists",
     "derive",
     "handle_hook",
     "run_hook",
@@ -36,6 +37,14 @@ TurnLookup = Callable[[str, datetime | None], str | None]
 #: Finds the record holding a prompt:
 #: ``(transcript_path, prompt, received_at) -> record``.
 PromptLookup = Callable[[str, str, datetime | None], PromptRecord | None]
+
+#: Whether a subagent transcript file exists: ``(agent_transcript_path) -> bool``.
+TranscriptExists = Callable[[str], bool]
+
+
+def _is_file(path: str) -> bool:
+    return Path(path).is_file()
+
 
 #: What the hook prints for Claude Code: an empty object changes nothing.
 HOOK_OUTPUT = "{}"
@@ -62,6 +71,7 @@ def derive(
     received_at: datetime | None,
     turns: TurnLookup | None = transcript_turn,
     prompts: PromptLookup | None = transcript_prompt,
+    exists: TranscriptExists | None = _is_file,
 ) -> HookTranslation:
     """The events the live hook derives from one decoded payload.
 
@@ -71,7 +81,26 @@ def derive(
     prompt, so the ``intent.stated`` id matches too (TER-OBS-007). The hook
     check replays recordings through this same function. A lookup that fails
     or finds nothing leaves the event keyed by the hook's own fallback.
+
+    For a SubagentStop with no ``agent_type``, ``exists`` stats the file its
+    ``agent_transcript_path`` names; a missing file marks a Claude Code
+    internal helper agent, which yields no event (see
+    :mod:`.translate`). A stat that fails counts as present, so the stop
+    keeps its event, as before.
     """
+    missing = False
+    if isinstance(payload, Mapping) and exists is not None:
+        agent_path = payload.get("agent_transcript_path")
+        if (
+            payload.get("hook_event_name") == "SubagentStop"
+            and isinstance(agent_path, str)
+            and agent_path
+            and is_internal_helper(payload, True)
+        ):
+            try:
+                missing = not exists(agent_path)
+            except Exception:  # noqa: BLE001 - a hook must fail open
+                missing = False
     turn: str | None = None
     prompt_at: PromptRecord | None = None
     name = payload.get("hook_event_name") if isinstance(payload, Mapping) else None
@@ -86,7 +115,13 @@ def derive(
                     prompt_at = prompts(path, prompt, received_at)
         except Exception:  # noqa: BLE001 - a hook must fail open
             turn, prompt_at = None, None
-    return translate(payload, received_at=received_at, turn=turn, prompt_at=prompt_at)
+    return translate(
+        payload,
+        received_at=received_at,
+        turn=turn,
+        prompt_at=prompt_at,
+        agent_transcript_missing=missing,
+    )
 
 
 def handle_hook(
@@ -96,13 +131,16 @@ def handle_hook(
     clock: Clock | None = None,
     turns: TurnLookup | None = transcript_turn,
     prompts: PromptLookup | None = transcript_prompt,
+    exists: TranscriptExists | None = _is_file,
 ) -> HookResult:
     """Translate one hook payload and apply its events to ``ingest``.
 
     ``ingest`` may be a factory, called only when there are events to apply,
     so lifecycle hooks and bad input never touch the event log. ``turns``
     finds the turn a Stop closes and ``prompts`` the record holding a prompt
-    (see :func:`derive`).
+    (see :func:`derive`); ``exists`` stats a SubagentStop's transcript file.
+    An internal helper agent's SubagentStop returns status ``internal``
+    without touching ``ingest``.
     """
     try:
         payload: object = raw if isinstance(raw, Mapping) else json.loads(raw)
@@ -110,7 +148,7 @@ def handle_hook(
         return HookResult(HookStatus.IGNORED, reason=f"invalid JSON: {error}")
     try:
         received_at: datetime | None = clock.now() if clock is not None else None
-        translation = derive(payload, received_at, turns, prompts)
+        translation = derive(payload, received_at, turns, prompts, exists)
         if translation.status is not HookStatus.RECORDED:
             return _unrecorded(translation)
         sink = ingest if isinstance(ingest, EventIngest) else ingest()

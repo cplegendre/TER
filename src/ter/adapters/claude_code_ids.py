@@ -31,6 +31,10 @@ Fallbacks, each of which can no longer correlate across the two sides:
   ``agent_id`` keeps its receive-time key. ``python -m ter hooks check`` reports
   these as unkeyed.
 
+A ``SubagentStop`` of a Claude Code internal helper agent (no ``agent_type``,
+transcript file never written) gets no id at all: the hook adapter emits no
+event for it (TER-OBS-013).
+
 Prompts are never keyed by their text on the transcript side: redaction
 changes text, and a redacted session must give the same ids as the raw one
 (TER-SRC-022). Record uuids and tool_use_ids survive redaction.

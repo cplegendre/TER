@@ -110,16 +110,31 @@ ter a3 ~/.claude/projects/my-project/SESSION_ID.jsonl --html a3.html
 | `PreToolUse` | `tool.requested`, with the tool kind and input |
 | `PostToolUse` | `tool.requested` (same id as PreToolUse) and `tool.completed` with the tool response |
 | `Stop` | `task.completed`: the agent finished a turn, keyed by the turn it closes |
-| `SubagentStop` | `subagent.completed`, in the parent session, keyed by the payload's `agent_id` |
+| `SubagentStop` | `subagent.completed`, in the parent session, keyed by the payload's `agent_id`; none for a Claude Code internal helper agent (below) |
 | `SessionStart`, `SessionEnd`, `SubagentStart`, `PreCompact`, `Notification` | recognised as lifecycle; no event |
 | anything else, or a malformed payload | ignored, with a reason |
 
 Lifecycle events are counted (class `lifecycle`) but never scored, and they
 add no step to the Lean analysis. The Stop and SubagentStop mappings follow
 Claude Code's documented payloads. On real recordings (9 October 2026, two
-Claude Code sessions on Windows) every Stop matched the transcript's stop;
-SubagentStop is the one kind still to be checked: see
+Claude Code sessions on Windows) every Stop matched the transcript's stop,
+and so did the SubagentStop of a real Agent-tool subagent: see
 [Checking recordings against transcripts](#checking-recordings-against-transcripts).
+
+**Internal helper agents.** Claude Code also fires `SubagentStop` for helper
+agents of its own, not only for subagents your agent starts with the Agent
+tool. On real recordings these had an empty `agent_type` and an
+`agent_transcript_path` (`<session>/subagents/agent-<agent_id>.jsonl`) that
+was never written, and they came even from a session that started no
+subagent. A SubagentStop with no `agent_type` whose `agent_transcript_path`
+does not exist is therefore treated as an internal helper: the raw payload
+is still recorded (`--record`), but no event is emitted (status
+`internal`). An event would count a handoff your agent never made, and the
+session source can never derive one from a transcript that does not exist,
+so the live stream would no longer equal the batch read of the session. The
+check is one `stat`; if it fails the stop keeps its event (fail open). A
+stop with an `agent_type`, or whose file exists, or with no
+`agent_transcript_path` at all (older releases) is recorded as before.
 
 ### Recording real payloads
 
@@ -167,9 +182,15 @@ argument. For each session the check:
    prompt whose record was not in the transcript when the hook ran, a tool
    call without `tool_use_id`, a stop with no turn, a SubagentStop without
    `agent_id`); same `tool_use_id` (or same prompt text) but a different id
-   rule; for a SubagentStop, no subagent transcript for its `agent_id` or one
-   that shows no finish; the session source derives no events of that kind;
-   or no counterpart at all;
+   rule; for a SubagentStop, no subagent transcript for its `agent_id` (a
+   real miss: a typed agent whose file is missing) or one that shows no
+   finish; the session source derives no events of that kind; or no
+   counterpart at all. Internal helper SubagentStops yield no event, so they
+   are not in this share: they are counted on their own line ("no transcript
+   by design"). Nor is a hook event received after the transcript's last
+   record, with no counterpart: when the check runs inside a live session,
+   the call running it has fired its hooks before the transcript holds its
+   records, so it is reported as "not yet written to the transcript";
 5. reports, for each Stop payload, whether its `task.completed` id equals the
    id the session source derives for the same stop (TER-OBS-005).
 
@@ -177,6 +198,7 @@ argument. For each session the check:
 TER hooks check · 1 session(s)
   hook events matching a transcript event id  3/4 (75.0%)   (TER-OBS-007)
   Stop payloads matching the transcript stop  1/1 (100.0%)   (TER-OBS-005)
+  internal helper SubagentStops               0   (no transcript by design; not in TER-OBS-007)
 
 session 3f0c9a1e-hook-demo
   transcript     transcripts-dir
@@ -237,8 +259,25 @@ sessions; summary in `tests/fixtures/hooks/real-check-2026-10-09.md`): 87 of
 request (34), tool completion (32) and stop (10 of 10, TER-OBS-005) matched,
 so each prompt's transcript record was found written by the time its
 `UserPromptSubmit` payload arrived. The 7 misses were all SubagentStop events, from before the session
-source derived `subagent.completed`. TER-OBS-007 awaits one re-run of the
-hooks check on the same machine with sessions that use subagents.
+source derived `subagent.completed`.
+
+A second run the same day, after the session source derived
+`subagent.completed`, matched every prompt (12), tool request (37), tool
+completion (35) and stop (11 of 11). Its 9 SubagentStops all missed, and on
+inspection none was an Agent-tool subagent: every one had an empty
+`agent_type` and a transcript file that was never written (internal helper
+agents, above), 7 of them in a Remote Control session that started no
+subagent. The check now reports these apart.
+
+A third run, after the Remote Control session had spawned one Agent-tool
+subagent (`agent_type` `general-purpose`), matched that subagent's
+SubagentStop to the `subagent.completed` the session source derives from
+its transcript, along with every prompt (16), stop (15 of 15) and 45 tool
+requests and 42 completions. The misses were 10 internal helper stops and
+one tool call (request and completion) with no transcript record, most
+likely the call that was running the check from inside that session. With
+those set apart, every hook event whose record the transcript held got the
+transcript's id: TER-OBS-007 is verified on real data.
 
 ### Guarantees
 
