@@ -22,13 +22,15 @@ from typing import NewType
 #:
 #: 0.2 added the lifecycle kinds ``task.completed`` and ``subagent.completed``;
 #: 0.3 the routing kinds ``route.selected``, ``route.failover``,
-#: ``attempt.started``, ``verification.completed`` and ``outcome.recorded``.
-EVENT_SCHEMA_VERSION = "ter.event/0.3"
+#: ``attempt.started``, ``verification.completed`` and ``outcome.recorded``;
+#: 0.4 the usage fields ``model`` and ``cache_reported``, so a session can be
+#: priced from its events alone (TER-ANL-040, TER-ANL-041, TER-EXP-001).
+EVENT_SCHEMA_VERSION = "ter.event/0.4"
 
 #: Every contract version this build reads. Each is a subset of the current
 #: one, so a record written under any of them decodes unchanged.
 READABLE_SCHEMA_VERSIONS = frozenset(
-    {"ter.event/0.1", "ter.event/0.2", EVENT_SCHEMA_VERSION}
+    {"ter.event/0.1", "ter.event/0.2", "ter.event/0.3", EVENT_SCHEMA_VERSION}
 )
 
 #: Stable, content-derived identity of an event. The same source record always
@@ -112,12 +114,21 @@ class ToolKind(StrEnum):
 
 @dataclass(frozen=True)
 class TokenUsage:
-    """Provider-reported token usage for one model turn."""
+    """Provider-reported token usage for one model turn.
+
+    ``model`` is the model the provider says served the turn (None when the
+    source does not say). ``cache_reported`` is False when the source's usage
+    record had no cache fields, so the cache figures are 0 because nothing
+    was reported, not because nothing was cached; costs built on such a turn
+    are estimates (TER-ANL-041).
+    """
 
     input_tokens: int = 0
     output_tokens: int = 0
     cache_creation_tokens: int = 0
     cache_read_tokens: int = 0
+    model: str | None = None
+    cache_reported: bool = True
 
     @property
     def total(self) -> int:

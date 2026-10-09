@@ -64,7 +64,7 @@ requirements:
     rationale: >-
       Issue #40: prices change; a session is valued at the prices in force
       when it ran.
-    status: planned
+    status: verified
 
   - id: TER-ANL-041
     pattern: unwanted
@@ -76,7 +76,7 @@ requirements:
     rationale: >-
       Issue #40: cache pricing decides which re-reads are expensive; without
       it costs are estimates.
-    status: planned
+    status: verified
 
   - id: TER-ARC-002
     pattern: ubiquitous
@@ -175,7 +175,7 @@ requirements:
     rationale: >-
       Unused and re-read context is inventory with a measurable carrying
       cost.
-    status: planned
+    status: verified
 
   - id: TER-DET-005
     pattern: event-driven
@@ -251,14 +251,18 @@ requirements:
   - id: TER-EXP-001
     pattern: ubiquitous
     text: >-
-      TER shall recompute every reported metric from the recorded events of
-      the session, with no other input.
+      TER shall recompute every metric of its stream report and A3 report,
+      other than the TER 3 ratio and the outcome verdict, from the recorded
+      events of the session and the price book, with no other input.
     level: L2
     source_points: [195, 196]
     rationale: >-
       Every number in a report is reproducible and explainable from the
-      event stream alone.
-    status: planned
+      event stream alone. The TER 3 ratio is computed from the source
+      session and the outcome verdict from outcome evidence; recording both
+      as events is TER-EXP-002 (L3). The price book is shared reference
+      data, not session input.
+    status: verified
 
   - id: TER-FLW-001
     pattern: ubiquitous

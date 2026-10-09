@@ -89,7 +89,7 @@ Prices are data (ADR 0003): each entry in the price book names a model, its
 aliases, an `effective_from` date, four per-million-token USD rates and a
 source note.
 
-## The event contract (`ter.event/0.3`)
+## The event contract (`ter.event/0.4`)
 
 Every harness adapter translates its native records into one neutral stream.
 Detectors reason about tool *kinds*, so supporting another agent means a new
@@ -119,7 +119,9 @@ trace carries `no-cache-tokens`, and reports state it beside their token
 figures.
 
 Versions: 0.1 had the five kinds above; 0.2 added the two hook lifecycle
-kinds; 0.3 the five routing kinds.
+kinds; 0.3 the five routing kinds; 0.4 the usage fields `model` and
+`cache_reported`, so a session is priced from its events alone (a GARE turn
+reports no cache fields, so its cost is marked estimated).
 Each version only adds, so the event log reads records of every earlier
 version unchanged (TER-OBS-011).
 Each event has a stable id derived from its source record, full provenance

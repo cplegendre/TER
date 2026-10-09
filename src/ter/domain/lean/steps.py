@@ -239,6 +239,7 @@ class StepLog:
             timestamp=event.timestamp,
             seconds=0.0,
             subject=subject or (event.text[:80] if event.actor is Actor.USER else ""),
+            usage=event.usage,
         )
 
     def _unkeyed_request(self) -> _Open | None:

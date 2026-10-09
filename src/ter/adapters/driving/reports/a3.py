@@ -484,6 +484,7 @@ def _scorecard(report: A3Report) -> str:
             f"uncertain {fmt_pct(sc.activity_share('uncertain'), 0)}",
         )
     )
+    tiles.extend(_inventory_tiles(report))
     if sc.ter is not None:
         tiles.append(("TER", f"{sc.ter.value:.2f}", sc.ter.method))
     else:
@@ -515,6 +516,51 @@ def _scorecard(report: A3Report) -> str:
         f"hides the others. Findings below confidence {UNCERTAIN_BELOW:.2f} are counted as "
         "uncertain, never as waste.</p>"
     )
+
+
+def _usd(value: float) -> str:
+    return f"${value:,.4f}" if value < 1 else f"${value:,.2f}"
+
+
+def _inventory_tiles(report: A3Report) -> list[tuple[str, str, str]]:
+    """Context inventory (TER-DET-004) and, when priced, the session cost."""
+    inv = report.inventory
+    cost = report.cost
+    tiles: list[tuple[str, str, str]] = []
+    if inv is not None:
+        sub = (
+            f"tokens: {inv.unused_tokens:,} read and never used (uncertain), "
+            f"{inv.reread_tokens:,} read again ({inv.unchanged_reread_tokens:,} unchanged)"
+        )
+        if cost is not None:
+            sub += (
+                f"; carrying cost {_usd(cost.unused_context_usd)} unused, "
+                f"{_usd(cost.reread_context_usd)} re-read"
+            )
+        tiles.append(
+            (
+                "Context inventory",
+                fmt_tokens(inv.unused_tokens + inv.reread_tokens),
+                sub,
+            )
+        )
+    if cost is not None:
+        on = cost.priced_on.isoformat() if cost.priced_on else "latest prices"
+        sub = f"{cost.turns} model turn(s) at prices in force on {on}"
+        if cost.unpriced_turns:
+            sub += (
+                f"; {cost.unpriced_turns} unpriced ({', '.join(cost.unpriced_models)})"
+            )
+        if cost.estimated:
+            sub += "; estimated: " + ", ".join(cost.estimate_reasons)
+        tiles.append(
+            (
+                "Session cost" + (" (estimated)" if cost.estimated else ""),
+                _usd(cost.usd),
+                sub,
+            )
+        )
+    return tiles
 
 
 def _outcome(report: A3Report) -> str:

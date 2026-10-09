@@ -82,6 +82,36 @@ timings, addresses and timestamps removed.
 | TER | The TER 3 ratio with the method used (`--ter offline` pins the deterministic tokenizer and embedder; `--ter model` uses sentence-transformers). |
 | Findings | Confident, uncertain and risk counts; iteration and rework cycles. |
 | Composite | Only with its composition: the unweighted mean of flow efficiency (tokens), flow efficiency (time) and TER, whichever exist. |
+| Context inventory | Tokens of retrieved context no later event used (the reads `unused_context` names, always uncertain, so inventory and never avoidable) and of context read more than once (every read of a path after its first; those after an edit of the file are marked `changed`), each with the model turns that carried it (TER-DET-004). |
+| Session cost | With a price book, every model turn and the context inventory priced at the prices in force on the session date, marked estimated with reasons (TER-ANL-040, TER-ANL-041). |
+
+### Context inventory and dated cost
+
+`ter.domain.lean.inventory.context_inventory` measures the inventory and
+`ter.domain.costing.price_session` prices it; the A3 JSON carries both as
+`context_inventory` and `cost`, and the page shows them as scorecard tiles.
+
+- **Session date.** The UTC date of the first timestamped event. Every turn
+  is priced with the price book entry whose `effective_from` is the latest not
+  after it (an entry dated exactly on the session date applies; a session
+  dated before a model's first entry leaves that turn unpriced). Prices are
+  data in `src/ter/data/price_book.json`, read through the `PriceBook` port
+  (ADR 0003).
+- **Model.** `ter.event/0.4` records the model on each turn's usage
+  (`TokenUsage.model`), so a session is priced from its events alone. A turn
+  whose model has no price is counted in `unpriced_turns` and named in
+  `unpriced_models`, never guessed.
+- **Carrying cost.** A context item is paid for on the first model turn after
+  it entered (cache-write rate when that turn shows cache activity, else the
+  input rate) and on every later turn (cache-read rate, else input). This
+  assumes the context is kept until the session ends; compaction is not seen.
+  Context tokens are the tokenizer's count of the tool output, not provider
+  figures.
+- **Estimated.** `cost.estimated` is true, with `estimate_reasons`, when a
+  turn's usage had no cache fields (`TokenUsage.cache_reported` is false:
+  GARE exports, or Claude Code records without them), when the session has no
+  usage, no timestamp (the latest prices are used), or unpriced turns.
+  Reconciling these figures with real billing is issue #40.
 
 ## Evidence graph
 
@@ -132,7 +162,9 @@ existed map as follows.
 | TER-LEAN-012 | TER-DET-006 | verified | same, `iteration_converges` golden session |
 | TER-LEAN-013, 014, 015 | TER-DET-005 | verified | `test_ter4_lean_detectors.py` |
 | TER-LEAN-016 | TER-DET-007 | planned: fragmented edits are over-processing here; unused traversals as motion need L3 | `test_ter4_lean_detectors.py` |
-| TER-LEAN-017 | TER-DET-004 | planned: unused context is listed, its token cost is not yet asserted | `test_ter4_lean_detectors.py` |
+| TER-LEAN-017 | TER-DET-004 | verified: unused and re-read context in tokens | `test_ter4_lean_detectors.py`, `tests/unit/test_ter4_context_cost.py` |
+| (new) | TER-ANL-040, TER-ANL-041 | verified: priced at the session date's prices; no cache fields → estimated | `tests/unit/test_ter4_context_cost.py`, `tests/contract/test_price_book.py` |
+| (new) | TER-EXP-001 | verified: stream report and A3 (cost included) recomputed from a reloaded event log; the TER 3 ratio and outcome verdict are TER-EXP-002 (L3, planned) | `tests/equivalence/test_recompute_from_events.py` |
 | TER-LEAN-018 | TER-DET-008 | planned: model escalations need routing | `test_ter4_lean_detectors.py` |
 | TER-LEAN-019 | TER-LEN-004 | planned: `excessive_planning` can count a planning step that adds a decision | `test_ter4_lean_detectors.py` |
 | TER-LEAN-030 | TER-GRF-002, TER-GRF-003 (TER-GRF-001 planned: decision nodes) | verified | `test_ter4_lean_analysis.py`, properties, `test_ter4_a3.py` |
@@ -145,7 +177,7 @@ existed map as follows.
 | TER-A3-004 | TER-LEN-008 | verified | `tests/golden/test_lean_snapshots.py` |
 | TER-A3-006 | TER-ANL-012 | verified | `tests/contract/test_ter_scorer.py`, golden TER check |
 
-Tests that only partly prove a planned requirement (TER-DET-004, 007, 008,
+Tests that only partly prove a planned requirement (TER-DET-007, 008,
 TER-LEN-004, TER-ARC-002, TER-SCR-001, TER-GRF-001) do not cite it, so the
 trace gate never suggests promoting it early; `requirements/points.yaml`
 names those tests as the points' verification instead.
@@ -186,8 +218,8 @@ catalogue review differ, the status here has been aligned with it.
 | 30 | partial | Handoff wait time lands in the *waiting* flow state; model escalation needs routing (L5) | Waiting is attributed only through findings |
 | 31–33 | later | WIP of hypotheses and failures needs L3/L4 signals | Add as a `Scorecard` dimension, not a detector |
 | 34 | done | `unused_context` (inventory) | As 21 |
-| 35 | partial | Unused context tokens are costed as context tokens; dated pricing and real data wait on issue #40 | Context and generated tokens are reported separately |
-| 36 | partial | Re-read output tokens costed in `repeated_exploration`; dated pricing and real data wait on issue #40 | As 35 |
+| 35 | partial | Unused context in tokens and carrying cost at the session date's prices, estimated without cache fields; reconciliation with real billing waits on issue #40 | Context and generated tokens are reported separately |
+| 36 | partial | Re-read context in tokens and carrying cost, as 35; real data waits on issue #40 | As 35 |
 | 37 | done | `ValidationCycle.verdict` iteration vs rework; iteration is *recovering* flow | A converging cycle is never waste |
 | 38 | partial | Exploration is never waste unless repeated or unused (uncertain); intent-aware judgement is L3 | Default for exploration is necessary NVA |
 | 39 | done | Validation re-run without edits and identical output | Re-validation after edits is never duplicated validation |
@@ -214,8 +246,8 @@ catalogue review differ, the status here has been aligned with it.
 
 | Layer | Module |
 |---|---|
-| domain | `ter/domain/lean/`: `model.py`, `facts.py`, `steps.py`, `detectors.py`, `graph.py`, `analysis.py`, `countermeasures.py`, `a3.py`; `AnalysisEngine.explain()` and `explain_batch` in `ter/domain/stream.py` |
-| ports | `TerScorer` in `ter/ports/driven.py` |
+| domain | `ter/domain/lean/`: `model.py`, `facts.py`, `steps.py`, `detectors.py`, `graph.py`, `analysis.py`, `countermeasures.py`, `inventory.py`, `a3.py`; `ter/domain/costing.py`; `AnalysisEngine.explain()` and `explain_batch` in `ter/domain/stream.py` |
+| ports | `TerScorer` and `PriceBook` in `ter/ports/driven.py` |
 | application | `ExplainSession` in `ter/application/explain.py` |
 | driven adapters | `ter/adapters/driven/ter3/` (`Ter3Scorer`), `FixedTerScorer` fake |
 | driving adapters | `ter/adapters/driving/reports/a3.py`, `explain` and `a3` in `ter/adapters/driving/cli.py`; `ter a3` delegates from the TER 3 CLI |
@@ -225,6 +257,9 @@ catalogue review differ, the status here has been aligned with it.
 
 - Validation outcomes are read from output text; `ter.event` has no
   error flag. Unknown outcomes form no cycle.
+- Model names are matched to the price book exactly or by alias; a dated
+  model id the book does not list (such as `claude-opus-4-1-20250805`) is
+  unpriced until the book names it.
 - Detectors run when an explanation is requested, in time linear in the
   session; the per-event fold stays O(1) amortised.
 - Hook-recorded sessions carry no reasoning or responses, so detectors that

@@ -18,7 +18,13 @@ from ..domain.outcome import (
     judge,
 )
 from ..domain.stream import explain_batch
-from ..ports.driven import OutcomeSource, SessionSource, TerScorer, Tokenizer
+from ..ports.driven import (
+    OutcomeSource,
+    PriceBook,
+    SessionSource,
+    TerScorer,
+    Tokenizer,
+)
 
 __all__ = ["ExplainSession", "ExplainedSession"]
 
@@ -38,6 +44,9 @@ class ExplainSession:
     against the acceptance contract (default: every recorded check passes)
     after the analysis is complete, and shown beside it. The analysis never
     sees the verdict (point 5).
+
+    With a price book, the A3 also prices the session and its context
+    inventory at the prices in force on the session date (TER-ANL-040).
     """
 
     def __init__(
@@ -46,11 +55,13 @@ class ExplainSession:
         tokenizer: Tokenizer,
         scorer: TerScorer | None = None,
         outcomes: OutcomeSource | None = None,
+        prices: PriceBook | None = None,
     ) -> None:
         self._source = source
         self._tokenizer = tokenizer
         self._scorer = scorer
         self._outcomes = outcomes
+        self._prices = prices
 
     def __call__(
         self,
@@ -70,7 +81,9 @@ class ExplainSession:
         return ExplainedSession(
             trace,
             analysis,
-            build_a3(analysis, intents, verdict, trace.usage_limits),
+            build_a3(
+                analysis, intents, verdict, trace.usage_limits, prices=self._prices
+            ),
             verdict,
         )
 

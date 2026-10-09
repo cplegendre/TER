@@ -558,6 +558,7 @@ points:
     rules: [TER-DET-004]
     verification:
       - 'test: tests/unit/test_ter4_lean_detectors.py::TestUnusedContext'
+      - 'test: tests/unit/test_ter4_context_cost.py::TestContextInventory'
 
   - id: P035
     text: >-
@@ -572,8 +573,12 @@ points:
     rules: [TER-DET-004, TER-ANL-040, TER-ANL-041]
     verification:
       - 'test: tests/unit/test_ter4_lean_detectors.py::TestUnusedContext'
-      - 'planned: token cost of unused context (TER-DET-004, TER-ANL-040, TER-ANL-041)'
-      - 'planned: real-data verification in issue #40'
+      - 'test: tests/unit/test_ter4_context_cost.py::TestContextInventory'
+      - 'test: tests/unit/test_ter4_context_cost.py::TestInventoryCost'
+      - 'test: tests/unit/test_ter4_context_cost.py::TestDatedPricing'
+      - 'test: tests/unit/test_ter4_context_cost.py::TestEstimatedCosts'
+      - 'test: tests/contract/test_price_book.py::test_the_latest_entry_not_after_the_date_wins'
+      - 'planned: real-data verification in issue #40 (reconcile with real billing)'
 
   - id: P036
     text: >-
@@ -589,8 +594,11 @@ points:
     rules: [TER-DET-004, TER-ANL-040, TER-ANL-041]
     verification:
       - 'test: tests/unit/test_ter4_lean_detectors.py::TestRepeatedExploration::test_rereading_unchanged_file'
-      - 'planned: dated price book for context cost (TER-ANL-040, TER-ANL-041)'
-      - 'planned: real-data verification in issue #40'
+      - 'test: tests/unit/test_ter4_context_cost.py::TestContextInventory::test_reads_after_the_first_are_reread_tokens'
+      - 'test: tests/unit/test_ter4_context_cost.py::TestInventoryCost'
+      - 'test: tests/unit/test_ter4_context_cost.py::TestDatedPricing'
+      - 'test: tests/unit/test_ter4_context_cost.py::TestEstimatedCosts'
+      - 'planned: real-data verification in issue #40 (reconcile with real billing)'
 
   - id: P037
     text: >-
@@ -2907,11 +2915,12 @@ points:
       - >-
         Every reported metric can be recomputed from recorded events and
         evidence, shown by a recompute test.
-    rules: [TER-EXP-001, TER-LEN-008]
+    rules: [TER-EXP-001, TER-EXP-002, TER-LEN-008]
     verification:
       - 'test: tests/golden/test_ter3_characterisation.py'
       - 'test: tests/unit/test_ter4_lean_properties.py::test_explanation_is_deterministic'
-      - 'planned: TER-EXP-001 recompute test over the event store'
+      - 'test: tests/equivalence/test_recompute_from_events.py'
+      - 'planned: TER 3 ratio and outcome verdict recorded as events (TER-EXP-002, L3)'
 
   - id: P196
     text: >-
@@ -2928,14 +2937,15 @@ points:
       - >-
         The README and guides are tested: relative links resolve and every
         command they show exists.
-    rules: [TER-EXP-001, TER-REQ-005, TER-REQ-007, TER-REQ-008, TER-REQ-009, TER-REQ-010, TER-REQ-011, TER-REQ-012]
+    rules: [TER-EXP-001, TER-EXP-002, TER-REQ-005, TER-REQ-007, TER-REQ-008, TER-REQ-009, TER-REQ-010, TER-REQ-011, TER-REQ-012]
     verification:
       - 'ci: Vision points index is up to date'
       - 'test: tests/docs/test_docs.py::test_committed_points_index_matches_the_catalogue'
       - 'test: tests/docs/test_docs.py::test_relative_links_resolve'
       - 'test: tests/docs/test_docs.py::test_shell_examples_name_real_commands_and_options'
       - 'test: tests/requirements/test_point_origin.py'
-      - 'planned: TER-EXP-001 recompute test over the event store'
+      - 'test: tests/equivalence/test_recompute_from_events.py'
+      - 'planned: TER 3 ratio and outcome verdict recorded as events (TER-EXP-002, L3)'
 
   - id: P197
     text: >-

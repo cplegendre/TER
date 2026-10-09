@@ -41,14 +41,14 @@ class ClaudeCodeJsonlSource:
     def read(self, ref: str | Path) -> SessionTrace:
         path = Path(ref)
         session = load_session(path)
-        unrecognised = _scan_unrecognised(path)
+        unrecognised, usage_meta = _scan(path)
         source = path.name
 
         events: list[Event] = []
         requests: dict[str, ToolCall] = {}
         previous: EventId | None = None
         for message in session.messages:
-            usage = _usage(message.usage)
+            usage = _usage(message.usage, _meta(message, usage_meta))
             for index, block in enumerate(message.content_blocks):
                 kind, actor = _classify(message.role, block.block_type)
                 if kind is None or actor is None:
@@ -100,9 +100,18 @@ class ClaudeCodeJsonlSource:
         )
 
 
-def _scan_unrecognised(path: Path) -> tuple[UnrecognisedRecord, ...]:
-    """List records whose type carries no conversation content."""
+#: Usage facts the TER 3 loader drops, by source line: the model named on the
+#: record and whether its usage block carried any cache field.
+_UsageMeta = dict[int, tuple[str | None, bool]]
+
+_CACHE_KEYS = ("cache_creation_input_tokens", "cache_read_input_tokens")
+
+
+def _scan(path: Path) -> tuple[tuple[UnrecognisedRecord, ...], _UsageMeta]:
+    """List records whose type carries no conversation content, and read the
+    usage facts (model, cache fields present) of those that do."""
     found: list[UnrecognisedRecord] = []
+    meta: _UsageMeta = {}
     with open(path, encoding="utf-8") as handle:
         for line_number, line in enumerate(handle, 1):
             if not line.strip():
@@ -116,7 +125,28 @@ def _scan_unrecognised(path: Path) -> tuple[UnrecognisedRecord, ...]:
                 found.append(
                     UnrecognisedRecord(line_number, record_type or "<missing>")
                 )
-    return tuple(found)
+                continue
+            message = record.get("message")
+            if not isinstance(message, dict):
+                continue
+            usage = message.get("usage")
+            model = message.get("model")
+            meta[line_number] = (
+                model if isinstance(model, str) and model else None,
+                isinstance(usage, dict) and any(k in usage for k in _CACHE_KEYS),
+            )
+    return tuple(found), meta
+
+
+def _meta(message: Message, meta: _UsageMeta) -> tuple[str | None, bool]:
+    """The model and cache-field presence over a message's merged records."""
+    model: str | None = None
+    cache = False
+    for line in message.source_lines:
+        line_model, line_cache = meta.get(line, (None, False))
+        model = model or line_model
+        cache = cache or line_cache
+    return model, cache
 
 
 def _classify(role: str, block_type: str) -> tuple[EventKind | None, Actor | None]:
@@ -162,14 +192,19 @@ def _tool(block: ContentBlock, requests: dict[str, ToolCall]) -> ToolCall | None
     return None
 
 
-def _usage(usage: LegacyUsage | None) -> TokenUsage | None:
+def _usage(
+    usage: LegacyUsage | None, meta: tuple[str | None, bool]
+) -> TokenUsage | None:
     if usage is None:
         return None
+    model, cache_reported = meta
     return TokenUsage(
         input_tokens=usage.input_tokens,
         output_tokens=usage.output_tokens,
         cache_creation_tokens=usage.cache_creation_input_tokens,
         cache_read_tokens=usage.cache_read_input_tokens,
+        model=model,
+        cache_reported=cache_reported,
     )
 
 

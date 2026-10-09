@@ -16,9 +16,11 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+from ..costing import Prices, SessionCost, price_session
 from ..outcome import OutcomeVerdict, per_verified_outcome
 from .analysis import LeanAnalysis, apportion
 from .countermeasures import Countermeasure, FollowUp, build_countermeasures, follow_ups
+from .inventory import ContextInventory, context_inventory
 from .model import ActivityClass, Finding, FindingKind, LeanWaste
 
 __all__ = ["A3_SCHEMA", "A3Report", "ParetoBar", "build_a3"]
@@ -57,6 +59,11 @@ class A3Report:
     outcome: OutcomeVerdict | None = None
     #: What the session's source cannot report (``SessionTrace.usage_limits``).
     usage_limits: tuple[str, ...] = ()
+    #: Unused and re-read context, in tokens (TER-DET-004).
+    inventory: ContextInventory | None = None
+    #: The session and its inventory priced from a dated price book, when one
+    #: was supplied (TER-ANL-040, TER-ANL-041).
+    cost: SessionCost | None = None
 
     @property
     def tokens_per_verified_outcome(self) -> float | None:
@@ -91,6 +98,10 @@ class A3Report:
         }
         if self.usage_limits:
             out["usage_limits"] = list(self.usage_limits)
+        if self.inventory is not None:
+            out["context_inventory"] = self.inventory.as_dict()
+        if self.cost is not None:
+            out["cost"] = self.cost.as_dict()
         if self.outcome is not None:
             per = self.tokens_per_verified_outcome
             out["outcome"] = {
@@ -160,10 +171,13 @@ def build_a3(
     intents: Sequence[str] = (),
     outcome: OutcomeVerdict | None = None,
     usage_limits: Sequence[str] = (),
+    prices: Prices | None = None,
 ) -> A3Report:
     """Assemble the A3 from an analysis, the developer's prompts and, when
     known, the outcome verdict (shown beside the analysis, never read by it).
-    ``usage_limits`` are the source's, stated beside the figures they qualify."""
+    ``usage_limits`` are the source's, stated beside the figures they qualify.
+    With ``prices`` the session and its context inventory are priced at the
+    prices in force on the session date."""
     findings = analysis.findings
     ranked = sorted(
         findings,
@@ -175,6 +189,7 @@ def build_a3(
         ),
     )
     sc = analysis.scorecard
+    inventory = context_inventory(analysis.steps, findings)
     return A3Report(
         title=_title(intents),
         session_id=analysis.session_id,
@@ -193,4 +208,8 @@ def build_a3(
         ),
         outcome=outcome,
         usage_limits=tuple(usage_limits),
+        inventory=inventory,
+        cost=None
+        if prices is None
+        else price_session(analysis.steps, inventory, prices),
     )

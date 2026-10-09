@@ -78,8 +78,12 @@ def write_explain(tmp_path: Path, data: dict[str, Any]) -> Path:
 
 @pytest.mark.req("TER-EVT-001")
 def test_the_contract_defines_the_routing_kinds_as_unscored_lifecycle() -> None:
-    assert EVENT_SCHEMA_VERSION == "ter.event/0.3"
-    assert {"ter.event/0.1", "ter.event/0.2"} < READABLE_SCHEMA_VERSIONS
+    assert EVENT_SCHEMA_VERSION == "ter.event/0.4"  # 0.3 added the routing kinds
+    assert {
+        "ter.event/0.1",
+        "ter.event/0.2",
+        "ter.event/0.3",
+    } < READABLE_SCHEMA_VERSIONS
     assert [k.value for k in ROUTING] == [
         "route.selected",
         "route.failover",

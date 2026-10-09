@@ -419,6 +419,8 @@ def _usage_events(
         tokens = TokenUsage(
             input_tokens=_int(row.get("input_tokens")),
             output_tokens=_int(row.get("output_tokens")),
+            model=_model(row),
+            cache_reported=False,
         )
         failed = not row.get("success") and tokens.total == 0
         if failed:
@@ -455,8 +457,16 @@ def _task_events(explain: Mapping[str, Any]) -> Iterator[_Draft]:
             usage=TokenUsage(
                 input_tokens=_int(task.get("input_tokens")),
                 output_tokens=_int(task.get("output_tokens")),
+                model=_model(task),
+                cache_reported=False,
             ),
         )
+
+
+def _model(row: Mapping[str, Any]) -> str | None:
+    """The model a GARE row names; GARE reports no cache fields (no-cache-tokens)."""
+    model = row.get("model")
+    return str(model) if model else None
 
 
 def _errors(explain: Mapping[str, Any] | None) -> dict[tuple[str, str, str], str]:

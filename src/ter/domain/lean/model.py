@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
 
-from ..events import Actor, EventId, EventKind, ToolKind
+from ..events import Actor, EventId, EventKind, TokenUsage, ToolKind
 
 __all__ = [
     "STAGE_ORDER",
@@ -229,6 +229,9 @@ class Step:
     timestamp: datetime | None
     seconds: float
     subject: str
+    #: The provider's usage for the model turn this event opened, if any; what
+    #: a session is priced from (TER-ANL-040).
+    usage: TokenUsage | None = None
 
     @property
     def is_generated(self) -> bool:

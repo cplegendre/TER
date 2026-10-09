@@ -248,3 +248,17 @@ requirements:
     rationale: >-
       Explainable routing starts from an explained task classification.
     status: planned
+
+  - id: TER-EXP-002
+    pattern: ubiquitous
+    text: >-
+      TER shall record the TER 3 ratio and the outcome verdict of a session
+      as events of that session, so that every reported metric is recomputed
+      from the recorded events alone.
+    level: L3
+    source_points: [195, 196]
+    rationale: >-
+      Split from TER-EXP-001: at L2 the TER 3 ratio is computed from the
+      source session and the outcome verdict from outcome evidence beside
+      the analysis, so neither can yet be recomputed from the event log.
+    status: planned

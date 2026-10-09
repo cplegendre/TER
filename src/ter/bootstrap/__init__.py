@@ -133,6 +133,7 @@ def cli_services() -> CliServices:
         path: Path, tokenizer: str, ter: str, outcome: Path | None = None
     ) -> ExplainedSession:
         from ..adapters.driven.claude_code import ClaudeCodeJsonlSource
+        from ..adapters.driven.pricing import default_price_book
 
         source = session_source_for(path)
         # TER 3 scores Claude Code transcripts only; other sources get no TER
@@ -143,6 +144,7 @@ def cli_services() -> CliServices:
             make_tokenizer(tokenizer),
             make_ter_scorer(ter if scores else "off"),
             make_outcome_source() if outcome is not None else None,
+            default_price_book(),
         )
         return use_case(path, outcome)
 
