@@ -136,6 +136,12 @@ counted round trips; `regeneration` and `repeated_exploration` rose for the
 same reason (more writes and reads are seen), with no confident finding of
 either here to judge.
 
+On the private corpus (286 sessions, 9 Oct 2026) the round-trip rule took
+`fragmented_edits` from 72 confident findings in 49 sessions back to 17 in
+13, close to its count before the id change (16); every other detector's
+counts were unchanged. The `regeneration` (26) and `repeated_exploration`
+(10) findings there are still unjudged.
+
 ## Exploration drivers
 
 `LeanAnalysis.exploration` (`exploration` in the JSON) labels every
