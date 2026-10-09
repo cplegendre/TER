@@ -112,8 +112,11 @@ requirements:
     source_points: [103]
     rationale: >-
       The event contract is proven provider-neutral only when a second
-      harness passes the same contract tests as Claude Code.
-    status: planned
+      harness passes the same contract tests as Claude Code. Issue #55: a
+      real recorded GARE run (tests/fixtures/gare/runs/c2ffdf8f1b09, a local
+      Ollama model) passes the suite; it has no failover, so route.failover
+      from a real provider is still covered by mock data only.
+    status: verified
 
   - id: TER-SRC-011
     pattern: ubiquitous

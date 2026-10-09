@@ -28,52 +28,52 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "afa62c3fc87da043",
+      "beaec29d5109f7bb",
       "plan",
-      "avoidable",
-      1.0,
+      "necessary_non_value_adding",
       0.0,
-      "repeating",
-      "excessive_planning:afa62c3fc87da043"
+      0.0,
+      "progressing",
+      "stage:plan is necessary but adds no value itself"
     ],
     [
-      "885640dbc628de1c",
+      "3a422689020b20c1",
       "plan",
-      "avoidable",
-      1.0,
+      "necessary_non_value_adding",
       0.0,
-      "repeating",
-      "excessive_planning:afa62c3fc87da043"
+      0.0,
+      "progressing",
+      "stage:plan is necessary but adds no value itself"
     ],
     [
-      "787b76f5878f0c56",
+      "e09247bdfa2c1516",
       "plan",
-      "avoidable",
-      1.0,
+      "necessary_non_value_adding",
       0.0,
-      "repeating",
-      "excessive_planning:afa62c3fc87da043"
+      0.0,
+      "progressing",
+      "stage:plan is necessary but adds no value itself"
     ],
     [
-      "4c20d65d717bf537",
+      "d1fe571574642a06",
       "plan",
-      "avoidable",
-      1.0,
+      "necessary_non_value_adding",
       0.0,
-      "repeating",
-      "excessive_planning:afa62c3fc87da043"
+      0.0,
+      "progressing",
+      "stage:plan is necessary but adds no value itself"
     ],
     [
       "f7059ba8a701f037",
       "plan",
-      "avoidable",
-      1.0,
+      "necessary_non_value_adding",
       0.0,
-      "repeating",
-      "excessive_planning:afa62c3fc87da043"
+      0.0,
+      "progressing",
+      "stage:plan is necessary but adds no value itself"
     ],
     [
-      "dc771e57dc3ec0aa",
+      "a583401c59d12ccd",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -82,7 +82,7 @@
       "stage:explore is necessary but adds no value itself"
     ],
     [
-      "caff931cda4b3075",
+      "71d4f875df8118d9",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -91,7 +91,7 @@
       "stage:explore is necessary but adds no value itself"
     ],
     [
-      "26d689fc6e48e582",
+      "0b5278cfddc408b3",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -100,7 +100,7 @@
       "stage:explore is necessary but adds no value itself"
     ],
     [
-      "04fb1b1d585306b6",
+      "b3e8dfc1304807de",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -109,25 +109,25 @@
       "stage:explore is necessary but adds no value itself"
     ],
     [
-      "d3419f3fcdb0f607",
-      "explore",
-      "avoidable",
-      1.0,
-      0.0,
-      "repeating",
-      "repeated_tool_call:d3419f3fcdb0f607"
-    ],
-    [
-      "e815b1e3c3bd3d9a",
+      "4ac250780f976b8b",
       "explore",
       "avoidable",
       1.0,
       0.0,
       "repeating",
-      "repeated_tool_call:d3419f3fcdb0f607"
+      "repeated_tool_call:4ac250780f976b8b"
     ],
     [
-      "23e8557e97c5cf7b",
+      "de580bab3a50ed61",
+      "explore",
+      "avoidable",
+      1.0,
+      0.0,
+      "repeating",
+      "repeated_tool_call:4ac250780f976b8b"
+    ],
+    [
+      "525128d61f9d3cdd",
       "implement",
       "value_adding",
       0.0,
@@ -136,7 +136,7 @@
       "stage:implement edits change the software"
     ],
     [
-      "3f1b4d7739855dfc",
+      "8d487f16604fbaf2",
       "implement",
       "value_adding",
       0.0,
@@ -145,16 +145,16 @@
       "stage:implement edits change the software"
     ],
     [
-      "bbef9c623af73c14",
+      "b5390d420b1defb6",
       "implement",
       "value_adding",
       0.9167,
       0.0,
       "reworking",
-      "regeneration:bbef9c623af73c14"
+      "regeneration:b5390d420b1defb6"
     ],
     [
-      "c25006b6c17cfaae",
+      "2e24ec7b2d2ef816",
       "implement",
       "value_adding",
       0.0,
@@ -163,7 +163,7 @@
       "stage:implement edits change the software"
     ],
     [
-      "201a5b895ab673e9",
+      "e7fe263036935cb0",
       "implement",
       "value_adding",
       0.0,
@@ -172,7 +172,7 @@
       "stage:implement edits change the software"
     ],
     [
-      "b1b25b79327612cc",
+      "ca621b4a10d3cbfd",
       "implement",
       "value_adding",
       0.0,
@@ -181,7 +181,7 @@
       "stage:implement edits change the software"
     ],
     [
-      "afd57e70643ee1c4",
+      "e57b1931d2bbede0",
       "implement",
       "value_adding",
       0.0,
@@ -190,16 +190,16 @@
       "stage:implement edits change the software"
     ],
     [
-      "0c363a14eea9043e",
+      "325bf58465a44796",
       "implement",
       "avoidable",
       1.0,
       0.0,
       "repeating",
-      "fragmented_edits:0c363a14eea9043e"
+      "fragmented_edits:325bf58465a44796"
     ],
     [
-      "12eb3429dc69e478",
+      "12bb38c11ea216b3",
       "implement",
       "value_adding",
       0.0,
@@ -208,16 +208,16 @@
       "stage:implement edits change the software"
     ],
     [
-      "8529cea01d42b188",
+      "15982991b6d5b880",
       "implement",
       "avoidable",
       1.0,
       0.0,
       "repeating",
-      "fragmented_edits:0c363a14eea9043e"
+      "fragmented_edits:325bf58465a44796"
     ],
     [
-      "3a6966ef0e054a01",
+      "1774d5b4e3612ff4",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -226,7 +226,7 @@
       "stage:validate is necessary but adds no value itself"
     ],
     [
-      "63a58bc98af34062",
+      "95da5e2fd226f809",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -235,22 +235,22 @@
       "stage:validate is necessary but adds no value itself"
     ],
     [
-      "c546d6039402b9c4",
+      "41d76c37c2c2c618",
       "validate",
       "avoidable",
       1.0,
       0.0,
       "repeating",
-      "repeated_tool_call:c546d6039402b9c4"
+      "repeated_tool_call:41d76c37c2c2c618"
     ],
     [
-      "d0a9e677d00c3c13",
+      "5492318147f2ae50",
       "validate",
       "avoidable",
       1.0,
       0.0,
       "repeating",
-      "repeated_tool_call:c546d6039402b9c4"
+      "repeated_tool_call:41d76c37c2c2c618"
     ],
     [
       "4fa7eec5e701db40",
@@ -265,7 +265,7 @@
   "cycles": [],
   "detectors": [
     {
-      "confidence_rule": "0.90 when input and output are identical and nothing was edited in between; 0.85 for a validation re-run with no edit in between; 0.75 when edits happened in between but the output is still identical; 0.50 (uncertain) when an output was not observed. Different output: no finding. File reads and searches are left to repeated_exploration; a validation re-run after edits is left to rework_cycle.",
+      "confidence_rule": "Within one prompt's turn: 0.90 when input and output are identical and nothing was edited in between; 0.85 for a validation re-run with no edit in between; 0.75 when edits happened in between but the output is still identical. 0.50 (uncertain) when an output was not observed, or when a new prompt arrived between the two calls (the repeat may answer it). Different output: no finding. File reads and searches are left to repeated_exploration; a validation re-run after edits is left to rework_cycle.",
       "id": "repeated_tool_call",
       "kind": "waste",
       "waste": "over_processing"
@@ -283,28 +283,28 @@
       "waste": "rework"
     },
     {
-      "confidence_rule": "Judged per prompt, once the agent has responded after its edits. 0.85 when no validation ran in the whole session; 0.75 when validation ran earlier but not after these edits; 0.50 (uncertain) when every unvalidated edit is documentation. 0.85 when the last validation before the response failed.",
+      "confidence_rule": "Judged per prompt, once the agent has responded after its edits. A check is a validation run or any shell line that runs a named check tool, even beside a change (sed -i … && pytest). 0.85 when no check ran in the whole session; 0.75 when checks ran earlier but not after these edits; 0.50 (uncertain) when every unvalidated edit is documentation. 0.85 when the last validation before the response failed.",
       "id": "unvalidated_implementation",
       "kind": "risk",
       "waste": "defects"
     },
     {
-      "confidence_rule": "0.75 for an in-place edit of a file never read, written or named in an earlier search or shell output; 0.45 (uncertain) for writing a new file before any exploration at all in the session. One finding per file.",
+      "confidence_rule": "0.75 for an in-place edit of a file never read, written, named in an earlier shell command (cat, sed -n, head, grep …) or named in an earlier search or shell output; 0.45 (uncertain) for writing a new file before any exploration at all in the session. One finding per file.",
       "id": "premature_implementation",
       "kind": "risk",
       "waste": "defects"
     },
     {
-      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary; the rest as waste.",
+      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary. A later step is waste only when it adds no decision: a reasoning block with at most 25% content words new to the prompt and the run so far, or a to-do update identical to an earlier one in the run. A step that adds a decision is never waste, and a run with no such restating step is not a finding.",
       "id": "excessive_planning",
       "kind": "waste",
       "waste": "over_processing"
     },
     {
-      "confidence_rule": "At least 3 consecutive edit calls to one file with only reasoning and their results in between. 0.70 for 3, plus 0.05 per extra edit, capped at 0.85. Only the round-trip overhead (results and waiting of edits after the first) is counted as waste, never the change itself.",
+      "confidence_rule": "Consecutive edit calls to one file, with only reasoning and the results of those edits in between, spread over at least 3 round trips (a round trip ends when a result arrives; calls sent together before any result are one round trip). 0.70 for 3 round trips, plus 0.05 per extra, capped at 0.85. Only the round-trip overhead (the results of edits after the first round trip) is counted as waste, never the change itself.",
       "id": "fragmented_edits",
       "kind": "waste",
-      "waste": "over_processing"
+      "waste": "motion"
     },
     {
       "confidence_rule": "Judged only once the agent has responded after the read. A read counts as used when a later reasoning, response or tool call names the file, or names something the file defines, or edits it. Otherwise 0.65 when the file defined names that were never used, 0.55 when it defined none. Always uncertain: reading to rule something out is legitimate, and only repository evidence (L3) can tell.",
@@ -313,13 +313,13 @@
       "waste": "inventory"
     },
     {
-      "confidence_rule": "A later tool call by the agent itself shares at least 3 content words and at least half of the smaller word set with the handoff's task. Confidence 0.45 + 0.40 × overlap, capped at 0.85. The handoff (and its waiting time) is the waste; the agent's own call is kept.",
+      "confidence_rule": "A later tool call by the agent itself shares at least 3 content words with the handoff's task and covers at least half of the task's words. Confidence 0.45 + 0.40 × coverage, capped at 0.85. The handoff (and its waiting time) is the waste; the agent's own call is kept.",
       "id": "unnecessary_handoff",
       "kind": "waste",
       "waste": "handoffs"
     },
     {
-      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, and at most 25% of its content words are new (in neither the earlier block nor the prompt). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
+      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, at most 25% of its content words are new (in neither the earlier block nor the prompt), and none of its new words comes from a tool result observed since the earlier block (that would be new evidence). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
       "id": "repeated_reasoning",
       "kind": "waste",
       "waste": "over_processing"
@@ -329,6 +329,36 @@
       "id": "regeneration",
       "kind": "waste",
       "waste": "overproduction"
+    },
+    {
+      "confidence_rule": "An edit or write whose alignment to the intent in force is below the drift band (default 0.25), against an intent of at least 3 key terms: 0.85 when the names it defines continue a goal the developer dropped, or the agent's own reasoning or narration since the prompt called it additional ('also', 'while I'm at it') and names it; 0.55 (uncertain) when it only defines new names the intent does not mention, or defines no names and only its added words (at least 3) depart. Before any prompt, or against a shorter intent: no finding.",
+      "id": "intent_drift",
+      "kind": "waste",
+      "waste": "overproduction"
+    },
+    {
+      "confidence_rule": "Per task (prompt), counting distinct context items (file reads, searches, fetches, handoffs, exploring shell commands) before the first edit: a finding when they exceed per_file (3) × files the task changes + slack (3). Items past the band that are not reads of a changed file are the waste. Confidence 0.55 + 0.02 per item over the band, capped at 0.65: always uncertain at L2, since only repository scope (L3) can tell whether the extra context was needed.",
+      "id": "excessive_context",
+      "kind": "waste",
+      "waste": "inventory"
+    },
+    {
+      "confidence_rule": "Per task (prompt): when the task first edits its n-th distinct file in place (Edit, not a new-file Write), it must have acquired at least min_per_file (1) × n distinct context items (reads, searches, fetches, handoffs, exploring shell). The first edit below that bound is the finding: 0.70 when that file was never read or written earlier in the session; 0.55 (uncertain) when it was, since context carried from an earlier task may suffice. A risk: it claims no cost.",
+      "id": "insufficient_context",
+      "kind": "risk",
+      "waste": "defects"
+    },
+    {
+      "confidence_rule": "Judged only once the agent has responded after it. A search (Grep, Glob) or traversing shell command (ls, find, tree, rg, grep) whose output lists file names, none of which a later event reads, edits or names: 0.60. Always uncertain at L2: a traversal can rule a place out, and only repository evidence (L3) can tell. Empty or unobserved output and repeats of an earlier traversal (left to repeated_exploration) are not findings.",
+      "id": "unused_traversal",
+      "kind": "waste",
+      "waste": "motion"
+    },
+    {
+      "confidence_rule": "A route.failover event (a model call that returned no tokens and did not succeed). 0.80 when a later response completed the work on another route, so the failed call added only waiting; 0.55 (uncertain) when no later response followed. The failover's wall time is the waste; it generated no tokens.",
+      "id": "failed_route",
+      "kind": "waste",
+      "waste": "waiting"
     }
   ],
   "events": 29,
@@ -345,208 +375,208 @@
         "type": "motivated_by"
       },
       {
-        "source": "afa62c3fc87da043",
+        "source": "beaec29d5109f7bb",
         "target": "f6592a7c2b8b29cd",
         "type": "motivated_by"
       },
       {
-        "source": "885640dbc628de1c",
-        "target": "afa62c3fc87da043",
+        "source": "3a422689020b20c1",
+        "target": "beaec29d5109f7bb",
         "type": "completes"
       },
       {
-        "source": "787b76f5878f0c56",
-        "target": "885640dbc628de1c",
+        "source": "e09247bdfa2c1516",
+        "target": "3a422689020b20c1",
         "type": "motivated_by"
       },
       {
-        "source": "4c20d65d717bf537",
-        "target": "787b76f5878f0c56",
+        "source": "d1fe571574642a06",
+        "target": "e09247bdfa2c1516",
         "type": "completes"
       },
       {
         "source": "f7059ba8a701f037",
-        "target": "4c20d65d717bf537",
+        "target": "d1fe571574642a06",
         "type": "motivated_by"
       },
       {
-        "source": "dc771e57dc3ec0aa",
-        "target": "4c20d65d717bf537",
+        "source": "a583401c59d12ccd",
+        "target": "d1fe571574642a06",
         "type": "motivated_by"
       },
       {
-        "source": "caff931cda4b3075",
-        "target": "dc771e57dc3ec0aa",
+        "source": "71d4f875df8118d9",
+        "target": "a583401c59d12ccd",
         "type": "completes"
       },
       {
-        "source": "26d689fc6e48e582",
-        "target": "caff931cda4b3075",
+        "source": "0b5278cfddc408b3",
+        "target": "71d4f875df8118d9",
         "type": "motivated_by"
       },
       {
-        "source": "04fb1b1d585306b6",
-        "target": "26d689fc6e48e582",
+        "source": "b3e8dfc1304807de",
+        "target": "0b5278cfddc408b3",
         "type": "completes"
       },
       {
-        "source": "d3419f3fcdb0f607",
-        "target": "dc771e57dc3ec0aa",
+        "source": "4ac250780f976b8b",
+        "target": "a583401c59d12ccd",
         "type": "repeats"
       },
       {
-        "source": "d3419f3fcdb0f607",
-        "target": "04fb1b1d585306b6",
+        "source": "4ac250780f976b8b",
+        "target": "b3e8dfc1304807de",
         "type": "motivated_by"
       },
       {
-        "source": "e815b1e3c3bd3d9a",
-        "target": "d3419f3fcdb0f607",
+        "source": "de580bab3a50ed61",
+        "target": "4ac250780f976b8b",
         "type": "completes"
       },
       {
-        "source": "23e8557e97c5cf7b",
+        "source": "525128d61f9d3cdd",
         "target": "f6592a7c2b8b29cd",
         "type": "motivated_by"
       },
       {
-        "source": "23e8557e97c5cf7b",
-        "target": "e815b1e3c3bd3d9a",
+        "source": "525128d61f9d3cdd",
+        "target": "de580bab3a50ed61",
         "type": "motivated_by"
       },
       {
-        "source": "3f1b4d7739855dfc",
-        "target": "23e8557e97c5cf7b",
+        "source": "8d487f16604fbaf2",
+        "target": "525128d61f9d3cdd",
         "type": "completes"
       },
       {
-        "source": "bbef9c623af73c14",
+        "source": "b5390d420b1defb6",
         "target": "f6592a7c2b8b29cd",
         "type": "motivated_by"
       },
       {
-        "source": "bbef9c623af73c14",
-        "target": "3f1b4d7739855dfc",
+        "source": "b5390d420b1defb6",
+        "target": "8d487f16604fbaf2",
         "type": "motivated_by"
       },
       {
-        "source": "c25006b6c17cfaae",
-        "target": "bbef9c623af73c14",
+        "source": "2e24ec7b2d2ef816",
+        "target": "b5390d420b1defb6",
         "type": "completes"
       },
       {
-        "source": "201a5b895ab673e9",
+        "source": "e7fe263036935cb0",
         "target": "f6592a7c2b8b29cd",
         "type": "motivated_by"
       },
       {
-        "source": "201a5b895ab673e9",
-        "target": "04fb1b1d585306b6",
+        "source": "e7fe263036935cb0",
+        "target": "b3e8dfc1304807de",
         "type": "motivated_by"
       },
       {
-        "source": "201a5b895ab673e9",
-        "target": "c25006b6c17cfaae",
+        "source": "e7fe263036935cb0",
+        "target": "2e24ec7b2d2ef816",
         "type": "motivated_by"
       },
       {
-        "source": "b1b25b79327612cc",
-        "target": "201a5b895ab673e9",
+        "source": "ca621b4a10d3cbfd",
+        "target": "e7fe263036935cb0",
         "type": "completes"
       },
       {
-        "source": "afd57e70643ee1c4",
+        "source": "e57b1931d2bbede0",
         "target": "f6592a7c2b8b29cd",
         "type": "motivated_by"
       },
       {
-        "source": "afd57e70643ee1c4",
-        "target": "04fb1b1d585306b6",
+        "source": "e57b1931d2bbede0",
+        "target": "b3e8dfc1304807de",
         "type": "motivated_by"
       },
       {
-        "source": "afd57e70643ee1c4",
-        "target": "b1b25b79327612cc",
+        "source": "e57b1931d2bbede0",
+        "target": "ca621b4a10d3cbfd",
         "type": "motivated_by"
       },
       {
-        "source": "0c363a14eea9043e",
-        "target": "afd57e70643ee1c4",
+        "source": "325bf58465a44796",
+        "target": "e57b1931d2bbede0",
         "type": "completes"
       },
       {
-        "source": "12eb3429dc69e478",
+        "source": "12bb38c11ea216b3",
         "target": "f6592a7c2b8b29cd",
         "type": "motivated_by"
       },
       {
-        "source": "12eb3429dc69e478",
-        "target": "04fb1b1d585306b6",
+        "source": "12bb38c11ea216b3",
+        "target": "b3e8dfc1304807de",
         "type": "motivated_by"
       },
       {
-        "source": "12eb3429dc69e478",
-        "target": "0c363a14eea9043e",
+        "source": "12bb38c11ea216b3",
+        "target": "325bf58465a44796",
         "type": "motivated_by"
       },
       {
-        "source": "8529cea01d42b188",
-        "target": "12eb3429dc69e478",
+        "source": "15982991b6d5b880",
+        "target": "12bb38c11ea216b3",
         "type": "completes"
       },
       {
-        "source": "3a6966ef0e054a01",
-        "target": "23e8557e97c5cf7b",
+        "source": "1774d5b4e3612ff4",
+        "target": "525128d61f9d3cdd",
         "type": "validates"
       },
       {
-        "source": "3a6966ef0e054a01",
-        "target": "bbef9c623af73c14",
+        "source": "1774d5b4e3612ff4",
+        "target": "b5390d420b1defb6",
         "type": "validates"
       },
       {
-        "source": "3a6966ef0e054a01",
-        "target": "201a5b895ab673e9",
+        "source": "1774d5b4e3612ff4",
+        "target": "e7fe263036935cb0",
         "type": "validates"
       },
       {
-        "source": "3a6966ef0e054a01",
-        "target": "afd57e70643ee1c4",
+        "source": "1774d5b4e3612ff4",
+        "target": "e57b1931d2bbede0",
         "type": "validates"
       },
       {
-        "source": "3a6966ef0e054a01",
-        "target": "12eb3429dc69e478",
+        "source": "1774d5b4e3612ff4",
+        "target": "12bb38c11ea216b3",
         "type": "validates"
       },
       {
-        "source": "3a6966ef0e054a01",
-        "target": "8529cea01d42b188",
+        "source": "1774d5b4e3612ff4",
+        "target": "15982991b6d5b880",
         "type": "motivated_by"
       },
       {
-        "source": "63a58bc98af34062",
-        "target": "3a6966ef0e054a01",
+        "source": "95da5e2fd226f809",
+        "target": "1774d5b4e3612ff4",
         "type": "completes"
       },
       {
-        "source": "c546d6039402b9c4",
-        "target": "3a6966ef0e054a01",
+        "source": "41d76c37c2c2c618",
+        "target": "1774d5b4e3612ff4",
         "type": "repeats"
       },
       {
-        "source": "c546d6039402b9c4",
-        "target": "63a58bc98af34062",
+        "source": "41d76c37c2c2c618",
+        "target": "95da5e2fd226f809",
         "type": "motivated_by"
       },
       {
-        "source": "d0a9e677d00c3c13",
-        "target": "c546d6039402b9c4",
+        "source": "5492318147f2ae50",
+        "target": "41d76c37c2c2c618",
         "type": "completes"
       },
       {
         "source": "4fa7eec5e701db40",
-        "target": "d0a9e677d00c3c13",
+        "target": "5492318147f2ae50",
         "type": "motivated_by"
       }
     ],
@@ -579,8 +609,8 @@
         "tool": null
       },
       {
-        "activity_class": "avoidable",
-        "id": "afa62c3fc87da043",
+        "activity_class": "necessary_non_value_adding",
+        "id": "beaec29d5109f7bb",
         "index": 3,
         "kind": "tool.requested",
         "label": "TodoWrite plan.todo",
@@ -588,8 +618,8 @@
         "tool": "plan.todo"
       },
       {
-        "activity_class": "avoidable",
-        "id": "885640dbc628de1c",
+        "activity_class": "necessary_non_value_adding",
+        "id": "3a422689020b20c1",
         "index": 4,
         "kind": "tool.completed",
         "label": "result: TodoWrite plan.todo",
@@ -597,8 +627,8 @@
         "tool": "plan.todo"
       },
       {
-        "activity_class": "avoidable",
-        "id": "787b76f5878f0c56",
+        "activity_class": "necessary_non_value_adding",
+        "id": "e09247bdfa2c1516",
         "index": 5,
         "kind": "tool.requested",
         "label": "TodoWrite plan.todo",
@@ -606,8 +636,8 @@
         "tool": "plan.todo"
       },
       {
-        "activity_class": "avoidable",
-        "id": "4c20d65d717bf537",
+        "activity_class": "necessary_non_value_adding",
+        "id": "d1fe571574642a06",
         "index": 6,
         "kind": "tool.completed",
         "label": "result: TodoWrite plan.todo",
@@ -615,7 +645,7 @@
         "tool": "plan.todo"
       },
       {
-        "activity_class": "avoidable",
+        "activity_class": "necessary_non_value_adding",
         "id": "f7059ba8a701f037",
         "index": 7,
         "kind": "reasoning",
@@ -625,7 +655,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "dc771e57dc3ec0aa",
+        "id": "a583401c59d12ccd",
         "index": 8,
         "kind": "tool.requested",
         "label": "Bash ls src tests",
@@ -634,7 +664,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "caff931cda4b3075",
+        "id": "71d4f875df8118d9",
         "index": 9,
         "kind": "tool.completed",
         "label": "result: Bash ls src tests",
@@ -643,7 +673,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "26d689fc6e48e582",
+        "id": "0b5278cfddc408b3",
         "index": 10,
         "kind": "tool.requested",
         "label": "Read src/net.py",
@@ -652,7 +682,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "04fb1b1d585306b6",
+        "id": "b3e8dfc1304807de",
         "index": 11,
         "kind": "tool.completed",
         "label": "result: Read src/net.py",
@@ -661,7 +691,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "d3419f3fcdb0f607",
+        "id": "4ac250780f976b8b",
         "index": 12,
         "kind": "tool.requested",
         "label": "Bash ls src tests",
@@ -670,7 +700,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "e815b1e3c3bd3d9a",
+        "id": "de580bab3a50ed61",
         "index": 13,
         "kind": "tool.completed",
         "label": "result: Bash ls src tests",
@@ -679,7 +709,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "23e8557e97c5cf7b",
+        "id": "525128d61f9d3cdd",
         "index": 14,
         "kind": "tool.requested",
         "label": "Write src/retry.py",
@@ -688,7 +718,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "3f1b4d7739855dfc",
+        "id": "8d487f16604fbaf2",
         "index": 15,
         "kind": "tool.completed",
         "label": "result: Write src/retry.py",
@@ -697,7 +727,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "bbef9c623af73c14",
+        "id": "b5390d420b1defb6",
         "index": 16,
         "kind": "tool.requested",
         "label": "Write src/retry.py",
@@ -706,7 +736,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "c25006b6c17cfaae",
+        "id": "2e24ec7b2d2ef816",
         "index": 17,
         "kind": "tool.completed",
         "label": "result: Write src/retry.py",
@@ -715,7 +745,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "201a5b895ab673e9",
+        "id": "e7fe263036935cb0",
         "index": 18,
         "kind": "tool.requested",
         "label": "Edit src/net.py",
@@ -724,7 +754,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "b1b25b79327612cc",
+        "id": "ca621b4a10d3cbfd",
         "index": 19,
         "kind": "tool.completed",
         "label": "result: Edit src/net.py",
@@ -733,7 +763,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "afd57e70643ee1c4",
+        "id": "e57b1931d2bbede0",
         "index": 20,
         "kind": "tool.requested",
         "label": "Edit src/net.py",
@@ -742,7 +772,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "0c363a14eea9043e",
+        "id": "325bf58465a44796",
         "index": 21,
         "kind": "tool.completed",
         "label": "result: Edit src/net.py",
@@ -751,7 +781,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "12eb3429dc69e478",
+        "id": "12bb38c11ea216b3",
         "index": 22,
         "kind": "tool.requested",
         "label": "Edit src/net.py",
@@ -760,7 +790,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "8529cea01d42b188",
+        "id": "15982991b6d5b880",
         "index": 23,
         "kind": "tool.completed",
         "label": "result: Edit src/net.py",
@@ -769,7 +799,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "3a6966ef0e054a01",
+        "id": "1774d5b4e3612ff4",
         "index": 24,
         "kind": "tool.requested",
         "label": "Bash pytest tests/test_net.py -q",
@@ -778,7 +808,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "63a58bc98af34062",
+        "id": "95da5e2fd226f809",
         "index": 25,
         "kind": "tool.completed",
         "label": "result: Bash pytest tests/test_net.py -q (failed)",
@@ -787,7 +817,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "c546d6039402b9c4",
+        "id": "41d76c37c2c2c618",
         "index": 26,
         "kind": "tool.requested",
         "label": "Bash pytest tests/test_net.py -q",
@@ -796,7 +826,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "d0a9e677d00c3c13",
+        "id": "5492318147f2ae50",
         "index": 27,
         "kind": "tool.completed",
         "label": "result: Bash pytest tests/test_net.py -q (failed)",
@@ -816,6 +846,35 @@
     "schema": "ter.evidence/0.1",
     "session_id": "golden-lean-mix"
   },
+  "exploration": [
+    {
+      "driver": "intent_directed",
+      "event_id": "a583401c59d12ccd",
+      "motive": "f6592a7c2b8b29cd",
+      "shared": [
+        "src",
+        "tests"
+      ]
+    },
+    {
+      "driver": "intent_directed",
+      "event_id": "0b5278cfddc408b3",
+      "motive": "f6592a7c2b8b29cd",
+      "shared": [
+        "net.py",
+        "src"
+      ]
+    },
+    {
+      "driver": "intent_directed",
+      "event_id": "4ac250780f976b8b",
+      "motive": "f6592a7c2b8b29cd",
+      "shared": [
+        "src",
+        "tests"
+      ]
+    }
+  ],
   "findings": [
     {
       "activity_class": "avoidable",
@@ -823,11 +882,11 @@
       "context_tokens": 0,
       "detector": "regeneration",
       "evidence": [
-        "23e8557e97c5cf7b",
-        "bbef9c623af73c14"
+        "525128d61f9d3cdd",
+        "b5390d420b1defb6"
       ],
       "explanation": "The agent rewrote src/retry.py, a file it had written itself, keeping 100% of its lines; 92% of the new file repeats existing content. An in-place edit would have produced only the change.",
-      "id": "regeneration:bbef9c623af73c14",
+      "id": "regeneration:b5390d420b1defb6",
       "kind": "waste",
       "seconds": 5.5,
       "share": 0.9167,
@@ -837,39 +896,7 @@
       "uncertain": false,
       "waste": "overproduction",
       "waste_events": [
-        "bbef9c623af73c14"
-      ]
-    },
-    {
-      "activity_class": "avoidable",
-      "confidence": 0.8,
-      "context_tokens": 4,
-      "detector": "excessive_planning",
-      "evidence": [
-        "11dd3be920e41229",
-        "62fcd90f604b8a22",
-        "afa62c3fc87da043",
-        "885640dbc628de1c",
-        "787b76f5878f0c56",
-        "4c20d65d717bf537",
-        "f7059ba8a701f037"
-      ],
-      "explanation": "5 reasoning or to-do steps in a row before the agent explored, edited, checked or answered anything.",
-      "id": "excessive_planning:afa62c3fc87da043",
-      "kind": "waste",
-      "seconds": 15.0,
-      "share": 1.0,
-      "subject": "5 planning steps",
-      "title": "5 planning steps without acting",
-      "tokens": 103,
-      "uncertain": false,
-      "waste": "over_processing",
-      "waste_events": [
-        "afa62c3fc87da043",
-        "885640dbc628de1c",
-        "787b76f5878f0c56",
-        "4c20d65d717bf537",
-        "f7059ba8a701f037"
+        "b5390d420b1defb6"
       ]
     },
     {
@@ -878,13 +905,13 @@
       "context_tokens": 35,
       "detector": "repeated_tool_call",
       "evidence": [
-        "3a6966ef0e054a01",
-        "63a58bc98af34062",
-        "c546d6039402b9c4",
-        "d0a9e677d00c3c13"
+        "1774d5b4e3612ff4",
+        "95da5e2fd226f809",
+        "41d76c37c2c2c618",
+        "5492318147f2ae50"
       ],
       "explanation": "Bash was called again with the same input (pytest tests/test_net.py -q). No file was edited between the two runs, so the second could not tell the agent anything new.",
-      "id": "repeated_tool_call:c546d6039402b9c4",
+      "id": "repeated_tool_call:41d76c37c2c2c618",
       "kind": "waste",
       "seconds": 6.0,
       "share": 1.0,
@@ -894,8 +921,8 @@
       "uncertain": false,
       "waste": "over_processing",
       "waste_events": [
-        "c546d6039402b9c4",
-        "d0a9e677d00c3c13"
+        "41d76c37c2c2c618",
+        "5492318147f2ae50"
       ]
     },
     {
@@ -904,13 +931,13 @@
       "context_tokens": 15,
       "detector": "repeated_tool_call",
       "evidence": [
-        "dc771e57dc3ec0aa",
-        "caff931cda4b3075",
-        "d3419f3fcdb0f607",
-        "e815b1e3c3bd3d9a"
+        "a583401c59d12ccd",
+        "71d4f875df8118d9",
+        "4ac250780f976b8b",
+        "de580bab3a50ed61"
       ],
       "explanation": "Bash was called again with the same input (ls src tests). Nothing changed in between and the result was identical.",
-      "id": "repeated_tool_call:d3419f3fcdb0f607",
+      "id": "repeated_tool_call:4ac250780f976b8b",
       "kind": "waste",
       "seconds": 6.0,
       "share": 1.0,
@@ -920,8 +947,8 @@
       "uncertain": false,
       "waste": "over_processing",
       "waste_events": [
-        "d3419f3fcdb0f607",
-        "e815b1e3c3bd3d9a"
+        "4ac250780f976b8b",
+        "de580bab3a50ed61"
       ]
     },
     {
@@ -930,26 +957,26 @@
       "context_tokens": 22,
       "detector": "fragmented_edits",
       "evidence": [
-        "201a5b895ab673e9",
-        "b1b25b79327612cc",
-        "afd57e70643ee1c4",
-        "0c363a14eea9043e",
-        "12eb3429dc69e478",
-        "8529cea01d42b188"
+        "e7fe263036935cb0",
+        "ca621b4a10d3cbfd",
+        "e57b1931d2bbede0",
+        "325bf58465a44796",
+        "12bb38c11ea216b3",
+        "15982991b6d5b880"
       ],
-      "explanation": "3 consecutive edits to src/net.py, each a separate tool round trip, where one multi-edit would do.",
-      "id": "fragmented_edits:0c363a14eea9043e",
+      "explanation": "3 consecutive edits to src/net.py took 3 round trips, each waiting for the previous result. Edits planned together can be sent in one turn as parallel Edit calls.",
+      "id": "fragmented_edits:325bf58465a44796",
       "kind": "waste",
       "seconds": 0.0,
       "share": 1.0,
       "subject": "src/net.py",
-      "title": "3 separate edits to src/net.py",
+      "title": "3 edits to src/net.py over 3 round trips",
       "tokens": 0,
       "uncertain": false,
-      "waste": "over_processing",
+      "waste": "motion",
       "waste_events": [
-        "0c363a14eea9043e",
-        "8529cea01d42b188"
+        "325bf58465a44796",
+        "15982991b6d5b880"
       ]
     },
     {
@@ -958,12 +985,12 @@
       "context_tokens": 0,
       "detector": "unvalidated_implementation",
       "evidence": [
-        "c546d6039402b9c4",
-        "d0a9e677d00c3c13",
+        "41d76c37c2c2c618",
+        "5492318147f2ae50",
         "4fa7eec5e701db40"
       ],
       "explanation": "The last validation, `pytest tests/test_net.py -q`, failed and the agent responded without fixing or re-running it.",
-      "id": "unvalidated_implementation:c546d6039402b9c4",
+      "id": "unvalidated_implementation:41d76c37c2c2c618",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
@@ -975,17 +1002,189 @@
       "waste_events": []
     }
   ],
+  "intent": {
+    "alignment": [
+      {
+        "band": "aligned",
+        "basis": "text",
+        "event_id": "11dd3be920e41229",
+        "names": [],
+        "revision": 1,
+        "score": 1.0
+      },
+      {
+        "band": "low",
+        "basis": "text",
+        "event_id": "62fcd90f604b8a22",
+        "names": [],
+        "revision": 1,
+        "score": 0.1429
+      },
+      {
+        "band": "unknown",
+        "basis": "text",
+        "event_id": "beaec29d5109f7bb",
+        "names": [],
+        "revision": 1,
+        "score": null
+      },
+      {
+        "band": "unknown",
+        "basis": "text",
+        "event_id": "e09247bdfa2c1516",
+        "names": [],
+        "revision": 1,
+        "score": null
+      },
+      {
+        "band": "partial",
+        "basis": "text",
+        "event_id": "f7059ba8a701f037",
+        "names": [],
+        "revision": 1,
+        "score": 0.4
+      },
+      {
+        "band": "aligned",
+        "basis": "text",
+        "event_id": "a583401c59d12ccd",
+        "names": [],
+        "revision": 1,
+        "score": 1.0
+      },
+      {
+        "band": "aligned",
+        "basis": "text",
+        "event_id": "0b5278cfddc408b3",
+        "names": [],
+        "revision": 1,
+        "score": 1.0
+      },
+      {
+        "band": "aligned",
+        "basis": "text",
+        "event_id": "4ac250780f976b8b",
+        "names": [],
+        "revision": 1,
+        "score": 1.0
+      },
+      {
+        "band": "partial",
+        "basis": "names",
+        "event_id": "525128d61f9d3cdd",
+        "names": [
+          "inner",
+          "retry",
+          "wrap"
+        ],
+        "revision": 1,
+        "score": 0.3333
+      },
+      {
+        "band": "partial",
+        "basis": "names",
+        "event_id": "b5390d420b1defb6",
+        "names": [
+          "inner",
+          "retry",
+          "wrap"
+        ],
+        "revision": 1,
+        "score": 0.3333
+      },
+      {
+        "band": "aligned",
+        "basis": "changed_words",
+        "event_id": "e7fe263036935cb0",
+        "names": [],
+        "revision": 1,
+        "score": 1.0
+      },
+      {
+        "band": "aligned",
+        "basis": "changed_words",
+        "event_id": "e57b1931d2bbede0",
+        "names": [],
+        "revision": 1,
+        "score": 1.0
+      },
+      {
+        "band": "aligned",
+        "basis": "changed_words",
+        "event_id": "12bb38c11ea216b3",
+        "names": [],
+        "revision": 1,
+        "score": 0.5
+      },
+      {
+        "band": "aligned",
+        "basis": "text",
+        "event_id": "1774d5b4e3612ff4",
+        "names": [],
+        "revision": 1,
+        "score": 0.6667
+      },
+      {
+        "band": "aligned",
+        "basis": "text",
+        "event_id": "41d76c37c2c2c618",
+        "names": [],
+        "revision": 1,
+        "score": 0.6667
+      },
+      {
+        "band": "aligned",
+        "basis": "text",
+        "event_id": "4fa7eec5e701db40",
+        "names": [],
+        "revision": 1,
+        "score": 0.6
+      }
+    ],
+    "changes": [],
+    "config": {
+      "drift_below": 0.25,
+      "low_below": 0.25,
+      "min_events": 3
+    },
+    "drift": [],
+    "low_alignment_periods": [],
+    "revisions": [
+      {
+        "abandoned": [],
+        "event_id": "f6592a7c2b8b29cd",
+        "prompt": "Add a retry decorator to src/net.py with exponential backoff, and use it in fetc",
+        "relation": "opened",
+        "revision": 1,
+        "similarity": null,
+        "terms": [
+          "backoff",
+          "decorator",
+          "exponential",
+          "fetch",
+          "green",
+          "json",
+          "keep",
+          "net",
+          "retry",
+          "test"
+        ]
+      }
+    ],
+    "rule": "Overlap coefficient |intent ∩ activity| / min(|intent|, |activity|) of key terms (content words, identifier parts and file-name parts, stemmed, without stopwords or generic programming words); 0 when either side has no terms.",
+    "scorer": "lexical"
+  },
   "schema": "ter.lean/0.1",
   "scorecard": {
     "activity_seconds": {
-      "avoidable": 32.5,
-      "necessary_non_value_adding": 24.0,
+      "avoidable": 17.5,
+      "necessary_non_value_adding": 39.0,
       "uncertain": 0.0,
       "value_adding": 27.5
     },
     "activity_tokens": {
-      "avoidable": 270,
-      "necessary_non_value_adding": 83,
+      "avoidable": 167,
+      "necessary_non_value_adding": 186,
       "uncertain": 0,
       "value_adding": 344
     },
@@ -994,12 +1193,12 @@
       "components": [
         {
           "name": "Flow efficiency (tokens)",
-          "value": 0.6126,
+          "value": 0.7604,
           "weight": 0.3333
         },
         {
           "name": "Flow efficiency (time)",
-          "value": 0.6131,
+          "value": 0.7917,
           "weight": 0.3333
         },
         {
@@ -1009,26 +1208,26 @@
         }
       ],
       "formula": "Unweighted mean of Flow efficiency (tokens), Flow efficiency (time), TER.",
-      "value": 0.6657
+      "value": 0.7745
     },
     "context_tokens": 196,
     "developer_seconds": 0.0,
-    "findings": 5,
-    "flow_efficiency_time": 0.6131,
-    "flow_efficiency_tokens": 0.6126,
+    "findings": 4,
+    "flow_efficiency_time": 0.7917,
+    "flow_efficiency_tokens": 0.7604,
     "flow_seconds": {
       "inventory": 0.0,
-      "progressing": 51.5,
+      "progressing": 66.5,
       "recovering": 0.0,
-      "repeating": 27.0,
+      "repeating": 12.0,
       "reworking": 5.5,
       "waiting": 0.0
     },
     "flow_tokens": {
       "inventory": 0,
-      "progressing": 427,
+      "progressing": 530,
       "recovering": 0,
-      "repeating": 132,
+      "repeating": 29,
       "reworking": 138,
       "waiting": 0
     },
@@ -1042,9 +1241,12 @@
     },
     "uncertain_findings": 0,
     "uncertain_waste_tokens": 0,
-    "waste_context_tokens": 76,
-    "waste_seconds": 32.5,
-    "waste_tokens": 270
+    "validation_runs": 2,
+    "validations_failed": 2,
+    "validations_passed": 0,
+    "waste_context_tokens": 72,
+    "waste_seconds": 17.5,
+    "waste_tokens": 167
   },
   "session_id": "golden-lean-mix",
   "value_stream": [
@@ -1062,7 +1264,7 @@
       "avoidable_tokens": 11,
       "context_tokens": 70,
       "findings": [
-        "repeated_tool_call:d3419f3fcdb0f607"
+        "repeated_tool_call:4ac250780f976b8b"
       ],
       "seconds": 18.0,
       "stage": "explore",
@@ -1071,11 +1273,9 @@
       "uncertain_tokens": 0
     },
     {
-      "avoidable_tokens": 103,
+      "avoidable_tokens": 0,
       "context_tokens": 4,
-      "findings": [
-        "excessive_planning:afa62c3fc87da043"
-      ],
+      "findings": [],
       "seconds": 21.0,
       "stage": "plan",
       "steps": 5,
@@ -1086,8 +1286,8 @@
       "avoidable_tokens": 138,
       "context_tokens": 52,
       "findings": [
-        "regeneration:bbef9c623af73c14",
-        "fragmented_edits:0c363a14eea9043e"
+        "regeneration:b5390d420b1defb6",
+        "fragmented_edits:325bf58465a44796"
       ],
       "seconds": 30.0,
       "stage": "implement",
@@ -1099,8 +1299,8 @@
       "avoidable_tokens": 18,
       "context_tokens": 70,
       "findings": [
-        "repeated_tool_call:c546d6039402b9c4",
-        "unvalidated_implementation:c546d6039402b9c4"
+        "repeated_tool_call:41d76c37c2c2c618",
+        "unvalidated_implementation:41d76c37c2c2c618"
       ],
       "seconds": 12.0,
       "stage": "validate",
@@ -1112,7 +1312,7 @@
       "avoidable_tokens": 0,
       "context_tokens": 0,
       "findings": [
-        "unvalidated_implementation:c546d6039402b9c4"
+        "unvalidated_implementation:41d76c37c2c2c618"
       ],
       "seconds": 3.0,
       "stage": "respond",
@@ -1120,5 +1320,254 @@
       "tokens": 47,
       "uncertain_tokens": 0
     }
-  ]
+  ],
+  "wip": {
+    "edits_opened": 5,
+    "edits_validated": 5,
+    "final": {
+      "edits": 0,
+      "event_id": "4fa7eec5e701db40",
+      "failures": 1,
+      "hypotheses": 1,
+      "tasks": 2,
+      "total": 4
+    },
+    "kinds": [
+      "hypotheses",
+      "tasks",
+      "edits",
+      "failures"
+    ],
+    "open_at_end": {
+      "edits": [],
+      "failures": [
+        "95da5e2fd226f809"
+      ],
+      "hypotheses": [
+        "a583401c59d12ccd"
+      ],
+      "tasks": [
+        "e09247bdfa2c1516"
+      ]
+    },
+    "peak": {
+      "edits": 5,
+      "event_id": "12bb38c11ea216b3",
+      "failures": 0,
+      "hypotheses": 1,
+      "tasks": 2,
+      "total": 8
+    },
+    "peak_by_kind": {
+      "edits": 5,
+      "failures": 1,
+      "hypotheses": 2,
+      "tasks": 2
+    },
+    "series": [
+      [
+        "f6592a7c2b8b29cd",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "11dd3be920e41229",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "62fcd90f604b8a22",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "beaec29d5109f7bb",
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        "3a422689020b20c1",
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        "e09247bdfa2c1516",
+        0,
+        2,
+        0,
+        0
+      ],
+      [
+        "d1fe571574642a06",
+        0,
+        2,
+        0,
+        0
+      ],
+      [
+        "f7059ba8a701f037",
+        0,
+        2,
+        0,
+        0
+      ],
+      [
+        "a583401c59d12ccd",
+        1,
+        2,
+        0,
+        0
+      ],
+      [
+        "71d4f875df8118d9",
+        1,
+        2,
+        0,
+        0
+      ],
+      [
+        "0b5278cfddc408b3",
+        2,
+        2,
+        0,
+        0
+      ],
+      [
+        "b3e8dfc1304807de",
+        2,
+        2,
+        0,
+        0
+      ],
+      [
+        "4ac250780f976b8b",
+        2,
+        2,
+        0,
+        0
+      ],
+      [
+        "de580bab3a50ed61",
+        2,
+        2,
+        0,
+        0
+      ],
+      [
+        "525128d61f9d3cdd",
+        2,
+        2,
+        1,
+        0
+      ],
+      [
+        "8d487f16604fbaf2",
+        2,
+        2,
+        1,
+        0
+      ],
+      [
+        "b5390d420b1defb6",
+        2,
+        2,
+        2,
+        0
+      ],
+      [
+        "2e24ec7b2d2ef816",
+        2,
+        2,
+        2,
+        0
+      ],
+      [
+        "e7fe263036935cb0",
+        1,
+        2,
+        3,
+        0
+      ],
+      [
+        "ca621b4a10d3cbfd",
+        1,
+        2,
+        3,
+        0
+      ],
+      [
+        "e57b1931d2bbede0",
+        1,
+        2,
+        4,
+        0
+      ],
+      [
+        "325bf58465a44796",
+        1,
+        2,
+        4,
+        0
+      ],
+      [
+        "12bb38c11ea216b3",
+        1,
+        2,
+        5,
+        0
+      ],
+      [
+        "15982991b6d5b880",
+        1,
+        2,
+        5,
+        0
+      ],
+      [
+        "1774d5b4e3612ff4",
+        1,
+        2,
+        5,
+        0
+      ],
+      [
+        "95da5e2fd226f809",
+        1,
+        2,
+        0,
+        1
+      ],
+      [
+        "41d76c37c2c2c618",
+        1,
+        2,
+        0,
+        1
+      ],
+      [
+        "5492318147f2ae50",
+        1,
+        2,
+        0,
+        1
+      ],
+      [
+        "4fa7eec5e701db40",
+        1,
+        2,
+        0,
+        1
+      ]
+    ]
+  }
 }

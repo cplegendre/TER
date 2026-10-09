@@ -1,7 +1,8 @@
 """Contract suite for the ``SessionSource`` port.
 
-The real Claude Code adapter and the in-memory fake run the same assertions,
-so the fake cannot drift from the obligations the real adapter meets.
+The real Claude Code adapter, the GARE adapter (on mock runs and on real
+recorded runs) and the in-memory fake run the same assertions, so the fake
+cannot drift from the obligations the real adapters meet.
 """
 
 from __future__ import annotations
@@ -27,10 +28,21 @@ def _claude() -> tuple[SessionSource, list[str]]:
 
 
 GARE_RUNS = Path(__file__).resolve().parents[1] / "fixtures" / "gare"
+#: Real recorded GARE runs (issue #55); the folders beside ``runs/`` are mocks.
+GARE_REAL_RUNS = GARE_RUNS / "runs"
 
 
 def _gare() -> tuple[SessionSource, list[str]]:
-    return GareRunSource(), [str(p) for p in sorted(GARE_RUNS.iterdir()) if p.is_dir()]
+    mocks = [
+        p for p in sorted(GARE_RUNS.iterdir()) if p.is_dir() and p != GARE_REAL_RUNS
+    ]
+    return GareRunSource(), [str(p) for p in mocks]
+
+
+def _gare_real() -> tuple[SessionSource, list[str]]:
+    runs = [str(p) for p in sorted(GARE_REAL_RUNS.iterdir()) if p.is_dir()]
+    assert runs, "no real recorded GARE run"
+    return GareRunSource(), runs
 
 
 def _memory() -> tuple[SessionSource, list[str]]:
@@ -40,7 +52,15 @@ def _memory() -> tuple[SessionSource, list[str]]:
 
 
 @pytest.fixture(
-    params=[_claude, _gare, _memory], ids=["claude-code-jsonl", "gare-run", "in-memory"]
+    params=[
+        pytest.param(_claude, id="claude-code-jsonl"),
+        pytest.param(_gare, id="gare-run-mock"),
+        # A second harness's real sessions pass the same suite (TER-SRC-010).
+        pytest.param(
+            _gare_real, id="gare-run-real", marks=pytest.mark.req("TER-SRC-010")
+        ),
+        pytest.param(_memory, id="in-memory"),
+    ]
 )
 def source(request: pytest.FixtureRequest) -> tuple[SessionSource, list[str]]:
     factory: Factory = request.param

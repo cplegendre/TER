@@ -66,6 +66,8 @@ def event_to_record(event: Event) -> dict[str, Any]:
             "output_tokens": usage.output_tokens,
             "cache_creation_tokens": usage.cache_creation_tokens,
             "cache_read_tokens": usage.cache_read_tokens,
+            "model": usage.model,
+            "cache_reported": usage.cache_reported,
         },
     }
 
@@ -110,13 +112,26 @@ def event_from_record(record: Mapping[str, Any]) -> Event:
             call_id=tool.get("call_id"),
             arguments=dict(tool.get("arguments") or {}),
         ),
-        usage=None
-        if usage is None
-        else TokenUsage(
-            input_tokens=int(usage["input_tokens"]),
-            output_tokens=int(usage["output_tokens"]),
-            cache_creation_tokens=int(usage["cache_creation_tokens"]),
-            cache_read_tokens=int(usage["cache_read_tokens"]),
-        ),
+        usage=None if usage is None else _usage(usage),
         parent_id=EventId(str(parent)) if parent else None,
+    )
+
+
+def _usage(usage: Mapping[str, Any]) -> TokenUsage:
+    cache_creation = int(usage["cache_creation_tokens"])
+    cache_read = int(usage["cache_read_tokens"])
+    reported = usage.get("cache_reported")
+    model = usage.get("model")
+    return TokenUsage(
+        input_tokens=int(usage["input_tokens"]),
+        output_tokens=int(usage["output_tokens"]),
+        cache_creation_tokens=cache_creation,
+        cache_read_tokens=cache_read,
+        model=None if model is None else str(model),
+        # Records before ter.event/0.4 did not say. Non-zero cache figures
+        # prove the source reported them; all-zero ones prove nothing, so the
+        # turn is read as unreported and its cost stays an estimate.
+        cache_reported=bool(reported)
+        if reported is not None
+        else bool(cache_creation or cache_read),
     )

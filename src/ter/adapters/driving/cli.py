@@ -12,6 +12,7 @@ Commands::
     python -m ter explain SESSION.jsonl [--json] [--graph FILE] [--outcome FILE]
     python -m ter a3 SESSION.jsonl [--html FILE] [--json [FILE]] [--graph FILE]
                                    [--ter offline|model|off] [--outcome FILE]
+    python -m ter hooks check RECORDINGS TRANSCRIPTS [--json FILE]
     python -m ter capabilities                # adapters per port, and problems
     python -m ter corpus import SRC... --out DIR [--labels CSV]
                                 [--max-tool-output N] [--keep-tool NAME]
@@ -31,7 +32,7 @@ from typing import IO, TYPE_CHECKING
 from ...application.explain import ExplainedSession
 from ...domain.capabilities import Capability, CapabilityProblem
 from ...domain.events import TEXT_LIMITS, describe_limit
-from ...domain.lean import LeanAnalysis
+from ...domain.lean import LeanAnalysis, SoftwareValueEfficiency
 from ...domain.outcome import OutcomeFormatError, OutcomeVerdict
 from ...domain.stream import StreamReport
 from ...ports.driven import Clock
@@ -40,6 +41,7 @@ from .claude_hooks import HookStatus, run_hook
 
 if TYPE_CHECKING:
     from ..driven.claude_code.corpus import CorpusImport
+    from .claude_hooks.check import HookCheck
 
 __all__ = [
     "CliServices",
@@ -101,6 +103,9 @@ class CliServices:
         ]
         | None
     ) = None
+    #: ``hooks_check(recordings, transcripts)``; raises ``OSError`` or
+    #: ``ValueError`` when the recordings cannot be read.
+    hooks_check: Callable[[Path, Path], "HookCheck"] | None = None
 
 
 def main(
@@ -145,6 +150,8 @@ def main(
         return _capabilities(services, out, err)
     if args.command == "corpus":
         return _corpus(args, services, out, err)
+    if args.command == "hooks":
+        return _hooks_check(args, services, out, err)
     return _observe(args, services, out, err)
 
 
@@ -191,11 +198,14 @@ def _explain(
     if args.command == "explain":
         if args.json:
             analysis = explained.analysis.as_dict()
+            analysis["scorecard"] = explained.a3.scorecard_dict()
             if explained.a3.outcome is not None:
                 analysis["outcome"] = explained.a3.as_dict()["outcome"]
             out.write(_json(analysis))
         else:
-            out.write(format_findings(explained.analysis))
+            out.write(
+                format_findings(explained.analysis, explained.a3.value_efficiency)
+            )
             out.write(format_limits(explained.a3.usage_limits))
             out.write(format_outcome(explained.a3.outcome, outcome_path))
         return 0
@@ -216,9 +226,42 @@ def _explain(
             err.write(f"Wrote {args.json}\n")
         wrote = True
     if not wrote:
-        out.write(format_findings(explained.analysis))
+        out.write(format_findings(explained.analysis, explained.a3.value_efficiency))
         out.write(format_limits(explained.a3.usage_limits))
         out.write(format_outcome(explained.a3.outcome, outcome_path))
+    return 0
+
+
+def _hooks_check(
+    args: argparse.Namespace, services: CliServices, out: IO[str], err: IO[str]
+) -> int:
+    from .claude_hooks.check import format_hook_check
+
+    recordings: Path = args.recordings
+    transcripts: Path = args.transcripts
+    if services.hooks_check is None:
+        err.write("hooks check is not available\n")
+        return 2
+    if not recordings.is_dir():
+        err.write(f"ter hooks check: {recordings} is not a directory\n")
+        return 2
+    if not transcripts.exists():
+        err.write(f"ter hooks check: {transcripts} does not exist\n")
+        return 2
+    try:
+        check = services.hooks_check(recordings, transcripts)
+    except (OSError, ValueError) as error:
+        # The type and the file only: a parser's message can quote content.
+        where = getattr(error, "filename", None) or ""
+        err.write(
+            f"ter hooks check: recordings unreadable: {type(error).__name__}"
+            + (f" ({where})" if where else "")
+            + "\n"
+        )
+        return 2
+    out.write(format_hook_check(check))
+    if args.json is not None:
+        _write(args.json, _json(check.to_dict()))
     return 0
 
 
@@ -449,6 +492,28 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
         "(for collecting real hook payloads; contains tool inputs and output)",
     )
 
+    hooks = commands.add_parser(
+        "hooks", help="check recorded hook payloads (ter hook --record)"
+    )
+    hooks_commands = hooks.add_subparsers(dest="hooks_command", required=True)
+    hooks_check = hooks_commands.add_parser(
+        "check",
+        help="correlate recorded hook payloads with the sessions' transcripts "
+        "(content-free report: counts, ids, reasons, field names)",
+    )
+    hooks_check.add_argument(
+        "recordings", type=Path, help="the DIR given to `ter hook --record DIR`"
+    )
+    hooks_check.add_argument(
+        "transcripts",
+        type=Path,
+        help="Claude Code projects folder (e.g. ~/.claude/projects) or a folder "
+        "of .jsonl transcripts",
+    )
+    hooks_check.add_argument(
+        "--json", type=Path, metavar="FILE", help="also write the report as JSON"
+    )
+
     corpus = commands.add_parser(
         "corpus", help="build a redacted research corpus from real sessions"
     )
@@ -611,8 +676,13 @@ def format_outcome(verdict: OutcomeVerdict | None, path: Path | None) -> str:
     return "\n".join(lines) + "\n"
 
 
-def format_findings(analysis: LeanAnalysis) -> str:
-    """A readable plain-text summary of an L2 analysis."""
+def format_findings(
+    analysis: LeanAnalysis, sve: SoftwareValueEfficiency | None = None
+) -> str:
+    """A readable plain-text summary of an L2 analysis.
+
+    With ``sve``, Software Value Efficiency is printed next to TER.
+    """
     sc = analysis.scorecard
     lines = [f"TER explain · session {analysis.session_id or '-'}"]
     eff = sc.flow_efficiency_tokens
@@ -629,6 +699,25 @@ def format_findings(analysis: LeanAnalysis) -> str:
     )
     if sc.ter is not None:
         lines.append(f"  TER              {sc.ter.value:.3f} ({sc.ter.method})")
+    if sve is not None:
+        lines.append(
+            "  value efficiency "
+            + (
+                "unknown"
+                if sve.tokens is None
+                else f"{sve.tokens:.0%} of generated tokens"
+                + ("" if sve.time is None else f", {sve.time:.0%} of agent time")
+            )
+            + f" · {sve.reason}"
+        )
+    wip = analysis.wip
+    if wip.peak is not None:
+        final = wip.final
+        lines.append(
+            f"  WIP              peak {wip.peak.total} ("
+            + ", ".join(f"{k.value} {n}" for k, n in wip.peak_by_kind)
+            + f"), {0 if final is None else final.total} open at the end"
+        )
     lines.append(
         f"  findings         {sc.findings} confident, {sc.uncertain_findings} uncertain, "
         f"{sc.risks} risk(s)"

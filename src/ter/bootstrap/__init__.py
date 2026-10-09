@@ -16,8 +16,13 @@ from ..adapters.driving.cli import CliServices
 from ..adapters.driving.cli import main as cli_main
 from ..adapters.driven.in_memory import SystemClock
 from ..application.explain import ExplainedSession, ExplainSession
-from .capabilities import CapabilityRegistry, default_registry
-from ..application.observe import AnalyseEventLog, AnalyseTrace, RecordEvent
+from .capabilities import CapabilityRegistry, default_registry, detector_registry
+from ..application.observe import (
+    AnalyseEventLog,
+    AnalyseTrace,
+    ObserveEvent,
+    RecordEvent,
+)
 from ..domain.capabilities import Capability, CapabilityProblem, UnknownCapabilityError
 from ..domain.stream import StreamReport
 from ..ports.driven import OutcomeSource, SessionSource, TerScorer, Tokenizer
@@ -25,14 +30,18 @@ from ..ports.driving import EventIngest
 
 if TYPE_CHECKING:
     from ..adapters.driven.claude_code.corpus import CorpusImport
+    from ..adapters.driving.claude_hooks.check import HookCheck
 
 __all__ = [
     "CapabilityRegistry",
     "cli_services",
     "default_registry",
     "default_event_log_dir",
+    "detector_registry",
     "main",
+    "make_ingest",
     "make_outcome_source",
+    "make_recorder",
     "make_ter_scorer",
     "make_tokenizer",
     "session_source_for",
@@ -80,37 +89,82 @@ def make_outcome_source(name: str = "junit") -> OutcomeSource:
 
 def make_ter_scorer(mode: str) -> TerScorer | None:
     """``offline`` pins TER 3 to the deterministic adapters; ``model`` uses its
-    sentence-transformers model; ``off`` skips TER."""
+    sentence-transformers model; ``off`` skips TER.
+
+    The scorer, and the tokenizer and embedder it is pinned to, are
+    capabilities (``TerScorer.ter3``, ``Tokenizer.regex``, ``Embedder.hashing``).
+    """
     if mode == "off":
         return None
-    from ..adapters.driven.ter3 import Ter3Scorer
-
+    registry = default_registry()
     if mode == "model":
-        return Ter3Scorer()
-    if mode == "offline":
-        from ..adapters.driven.embedders import HashingEmbedder
-        from ..adapters.driven.tokenizers import RegexTokenizer
-
-        return Ter3Scorer(RegexTokenizer(), HashingEmbedder())
-    raise ValueError(f"Unknown TER mode {mode!r}")
+        scorer = registry.create("TerScorer", "ter3")
+    elif mode == "offline":
+        scorer = registry.create(
+            "TerScorer",
+            "ter3",
+            make_tokenizer("regex"),
+            registry.create("Embedder", "hashing"),
+        )
+    else:
+        raise ValueError(f"Unknown TER mode {mode!r}")
+    assert isinstance(scorer, TerScorer)  # checked by the registry
+    return scorer
 
 
 def session_source_for(path: Path) -> SessionSource:
-    """The session source for a reference: a GARE export, else Claude Code."""
-    from ..adapters.driven.gare import GareRunSource
+    """The agent adapter for a reference, from the ``SessionSource`` capabilities.
 
-    if GareRunSource.accepts(path):
-        return GareRunSource()
-    from ..adapters.driven.claude_code import ClaudeCodeJsonlSource
+    A source that can tell its own files apart declares a static
+    ``accepts(ref)``; the first, by name, that accepts ``path`` reads it (a
+    GARE export, say). Anything else is a Claude Code transcript.
+    """
+    registry = default_registry()
+    for cap in registry.capabilities("SessionSource"):
+        if cap.name == "claude-code":
+            continue
+        try:
+            accepts = getattr(registry.factory(cap.port, cap.name), "accepts", None)
+            if not (callable(accepts) and bool(accepts(path))):
+                continue
+            source = registry.create(cap.port, cap.name)
+        except Exception:  # a broken plugin must not stop Claude Code transcripts
+            continue
+        assert isinstance(source, SessionSource)  # checked by the registry
+        return source
+    source = registry.create("SessionSource", "claude-code")
+    assert isinstance(source, SessionSource)
+    return source
 
-    return ClaudeCodeJsonlSource()
+
+def make_ingest(tokenizer: str = "regex") -> EventIngest:
+    """A fresh :class:`EventIngest` for analysing one recorded session.
+
+    Every recorded path (transcript, GARE run, event log replay) applies its
+    events through one of these (TER-OBS-001); the detectors it runs are the
+    installed ``WasteDetector`` capabilities (TER-ARC-002).
+    """
+    return ObserveEvent(make_tokenizer(tokenizer), detectors=detector_registry())
+
+
+def make_recorder(directory: Path) -> EventIngest:
+    """The :class:`EventIngest` a hook process records live events through."""
+    from ..adapters.driven.event_log import JsonlEventLog
+
+    # Append-only: a hook's cost must not grow with the session. A hook
+    # process never explains, so it skips plugin discovery too.
+    return RecordEvent(make_tokenizer("regex"), JsonlEventLog(directory))
 
 
 def cli_services() -> CliServices:
     """Wire the CLI's use cases. Heavy adapters are imported on first use."""
 
     def analyse_transcript(path: Path, tokenizer: str) -> StreamReport:
-        return AnalyseTrace(session_source_for(path), make_tokenizer(tokenizer))(path)
+        return AnalyseTrace(
+            session_source_for(path),
+            make_tokenizer(tokenizer),
+            lambda: make_ingest(tokenizer),
+        )(path)
 
     def log_sessions(directory: Path) -> tuple[str, ...]:
         from ..adapters.driven.event_log import JsonlEventLog
@@ -121,18 +175,18 @@ def cli_services() -> CliServices:
         from ..adapters.driven.event_log import JsonlEventLog
 
         log = JsonlEventLog(directory)
-        return AnalyseEventLog(log, make_tokenizer(tokenizer))(session_id)
+        return AnalyseEventLog(
+            log, make_tokenizer(tokenizer), lambda: make_ingest(tokenizer)
+        )(session_id)
 
     def hook_ingest(directory: Path) -> EventIngest:
-        from ..adapters.driven.event_log import JsonlEventLog
-
-        # Append-only: a hook's cost must not grow with the session.
-        return RecordEvent(make_tokenizer("regex"), JsonlEventLog(directory))
+        return make_recorder(directory)
 
     def explain_transcript(
         path: Path, tokenizer: str, ter: str, outcome: Path | None = None
     ) -> ExplainedSession:
         from ..adapters.driven.claude_code import ClaudeCodeJsonlSource
+        from ..adapters.driven.pricing import default_price_book
 
         source = session_source_for(path)
         # TER 3 scores Claude Code transcripts only; other sources get no TER
@@ -143,6 +197,8 @@ def cli_services() -> CliServices:
             make_tokenizer(tokenizer),
             make_ter_scorer(ter if scores else "off"),
             make_outcome_source() if outcome is not None else None,
+            default_price_book(),
+            lambda: make_ingest(tokenizer),
         )
         return use_case(path, outcome)
 
@@ -188,7 +244,14 @@ def cli_services() -> CliServices:
             labels=read_labels(labels) if labels is not None else None,
         )
 
+    def hooks_check(recordings: Path, transcripts: Path) -> "HookCheck":
+        from ..adapters.driven.claude_code import ClaudeCodeJsonlSource
+        from ..adapters.driving.claude_hooks.check import check_recordings
+
+        return check_recordings(recordings, transcripts, ClaudeCodeJsonlSource().read)
+
     return CliServices(
+        hooks_check=hooks_check,
         capabilities=capabilities,
         import_corpus=import_corpus,
         tokenizers=tokenizers,

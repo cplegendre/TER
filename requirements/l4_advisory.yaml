@@ -188,3 +188,15 @@ requirements:
     rationale: >-
       Repeated warnings are their own form of waste.
     status: planned
+
+  - id: TER-ARC-008
+    pattern: ubiquitous
+    text: >-
+      TER shall load intervention policies through the ter.capabilities
+      plugin registry.
+    level: L4
+    source_points: [197]
+    rationale: >-
+      The L4 part of TER-ARC-002: policies are plugins like analysers,
+      detectors and agent adapters, but no policy exists before L4.
+    status: planned

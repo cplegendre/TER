@@ -16,6 +16,7 @@ from collections.abc import Mapping
 from .model import Outcome, ShellIntent
 
 __all__ = [
+    "STOPWORDS",
     "content_words",
     "defined_identifiers",
     "failure_signature",
@@ -23,6 +24,8 @@ __all__ = [
     "output_fingerprint",
     "normalise_command",
     "overlap",
+    "question_words",
+    "runs_check",
     "shell_intent",
     "source_lines",
     "tool_paths",
@@ -52,6 +55,7 @@ _VALIDATE = re.compile(
     r"|go\s+(?:test|vet|build)|cargo\s+(?:test|check|clippy|build)|mvn|gradlew?\s+\S*(?:test|check|build)"
     r"|dotnet\s+(?:test|build)|make\s+(?:test|check|lint|ci)|(?:npm|yarn|pnpm)\s+(?:run\s+)?(?:test|lint|check|build|typecheck)"
     r"|playwright\s+test|cypress\s+run|bazel\s+test|swift\s+test"
+    r"|pre-commit\s+run|gh\s+(?:pr\s+checks|run\s+(?:watch|view))"
     r")(?:\s|$)"
 )
 # Running code to check it by hand: ``python -c``, ``python - <<EOF``,
@@ -135,6 +139,9 @@ _STOPWORDS = frozenset(
     make sure first next last think file files use using used
     """.split()
 )
+
+#: Words too common to say what a text is about (shared with :mod:`.intent`).
+STOPWORDS = _STOPWORDS
 
 
 def normalise_command(command: str) -> str:
@@ -243,6 +250,23 @@ def shell_intent(command: str) -> ShellIntent:
     return ShellIntent.OTHER
 
 
+def runs_check(command: str) -> bool:
+    """Whether any simple command in the line runs a named check tool.
+
+    Unlike :func:`shell_intent`, a change elsewhere in the line does not hide
+    the check: ``sed -i ... && pytest`` edits and then validates. Real
+    sessions chain checks this way often (15 of 260 check-running lines in
+    this project's own transcripts were classified as changes). Ad hoc runs
+    (``python - <<EOF``) do not count here: beside a change they are more
+    often an editing script than a check.
+    """
+    heads = _command_heads(command)
+    unwrapped = [
+        h.split(" ", 2)[2] if re.match(r"python3?\s+-m\s+\S", h) else h for h in heads
+    ]
+    return any(_VALIDATE.match(h) for h in [*heads, *unwrapped])
+
+
 def validation_outcome(output: str) -> Outcome:
     """Read pass or fail from a validation run's output; unknown when unclear."""
     if _FAILED.search(output):
@@ -321,3 +345,25 @@ def overlap(a: frozenset[str], b: frozenset[str]) -> float:
     if not a or not b:
         return 0.0
     return len(a & b) / min(len(a), len(b))
+
+
+# A sentence ends at ``.``, ``!`` or ``?`` followed by space, or at a line end;
+# ``cli.py`` and ``v1.2`` stay whole.
+_SENTENCE = re.compile(r"[^.!?\n]*(?:[.!?](?=\s|$)|\n|$)")
+_DOTTED = re.compile(r"(?<=\w)\.(?=\w)")
+
+
+def question_words(text: str) -> frozenset[str]:
+    """Content words of the questions a text asks: sentences ending in ``?``.
+
+    These are the open questions a prompt, reasoning block or response
+    records; exploration that names one of their words addresses them.
+    """
+    words: set[str] = set()
+    for line in text.splitlines():
+        guarded = _DOTTED.sub("\0", line)
+        for match in _SENTENCE.finditer(guarded):
+            sentence = match.group(0).strip()
+            if sentence.endswith("?"):
+                words |= content_words(sentence.replace("\0", "."))
+    return frozenset(words)

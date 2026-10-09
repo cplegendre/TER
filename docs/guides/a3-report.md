@@ -128,7 +128,7 @@ actions of four kinds:
 
 | Action kind | What it is | Example |
 |---|---|---|
-| Add to CLAUDE.md | A line of standing instruction for the agent | "Change existing files with Edit or MultiEdit; use Write only for new files…" |
+| Add to CLAUDE.md | A line of standing instruction for the agent | "Change existing files with Edit; use Write only for new files…" |
 | Install a hook | A Claude Code hook: the `.claude/settings.json` snippet and, where needed, a script | A `PreToolUse` hook on `Write` that blocks rewriting an existing file |
 | Harness setting | A Claude Code setting | `"permissions": {"defaultMode": "plan"}` |
 | Practice | Something for the developer to do | "Run the failing test alone with full output before the next edit" |

@@ -268,9 +268,13 @@ def test_index_links_issues() -> None:
 
 def test_shipped_real_data_points_match_their_issues() -> None:
     real = {p.id: p.issue for p in CATALOGUE.points if p.real_data}
-    assert len(real) == 46
-    assert all(issue is not None and 34 <= issue <= 46 for issue in real.values())
-    assert real["P115"] == 35 and real["P200"] == 45
+    assert len(real) == 47
+    # #34 to #46 collect Claude Code sessions; #55 a real recorded GARE run.
+    assert all(
+        issue is not None and (34 <= issue <= 46 or issue == 55)
+        for issue in real.values()
+    )
+    assert real["P115"] == 35 and real["P200"] == 45 and real["P103"] == 55
 
 
 # -- repository checks --------------------------------------------------------
@@ -392,10 +396,26 @@ def test_cli_lint_checks_points(
     points = copy / "points.yaml"
     text = points.read_text(encoding="utf-8")
     start = text.index("id: P102")
-    proof = text.index("'test: ", start)
-    end = text.index("'", proof + 1) + 1
-    text = text[:proof] + "'branch: work/other pending proof'" + text[end:]
+    stop = text.index("- id:", start)
+    block = text[start:stop]
+    while "'test: " in block:
+        proof = block.index("'test: ")
+        end = block.index("'", proof + 1) + 1
+        block = block[:proof] + "'branch: work/other pending proof'" + block[end:]
+    text = text[:start] + block + text[stop:]
+    # ... and a rule still planned here, so its proof really is elsewhere.
+    rules = text.index("rules: [", start)
+    text = text[: rules + len("rules: [")] + "TER-OBS-099, " + text[rules + 8 :]
     points.write_text(text, encoding="utf-8")
+    l1 = copy / "l1_observed.yaml"
+    l1.write_text(
+        l1.read_text(encoding="utf-8").rstrip("\n")
+        + "\n\n  - id: TER-OBS-099\n    pattern: ubiquitous\n"
+        + "    text: >-\n      TER shall observe a pending behaviour.\n"
+        + "    level: L1\n    source_points: [102]\n"
+        + "    rationale: >-\n      Test fixture.\n    status: planned\n",
+        encoding="utf-8",
+    )
     pending = ["--catalogue", str(copy), "--root", str(ROOT), "lint"]
     code, out = _run(capsys, *pending)
     assert code == 0 and "warning: P102: [POINT-PENDING]" in out

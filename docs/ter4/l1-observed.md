@@ -9,10 +9,17 @@ the batch report of the same events are the same value.
 
 | Id | Requirement | Verified by |
 |---|---|---|
+| TER-OBS-001 | TER shall accept every live and recorded observation through the EventIngest port as ter.event events. | `tests/contract/test_ingest_wiring.py`, `tests/contract/test_event_ingest.py` |
+| TER-ANL-011 | When TER applies one new event to a live session, TER shall update the session state without reprocessing earlier events. | `tests/unit/test_ter4_stream_incremental.py` |
 | TER-OBS-003 | When a PostToolUse hook event is received, the hook adapter shall append a normalised `tool.completed` event within 50 ms at the 95th percentile. | `tests/unit/test_ter4_claude_hooks.py::test_post_tool_use_is_appended_within_50ms_at_p95` |
 | TER-OBS-004 | If an event arrives with an identity already recorded, then TER shall discard it without changing analysis state. | `tests/unit/test_ter4_stream*.py`, `tests/contract/test_event_ingest.py`, `tests/contract/test_hook_payloads.py` |
 | TER-ANL-010 | TER shall produce identical reports for a session analysed incrementally and analysed in batch. | `tests/equivalence/test_live_static.py`, property tests, `tests/golden/test_stream_report_snapshot.py` |
 | TER-OBS-008 | While the maturity ceiling is L1 Observed, the hook adapter shall return an empty hook response to Claude Code. | `tests/unit/test_ter4_claude_hooks.py::TestRunHook`, `tests/unit/test_ter4_cli.py` (hook commands print `{}`) |
+| TER-SRC-005 | The session source shall account for at least 99 percent of records in every session of the reference corpus, each record either mapped to events or classified as a documented metadata type. | `tests/unit/test_ter4_corpus_coverage.py` against `tests/fixtures/corpus/reference-record-types.json` (real sessions; see [corpus.md](corpus.md#coverage-of-real-record-types)) |
+| TER-SRC-024 | When a Claude Code session records a prompt that the developer queued while the agent was working, the session source shall emit one intent.stated event for it in file order. | `tests/unit/test_ter4_corpus_coverage.py` |
+| TER-OBS-007 | The hook adapter shall assign each hook event the event id that the session source assigns to the same record. | `tests/unit/test_ter4_hook_check.py` (`TestSharedIdRules`, `TestStopRule`, `TestSubagentRule`, and the real run summary `tests/fixtures/hooks/real-check-2026-10-09.md`) |
+| TER-OBS-012 | When the hook check runs on recorded hook payloads and transcripts, TER shall report for each session the share of hook events whose id matches a session-source event, without reproducing payload content. | `tests/unit/test_ter4_hook_check.py` |
+| TER-OBS-013 | When a SubagentStop hook payload has no agent_type and names a subagent session file that does not exist, the hook adapter shall emit no event for the payload. (The hooks check counts such payloads apart from the id match.) | `tests/unit/test_ter4_hook_check.py::TestInternalHelperAgents` |
 
 ## Flow
 
@@ -32,9 +39,23 @@ sequenceDiagram
     O->>L: append(event) unless this process already did
     H-->>CC: {} (always, exit 0: fail open)
     R->>L: events(session_id)
-    R->>E: analyse_batch(events)
+    R->>E: apply(event) for each event, via a fresh EventIngest
     E-->>R: StreamReport
 ```
+
+Every observation enters analysis through the `EventIngest` port
+(TER-OBS-001): live hooks apply each event as it fires, and every recorded
+path (a Claude Code transcript, a GARE run, a replayed event log, and the L2
+`explain`/`a3` commands) applies its events, in order, to a fresh
+`EventIngest` built by the composition root (`ter.bootstrap.make_ingest`)
+before reading the report or explanation. `tests/contract/test_ingest_wiring.py`
+spies on that factory for each path, and checks statically that nothing
+outside the domain folds events around the port.
+
+Applying one event reads only that event and tokenizes its text once, however
+long the session is; a repeated id reads only the id (TER-ANL-011,
+`tests/unit/test_ter4_stream_incremental.py`, which counts field reads on
+instrumented events).
 
 A hook is a new process per event, so the hook path (`RecordEvent`) only
 appends: its cost does not grow with the session (the cold-process benchmark
@@ -48,20 +69,22 @@ can be retried.
 A hook that cannot record an event (bad JSON, a full disk) still prints `{}`
 and exits 0, and writes `ter hook: event not recorded: <reason>` to stderr.
 
-`UserPromptSubmit` carries no id for the submission, so a prompt's id includes
-the second it was received: the same text submitted twice counts twice, and
-one submission seen twice within a second (the hook registered in two settings
-files) counts once.
+`UserPromptSubmit` carries no id for the submission. The hook looks for the
+prompt's transcript record and keys the prompt by it (see
+[Shared id rules](#shared-id-rules-ter-obs-007)); when there is none yet, the
+prompt's id includes the second it was received: the same text submitted twice
+counts twice, and one submission seen twice within a second (the hook
+registered in two settings files) counts once.
 
 ## Hook to event mapping
 
 | Hook | `ter.event` output | Id key |
 |---|---|---|
-| `UserPromptSubmit` | `intent.stated` (user), text = `prompt` | session + hash of prompt + second received |
-| `PreToolUse` | `tool.requested` (assistant), tool kind from the Claude Code tool map, arguments = `tool_input` | session + `tool_use_id` (else hash of tool name and input) |
+| `UserPromptSubmit` | `intent.stated` (user), text = `prompt` | session + uuid and block of the transcript record holding the prompt (found in the `transcript_path` tail); else session + hash of prompt + second received |
+| `PreToolUse` | `tool.requested` (assistant), tool kind from the Claude Code tool map, arguments = `tool_input` | session + `tool_use_id` + kind (else hash of tool name and input) |
 | `PostToolUse` | the same `tool.requested` as PreToolUse, plus `tool.completed` (tool), text = `tool_response` | as above; the completion's `parent_id` is the request |
-| `Stop` | `task.completed` (system), empty text | session + second received |
-| `SubagentStop` | `subagent.completed` (system) in the parent session, text = `agent_type` when sent | session + `agent_id` when sent, else the exact receive time (parallel subagents can finish within one second) |
+| `Stop` | `task.completed` (system), empty text | session + the turn it closes (last main-chain `assistant` uuid in `transcript_path` written by the receive time); session + second received when the transcript cannot be read |
+| `SubagentStop` | `subagent.completed` (system) in the parent session, text = `agent_type` when sent; none for an internal helper agent (status `internal`, below) | session + `agent_id` when sent (the shared rule below), else the exact receive time (parallel subagents can finish within one second) |
 | `SessionStart`, `SessionEnd`, `SubagentStart`, `PreCompact`, `Notification` | none (status `lifecycle`) | n/a |
 | anything else, or a malformed payload | none (status `ignored`, with a reason) | n/a |
 
@@ -69,11 +92,147 @@ PostToolUse repeats the request because many installations register only
 PostToolUse. Its request carries the id PreToolUse would produce, so where
 both hooks run the second copy is discarded by TER-OBS-004.
 
-Known limits of hook identity: prompts are told apart only by text and the
-second they were received (hooks carry no prompt id), and tool calls without
-a `tool_use_id` are keyed by content. Hook events carry `sequence = 0`; order is the order of the
-log. Hook event ids differ from transcript event ids for the same session;
-equivalence holds per event stream, not across the two sources.
+Hook events carry `sequence = 0`; order is the order of the log.
+
+**Internal helper agents (TER-OBS-013).** Claude Code fires `SubagentStop`
+for its own helper agents too. Real payloads (Windows, 9 October 2026) had
+an empty `agent_type` and an `agent_transcript_path` that was never written,
+and came even from a session that started no Agent-tool subagent. A
+SubagentStop with a missing or blank `agent_type` whose
+`agent_transcript_path` names a file that does not exist yields no event
+(status `internal`, reason fixed); `--record` still saves the raw payload.
+Why no event: no transcript will ever hold the helper, so the session source
+cannot derive its `subagent.completed`, and emitting one live would break
+batch == incremental for that session; it would also count a handoff the
+agent never made for any analysis that reads subagent stops. The `stat`
+happens in `claude_hooks.entry.derive` (translation stays pure) and fails
+open: a stat that raises keeps the event. A typed agent whose file is
+missing keeps its event (the hooks check reports it as a real miss), and a
+payload without `agent_transcript_path` is handled as before. Ids of real
+subagents do not change.
+
+### Shared id rules (TER-OBS-007)
+
+The hook adapter and the session source key the same record the same way:
+one rule per kind, defined once in `ter/adapters/claude_code_ids.py` and
+called by both sides.
+
+| Kind | Id | Hook side | Session source side |
+|---|---|---|---|
+| `tool.requested`, `tool.completed` | `make_event_id(session, tool_use_id, kind)` | Pre/PostToolUse `tool_use_id` | `id` of the `tool_use` block, `tool_use_id` of the `tool_result` block |
+| `intent.stated` | `make_event_id(session, record_uuid, block_index, kind)` | the record holding the prompt, found in the transcript tail | the `user` record's text block; a `queued_command` attachment is block 0 (TER-SRC-024) |
+| `task.completed` | `make_event_id(session, turn_uuid, "stop", kind)` | the last main-chain `assistant` record in the transcript tail by the receive time | the last main-chain `assistant` record before each `stop_hook_summary` |
+| `subagent.completed` | `make_event_id("claude-code-hooks", session, "SubagentStop", agent_id)` (the hook's original key, kept) | SubagentStop `agent_id` | each finished `<session>/subagents/agent-<agent_id>.jsonl` |
+| `reasoning`, `response` | `make_event_id(session, record_uuid, block_index, kind)` | no hook | every block |
+
+How each side finds the record is in `ter/adapters/claude_code_turns.py`:
+
+* **Stops.** The session source derives a `task.completed` for each main-chain
+  `system` record with subtype `stop_hook_summary` (Claude Code writes it
+  after the Stop hooks ran), keyed by the last main-chain `assistant` record
+  before it; the Stop hook keys its event by the last such record in the
+  transcript tail (at most 16 MiB) when the payload arrived (TER-OBS-005).
+* **Prompts.** The `UserPromptSubmit` hook reads the last 1 MiB of
+  `transcript_path` for the last main-chain record holding the prompt text
+  (whitespace-trimmed) that was written by the receive time: a `user` record's
+  text block, or a developer's `queued_command` attachment. A record counts as
+  written no earlier than the latest timestamp at or before it in the file
+  (the file is append-only), so a queued attachment stamped with its enqueue
+  time is not seen early. The text only finds the record: the id is the
+  record's, so a redacted session keeps its ids (TER-SRC-022).
+* **Tools.** Both sides carry the `tool_use_id`; no lookup is needed.
+* **Subagents** (`ter/adapters/claude_code_subagents.py`). Claude Code writes
+  each subagent's transcript to `<session id>/subagents/agent-<agent_id>.jsonl`
+  (with `.meta.json` and `.prefix.json` siblings) from its first record, so a
+  file alone does not mean the subagent stopped. The session source derives
+  one `subagent.completed` per subagent file that holds a finish marker:
+  the subagent's own transcript ends with an assistant record whose
+  `stop_reason` is not `tool_use` and no user record after it
+  (`final-turn`); a parent record whose `toolUseResult` names the `agentId`
+  with `status: completed` (a foreground Agent call returned,
+  `parent-result`); or a parent `queued_command` attachment with
+  `commandMode: task-notification` naming `<task-id>` the agent and
+  `<status>completed</status>` (a background agent finished,
+  `parent-notification`). Markers were read off real Claude Code 2.1.295
+  transcripts. The event takes the latest marker's time (a subagent resumed
+  and stopped again keeps one id, as the hook side dedupes by id), is placed
+  after every parent event stamped no later, cites the marker's record, and
+  takes `agentType` from `.meta.json` as its text (as SubagentStop's
+  `agent_type`). A subagent still running, or one whose finish left none of
+  these markers, gets no event; a parent marker without a subagent file
+  (older releases) gets none either, so sessions without a `subagents` folder
+  read exactly as before. Redaction drops `toolUseResult`, so on a redacted
+  corpus a foreground agent is found by its `final-turn` marker; the corpus
+  importer keeps the `<session id>/subagents/agent-<id>.jsonl` layout (it
+  does not copy the meta files, so the text is empty there).
+
+Fallbacks, which cannot correlate and which `python -m ter hooks check`
+reports as such:
+
+* a transcript `tool_use` or `tool_result` block without an id (older
+  transcripts), or one repeating an id already used for that kind in the
+  session (a copied record), is keyed by the record rule, so ids stay unique;
+* a tool hook without `tool_use_id` is keyed by a hash of tool name and input;
+* a prompt whose record is not in the transcript when the hook runs, or a
+  payload without `transcript_path`, keeps the text-and-second key above;
+* a Stop with no readable turn is keyed by the second it arrived;
+* a SubagentStop without `agent_id` is keyed by the exact time it arrived;
+* an internal helper agent's SubagentStop yields no event at all (above).
+
+Claude Code 2.1 transcripts suggested the prompt's record might be written
+only after the `UserPromptSubmit` hooks return. The real recordings of
+9 October 2026 say otherwise: all 11 live prompts were keyed to their
+transcript record and matched.
+
+The rule change re-keyed tool events in every transcript (previously session
++ record uuid + block + kind); event ids are opaque, so the `ter.event`
+schema did not change. Deriving `subagent.completed` adds events only to
+sessions with a `subagents` folder; the golden corpus has none.
+
+### Checking recordings against transcripts (TER-OBS-012)
+
+`python -m ter hooks check RECORDINGS TRANSCRIPTS [--json FILE]` replays what
+`ter hook --record` saved through the live hook path (`claude_hooks.derive`),
+reads each session's transcript through the session source, and reports per
+session: payload counts and field names by hook, hook-derived and
+transcript-derived event counts by kind, per kind the matched and unmatched
+ids with a reason for each miss (TER-OBS-007), and per Stop payload whether
+its id equals the session source's for the same stop (TER-OBS-005). The
+report holds no payload content, so it is how TER-OBS-005 and TER-OBS-007
+get checked on real recordings that cannot leave their owner's machine
+(issue #35). See
+[the hooks guide](../guides/hooks.md#checking-recordings-against-transcripts).
+
+The owner's run of 9 October 2026 (Claude Code on Windows, two real
+sessions, summarised content-free in
+`tests/fixtures/hooks/real-check-2026-10-09.md`) matched 87 of 94 hook
+events: every `intent.stated` (11), `tool.requested` (34), `tool.completed`
+(32) and `task.completed` (10 of 10 Stop payloads). TER-OBS-005 is
+therefore verified. The 7 misses were all `subagent.completed`, which the
+session source did not derive then; it now does (above), so TER-OBS-007
+stays `planned`.
+
+A second run the same day, after that change, matched every
+`intent.stated` (12), `tool.requested` (37), `tool.completed` (35) and
+`task.completed` (11 of 11). Its 9 SubagentStops all missed with "no
+subagent transcript", and none was an Agent-tool subagent: all had an empty
+`agent_type` and a transcript file that was never written (internal helper
+agents). The check now counts those on their own line ("no transcript by
+design") outside the TER-OBS-007 share, and keeps "no subagent transcript"
+for a typed agent whose file is missing.
+
+A third run (at `cdd2cb9`, from inside the still-running Remote Control
+session, which had by then spawned one Agent-tool subagent) matched that
+subagent's SubagentStop (`agent_type` `general-purpose`) to the session
+source's `subagent.completed`, and every `intent.stated` (16),
+`task.completed` (15 of 15), 45 `tool.requested` and 42 `tool.completed`.
+The misses were 10 internal helper stops and one tool request and its
+completion with "no transcript event for the same record", most likely the
+call running the check, whose records were not in the transcript yet. The
+check now reports a hook event that has no counterpart and was received
+after the transcript's last record as "not yet written to the transcript",
+outside the share. Every hook event whose record the transcript held got
+the transcript's id, so TER-OBS-007 is verified on real data.
 
 ## Observables (`StreamReport`)
 
@@ -99,6 +258,7 @@ discarded before any state changes.
 python -m ter observe session.jsonl --timeline      # a recorded transcript
 python -m ter observe --event-log ~/.cache/ter/events # what hooks recorded
 python -m ter hook                                  # hook entry: payload on stdin
+python -m ter hooks check REC_DIR ~/.claude/projects  # recordings vs transcripts
 ```
 
 Register the hook in `.claude/settings.json`:
@@ -122,11 +282,13 @@ and an existing one that others can read is tightened. The TER 3 `ter hook monit
 | Layer | Module |
 |---|---|
 | domain | `ter/domain/stream.py`: `AnalysisEngine`, `StreamReport`, `Signals`, `analyse_batch` |
-| ports | `ter/ports/driving.py`: `EventIngest`; `ter/ports/driven.py`: `EventLog` |
-| application | `ter/application/observe.py`: `ObserveEvent`, `RecordEvent`, `AnalyseTrace`, `AnalyseEventLog` |
+| ports | `ter/ports/driving.py`: `EventIngest` (`apply`, `report`, `explain`); `ter/ports/driven.py`: `EventLog` |
+| application | `ter/application/observe.py`: `ObserveEvent`, `RecordEvent`, `AnalyseTrace`, `AnalyseEventLog`, `ingest_all` |
 | driving adapters | `ter/adapters/driving/claude_hooks/`, `ter/adapters/driving/cli.py` |
 | driven adapters | `ter/adapters/driven/event_log/` (JSONL), `InMemoryEventLog` |
 | shared data | `ter/adapters/claude_code_tools.py`: the Claude Code tool map, used by the JSONL source and the hooks adapter |
+| shared rules | `ter/adapters/claude_code_ids.py`: the event id rule per kind; `ter/adapters/claude_code_turns.py`: the turn a stop closes and the record a prompt sits in. Both used by the JSONL source and the hooks |
+| hook check | `ter/adapters/driving/claude_hooks/check.py`: `python -m ter hooks check` |
 
 The tool map moved out of `ter.adapters.driven.claude_code` (which keeps a
 re-export) so the hook entry point does not import the transcript reader,

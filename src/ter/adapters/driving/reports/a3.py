@@ -10,15 +10,21 @@ on one landscape A3 sheet.
 
 from __future__ import annotations
 
+from collections import Counter
 from collections.abc import Sequence
 
 from ter.domain.lean import (
+    LEAN_MEASURES,
+    SVE_DEFINITION,
     A3Report,
     ActivityClass,
     Countermeasure,
     Finding,
     FlowState,
+    Measure,
     StageSummary,
+    ValueStatus,
+    WipKind,
 )
 from ter.domain.events import describe_limit
 from ter.domain.lean.model import UNCERTAIN_BELOW, Stage
@@ -28,6 +34,8 @@ from ter.domain.outcome import CheckResult
 from .palette import stylesheet
 from .svg import (
     _fill_stroke,
+    _heading,
+    _legend,
     _open,
     _paint,
     _text,
@@ -44,6 +52,7 @@ __all__ = [
     "fmt_seconds",
     "render_a3_html",
     "value_stream_map",
+    "wip_chart",
 ]
 
 _CSP = "default-src 'none'; style-src 'unsafe-inline'; img-src data:"
@@ -54,6 +63,14 @@ ACTIVITY_ROLES: dict[str, str] = {
     ActivityClass.NECESSARY_NON_VALUE_ADDING.value: "series-3",
     ActivityClass.AVOIDABLE.value: "waste",
     "uncertain": "series-4",
+}
+
+#: Colour role of each kind of work in progress.
+WIP_ROLES: dict[WipKind, str] = {
+    WipKind.HYPOTHESES: "series-2",
+    WipKind.TASKS: "series-7",
+    WipKind.EDITS: "series-1",
+    WipKind.FAILURES: "waste",
 }
 
 FLOW_ROLES: dict[FlowState, str] = {
@@ -298,6 +315,62 @@ def flow_bar(report: A3Report, *, time: bool = False, width: int = 520) -> str:
     )
 
 
+def wip_chart(report: A3Report, *, width: int = 520) -> str:
+    """Unresolved work after every event, stacked by kind, with the peak marked."""
+    wip = report.analysis.wip
+    peak = wip.peak
+    if peak is None or peak.total == 0:
+        return ""
+    side, top, plot_h = 16, 44, 110
+    plot_w = width - 2 * side
+    n = len(wip.samples)
+    step = plot_w / n
+    bar = max(step - (1 if step > 3 else 0), 0.5)
+    scale = plot_h / peak.total
+    base = top + plot_h
+    legend, bottom = _legend(
+        [(f"{k.label} (peak {wip.peak_of(k)})", WIP_ROLES[k]) for k in WipKind],
+        x0=side,
+        y0=base + 14,
+        max_x=width - side,
+    )
+    height = int(bottom + 14)
+    peaks = ", ".join(f"{k.value} {wip.peak_of(k)}" for k in WipKind)
+    desc = (
+        f"Work in progress after each of {n} events. Peak {peak.total} open items "
+        f"after event {peak.event_id}; peak by kind: {peaks}."
+    )
+    parts = _open("a3-wip", "Work in progress", desc, width, height)
+    parts.append(_heading(f"Work in progress (peak {peak.total})", side))
+    for i, sample in enumerate(wip.samples):
+        y = float(base)
+        for kind in WipKind:
+            count = sample.count(kind)
+            if not count:
+                continue
+            h = count * scale
+            y -= h
+            parts.append(
+                f'<rect x="{side + i * step:.1f}" y="{y:.1f}" width="{bar:.1f}"'
+                f' height="{h:.1f}" {_paint(WIP_ROLES[kind])}>'
+                f"<title>Event {esc(sample.event_id)}: {count} {kind.value}</title></rect>"
+            )
+    parts.append(
+        f'<line x1="{side}" y1="{top}" x2="{width - side}" y2="{top}"'
+        f' stroke-dasharray="4 3" {_paint("muted", "s")}/>'
+    )
+    parts.append(
+        _text(width - side, top - 4, f"peak {peak.total}", role="muted", anchor="end")
+    )
+    parts.append(
+        f'<line x1="{side}" y1="{base}" x2="{width - side}" y2="{base}"'
+        f" {_paint('baseline', 's')}/>"
+    )
+    parts.extend(legend)
+    parts.append("</svg>")
+    return "\n".join(parts)
+
+
 def pareto(report: A3Report, *, width: int = 520) -> str:
     entries = [WasteByType(p.waste.value, p.tokens, p.findings) for p in report.pareto]
     return waste_pareto(
@@ -352,7 +425,7 @@ table{border-collapse:collapse;width:100%;font-size:13px}
 th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--ter-grid);vertical-align:top}
 th{color:var(--ter-ink-2);font-weight:600;font-size:12px}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-td small{display:block;color:var(--ter-ink-2)}
+td small,th small{display:block;color:var(--ter-ink-2);font-weight:400}
 .tag{display:inline-block;border-radius:999px;padding:0 8px;font-size:11.5px;font-weight:600;
 border:1px solid var(--ter-grid);white-space:nowrap}
 .tag.warn{border-color:var(--ter-series-4);background:color-mix(in srgb,var(--ter-series-4) 18%,transparent)}
@@ -364,6 +437,9 @@ background:var(--ter-page);font-size:11.5px}
 .rc td.num{white-space:normal;min-width:120px}
 .rc .rank{width:28px;color:var(--ter-muted);font-variant-numeric:tabular-nums}
 .rc td.num .tag{margin-bottom:2px}
+.intent{margin:0 0 8px;padding-left:20px}
+.intent li{margin:0 0 6px}
+.intent small{display:block;color:var(--ter-ink-2)}
 .cms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .cm{border:1px solid var(--ter-grid);border-radius:8px;padding:10px 12px;min-width:0}
 .cm h3{margin:0 0 4px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
@@ -442,12 +518,77 @@ def _background(report: A3Report) -> str:
     return (
         lead
         + quotes
+        + _intent(report)
         + f'<p class="problem"><b>Problem.</b> {esc(report.problem)}</p>'
         + f'<p class="fine">{a.events} events analysed · session <code>{esc(report.session_id or "-")}</code></p>'
         + "".join(
             f'<p class="fine"><b>Limit.</b> {esc(describe_limit(limit))}</p>'
             for limit in report.usage_limits
         )
+    )
+
+
+def _intent(report: A3Report) -> str:
+    """The intent timeline: each revision, what changed it, and the drift and
+    low-alignment periods judged against it, all citing event ids."""
+    a = report.analysis
+    timeline = a.intent
+    revisions = timeline.record.revisions
+    if not revisions:
+        return ""
+    rows: list[str] = []
+    for r in revisions:
+        scored = [
+            x
+            for x in timeline.alignments
+            if x.revision == r.revision and x.score is not None
+        ]
+        bands = Counter(x.band.value for x in scored)
+        change = next(
+            (c for c in timeline.changes if c.to_revision == r.revision), None
+        )
+        detail = [
+            f'<span class="tag{" warn" if change else ""}">{esc(r.relation.value)}</span> '
+            f"<b>Revision {r.revision}</b> <code>{esc(r.event_id)}</code>"
+        ]
+        if change is not None:
+            dropped = (
+                f"; dropped {esc(', '.join(sorted(change.abandoned)))}"
+                if change.abandoned
+                else ""
+            )
+            detail.append(
+                f"<small>Changed by the developer: {esc(change.reason)}{dropped}.</small>"
+            )
+        detail.append(
+            f"<small>{len(scored)} agent event(s) scored: {bands['aligned']} aligned, "
+            f"{bands['partial']} partial, {bands['low']} low.</small>"
+        )
+        for f in a.drift_findings:
+            x = timeline.alignment_of(f.waste_events[0]) if f.waste_events else None
+            if x is None or x.revision != r.revision:
+                continue
+            unsure = ' <span class="tag warn">uncertain</span>' if f.uncertain else ""
+            detail.append(
+                f'<small><span class="tag waste">drift</span>{unsure} {esc(f.title)} '
+                f"(confidence {f.confidence:.2f})</small>{_evidence(f.evidence)}"
+            )
+        for period in timeline.periods:
+            if period.revision != r.revision:
+                continue
+            detail.append(
+                f'<small><span class="tag risk">low alignment</span> {len(period.events)} '
+                f"consecutive agent events, mean score {period.mean_score:.2f}</small>"
+                f"{_evidence(period.events)}"
+            )
+        rows.append(f"<li>{''.join(detail)}</li>")
+    cfg = timeline.config
+    return (
+        "<h3>Intent timeline</h3>"
+        f'<ol class="intent">{"".join(rows)}</ol>'
+        f'<p class="fine">Alignment: {esc(timeline.scorer)} scorer. Low alignment is a score '
+        f"below {cfg.low_below:.2f} for {cfg.min_events}+ agent events in a row; drift is an "
+        f"edit below {cfg.drift_below:.2f} with no intent change recorded.</p>"
     )
 
 
@@ -484,10 +625,36 @@ def _scorecard(report: A3Report) -> str:
             f"uncertain {fmt_pct(sc.activity_share('uncertain'), 0)}",
         )
     )
+    tiles.extend(_inventory_tiles(report))
     if sc.ter is not None:
         tiles.append(("TER", f"{sc.ter.value:.2f}", sc.ter.method))
     else:
         tiles.append(("TER", "not computed", "run with --ter offline or --ter model"))
+    sve = report.value_efficiency
+    if sve.status is ValueStatus.UNKNOWN or sve.tokens is None:
+        tiles.append(("Software Value Efficiency", "unknown", sve.reason))
+    else:
+        time = "" if sve.time is None else f", {fmt_pct(sve.time, 0)} of agent time"
+        verdict = "" if sve.verdict is None else sve.verdict.value
+        tiles.append(
+            (
+                "Software Value Efficiency",
+                fmt_pct(sve.tokens, 0),
+                f"value-adding work toward the {verdict} outcome, of generated tokens"
+                f"{time}",
+            )
+        )
+    wip = report.analysis.wip
+    if wip.peak is not None:
+        final = wip.final
+        tiles.append(
+            (
+                "Peak WIP",
+                str(wip.peak.total),
+                ", ".join(f"{wip.peak_of(k)} {k.value}" for k in WipKind)
+                + f" at most; {0 if final is None else final.total} open at the end",
+            )
+        )
     tiles.append(
         (
             "Findings",
@@ -513,8 +680,88 @@ def _scorecard(report: A3Report) -> str:
         f'<div class="kpis" role="list" aria-label="Scorecard">{cards}</div>'
         '<p class="fine" style="margin-top:8px">Each dimension stands alone: no single score '
         f"hides the others. Findings below confidence {UNCERTAIN_BELOW:.2f} are counted as "
-        "uncertain, never as waste.</p>"
+        "uncertain, never as waste. Token minimisation is not a goal: efficiency is value "
+        f"delivered per unit of resource. {esc(SVE_DEFINITION)}</p>"
+        + _dimensions(report)
     )
+
+
+def _measure_value(m: Measure) -> str:
+    v = m.value
+    if v is None:
+        return "unknown"
+    if isinstance(v, str):
+        return v
+    if m.unit == "ratio":
+        return fmt_pct(float(v), 0)
+    if m.unit == "tokens":
+        return fmt_tokens(v)
+    if m.unit == "seconds":
+        return fmt_seconds(float(v))
+    return str(v)
+
+
+def _dimensions(report: A3Report) -> str:
+    """The six scorecard dimensions, each with its named measures."""
+    rows = "".join(
+        f'<tr><th scope="row">{esc(d.dimension.label)}'
+        f"<small>{esc(d.dimension.question)}</small></th><td>"
+        + " · ".join(
+            f"{esc(m.label)} <b>{esc(_measure_value(m))}</b>" for m in d.measures
+        )
+        + "</td></tr>"
+        for d in report.dimensions
+    )
+    return (
+        '<h3>Scorecard dimensions</h3><div class="chart"><table>'
+        '<thead><tr><th scope="col">Dimension</th><th scope="col">Measures</th></tr></thead>'
+        f"<tbody>{rows}</tbody></table></div>"
+    )
+
+
+def _usd(value: float) -> str:
+    return f"${value:,.4f}" if value < 1 else f"${value:,.2f}"
+
+
+def _inventory_tiles(report: A3Report) -> list[tuple[str, str, str]]:
+    """Context inventory (TER-DET-004) and, when priced, the session cost."""
+    inv = report.inventory
+    cost = report.cost
+    tiles: list[tuple[str, str, str]] = []
+    if inv is not None:
+        sub = (
+            f"tokens: {inv.unused_tokens:,} read and never used (uncertain), "
+            f"{inv.reread_tokens:,} read again ({inv.unchanged_reread_tokens:,} unchanged)"
+        )
+        if cost is not None:
+            sub += (
+                f"; carrying cost {_usd(cost.unused_context_usd)} unused, "
+                f"{_usd(cost.reread_context_usd)} re-read"
+            )
+        tiles.append(
+            (
+                "Context inventory",
+                fmt_tokens(inv.unused_tokens + inv.reread_tokens),
+                sub,
+            )
+        )
+    if cost is not None:
+        on = cost.priced_on.isoformat() if cost.priced_on else "latest prices"
+        sub = f"{cost.turns} model turn(s) at prices in force on {on}"
+        if cost.unpriced_turns:
+            sub += (
+                f"; {cost.unpriced_turns} unpriced ({', '.join(cost.unpriced_models)})"
+            )
+        if cost.estimated:
+            sub += "; estimated: " + ", ".join(cost.estimate_reasons)
+        tiles.append(
+            (
+                "Session cost" + (" (estimated)" if cost.estimated else ""),
+                _usd(cost.usd),
+                sub,
+            )
+        )
+    return tiles
 
 
 def _outcome(report: A3Report) -> str:
@@ -611,6 +858,12 @@ def _analysis(report: A3Report) -> str:
             "Progressing versus repeating, reworking, recovering, waiting, inventory.",
         ),
     ]
+    charts.append(
+        _figure(
+            wip_chart(report),
+            "Unresolved hypotheses, tasks, edits and failures after every event.",
+        )
+    )
     if report.analysis.scorecard.agent_seconds > 0:
         charts.append(
             _figure(
@@ -735,6 +988,25 @@ def _method(report: A3Report) -> str:
         "stream; the JSON output (<code>--json</code>) carries the per-event basis and the "
         "evidence graph (<code>--graph</code>). Detectors and their confidence rules:</p>"
         f"<details><summary>Show the {len(report.analysis.detectors)} detector rules</summary><dl>{rows}</dl></details>"
+        + _lean_concepts()
+    )
+
+
+def _lean_concepts() -> str:
+    """Each Lean concept and the measures TER computes for it (TER-LEN-006)."""
+    rows = "".join(
+        f'<tr><th scope="row">{esc(c.label)}</th><td>'
+        + "<br>".join(
+            f"{esc(m.name)} <code>{esc(m.source)}</code><small>{esc(m.meaning)}</small>"
+            for m in measures
+        )
+        + "</td></tr>"
+        for c, measures in LEAN_MEASURES.items()
+    )
+    return (
+        "<details><summary>Show the Lean concepts and their measures</summary>"
+        '<div class="chart"><table><thead><tr><th scope="col">Concept</th>'
+        f'<th scope="col">Measures</th></tr></thead><tbody>{rows}</tbody></table></div></details>'
     )
 
 

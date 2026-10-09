@@ -30,6 +30,12 @@ from typing import Protocol, TypeVar
 from .events import Actor, Event, EventId, EventKind, TokenUsage, ToolKind
 from .lean.analysis import LeanAnalyser, LeanAnalysis, TerMeasure
 from .lean.detectors import DEFAULT_REGISTRY, DetectorRegistry
+from .lean.intent import (
+    DEFAULT_INTENT_CONFIG,
+    LEXICAL_ALIGNMENT,
+    AlignmentScorer,
+    IntentConfig,
+)
 
 __all__ = [
     "AnalysisEngine",
@@ -429,13 +435,22 @@ class AnalysisEngine:
         *,
         ter: TerMeasure | None = None,
         registry: DetectorRegistry = DEFAULT_REGISTRY,
+        alignment: AlignmentScorer = LEXICAL_ALIGNMENT,
+        intent_config: IntentConfig = DEFAULT_INTENT_CONFIG,
     ) -> LeanAnalysis:
-        """The L2 explanation so far: findings, value stream, scorecard, graph.
+        """The L2 explanation so far: findings, value stream, scorecard, graph,
+        intent timeline.
 
-        Steps are folded in :meth:`apply` in O(1) amortised time; detectors
-        run here, over the session so far, in time linear in its length.
+        Steps and intent facts are folded in :meth:`apply` in O(1) amortised
+        time; detectors and alignment run here, over the session so far, in
+        time linear in its length.
         """
-        return self._lean.analysis(ter=ter, registry=registry)
+        return self._lean.analysis(
+            ter=ter,
+            registry=registry,
+            alignment=alignment,
+            intent_config=intent_config,
+        )
 
 
 def analyse_batch(events: Iterable[Event], tokenizer: TokenCounter) -> StreamReport:
@@ -451,8 +466,12 @@ def explain_batch(
     *,
     ter: TerMeasure | None = None,
     registry: DetectorRegistry = DEFAULT_REGISTRY,
+    alignment: AlignmentScorer = LEXICAL_ALIGNMENT,
+    intent_config: IntentConfig = DEFAULT_INTENT_CONFIG,
 ) -> LeanAnalysis:
     """Explain a whole stream at once: the L2 view of the same fold as :func:`analyse_batch`."""
     engine = AnalysisEngine(tokenizer)
     engine.apply_all(events)
-    return engine.explain(ter=ter, registry=registry)
+    return engine.explain(
+        ter=ter, registry=registry, alignment=alignment, intent_config=intent_config
+    )

@@ -22,6 +22,8 @@ from .facts import (
     failure_signature,
     normalise_command,
     output_fingerprint,
+    question_words,
+    runs_check,
     shell_intent,
     source_lines,
     tool_paths,
@@ -126,11 +128,18 @@ class StepLog:
         if event.id in self._seen:
             return False
         self._seen.add(event.id)
-        if event.kind.is_lifecycle:
-            # A task or subagent finishing is not a step of the value stream.
+        if event.kind.is_lifecycle and event.kind is not EventKind.ROUTE_FAILOVER:
+            # A task or subagent finishing, a route chosen or an attempt
+            # started is not a step of the value stream. A failed model route
+            # is: the session waited on it (TER-DET-008).
             return True
         self._steps.append(self._read(event, tokens))
         return True
+
+    @property
+    def last(self) -> Step | None:
+        """The most recent step (lifecycle events add none)."""
+        return self._steps[-1] if self._steps else None
 
     def _read(self, event: Event, tokens: int) -> Step:
         index = len(self._steps)
@@ -157,11 +166,16 @@ class StepLog:
         identifiers: frozenset[str] = frozenset()
         lines: frozenset[str] = frozenset()
         subject = ""
+        checks = False
 
         if event.kind is EventKind.PROMPT:
             stage = Stage.INTENT
         elif event.kind is EventKind.RESPONSE:
             stage = Stage.RESPOND
+        elif event.kind is EventKind.ROUTE_FAILOVER:
+            # A model call that failed on its way to a response.
+            stage = Stage.RESPOND
+            subject = event.text
         elif event.kind is EventKind.REASONING:
             stage = Stage.PLAN
         elif event.kind is EventKind.TOOL_REQUESTED and tool is not None:
@@ -174,6 +188,7 @@ class StepLog:
                 command = normalise_command(raw)
                 # Classified before normalising: newlines separate commands.
                 shell = shell_intent(raw)
+                checks = runs_check(raw)
             stage = stage_of_tool(tool.kind, shell)
             subject = _subject(tool.kind, arguments, command)
             words = content_words(_argument_text(arguments))
@@ -202,7 +217,10 @@ class StepLog:
                 paths = request.paths
                 command = request.command
                 subject = request.subject
-                if shell is ShellIntent.VALIDATE:
+                # A check chained beside a change (``sed -i … && pytest``)
+                # reports its outcome too: the detector that clears edits on
+                # it must also see when it failed.
+                if shell is ShellIntent.VALIDATE or request.runs_check:
                     outcome = validation_outcome(event.text)
                     if outcome is Outcome.FAILED:
                         signature = failure_signature(event.text)
@@ -239,6 +257,14 @@ class StepLog:
             timestamp=event.timestamp,
             seconds=0.0,
             subject=subject or (event.text[:80] if event.actor is Actor.USER else ""),
+            usage=event.usage,
+            questions=(
+                question_words(event.text)
+                if event.kind
+                in (EventKind.PROMPT, EventKind.REASONING, EventKind.RESPONSE)
+                else frozenset()
+            ),
+            runs_check=checks,
         )
 
     def _unkeyed_request(self) -> _Open | None:

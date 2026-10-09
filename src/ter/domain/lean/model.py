@@ -16,13 +16,15 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
 
-from ..events import Actor, EventId, EventKind, ToolKind
+from ..events import Actor, EventId, EventKind, TokenUsage, ToolKind
 
 __all__ = [
     "STAGE_ORDER",
     "UNCERTAIN_BELOW",
     "ActivityClass",
     "CycleVerdict",
+    "ExplorationDriver",
+    "ExplorationLabel",
     "Finding",
     "FindingKind",
     "FlowState",
@@ -229,6 +231,16 @@ class Step:
     timestamp: datetime | None
     seconds: float
     subject: str
+    #: The provider's usage for the model turn this event opened, if any; what
+    #: a session is priced from (TER-ANL-040).
+    usage: TokenUsage | None = None
+    #: Content words of the questions the event's text asks (sentences ending
+    #: in ``?``): the open questions a prompt, reasoning or response records.
+    questions: frozenset[str] = frozenset()
+    #: A shell request whose line runs a named check tool in any of its
+    #: commands, even when ``shell`` reads it as a change (``sed -i … &&
+    #: pytest``); see :func:`~.facts.runs_check`.
+    runs_check: bool = False
 
     @property
     def is_generated(self) -> bool:
@@ -252,6 +264,17 @@ class Step:
     @property
     def is_validation(self) -> bool:
         return self.is_request and self.shell is ShellIntent.VALIDATE
+
+    @property
+    def checks(self) -> bool:
+        """A request that runs a check: a validation, or a change line that
+        also runs a named check tool."""
+        return self.is_validation or (self.is_request and self.runs_check)
+
+    @property
+    def is_failover(self) -> bool:
+        """A model route that failed and returned nothing (``route.failover``)."""
+        return self.kind is EventKind.ROUTE_FAILOVER
 
 
 @dataclass(frozen=True)
@@ -335,4 +358,43 @@ class ValidationCycle:
             "verdict": self.verdict.value,
             "command": self.command,
             "reason": self.reason,
+        }
+
+
+class ExplorationDriver(StrEnum):
+    """Why an exploration step happened, as far as the session shows (point 38).
+
+    *Uncertainty-driven* exploration addresses an open question recorded
+    earlier in the same task; *intent-directed* exploration names the task's
+    own subject (a word or file of the prompt in force); *aimless* exploration
+    is linked to neither. A label is evidence for a reader, never a waste
+    classification by itself.
+    """
+
+    UNCERTAINTY_DRIVEN = "uncertainty_driven"
+    INTENT_DIRECTED = "intent_directed"
+    AIMLESS = "aimless"
+
+
+@dataclass(frozen=True)
+class ExplorationLabel:
+    """The driver of one exploration request and the event that motivates it.
+
+    ``motive`` is the event recording the open question it addresses (for
+    :attr:`ExplorationDriver.UNCERTAINTY_DRIVEN`) or the prompt in force (for
+    :attr:`ExplorationDriver.INTENT_DIRECTED`); ``shared`` are the words that
+    link the two.
+    """
+
+    event_id: EventId
+    driver: ExplorationDriver
+    motive: EventId | None
+    shared: tuple[str, ...]
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "event_id": self.event_id,
+            "driver": self.driver.value,
+            "motive": self.motive,
+            "shared": list(self.shared),
         }

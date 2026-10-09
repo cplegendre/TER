@@ -169,7 +169,7 @@ Two rules follow from the strangler approach:
 ## The event contract
 
 Every harness adapter translates its native records into one neutral stream,
-`ter.event/0.3`: `intent.stated`, `reasoning`, `response`, `tool.requested`
+`ter.event/0.4`: `intent.stated`, `reasoning`, `response`, `tool.requested`
 and `tool.completed`, plus lifecycle kinds that are never scored
 (`task.completed` and `subagent.completed` from hooks, and the routing kinds
 `route.selected`, `route.failover`, `attempt.started`,
@@ -177,7 +177,7 @@ and `tool.completed`, plus lifecycle kinds that are never scored
 (`fs.read`, `fs.edit`, `exec.shell`, …) rather than a native tool name.
 Detectors reason about kinds, so a second harness needs a new
 `SessionSource` adapter and nothing else. See
-[the event contract](../ter4/architecture.md#the-event-contract-terevent03).
+[the event contract](../ter4/architecture.md#the-event-contract-terevent04).
 
 ## Adding an adapter
 
@@ -231,7 +231,7 @@ Worked example: a second session format.
 |---|---|---|---|
 | L0 | Measured | TER 3 parity inside the hexagon: event contract, scoring, pricing | Golden TER 3 scores unchanged, user tokens never scored, dependencies point inward |
 | L1 | Observed | The event stream as the core boundary; Claude Code hooks; live analysis equals batch | Hook append within 50 ms p95, redelivery changes nothing, incremental = batch |
-| L2 | Explained | Lean model, eleven waste detectors, evidence graph, scorecard, A3 | Every finding cites events; iteration is not rework; A3 derives countermeasures from findings |
+| L2 | Explained | Lean model, sixteen waste detectors, evidence graph, scorecard, A3 | Every finding cites events; iteration is not rework; A3 derives countermeasures from findings |
 | L3 | Grounded | Repository evidence: AST, symbols, tests, git diff, change surface | Not started beyond the session-level evidence graph |
 | L4 | Advisory | Intervention engine, declarative policies, an intervention ledger | Not started |
 | L5 | Corrective | Routing and opt-in corrective actions; calibration on real data | Not started |

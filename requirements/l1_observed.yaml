@@ -25,20 +25,21 @@ requirements:
     rationale: >-
       Incremental state keeps live analysis cheap enough to run on every
       hook.
-    status: planned
+    status: verified
 
   - id: TER-OBS-001
     pattern: ubiquitous
     text: >-
       TER shall accept every live and recorded observation through the
-      EventIngest port as ter.event/0.1 events.
+      EventIngest port as ter.event events.
     level: L1
     port: EventIngest
     source_points: [101, 102, 198]
     rationale: >-
       One ingest boundary makes live and post-hoc analysis the same
-      pipeline.
-    status: planned
+      pipeline. The wording names no contract version: the stream is at
+      ter.event/0.3 and versions only add kinds (TER-OBS-011).
+    status: verified
 
   - id: TER-OBS-002
     pattern: event-driven
@@ -92,8 +93,11 @@ requirements:
     source_points: [115, 117]
     rationale: >-
       Issue #35: task completion must be observable live and correlate with
-      the recorded session.
-    status: planned
+      the recorded session. Verified on real data: on 9 October 2026 the
+      hooks check over two real Claude Code sessions on Windows matched 10
+      of 10 real Stop payloads to the session source's task.completed id
+      (tests/fixtures/hooks/real-check-2026-10-09.md).
+    status: verified
 
   - id: TER-OBS-006
     pattern: event-driven
@@ -119,8 +123,20 @@ requirements:
     source_points: [117, 118]
     rationale: >-
       Stable identities across live and recorded observation let the two be
-      correlated and deduplicated.
-    status: planned
+      correlated and deduplicated. The real hooks check of 9 October 2026
+      matched every prompt, tool request, tool completion and stop (87 of 94
+      events); the 7 misses were SubagentStop events, which the session
+      source did not derive then. It now derives subagent.completed from
+      each finished subagent's transcript with the hook's id. A second run
+      the same day matched every prompt, tool and stop again (95 of 95); its
+      9 SubagentStops were all Claude Code internal helper agents with no
+      transcript (TER-OBS-013), not Agent-tool subagents. A third run, after
+      a session spawned an Agent-tool subagent, matched that subagent's
+      SubagentStop too, with every prompt, stop and tool event whose record
+      the transcript held (119 events); the rest were 10 internal helper
+      stops and one tool call most likely not yet written to the transcript
+      when the check read it (tests/fixtures/hooks/real-check-2026-10-09.md).
+    status: verified
 
   - id: TER-OBS-008
     pattern: state-driven
@@ -144,7 +160,7 @@ requirements:
     source_points: [115]
     rationale: >-
       Issue #35: the end of a task is observable live. Correlating it with
-      the recorded session (TER-OBS-005) waits on real payloads.
+      the recorded session is TER-OBS-005.
     status: verified
 
   - id: TER-OBS-010
@@ -174,18 +190,66 @@ requirements:
       upgrade stays readable after it.
     status: verified
 
+  - id: TER-OBS-012
+    pattern: event-driven
+    text: >-
+      When the hook check runs on recorded hook payloads and transcripts, TER
+      shall report for each session the share of hook events whose id matches
+      a session-source event, without reproducing payload content.
+    level: L1
+    source_points: [115, 117, 118]
+    rationale: >-
+      Issue #35: TER-OBS-005 and TER-OBS-007 can only be verified against real
+      recordings, which stay on the owner's machine. `python -m ter hooks
+      check` replays them through the live hook path and reports counts, ids,
+      reasons and field names, so the result can be shared when the
+      recordings cannot.
+    status: verified
+
+  - id: TER-OBS-013
+    pattern: event-driven
+    text: >-
+      When a SubagentStop hook payload has no agent_type and names a
+      subagent session file that does not exist, the hook adapter shall emit
+      no event for the payload.
+    level: L1
+    port: EventIngest
+    source_points: [117, 118]
+    rationale: >-
+      The second real hooks check of 9 October 2026 (Claude Code on Windows)
+      found 9 SubagentStop payloads with an empty agent_type whose
+      agent_transcript_path was never written, 7 of them from a session that
+      started no Agent-tool subagent: Claude Code internal helper agents
+      (10 such stops in the third run, beside one real subagent that
+      matched). No
+      transcript can ever record them, so a live subagent.completed would
+      differ from the batch read of the same session and count a handoff
+      the agent never made. The raw payload is still recorded, and the hooks
+      check counts such payloads on their own line ("no transcript by
+      design"), outside the TER-OBS-007 share; a typed agent whose file is
+      missing stays a real miss.
+    status: verified
+
   - id: TER-SRC-005
     pattern: ubiquitous
     text: >-
-      The session source shall map at least 99 percent of records in every
-      session of the reference corpus to events.
+      The session source shall account for at least 99 percent of records in
+      every session of the reference corpus, each record either mapped to
+      events or classified as a documented metadata type that carries no
+      agent activity.
     level: L1
     port: SessionSource
     source_points: [92]
     rationale: >-
       Issue #34: real sessions contain record types the synthetic corpus
-      never produced.
-    status: planned
+      never produced. Leigh's first import (286 sessions, 9 Oct 2026) put
+      every session below 99 percent: Claude Code 2.1 writes titles, queue
+      and permission bookkeeping, harness notices and injected context as
+      their own record types. Those are now documented metadata; a type not
+      in the list stays unrecognised, so the measure still catches new ones.
+      The reference corpus is the content-free record-type fingerprint in
+      tests/fixtures/corpus/.
+    status: verified
 
   - id: TER-SRC-006
     pattern: event-driven
@@ -249,4 +313,21 @@ requirements:
     rationale: >-
       Issue #34: a corpus is reproducible and describable only if every
       session in it is listed with what was done to it.
+    status: verified
+
+  - id: TER-SRC-024
+    pattern: event-driven
+    text: >-
+      When a Claude Code session records a prompt that the developer queued
+      while the agent was working, the session source shall emit one
+      intent.stated event for it in file order.
+    level: L1
+    port: SessionSource
+    source_points: [102]
+    rationale: >-
+      Found on real sessions (issue #34): Claude Code 2.1 delivers a prompt
+      typed mid-turn as a queued_command attachment, not a user record, so
+      the developer's change of intent was silently dropped. Task
+      notifications and messages from other agents in the same queue are
+      harness context, not intent.
     status: verified

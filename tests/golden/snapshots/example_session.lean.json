@@ -28,7 +28,7 @@
       "stage:intermediate narration"
     ],
     [
-      "a7ca94f36f4da52d",
+      "1b87a23bd9056e34",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -37,7 +37,7 @@
       "stage:explore is necessary but adds no value itself"
     ],
     [
-      "811ba328293575c9",
+      "2b5db1c78a6dc335",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -55,22 +55,22 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "53fa055cfc1d65bf",
+      "524b6ec125634e52",
       "explore",
       "avoidable",
       1.0,
       0.0,
       "repeating",
-      "repeated_exploration:53fa055cfc1d65bf"
+      "repeated_exploration:524b6ec125634e52"
     ],
     [
-      "c418879109656e20",
+      "c30726a9604bad2f",
       "explore",
       "avoidable",
       1.0,
       0.0,
       "repeating",
-      "repeated_exploration:53fa055cfc1d65bf"
+      "repeated_exploration:524b6ec125634e52"
     ],
     [
       "11462446bcebf612",
@@ -82,16 +82,16 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "eca762078b6545c5",
+      "b9bd71937ecef64d",
       "implement",
       "value_adding",
       0.0,
       0.4,
       "progressing",
-      "stage:implement edits change the software; uncertain regeneration:eca762078b6545c5"
+      "stage:implement edits change the software; uncertain regeneration:b9bd71937ecef64d"
     ],
     [
-      "8892e9f624a892b5",
+      "b7d3f9e59a1f3f1c",
       "implement",
       "value_adding",
       0.0,
@@ -100,7 +100,7 @@
       "stage:implement edits change the software"
     ],
     [
-      "48f5065363d25a9f",
+      "33ced9a1d0ffbcf2",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -109,7 +109,7 @@
       "stage:validate is necessary but adds no value itself"
     ],
     [
-      "2471b8726436c8ff",
+      "1f4e74fd6dc1a3db",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -130,7 +130,7 @@
   "cycles": [],
   "detectors": [
     {
-      "confidence_rule": "0.90 when input and output are identical and nothing was edited in between; 0.85 for a validation re-run with no edit in between; 0.75 when edits happened in between but the output is still identical; 0.50 (uncertain) when an output was not observed. Different output: no finding. File reads and searches are left to repeated_exploration; a validation re-run after edits is left to rework_cycle.",
+      "confidence_rule": "Within one prompt's turn: 0.90 when input and output are identical and nothing was edited in between; 0.85 for a validation re-run with no edit in between; 0.75 when edits happened in between but the output is still identical. 0.50 (uncertain) when an output was not observed, or when a new prompt arrived between the two calls (the repeat may answer it). Different output: no finding. File reads and searches are left to repeated_exploration; a validation re-run after edits is left to rework_cycle.",
       "id": "repeated_tool_call",
       "kind": "waste",
       "waste": "over_processing"
@@ -148,28 +148,28 @@
       "waste": "rework"
     },
     {
-      "confidence_rule": "Judged per prompt, once the agent has responded after its edits. 0.85 when no validation ran in the whole session; 0.75 when validation ran earlier but not after these edits; 0.50 (uncertain) when every unvalidated edit is documentation. 0.85 when the last validation before the response failed.",
+      "confidence_rule": "Judged per prompt, once the agent has responded after its edits. A check is a validation run or any shell line that runs a named check tool, even beside a change (sed -i … && pytest). 0.85 when no check ran in the whole session; 0.75 when checks ran earlier but not after these edits; 0.50 (uncertain) when every unvalidated edit is documentation. 0.85 when the last validation before the response failed.",
       "id": "unvalidated_implementation",
       "kind": "risk",
       "waste": "defects"
     },
     {
-      "confidence_rule": "0.75 for an in-place edit of a file never read, written or named in an earlier search or shell output; 0.45 (uncertain) for writing a new file before any exploration at all in the session. One finding per file.",
+      "confidence_rule": "0.75 for an in-place edit of a file never read, written, named in an earlier shell command (cat, sed -n, head, grep …) or named in an earlier search or shell output; 0.45 (uncertain) for writing a new file before any exploration at all in the session. One finding per file.",
       "id": "premature_implementation",
       "kind": "risk",
       "waste": "defects"
     },
     {
-      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary; the rest as waste.",
+      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary. A later step is waste only when it adds no decision: a reasoning block with at most 25% content words new to the prompt and the run so far, or a to-do update identical to an earlier one in the run. A step that adds a decision is never waste, and a run with no such restating step is not a finding.",
       "id": "excessive_planning",
       "kind": "waste",
       "waste": "over_processing"
     },
     {
-      "confidence_rule": "At least 3 consecutive edit calls to one file with only reasoning and their results in between. 0.70 for 3, plus 0.05 per extra edit, capped at 0.85. Only the round-trip overhead (results and waiting of edits after the first) is counted as waste, never the change itself.",
+      "confidence_rule": "Consecutive edit calls to one file, with only reasoning and the results of those edits in between, spread over at least 3 round trips (a round trip ends when a result arrives; calls sent together before any result are one round trip). 0.70 for 3 round trips, plus 0.05 per extra, capped at 0.85. Only the round-trip overhead (the results of edits after the first round trip) is counted as waste, never the change itself.",
       "id": "fragmented_edits",
       "kind": "waste",
-      "waste": "over_processing"
+      "waste": "motion"
     },
     {
       "confidence_rule": "Judged only once the agent has responded after the read. A read counts as used when a later reasoning, response or tool call names the file, or names something the file defines, or edits it. Otherwise 0.65 when the file defined names that were never used, 0.55 when it defined none. Always uncertain: reading to rule something out is legitimate, and only repository evidence (L3) can tell.",
@@ -178,13 +178,13 @@
       "waste": "inventory"
     },
     {
-      "confidence_rule": "A later tool call by the agent itself shares at least 3 content words and at least half of the smaller word set with the handoff's task. Confidence 0.45 + 0.40 × overlap, capped at 0.85. The handoff (and its waiting time) is the waste; the agent's own call is kept.",
+      "confidence_rule": "A later tool call by the agent itself shares at least 3 content words with the handoff's task and covers at least half of the task's words. Confidence 0.45 + 0.40 × coverage, capped at 0.85. The handoff (and its waiting time) is the waste; the agent's own call is kept.",
       "id": "unnecessary_handoff",
       "kind": "waste",
       "waste": "handoffs"
     },
     {
-      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, and at most 25% of its content words are new (in neither the earlier block nor the prompt). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
+      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, at most 25% of its content words are new (in neither the earlier block nor the prompt), and none of its new words comes from a tool result observed since the earlier block (that would be new evidence). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
       "id": "repeated_reasoning",
       "kind": "waste",
       "waste": "over_processing"
@@ -194,6 +194,36 @@
       "id": "regeneration",
       "kind": "waste",
       "waste": "overproduction"
+    },
+    {
+      "confidence_rule": "An edit or write whose alignment to the intent in force is below the drift band (default 0.25), against an intent of at least 3 key terms: 0.85 when the names it defines continue a goal the developer dropped, or the agent's own reasoning or narration since the prompt called it additional ('also', 'while I'm at it') and names it; 0.55 (uncertain) when it only defines new names the intent does not mention, or defines no names and only its added words (at least 3) depart. Before any prompt, or against a shorter intent: no finding.",
+      "id": "intent_drift",
+      "kind": "waste",
+      "waste": "overproduction"
+    },
+    {
+      "confidence_rule": "Per task (prompt), counting distinct context items (file reads, searches, fetches, handoffs, exploring shell commands) before the first edit: a finding when they exceed per_file (3) × files the task changes + slack (3). Items past the band that are not reads of a changed file are the waste. Confidence 0.55 + 0.02 per item over the band, capped at 0.65: always uncertain at L2, since only repository scope (L3) can tell whether the extra context was needed.",
+      "id": "excessive_context",
+      "kind": "waste",
+      "waste": "inventory"
+    },
+    {
+      "confidence_rule": "Per task (prompt): when the task first edits its n-th distinct file in place (Edit, not a new-file Write), it must have acquired at least min_per_file (1) × n distinct context items (reads, searches, fetches, handoffs, exploring shell). The first edit below that bound is the finding: 0.70 when that file was never read or written earlier in the session; 0.55 (uncertain) when it was, since context carried from an earlier task may suffice. A risk: it claims no cost.",
+      "id": "insufficient_context",
+      "kind": "risk",
+      "waste": "defects"
+    },
+    {
+      "confidence_rule": "Judged only once the agent has responded after it. A search (Grep, Glob) or traversing shell command (ls, find, tree, rg, grep) whose output lists file names, none of which a later event reads, edits or names: 0.60. Always uncertain at L2: a traversal can rule a place out, and only repository evidence (L3) can tell. Empty or unobserved output and repeats of an earlier traversal (left to repeated_exploration) are not findings.",
+      "id": "unused_traversal",
+      "kind": "waste",
+      "waste": "motion"
+    },
+    {
+      "confidence_rule": "A route.failover event (a model call that returned no tokens and did not succeed). 0.80 when a later response completed the work on another route, so the failed call added only waiting; 0.55 (uncertain) when no later response followed. The failover's wall time is the waste; it generated no tokens.",
+      "id": "failed_route",
+      "kind": "waste",
+      "waste": "waiting"
     }
   ],
   "events": 14,
@@ -210,73 +240,73 @@
         "type": "motivated_by"
       },
       {
-        "source": "a7ca94f36f4da52d",
+        "source": "1b87a23bd9056e34",
         "target": "ea7ea3e6dc9e7df9",
         "type": "motivated_by"
       },
       {
-        "source": "811ba328293575c9",
-        "target": "a7ca94f36f4da52d",
+        "source": "2b5db1c78a6dc335",
+        "target": "1b87a23bd9056e34",
         "type": "completes"
       },
       {
         "source": "15fe5e5a30ddea26",
-        "target": "811ba328293575c9",
+        "target": "2b5db1c78a6dc335",
         "type": "motivated_by"
       },
       {
-        "source": "53fa055cfc1d65bf",
-        "target": "a7ca94f36f4da52d",
+        "source": "524b6ec125634e52",
+        "target": "1b87a23bd9056e34",
         "type": "repeats"
       },
       {
-        "source": "53fa055cfc1d65bf",
-        "target": "811ba328293575c9",
+        "source": "524b6ec125634e52",
+        "target": "2b5db1c78a6dc335",
         "type": "motivated_by"
       },
       {
-        "source": "c418879109656e20",
-        "target": "53fa055cfc1d65bf",
+        "source": "c30726a9604bad2f",
+        "target": "524b6ec125634e52",
         "type": "completes"
       },
       {
         "source": "11462446bcebf612",
-        "target": "c418879109656e20",
+        "target": "c30726a9604bad2f",
         "type": "motivated_by"
       },
       {
-        "source": "eca762078b6545c5",
+        "source": "b9bd71937ecef64d",
         "target": "ea7ea3e6dc9e7df9",
         "type": "motivated_by"
       },
       {
-        "source": "eca762078b6545c5",
-        "target": "c418879109656e20",
+        "source": "b9bd71937ecef64d",
+        "target": "c30726a9604bad2f",
         "type": "motivated_by"
       },
       {
-        "source": "8892e9f624a892b5",
-        "target": "eca762078b6545c5",
+        "source": "b7d3f9e59a1f3f1c",
+        "target": "b9bd71937ecef64d",
         "type": "completes"
       },
       {
-        "source": "48f5065363d25a9f",
-        "target": "eca762078b6545c5",
+        "source": "33ced9a1d0ffbcf2",
+        "target": "b9bd71937ecef64d",
         "type": "validates"
       },
       {
-        "source": "48f5065363d25a9f",
-        "target": "8892e9f624a892b5",
+        "source": "33ced9a1d0ffbcf2",
+        "target": "b7d3f9e59a1f3f1c",
         "type": "motivated_by"
       },
       {
-        "source": "2471b8726436c8ff",
-        "target": "48f5065363d25a9f",
+        "source": "1f4e74fd6dc1a3db",
+        "target": "33ced9a1d0ffbcf2",
         "type": "completes"
       },
       {
         "source": "d3a04d382391d0f4",
-        "target": "2471b8726436c8ff",
+        "target": "1f4e74fd6dc1a3db",
         "type": "motivated_by"
       }
     ],
@@ -310,7 +340,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "a7ca94f36f4da52d",
+        "id": "1b87a23bd9056e34",
         "index": 3,
         "kind": "tool.requested",
         "label": "Read src/app.py",
@@ -319,7 +349,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "811ba328293575c9",
+        "id": "2b5db1c78a6dc335",
         "index": 4,
         "kind": "tool.completed",
         "label": "result: Read src/app.py",
@@ -337,7 +367,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "53fa055cfc1d65bf",
+        "id": "524b6ec125634e52",
         "index": 6,
         "kind": "tool.requested",
         "label": "Read src/app.py",
@@ -346,7 +376,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "c418879109656e20",
+        "id": "c30726a9604bad2f",
         "index": 7,
         "kind": "tool.completed",
         "label": "result: Read src/app.py",
@@ -364,7 +394,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "eca762078b6545c5",
+        "id": "b9bd71937ecef64d",
         "index": 9,
         "kind": "tool.requested",
         "label": "Write src/app.py",
@@ -373,7 +403,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "8892e9f624a892b5",
+        "id": "b7d3f9e59a1f3f1c",
         "index": 10,
         "kind": "tool.completed",
         "label": "result: Write src/app.py",
@@ -382,7 +412,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "48f5065363d25a9f",
+        "id": "33ced9a1d0ffbcf2",
         "index": 11,
         "kind": "tool.requested",
         "label": "Bash python - <<'PY' from src.app import login asser…",
@@ -391,7 +421,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "2471b8726436c8ff",
+        "id": "1f4e74fd6dc1a3db",
         "index": 12,
         "kind": "tool.completed",
         "label": "result: Bash python - <<'PY' from src.app import login asser… (passed)",
@@ -411,6 +441,20 @@
     "schema": "ter.evidence/0.1",
     "session_id": "sample-session-001"
   },
+  "exploration": [
+    {
+      "driver": "aimless",
+      "event_id": "1b87a23bd9056e34",
+      "motive": null,
+      "shared": []
+    },
+    {
+      "driver": "aimless",
+      "event_id": "524b6ec125634e52",
+      "motive": null,
+      "shared": []
+    }
+  ],
   "findings": [
     {
       "activity_class": "avoidable",
@@ -418,11 +462,11 @@
       "context_tokens": 0,
       "detector": "regeneration",
       "evidence": [
-        "c418879109656e20",
-        "eca762078b6545c5"
+        "c30726a9604bad2f",
+        "b9bd71937ecef64d"
       ],
       "explanation": "The agent rewrote src/app.py, a file it had just read, keeping 100% of its lines; 40% of the new file repeats existing content. An in-place edit would have produced only the change.",
-      "id": "regeneration:eca762078b6545c5",
+      "id": "regeneration:b9bd71937ecef64d",
       "kind": "waste",
       "seconds": 0.4,
       "share": 0.4,
@@ -432,7 +476,7 @@
       "uncertain": true,
       "waste": "overproduction",
       "waste_events": [
-        "eca762078b6545c5"
+        "b9bd71937ecef64d"
       ]
     },
     {
@@ -441,13 +485,13 @@
       "context_tokens": 28,
       "detector": "repeated_exploration",
       "evidence": [
-        "a7ca94f36f4da52d",
-        "811ba328293575c9",
-        "53fa055cfc1d65bf",
-        "c418879109656e20"
+        "1b87a23bd9056e34",
+        "2b5db1c78a6dc335",
+        "524b6ec125634e52",
+        "c30726a9604bad2f"
       ],
       "explanation": "Re-read src/app.py 3 events after the first time. The output was identical and the agent had not changed it. Its 28 tokens of output re-entered the context.",
-      "id": "repeated_exploration:53fa055cfc1d65bf",
+      "id": "repeated_exploration:524b6ec125634e52",
       "kind": "waste",
       "seconds": 1.0,
       "share": 1.0,
@@ -457,11 +501,143 @@
       "uncertain": false,
       "waste": "motion",
       "waste_events": [
-        "53fa055cfc1d65bf",
-        "c418879109656e20"
+        "524b6ec125634e52",
+        "c30726a9604bad2f"
       ]
     }
   ],
+  "intent": {
+    "alignment": [
+      {
+        "band": "low",
+        "basis": "text",
+        "event_id": "3063f61df0524c05",
+        "names": [],
+        "revision": 1,
+        "score": 0.1111
+      },
+      {
+        "band": "low",
+        "basis": "text",
+        "event_id": "ee0118c14f82fa55",
+        "names": [],
+        "revision": 1,
+        "score": 0.2
+      },
+      {
+        "band": "low",
+        "basis": "text",
+        "event_id": "1b87a23bd9056e34",
+        "names": [],
+        "revision": 1,
+        "score": 0.0
+      },
+      {
+        "band": "low",
+        "basis": "text",
+        "event_id": "15fe5e5a30ddea26",
+        "names": [],
+        "revision": 1,
+        "score": 0.1111
+      },
+      {
+        "band": "low",
+        "basis": "text",
+        "event_id": "524b6ec125634e52",
+        "names": [],
+        "revision": 1,
+        "score": 0.0
+      },
+      {
+        "band": "low",
+        "basis": "text",
+        "event_id": "11462446bcebf612",
+        "names": [],
+        "revision": 1,
+        "score": 0.1111
+      },
+      {
+        "band": "partial",
+        "basis": "names",
+        "event_id": "b9bd71937ecef64d",
+        "names": [
+          "health_check",
+          "login",
+          "main"
+        ],
+        "revision": 1,
+        "score": 0.25
+      },
+      {
+        "band": "low",
+        "basis": "text",
+        "event_id": "33ced9a1d0ffbcf2",
+        "names": [],
+        "revision": 1,
+        "score": 0.1818
+      },
+      {
+        "band": "partial",
+        "basis": "text",
+        "event_id": "d3a04d382391d0f4",
+        "names": [],
+        "revision": 1,
+        "score": 0.4667
+      }
+    ],
+    "changes": [],
+    "config": {
+      "drift_below": 0.25,
+      "low_below": 0.25,
+      "min_events": 3
+    },
+    "drift": [],
+    "low_alignment_periods": [
+      {
+        "end": "11462446bcebf612",
+        "events": [
+          "3063f61df0524c05",
+          "ee0118c14f82fa55",
+          "1b87a23bd9056e34",
+          "15fe5e5a30ddea26",
+          "524b6ec125634e52",
+          "11462446bcebf612"
+        ],
+        "mean_score": 0.0889,
+        "revision": 1,
+        "start": "3063f61df0524c05"
+      }
+    ],
+    "revisions": [
+      {
+        "abandoned": [],
+        "event_id": "ea7ea3e6dc9e7df9",
+        "prompt": "Add a small login form to the demo application. Validate that the email contains",
+        "relation": "opened",
+        "revision": 1,
+        "similarity": null,
+        "terms": [
+          "application",
+          "character",
+          "clear",
+          "contain",
+          "demo",
+          "email",
+          "error",
+          "form",
+          "least",
+          "login",
+          "messag",
+          "password",
+          "requir",
+          "small",
+          "validat"
+        ]
+      }
+    ],
+    "rule": "Overlap coefficient |intent ∩ activity| / min(|intent|, |activity|) of key terms (content words, identifier parts and file-name parts, stemmed, without stopwords or generic programming words); 0 when either side has no terms.",
+    "scorer": "lexical"
+  },
   "schema": "ter.lean/0.1",
   "scorecard": {
     "activity_seconds": {
@@ -529,6 +705,9 @@
     },
     "uncertain_findings": 1,
     "uncertain_waste_tokens": 76,
+    "validation_runs": 1,
+    "validations_failed": 0,
+    "validations_passed": 1,
     "waste_context_tokens": 28,
     "waste_seconds": 1.0,
     "waste_tokens": 27
@@ -549,7 +728,7 @@
       "avoidable_tokens": 27,
       "context_tokens": 56,
       "findings": [
-        "repeated_exploration:53fa055cfc1d65bf"
+        "repeated_exploration:524b6ec125634e52"
       ],
       "seconds": 4.0,
       "stage": "explore",
@@ -571,7 +750,7 @@
       "avoidable_tokens": 0,
       "context_tokens": 9,
       "findings": [
-        "regeneration:eca762078b6545c5"
+        "regeneration:b9bd71937ecef64d"
       ],
       "seconds": 1.0,
       "stage": "implement",
@@ -599,5 +778,143 @@
       "tokens": 71,
       "uncertain_tokens": 0
     }
-  ]
+  ],
+  "wip": {
+    "edits_opened": 1,
+    "edits_validated": 1,
+    "final": {
+      "edits": 0,
+      "event_id": "d3a04d382391d0f4",
+      "failures": 0,
+      "hypotheses": 0,
+      "tasks": 0,
+      "total": 0
+    },
+    "kinds": [
+      "hypotheses",
+      "tasks",
+      "edits",
+      "failures"
+    ],
+    "open_at_end": {
+      "edits": [],
+      "failures": [],
+      "hypotheses": [],
+      "tasks": []
+    },
+    "peak": {
+      "edits": 0,
+      "event_id": "1b87a23bd9056e34",
+      "failures": 0,
+      "hypotheses": 1,
+      "tasks": 0,
+      "total": 1
+    },
+    "peak_by_kind": {
+      "edits": 1,
+      "failures": 0,
+      "hypotheses": 1,
+      "tasks": 0
+    },
+    "series": [
+      [
+        "ea7ea3e6dc9e7df9",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "3063f61df0524c05",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "ee0118c14f82fa55",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "1b87a23bd9056e34",
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "2b5db1c78a6dc335",
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "15fe5e5a30ddea26",
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "524b6ec125634e52",
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "c30726a9604bad2f",
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "11462446bcebf612",
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "b9bd71937ecef64d",
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        "b7d3f9e59a1f3f1c",
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        "33ced9a1d0ffbcf2",
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        "1f4e74fd6dc1a3db",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "d3a04d382391d0f4",
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  }
 }

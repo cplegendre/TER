@@ -1,5 +1,5 @@
 {
-  "coverage": 0.952381,
+  "coverage": 1.0,
   "events": [
     [
       0,
@@ -27,7 +27,7 @@
     ],
     [
       2,
-      "b7220effbe9d33b8",
+      "fd0b6f42921a37f2",
       "tool.requested",
       "assistant",
       "fs.search",
@@ -39,7 +39,7 @@
     ],
     [
       3,
-      "84876697215eb36b",
+      "b0553cce2053e258",
       "tool.completed",
       "tool",
       "fs.search",
@@ -51,7 +51,7 @@
     ],
     [
       4,
-      "69551b0f692010d4",
+      "d00b931283ea1956",
       "tool.requested",
       "assistant",
       "fs.read",
@@ -63,7 +63,7 @@
     ],
     [
       5,
-      "a01c619d1c5c27e1",
+      "471c4b318b586d6c",
       "tool.completed",
       "tool",
       "fs.read",
@@ -75,7 +75,7 @@
     ],
     [
       6,
-      "98e08d2104e03291",
+      "04f87d31174f38ff",
       "tool.requested",
       "assistant",
       "fs.read",
@@ -87,7 +87,7 @@
     ],
     [
       7,
-      "a2a3ce288e90f730",
+      "a03907943c97b102",
       "tool.completed",
       "tool",
       "fs.read",
@@ -99,7 +99,7 @@
     ],
     [
       8,
-      "a33373b4cca658c1",
+      "d9eb8e056a8c4e06",
       "tool.requested",
       "assistant",
       "fs.read",
@@ -111,7 +111,7 @@
     ],
     [
       9,
-      "c878858709305d4e",
+      "9252bf151ad82534",
       "tool.completed",
       "tool",
       "fs.read",
@@ -135,7 +135,7 @@
     ],
     [
       11,
-      "1177e4320222fe66",
+      "10d6ca5500d89e17",
       "tool.requested",
       "assistant",
       "fs.search",
@@ -147,7 +147,7 @@
     ],
     [
       12,
-      "aabd7f3b0c0ca016",
+      "3840d1b2ec18099a",
       "tool.completed",
       "tool",
       "fs.search",
@@ -159,7 +159,7 @@
     ],
     [
       13,
-      "8b7fad85cf80c1b4",
+      "db5d89ed876d571f",
       "tool.requested",
       "assistant",
       "fs.read",
@@ -171,7 +171,7 @@
     ],
     [
       14,
-      "551fb453dac2dc0c",
+      "00e63e3f599e0da3",
       "tool.completed",
       "tool",
       "fs.read",
@@ -195,7 +195,7 @@
     ],
     [
       16,
-      "0f8094ebbe312229",
+      "45c733fb69783266",
       "tool.requested",
       "assistant",
       "fs.edit",
@@ -207,7 +207,7 @@
     ],
     [
       17,
-      "6780ba10f97237d3",
+      "3a7c60b00602066d",
       "tool.completed",
       "tool",
       "fs.edit",
@@ -219,7 +219,7 @@
     ],
     [
       18,
-      "ad332e5d05b44868",
+      "bdeeea540baee64f",
       "tool.requested",
       "assistant",
       "fs.edit",
@@ -231,7 +231,7 @@
     ],
     [
       19,
-      "a7dfb58e41535f1b",
+      "b68f57ee311cf3b3",
       "tool.completed",
       "tool",
       "fs.edit",
@@ -243,7 +243,7 @@
     ],
     [
       20,
-      "77910e19bcf7fd61",
+      "2756ece703f76f95",
       "tool.requested",
       "assistant",
       "exec.shell",
@@ -255,7 +255,7 @@
     ],
     [
       21,
-      "ba596fba8145538b",
+      "f1b675fedeaa8bc7",
       "tool.completed",
       "tool",
       "exec.shell",
@@ -278,10 +278,11 @@
       83
     ]
   ],
-  "schema": "ter.event/0.3",
+  "metadata": {
+    "file-history-snapshot": 1
+  },
+  "schema": "ter.event/0.4",
   "session_id": "golden-explore",
   "source_format": "claude-code-jsonl",
-  "unrecognised": {
-    "file-history-snapshot": 1
-  }
+  "unrecognised": {}
 }

@@ -16,10 +16,19 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+from ..costing import Prices, SessionCost, price_session
 from ..outcome import OutcomeVerdict, per_verified_outcome
 from .analysis import LeanAnalysis, apportion
 from .countermeasures import Countermeasure, FollowUp, build_countermeasures, follow_ups
+from .inventory import ContextInventory, context_inventory
+from .concepts import LEAN_MEASURES
 from .model import ActivityClass, Finding, FindingKind, LeanWaste
+from .scorecard import (
+    ScorecardDimension,
+    SoftwareValueEfficiency,
+    scorecard_dimensions,
+    software_value_efficiency,
+)
 
 __all__ = ["A3_SCHEMA", "A3Report", "ParetoBar", "build_a3"]
 
@@ -57,6 +66,11 @@ class A3Report:
     outcome: OutcomeVerdict | None = None
     #: What the session's source cannot report (``SessionTrace.usage_limits``).
     usage_limits: tuple[str, ...] = ()
+    #: Unused and re-read context, in tokens (TER-DET-004).
+    inventory: ContextInventory | None = None
+    #: The session and its inventory priced from a dated price book, when one
+    #: was supplied (TER-ANL-040, TER-ANL-041).
+    cost: SessionCost | None = None
 
     @property
     def tokens_per_verified_outcome(self) -> float | None:
@@ -66,17 +80,42 @@ class A3Report:
         generated = self.analysis.scorecard.generated_tokens
         return per_verified_outcome(generated, (self.outcome,))
 
+    @property
+    def value_efficiency(self) -> SoftwareValueEfficiency:
+        """Software Value Efficiency, reported next to TER (TER-SCR-003)."""
+        return software_value_efficiency(self.analysis.scorecard, self.outcome)
+
+    @property
+    def dimensions(self) -> tuple[ScorecardDimension, ...]:
+        """The six scorecard dimensions (TER-SCR-001)."""
+        return scorecard_dimensions(self.analysis, self.value_efficiency, self.outcome)
+
+    def scorecard_dict(self) -> dict[str, object]:
+        """The behaviour scorecard with Software Value Efficiency right after TER."""
+        out: dict[str, object] = {}
+        for key, value in self.analysis.scorecard.as_dict().items():
+            out[key] = value
+            if key == "ter":
+                out["software_value_efficiency"] = self.value_efficiency.as_dict()
+        return out
+
     def as_dict(self) -> dict[str, object]:
         a = self.analysis
         out: dict[str, object] = {
             "schema": A3_SCHEMA,
             "title": self.title,
             "session_id": self.session_id,
-            "background": {"intents": list(self.intents), "events": a.events},
+            "background": {
+                "intents": list(self.intents),
+                "events": a.events,
+                "intent": a.intent.as_dict([f.id for f in a.drift_findings]),
+            },
             "problem": self.problem,
             "current_state": {"value_stream": [s.as_dict() for s in a.value_stream]},
             "analysis": {
-                "scorecard": a.scorecard.as_dict(),
+                "scorecard": self.scorecard_dict(),
+                "dimensions": [d.as_dict() for d in self.dimensions],
+                "wip": a.wip.as_dict(),
                 "pareto": [p.as_dict() for p in self.pareto],
                 "cycles": [c.as_dict() for c in a.cycles],
             },
@@ -88,9 +127,17 @@ class A3Report:
                 {"id": i, "waste": w, "kind": k, "confidence_rule": r}
                 for i, w, k, r in a.detectors
             ],
+            "lean_concepts": [
+                {"concept": c.value, "measures": [m.as_dict() for m in ms]}
+                for c, ms in LEAN_MEASURES.items()
+            ],
         }
         if self.usage_limits:
             out["usage_limits"] = list(self.usage_limits)
+        if self.inventory is not None:
+            out["context_inventory"] = self.inventory.as_dict()
+        if self.cost is not None:
+            out["cost"] = self.cost.as_dict()
         if self.outcome is not None:
             per = self.tokens_per_verified_outcome
             out["outcome"] = {
@@ -160,10 +207,13 @@ def build_a3(
     intents: Sequence[str] = (),
     outcome: OutcomeVerdict | None = None,
     usage_limits: Sequence[str] = (),
+    prices: Prices | None = None,
 ) -> A3Report:
     """Assemble the A3 from an analysis, the developer's prompts and, when
     known, the outcome verdict (shown beside the analysis, never read by it).
-    ``usage_limits`` are the source's, stated beside the figures they qualify."""
+    ``usage_limits`` are the source's, stated beside the figures they qualify.
+    With ``prices`` the session and its context inventory are priced at the
+    prices in force on the session date."""
     findings = analysis.findings
     ranked = sorted(
         findings,
@@ -175,6 +225,7 @@ def build_a3(
         ),
     )
     sc = analysis.scorecard
+    inventory = context_inventory(analysis.steps, findings)
     return A3Report(
         title=_title(intents),
         session_id=analysis.session_id,
@@ -193,4 +244,8 @@ def build_a3(
         ),
         outcome=outcome,
         usage_limits=tuple(usage_limits),
+        inventory=inventory,
+        cost=None
+        if prices is None
+        else price_session(analysis.steps, inventory, prices),
     )

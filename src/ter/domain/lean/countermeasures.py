@@ -207,10 +207,10 @@ echo "$sig" > "$last"
 
 _NO_WRITE_SCRIPT = """#!/usr/bin/env bash
 # .claude/hooks/edit-not-write.sh: PreToolUse(Write). Blocks whole-file rewrites
-# of files that already exist, so changes go through Edit/MultiEdit.
+# of files that already exist, so changes go through Edit.
 file=$(jq -r '.tool_input.file_path // empty')
 if [ -n "$file" ] && [ -f "$file" ]; then
-  echo "$file exists: change it with Edit or MultiEdit instead of rewriting it." >&2
+  echo "$file exists: change it with Edit instead of rewriting it." >&2
   exit 2
 fi
 """
@@ -333,7 +333,7 @@ def _unvalidated(ctx: _Context) -> tuple[str, list[Action]]:
                     ActionKind.PRACTICE,
                     "No check ran in this session, so no edit hook is generated. Once the "
                     "project has a test command, add a PostToolUse hook on "
-                    f"Edit|MultiEdit|Write that runs it {edited}.",
+                    f"Edit|Write that runs it {edited}.",
                 ),
             ],
         )
@@ -354,7 +354,7 @@ def _unvalidated(ctx: _Context) -> tuple[str, list[Action]]:
         {
             "PostToolUse": [
                 {
-                    "matcher": "Edit|MultiEdit|Write",
+                    "matcher": "Edit|Write",
                     "hooks": [{"type": "command", "command": check, "timeout": 300}],
                 }
             ]
@@ -429,9 +429,11 @@ def _fragmented(ctx: _Context) -> tuple[str, list[Action]]:
         [
             Action(
                 ActionKind.CLAUDE_MD,
-                "Ask for one call per coherent change.",
-                "- Make related changes to one file in a single MultiEdit call rather than "
-                f"one Edit per hunk (fragmented: {_list(ctx.subjects)}).",
+                "Ask for one round trip per coherent change.",
+                "- Plan the whole change to a file before editing it, then send its "
+                "Edit calls together in one turn (parallel tool calls) rather than "
+                "one hunk per turn, waiting for each result "
+                f"(fragmented: {_list(ctx.subjects)}).",
                 "markdown",
             )
         ],
@@ -503,7 +505,7 @@ def _regeneration(ctx: _Context) -> tuple[str, list[Action]]:
             Action(
                 ActionKind.CLAUDE_MD,
                 "Reserve whole-file writes for new files.",
-                "- Change existing files with Edit or MultiEdit; use Write only for new files "
+                "- Change existing files with Edit; use Write only for new files "
                 "or rewrites the user asked for.",
                 "markdown",
             ),
@@ -514,6 +516,122 @@ def _regeneration(ctx: _Context) -> tuple[str, list[Action]]:
                 + "\n\n"
                 + _NO_WRITE_SCRIPT,
                 "json+bash",
+            ),
+        ],
+    )
+
+
+def _drift(ctx: _Context) -> tuple[str, list[Action]]:
+    return (
+        "Stay inside the stated intent",
+        [
+            Action(
+                ActionKind.CLAUDE_MD,
+                "Ask the agent to propose extra work instead of doing it.",
+                "- Do only what the current request asks. When you see something else worth "
+                "doing, mention it in your answer and wait for the go-ahead; when the user "
+                "changes the goal, drop the old one.",
+                "markdown",
+            ),
+            Action(
+                ActionKind.PRACTICE,
+                f"Unrequested changes this session: {_list(ctx.subjects)}. If they were "
+                "wanted, say so in the prompt next time, so the intent records them and they "
+                "count as value; if not, revert them.",
+            ),
+        ],
+    )
+
+
+def _excessive_context(ctx: _Context) -> tuple[str, list[Action]]:
+    return (
+        "Bound exploration by the size of the change",
+        [
+            Action(
+                ActionKind.CLAUDE_MD,
+                "Ask for a stated plan of what to read before reading widely.",
+                "- Before exploring, list the few files the change will touch and read "
+                "those first; widen the search only when they leave a named question open.",
+                "markdown",
+            ),
+            Action(
+                ActionKind.PRACTICE,
+                f"Verify first: the context before changing {_list(ctx.subjects)} "
+                "exceeded the band, but wide reading can be justified. If it was not, "
+                "add a 'Where things live' map to CLAUDE.md so the agent finds the "
+                "right files directly.",
+            ),
+        ],
+    )
+
+
+def _insufficient_context(ctx: _Context) -> tuple[str, list[Action]]:
+    return (
+        "Acquire context in proportion to the change",
+        [
+            Action(
+                ActionKind.CLAUDE_MD,
+                "Require evidence for every file changed.",
+                "- For each file you change in place, first read it or search for what "
+                "you are changing in it within the current task; do not rely on memory "
+                "of an earlier task.",
+                "markdown",
+            ),
+            Action(
+                ActionKind.SETTING,
+                "Start tasks that change existing code in plan mode, so context comes "
+                f"first (changed with too little context: {_list(ctx.subjects)}).",
+                json.dumps({"permissions": {"defaultMode": "plan"}}, indent=2),
+                "json",
+            ),
+        ],
+    )
+
+
+def _unused_traversal(ctx: _Context) -> tuple[str, list[Action]]:
+    return (
+        "Search for a target, not a tour",
+        [
+            Action(
+                ActionKind.CLAUDE_MD,
+                "Point the agent at the layout so it does not walk the tree.",
+                "## Where things live\n"
+                "- <directory>: <what it holds>\n"
+                "- Search for a symbol or a file name you expect, not whole directories.",
+                "markdown",
+            ),
+            Action(
+                ActionKind.PRACTICE,
+                f"Verify first: {_list(ctx.subjects)} listed files nothing later used, "
+                "which may have ruled a place out. If they recur across sessions, name "
+                "the right places in CLAUDE.md.",
+            ),
+        ],
+    )
+
+
+def _failed_route(ctx: _Context) -> tuple[str, list[Action]]:
+    routes = list(
+        dict.fromkeys(
+            s.split(": ", 1)[1].split(" failed", 1)[0]
+            for s in ctx.subjects
+            if ": " in s and " failed" in s
+        )
+    )
+    named = _list(routes) if routes else _list(ctx.subjects)
+    return (
+        "Stop routing to routes that fail",
+        [
+            Action(
+                ActionKind.SETTING,
+                f"Demote or health-check the failing route(s) in the routing profile "
+                f"({named} failed and the work was done elsewhere), so the first "
+                "choice is a route that answers.",
+            ),
+            Action(
+                ActionKind.PRACTICE,
+                "Put a short timeout and a circuit breaker on routes that fail repeatedly, "
+                "so a failover costs one fast failure rather than a wait per task.",
             ),
         ],
     )
@@ -531,6 +649,11 @@ _CATALOGUE: dict[str, Callable[[_Context], tuple[str, list[Action]]]] = {
     "unnecessary_handoff": _handoff,
     "repeated_reasoning": _reasoning,
     "regeneration": _regeneration,
+    "intent_drift": _drift,
+    "excessive_context": _excessive_context,
+    "insufficient_context": _insufficient_context,
+    "unused_traversal": _unused_traversal,
+    "failed_route": _failed_route,
 }
 
 
@@ -602,11 +725,16 @@ _MEASURES: dict[str, tuple[str, str]] = {
     ),
     "premature_implementation": ("Edits to files not read first", "0"),
     "excessive_planning": ("Planning runs of 4+ steps without action", "0"),
-    "fragmented_edits": ("Runs of 3+ separate edits to one file", "0"),
+    "fragmented_edits": ("Edit runs to one file over 3+ round trips", "0"),
     "unused_context": ("Files read and never used (uncertain)", "fewer"),
     "unnecessary_handoff": ("Handoffs redone by the agent", "0"),
     "repeated_reasoning": ("Restated reasoning blocks", "fewer"),
     "regeneration": ("Whole-file rewrites of existing content", "0"),
+    "intent_drift": ("Edits departing from the intent with no intent change", "0"),
+    "excessive_context": ("Tasks with context above the band (uncertain)", "fewer"),
+    "insufficient_context": ("Tasks with context below the band", "0"),
+    "unused_traversal": ("Traversals whose files were never used (uncertain)", "fewer"),
+    "failed_route": ("Failed model routes waited on", "0"),
 }
 
 

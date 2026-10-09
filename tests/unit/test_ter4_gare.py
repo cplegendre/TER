@@ -32,6 +32,8 @@ from tests.golden.corpus import CORPUS
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "gare"
 FAILOVER = FIXTURES / "failover-run"
 MISSION = FIXTURES / "repair-mission"
+#: A real recorded run (issue #55): GARE 0.0.50 with a local Ollama model.
+REAL = FIXTURES / "runs" / "c2ffdf8f1b09"
 ROUTING = (
     EventKind.ROUTE_SELECTED,
     EventKind.ROUTE_FAILOVER,
@@ -78,8 +80,12 @@ def write_explain(tmp_path: Path, data: dict[str, Any]) -> Path:
 
 @pytest.mark.req("TER-EVT-001")
 def test_the_contract_defines_the_routing_kinds_as_unscored_lifecycle() -> None:
-    assert EVENT_SCHEMA_VERSION == "ter.event/0.3"
-    assert {"ter.event/0.1", "ter.event/0.2"} < READABLE_SCHEMA_VERSIONS
+    assert EVENT_SCHEMA_VERSION == "ter.event/0.4"  # 0.3 added the routing kinds
+    assert {
+        "ter.event/0.1",
+        "ter.event/0.2",
+        "ter.event/0.3",
+    } < READABLE_SCHEMA_VERSIONS
     assert [k.value for k in ROUTING] == [
         "route.selected",
         "route.failover",
@@ -125,7 +131,9 @@ def test_a_failover_run_maps_every_route_attempt_and_failover() -> None:
 
 
 @pytest.mark.req("TER-SRC-011")
-@pytest.mark.parametrize("run", [FAILOVER, MISSION], ids=["failover", "mission"])
+@pytest.mark.parametrize(
+    "run", [FAILOVER, MISSION, REAL], ids=["failover", "mission", "real"]
+)
 def test_token_totals_equal_the_gare_export(run: Path) -> None:
     trace = GareRunSource().read(run)
     rows = usage_rows(run)
@@ -261,7 +269,9 @@ def test_unknown_states_and_schemas_count_against_coverage(tmp_path: Path) -> No
 
 
 @pytest.mark.req("TER-SRC-013")
-@pytest.mark.parametrize("run", [FAILOVER, MISSION], ids=["failover", "mission"])
+@pytest.mark.parametrize(
+    "run", [FAILOVER, MISSION, REAL], ids=["failover", "mission", "real"]
+)
 def test_gare_traces_carry_no_cache_tokens_and_say_so(run: Path) -> None:
     trace = GareRunSource().read(run)
     assert NO_CACHE_TOKENS in trace.usage_limits
@@ -575,3 +585,121 @@ def test_undated_rows_keep_their_place_in_their_file(tmp_path: Path) -> None:
     usage = [t.split(":")[0] for t in texts if t.startswith(("undated", "dated"))]
     assert usage == ["undated-first", "dated", "undated-after"]
     assert texts.index("dated: p/m") > texts.index(": no route")
+
+
+# -- a real recorded run (issue #55) -------------------------------------------
+
+
+@pytest.mark.req("TER-SRC-011")
+def test_a_real_mission_maps_its_attempts_review_and_outcome() -> None:
+    trace = GareRunSource().read(REAL)
+    assert trace.session_id == "c2ffdf8f1b09"
+    assert kinds(REAL) == {
+        EventKind.PROMPT: 1,
+        EventKind.ROUTE_SELECTED: 4,
+        EventKind.ATTEMPT_STARTED: 2,
+        EventKind.RESPONSE: 4,
+        EventKind.VERIFICATION_COMPLETED: 2,
+        EventKind.OUTCOME_RECORDED: 1,
+        EventKind.TASK_COMPLETED: 1,
+    }
+    assert trace.events[0].text.startswith("Fix the off-by-one bug in toy/stats.py")
+    # Attempt 1, its diagnosis (a known state with no event), then repair attempt 2.
+    attempts = [e.text for e in trace.events if e.kind is EventKind.ATTEMPT_STARTED]
+    assert attempts == [
+        "attempt 1 mission-coder-1-1c03ca90",
+        "attempt 2 mission-coder-2-c3359cfc",
+    ]
+    calls = [e.text.split(":")[0] for e in trace.events if e.kind is EventKind.RESPONSE]
+    assert calls == [
+        "mission-coder-1-1c03ca90",
+        "mission-investigate-1-89076b61",
+        "mission-coder-2-c3359cfc",
+        "mission-reviewer-review-2-24651b43",
+    ]
+    checks = [
+        e.text for e in trace.events if e.kind is EventKind.VERIFICATION_COMPLETED
+    ]
+    assert checks == [
+        "attempt 2 persona_review: fail",  # the reviewer said revise
+        "attempt 2 attempt_complete: fail",  # test exit code 1
+    ]
+    assert [e.text for e in trace.events[-2:]] == [
+        "needs_review: score 20/100",
+        "run needs_review",
+    ]
+    assert trace.unrecognised == () and trace.coverage == 1.0
+    # The unavailable route was skipped before any call: nothing failed over.
+    assert EventKind.ROUTE_FAILOVER not in kinds(REAL)
+
+
+@pytest.mark.req("TER-SRC-011")
+def test_a_real_runs_usage_matches_both_exports() -> None:
+    trace = GareRunSource().read(REAL)
+    usage = [e.usage for e in trace.events if e.usage is not None]
+    assert sum(u.input_tokens for u in usage) == 2814
+    assert sum(u.output_tokens for u in usage) == 1526
+    assert {u.model for u in usage} == {"qwen3-coder-next:latest"}
+    # explain.json's route summary agrees with the usage export.
+    routes = json.loads((REAL / "explain.json").read_text(encoding="utf-8"))["routes"]
+    (summary,) = routes.values()
+    assert (summary["input_tokens"], summary["output_tokens"]) == (2814, 1526)
+    assert summary["calls"] == len(usage) == 4
+    # GARE recorded no latency; a null latency does not stop the read.
+    assert all(row["latency_ms"] is None for row in usage_rows(REAL))
+    # explain.json alone gives the same totals from each task's final route.
+    alone = GareRunSource().read(REAL / "explain.json")
+    totals = [e.usage for e in alone.events if e.usage is not None]
+    assert sum(u.input_tokens for u in totals) == 2814
+    assert sum(u.output_tokens for u in totals) == 1526
+
+
+@pytest.mark.req("TER-SRC-011")
+@pytest.mark.parametrize("ref", [REAL, REAL / "explain.json"], ids=["both", "explain"])
+def test_a_route_ranked_first_but_never_called_is_not_the_selected_route(
+    ref: Path,
+) -> None:
+    trace = GareRunSource().read(ref)
+    routes = [e.text for e in trace.events if e.kind is EventKind.ROUTE_SELECTED]
+    skipped = " (rank 2 of 2; not called: ollama_down/qwen3-coder-next:notpulled)"
+    assert routes == [
+        "mission-coder-1-1c03ca90: ollama/qwen3-coder-next:latest" + skipped,
+        "mission-investigate-1-89076b61: ollama/qwen3-coder-next:latest" + skipped,
+        "mission-coder-2-c3359cfc: ollama/qwen3-coder-next:latest" + skipped,
+        "mission-reviewer-review-2-24651b43: ollama/qwen3-coder-next:latest",
+    ]
+
+
+@pytest.mark.req("TER-SRC-011")
+@pytest.mark.parametrize(
+    "ref", [FAILOVER, FAILOVER / "explain.json"], ids=["both", "explain"]
+)
+def test_a_route_ranked_first_and_called_stays_selected(ref: Path) -> None:
+    # The mock failover run called its top route (flaky), then failed over;
+    # with explain.json alone the call is known from the recorded error.
+    trace = GareRunSource().read(ref)
+    routes = [e.text for e in trace.events if e.kind is EventKind.ROUTE_SELECTED]
+    assert routes[0] == "research-a208947d: flaky/flaky-large (of 3 candidates)"
+    assert not any("not called" in r for r in routes)
+
+
+def test_a_route_decision_with_no_known_call_keeps_its_top_candidate(
+    tmp_path: Path,
+) -> None:
+    candidates = [
+        {"provider": "a", "model": "x", "score": 2.0},
+        {"provider": "b", "model": "y", "score": 1.0},
+    ]
+    data = explain(("route_decision", {"task_id": "t", "candidates": candidates}))
+    trace = GareRunSource().read(write_explain(tmp_path, data))
+    assert [e.text for e in trace.events] == ["t: a/x (of 2 candidates)"]
+
+
+def test_observe_and_explain_read_the_real_run() -> None:
+    code, out, err = run_cli("observe", str(REAL), "--timeline")
+    assert (code, err) == (0, "")
+    assert "session c2ffdf8f1b09" in out
+    assert "input 2,814 · output 1,526" in out
+    code, out, _ = run_cli("explain", str(REAL))
+    assert code == 0
+    assert "no response text" in out and "no cache tokens" in out

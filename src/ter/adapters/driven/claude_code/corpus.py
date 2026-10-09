@@ -74,6 +74,8 @@ class CorpusSession:
     redactions: Mapping[str, int]
     load_error: str | None = None
     labels: Mapping[str, str] = field(default_factory=dict)
+    #: Records of documented types that carry no agent activity (TER-SRC-005).
+    metadata_by_type: Mapping[str, int] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -293,6 +295,7 @@ def _import_one(
     session_id = _session_id(redacted) or fallback
     coverage: float | None = None
     unrecognised: Mapping[str, int] = {}
+    metadata: Mapping[str, int] = {}
     error: str | None = None
     try:
         trace = ClaudeCodeJsonlSource().read(target)
@@ -302,6 +305,7 @@ def _import_one(
     else:
         coverage = round(trace.coverage, 6)
         unrecognised = dict(sorted(trace.unrecognised_by_type.items()))
+        metadata = dict(sorted(trace.metadata_by_type.items()))
     stamps = sorted(
         str(r["timestamp"]) for r in records if isinstance(r.get("timestamp"), str)
     )
@@ -332,6 +336,7 @@ def _import_one(
         redactions=redactor.counts(),
         load_error=error,
         labels=session_labels,
+        metadata_by_type=metadata,
     )
 
 

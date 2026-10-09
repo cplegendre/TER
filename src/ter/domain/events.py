@@ -22,13 +22,15 @@ from typing import NewType
 #:
 #: 0.2 added the lifecycle kinds ``task.completed`` and ``subagent.completed``;
 #: 0.3 the routing kinds ``route.selected``, ``route.failover``,
-#: ``attempt.started``, ``verification.completed`` and ``outcome.recorded``.
-EVENT_SCHEMA_VERSION = "ter.event/0.3"
+#: ``attempt.started``, ``verification.completed`` and ``outcome.recorded``;
+#: 0.4 the usage fields ``model`` and ``cache_reported``, so a session can be
+#: priced from its events alone (TER-ANL-040, TER-ANL-041, TER-EXP-001).
+EVENT_SCHEMA_VERSION = "ter.event/0.4"
 
 #: Every contract version this build reads. Each is a subset of the current
 #: one, so a record written under any of them decodes unchanged.
 READABLE_SCHEMA_VERSIONS = frozenset(
-    {"ter.event/0.1", "ter.event/0.2", EVENT_SCHEMA_VERSION}
+    {"ter.event/0.1", "ter.event/0.2", "ter.event/0.3", EVENT_SCHEMA_VERSION}
 )
 
 #: Stable, content-derived identity of an event. The same source record always
@@ -112,12 +114,21 @@ class ToolKind(StrEnum):
 
 @dataclass(frozen=True)
 class TokenUsage:
-    """Provider-reported token usage for one model turn."""
+    """Provider-reported token usage for one model turn.
+
+    ``model`` is the model the provider says served the turn (None when the
+    source does not say). ``cache_reported`` is False when the source's usage
+    record had no cache fields, so the cache figures are 0 because nothing
+    was reported, not because nothing was cached; costs built on such a turn
+    are estimates (TER-ANL-041).
+    """
 
     input_tokens: int = 0
     output_tokens: int = 0
     cache_creation_tokens: int = 0
     cache_read_tokens: int = 0
+    model: str | None = None
+    cache_reported: bool = True
 
     @property
     def total(self) -> int:
@@ -194,6 +205,19 @@ class UnrecognisedRecord:
 
 
 @dataclass(frozen=True)
+class MetadataRecord:
+    """A source record of a documented type that carries no agent activity.
+
+    Harness bookkeeping (titles, queue operations, permission modes, injected
+    reminders) is recognised rather than mapped: it describes the session, it
+    is not something the developer or the agent did (TER-SRC-005).
+    """
+
+    line: int
+    record_type: str
+
+
+@dataclass(frozen=True)
 class SessionTrace:
     """A whole session as normalised events, plus what could not be mapped."""
 
@@ -201,6 +225,8 @@ class SessionTrace:
     source_format: str
     events: tuple[Event, ...]
     unrecognised: tuple[UnrecognisedRecord, ...] = ()
+    #: Records of documented types that carry no agent activity.
+    metadata: tuple[MetadataRecord, ...] = ()
     schema_version: str = EVENT_SCHEMA_VERSION
     #: What the source cannot report, e.g. ``no-cache-tokens``; reports state
     #: each limit beside their token figures.
@@ -211,11 +237,20 @@ class SessionTrace:
         return dict(Counter(r.record_type for r in self.unrecognised))
 
     @property
+    def metadata_by_type(self) -> Mapping[str, int]:
+        return dict(Counter(r.record_type for r in self.metadata))
+
+    @property
     def coverage(self) -> float:
-        """Share of source records that produced at least one event (1.0 when empty)."""
+        """Share of source records accounted for (1.0 when empty).
+
+        A record is accounted for when it produced at least one event or is a
+        documented metadata record; unrecognised records are the rest.
+        """
         mapped = len({e.provenance.record_id for e in self.events})
-        total = mapped + len(self.unrecognised)
-        return 1.0 if total == 0 else mapped / total
+        known = mapped + len(self.metadata)
+        total = known + len(self.unrecognised)
+        return 1.0 if total == 0 else known / total
 
     def generated(self) -> tuple[Event, ...]:
         """Events the agent generated; user input and tool output are excluded."""

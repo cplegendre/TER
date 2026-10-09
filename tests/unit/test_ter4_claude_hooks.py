@@ -182,6 +182,9 @@ class TestHandleHook:
             def report(self, session_id: str) -> StreamReport:
                 raise NotImplementedError
 
+            def explain(self, session_id: str, *, ter: object = None) -> object:
+                raise NotImplementedError
+
         result = handle_hook(load("user_prompt_submit"), Broken())
         assert result.status is HookStatus.IGNORED
         assert result.reason == "OSError: disk full"

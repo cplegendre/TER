@@ -3,29 +3,249 @@
     "cycles": [
       {
         "command": "pytest tests/test_parser.py -q",
-        "failed_run": "1c91989c08c0ed50",
-        "failure": "67f5fdb471aa600f",
+        "failed_run": "fc247227d92a10f7",
+        "failure": "51039ae2dacbebc3",
         "fixes": [
-          "d149692b66de4b4b"
+          "3fcd365aa84f70a8"
         ],
         "next_outcome": "failed",
-        "next_result": "672962215503debc",
-        "next_run": "763dc8c817be8d49",
+        "next_result": "8f7cd1303a0b4752",
+        "next_run": "dda7bccaad7cce2a",
         "reason": "the next run failed identically",
         "verdict": "rework"
       },
       {
         "command": "pytest tests/test_parser.py -q",
-        "failed_run": "763dc8c817be8d49",
-        "failure": "672962215503debc",
+        "failed_run": "dda7bccaad7cce2a",
+        "failure": "8f7cd1303a0b4752",
         "fixes": [
-          "f32c8aba5faf2655"
+          "8002a740aa59f968"
         ],
         "next_outcome": "passed",
-        "next_result": "41eddab414314d4f",
-        "next_run": "1721cb31e33a6b9b",
+        "next_result": "548f9252455633bf",
+        "next_run": "338a4a54957a464b",
         "reason": "the next run passed",
         "verdict": "iteration"
+      }
+    ],
+    "dimensions": [
+      {
+        "dimension": "efficiency",
+        "measures": [
+          {
+            "key": "ter",
+            "label": "Token Efficiency Ratio",
+            "note": "TER 3, offline (regex-v1 tokens, lexical-hash-384 embeddings)",
+            "unit": "ratio",
+            "value": 0.8049
+          },
+          {
+            "key": "software_value_efficiency",
+            "label": "Software Value Efficiency",
+            "note": "unknown",
+            "unit": "ratio",
+            "value": null
+          },
+          {
+            "key": "value_adding_share",
+            "label": "Value-adding share of generated tokens",
+            "note": "",
+            "unit": "ratio",
+            "value": 0.3788
+          },
+          {
+            "key": "avoidable_share",
+            "label": "Avoidable share of generated tokens",
+            "note": "",
+            "unit": "ratio",
+            "value": 0.2323
+          }
+        ],
+        "question": "How much of the resource became value?"
+      },
+      {
+        "dimension": "flow",
+        "measures": [
+          {
+            "key": "flow_efficiency_tokens",
+            "label": "Flow efficiency (tokens)",
+            "note": "",
+            "unit": "ratio",
+            "value": 0.7677
+          },
+          {
+            "key": "flow_efficiency_time",
+            "label": "Flow efficiency (time)",
+            "note": "",
+            "unit": "ratio",
+            "value": 0.8
+          },
+          {
+            "key": "wip_peak",
+            "label": "Peak WIP",
+            "note": "after event 3fcd365aa84f70a8",
+            "unit": "items",
+            "value": 2
+          },
+          {
+            "key": "wip_final",
+            "label": "WIP at the end",
+            "note": "",
+            "unit": "items",
+            "value": 0
+          }
+        ],
+        "question": "How smoothly did work move, and how much was left open?"
+      },
+      {
+        "dimension": "quality",
+        "measures": [
+          {
+            "key": "validation_runs",
+            "label": "Validation runs",
+            "note": "",
+            "unit": "count",
+            "value": 3
+          },
+          {
+            "key": "validations_passed",
+            "label": "Runs that passed",
+            "note": "",
+            "unit": "count",
+            "value": 1
+          },
+          {
+            "key": "validations_failed",
+            "label": "Runs that failed",
+            "note": "",
+            "unit": "count",
+            "value": 2
+          },
+          {
+            "key": "iterations",
+            "label": "Iteration cycles (converging)",
+            "note": "",
+            "unit": "count",
+            "value": 1
+          },
+          {
+            "key": "rework_cycles",
+            "label": "Rework cycles (same failure)",
+            "note": "",
+            "unit": "count",
+            "value": 1
+          },
+          {
+            "key": "edits_validated_share",
+            "label": "Edits covered by a later validation run",
+            "note": "3 of 3",
+            "unit": "ratio",
+            "value": 1.0
+          }
+        ],
+        "question": "Was the work checked, and did the checks converge?"
+      },
+      {
+        "dimension": "cost",
+        "measures": [
+          {
+            "key": "generated_tokens",
+            "label": "Generated tokens",
+            "note": "",
+            "unit": "tokens",
+            "value": 396
+          },
+          {
+            "key": "context_tokens",
+            "label": "Context tokens",
+            "note": "",
+            "unit": "tokens",
+            "value": 151
+          },
+          {
+            "key": "agent_seconds",
+            "label": "Agent time",
+            "note": "",
+            "unit": "seconds",
+            "value": 45.0
+          },
+          {
+            "key": "waste_tokens",
+            "label": "Avoidable generated tokens",
+            "note": "",
+            "unit": "tokens",
+            "value": 92
+          },
+          {
+            "key": "waste_context_tokens",
+            "label": "Avoidable context tokens",
+            "note": "",
+            "unit": "tokens",
+            "value": 38
+          },
+          {
+            "key": "waste_seconds",
+            "label": "Avoidable agent time",
+            "note": "",
+            "unit": "seconds",
+            "value": 9.0
+          }
+        ],
+        "question": "What did the session consume, and how much was waste?"
+      },
+      {
+        "dimension": "risk",
+        "measures": [
+          {
+            "key": "risk_findings",
+            "label": "Risk findings",
+            "note": "",
+            "unit": "count",
+            "value": 0
+          },
+          {
+            "key": "uncertain_findings",
+            "label": "Uncertain findings",
+            "note": "",
+            "unit": "count",
+            "value": 0
+          },
+          {
+            "key": "unvalidated_edits_at_end",
+            "label": "Edits no validation run covered",
+            "note": "",
+            "unit": "count",
+            "value": 0
+          },
+          {
+            "key": "unresolved_failures_at_end",
+            "label": "Failing checks never seen passing again",
+            "note": "",
+            "unit": "count",
+            "value": 0
+          }
+        ],
+        "question": "What may be wrong that nothing has shown yet?"
+      },
+      {
+        "dimension": "outcome",
+        "measures": [
+          {
+            "key": "verdict",
+            "label": "Verdict",
+            "note": "no outcome evidence supplied",
+            "unit": "verdict",
+            "value": "unknown"
+          },
+          {
+            "key": "tokens_per_verified_outcome",
+            "label": "Generated tokens per verified outcome",
+            "note": "",
+            "unit": "tokens",
+            "value": null
+          }
+        ],
+        "question": "Was the requested change accepted?"
       }
     ],
     "pareto": [
@@ -95,22 +315,360 @@
       "iterations": 1,
       "rework_cycles": 1,
       "risks": 0,
+      "software_value_efficiency": {
+        "definition": "Software Value Efficiency: value-adding work toward a verified (accepted) outcome per unit of resource: value-adding generated tokens / generated tokens, and the same for agent time; 0 when the outcome was rejected, unknown without outcome evidence.",
+        "reason": "Unknown: no outcome evidence was supplied (--outcome FILE); value is never inferred from tokens.",
+        "seconds_per_outcome": null,
+        "status": "unknown",
+        "time": null,
+        "tokens": null,
+        "tokens_per_outcome": null,
+        "value_seconds": null,
+        "value_tokens": null,
+        "verdict": null,
+        "verified_outcomes": null
+      },
       "ter": {
         "method": "TER 3, offline (regex-v1 tokens, lexical-hash-384 embeddings)",
         "value": 0.8049
       },
       "uncertain_findings": 0,
       "uncertain_waste_tokens": 0,
+      "validation_runs": 3,
+      "validations_failed": 2,
+      "validations_passed": 1,
       "waste_context_tokens": 38,
       "waste_seconds": 9.0,
       "waste_tokens": 92
+    },
+    "wip": {
+      "edits_opened": 3,
+      "edits_validated": 3,
+      "final": {
+        "edits": 0,
+        "event_id": "ee6a5952b4a08820",
+        "failures": 0,
+        "hypotheses": 0,
+        "tasks": 0,
+        "total": 0
+      },
+      "kinds": [
+        "hypotheses",
+        "tasks",
+        "edits",
+        "failures"
+      ],
+      "open_at_end": {
+        "edits": [],
+        "failures": [],
+        "hypotheses": [],
+        "tasks": []
+      },
+      "peak": {
+        "edits": 1,
+        "event_id": "3fcd365aa84f70a8",
+        "failures": 1,
+        "hypotheses": 0,
+        "tasks": 0,
+        "total": 2
+      },
+      "peak_by_kind": {
+        "edits": 1,
+        "failures": 1,
+        "hypotheses": 1,
+        "tasks": 0
+      },
+      "series": [
+        [
+          "e2450187ade21441",
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          "85ed37b31edb7b93",
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          "e31ca633f6f5ea96",
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          "f5f2ec94106347c7",
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          "77dbe291b043466d",
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          "be52d3e10d534665",
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          "501f20855ee029c1",
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          "fc247227d92a10f7",
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          "51039ae2dacbebc3",
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          "b79c917cdfc846b5",
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          "3fcd365aa84f70a8",
+          0,
+          0,
+          1,
+          1
+        ],
+        [
+          "d79e172da62edd11",
+          0,
+          0,
+          1,
+          1
+        ],
+        [
+          "dda7bccaad7cce2a",
+          0,
+          0,
+          1,
+          1
+        ],
+        [
+          "8f7cd1303a0b4752",
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          "c502b1c166401b3c",
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          "8002a740aa59f968",
+          0,
+          0,
+          1,
+          1
+        ],
+        [
+          "41e6ffe6ae79601f",
+          0,
+          0,
+          1,
+          1
+        ],
+        [
+          "338a4a54957a464b",
+          0,
+          0,
+          1,
+          1
+        ],
+        [
+          "548f9252455633bf",
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          "ee6a5952b4a08820",
+          0,
+          0,
+          0,
+          0
+        ]
+      ]
     }
   },
   "background": {
     "events": 20,
+    "intent": {
+      "alignment": [
+        {
+          "band": "partial",
+          "basis": "text",
+          "event_id": "85ed37b31edb7b93",
+          "names": [],
+          "revision": 1,
+          "score": 0.4286
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "e31ca633f6f5ea96",
+          "names": [],
+          "revision": 1,
+          "score": 1.0
+        },
+        {
+          "band": "low",
+          "basis": "text",
+          "event_id": "77dbe291b043466d",
+          "names": [],
+          "revision": 1,
+          "score": 0.1667
+        },
+        {
+          "band": "low",
+          "basis": "changed_words",
+          "event_id": "be52d3e10d534665",
+          "names": [],
+          "revision": 1,
+          "score": 0.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "fc247227d92a10f7",
+          "names": [],
+          "revision": 1,
+          "score": 0.6667
+        },
+        {
+          "band": "partial",
+          "basis": "text",
+          "event_id": "b79c917cdfc846b5",
+          "names": [],
+          "revision": 1,
+          "score": 0.3333
+        },
+        {
+          "band": "low",
+          "basis": "changed_words",
+          "event_id": "3fcd365aa84f70a8",
+          "names": [],
+          "revision": 1,
+          "score": 0.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "dda7bccaad7cce2a",
+          "names": [],
+          "revision": 1,
+          "score": 0.6667
+        },
+        {
+          "band": "low",
+          "basis": "text",
+          "event_id": "c502b1c166401b3c",
+          "names": [],
+          "revision": 1,
+          "score": 0.2222
+        },
+        {
+          "band": "low",
+          "basis": "text",
+          "event_id": "8002a740aa59f968",
+          "names": [],
+          "revision": 1,
+          "score": 0.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "338a4a54957a464b",
+          "names": [],
+          "revision": 1,
+          "score": 0.6667
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "ee6a5952b4a08820",
+          "names": [],
+          "revision": 1,
+          "score": 0.5556
+        }
+      ],
+      "changes": [],
+      "config": {
+        "drift_below": 0.25,
+        "low_below": 0.25,
+        "min_events": 3
+      },
+      "drift": [],
+      "low_alignment_periods": [],
+      "revisions": [
+        {
+          "abandoned": [],
+          "event_id": "e2450187ade21441",
+          "prompt": "The duration parser in src/parser.py fails for hours like '2h'. Fix parse_durati",
+          "relation": "opened",
+          "revision": 1,
+          "similarity": null,
+          "terms": [
+            "duration",
+            "exist",
+            "fail",
+            "hour",
+            "keep",
+            "pars",
+            "parser",
+            "test",
+            "work"
+          ]
+        }
+      ],
+      "rule": "Overlap coefficient |intent ∩ activity| / min(|intent|, |activity|) of key terms (content words, identifier parts and file-name parts, stemmed, without stopwords or generic programming words); 0 when either side has no terms.",
+      "scorer": "lexical"
+    },
     "intents": [
       "The duration parser in src/parser.py fails for hours like '2h'. Fix parse_duration so hours work and keep the existing tests passing."
     ]
+  },
+  "context_inventory": {
+    "model_turns": 8,
+    "reread": [],
+    "reread_carried_tokens": 0,
+    "reread_tokens": 0,
+    "retrieved_tokens": 57,
+    "unchanged_reread_tokens": 0,
+    "unused": [],
+    "unused_carried_tokens": 0,
+    "unused_tokens": 0
   },
   "countermeasures": [
     {
@@ -135,7 +693,7 @@
         }
       ],
       "addresses": [
-        "rework_cycle:d149692b66de4b4b"
+        "rework_cycle:3fcd365aa84f70a8"
       ],
       "detector": "rework_cycle",
       "rationale": "1 finding(s), 92 generated tokens: Fix attempt did not change the failure of pytest tests/test_parser.py -q.",
@@ -180,7 +738,7 @@
         "avoidable_tokens": 74,
         "context_tokens": 33,
         "findings": [
-          "rework_cycle:d149692b66de4b4b"
+          "rework_cycle:3fcd365aa84f70a8"
         ],
         "seconds": 9.0,
         "stage": "implement",
@@ -192,7 +750,7 @@
         "avoidable_tokens": 18,
         "context_tokens": 61,
         "findings": [
-          "rework_cycle:d149692b66de4b4b"
+          "rework_cycle:3fcd365aa84f70a8"
         ],
         "seconds": 18.0,
         "stage": "validate",
@@ -214,7 +772,7 @@
   },
   "detectors": [
     {
-      "confidence_rule": "0.90 when input and output are identical and nothing was edited in between; 0.85 for a validation re-run with no edit in between; 0.75 when edits happened in between but the output is still identical; 0.50 (uncertain) when an output was not observed. Different output: no finding. File reads and searches are left to repeated_exploration; a validation re-run after edits is left to rework_cycle.",
+      "confidence_rule": "Within one prompt's turn: 0.90 when input and output are identical and nothing was edited in between; 0.85 for a validation re-run with no edit in between; 0.75 when edits happened in between but the output is still identical. 0.50 (uncertain) when an output was not observed, or when a new prompt arrived between the two calls (the repeat may answer it). Different output: no finding. File reads and searches are left to repeated_exploration; a validation re-run after edits is left to rework_cycle.",
       "id": "repeated_tool_call",
       "kind": "waste",
       "waste": "over_processing"
@@ -232,28 +790,28 @@
       "waste": "rework"
     },
     {
-      "confidence_rule": "Judged per prompt, once the agent has responded after its edits. 0.85 when no validation ran in the whole session; 0.75 when validation ran earlier but not after these edits; 0.50 (uncertain) when every unvalidated edit is documentation. 0.85 when the last validation before the response failed.",
+      "confidence_rule": "Judged per prompt, once the agent has responded after its edits. A check is a validation run or any shell line that runs a named check tool, even beside a change (sed -i … && pytest). 0.85 when no check ran in the whole session; 0.75 when checks ran earlier but not after these edits; 0.50 (uncertain) when every unvalidated edit is documentation. 0.85 when the last validation before the response failed.",
       "id": "unvalidated_implementation",
       "kind": "risk",
       "waste": "defects"
     },
     {
-      "confidence_rule": "0.75 for an in-place edit of a file never read, written or named in an earlier search or shell output; 0.45 (uncertain) for writing a new file before any exploration at all in the session. One finding per file.",
+      "confidence_rule": "0.75 for an in-place edit of a file never read, written, named in an earlier shell command (cat, sed -n, head, grep …) or named in an earlier search or shell output; 0.45 (uncertain) for writing a new file before any exploration at all in the session. One finding per file.",
       "id": "premature_implementation",
       "kind": "risk",
       "waste": "defects"
     },
     {
-      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary; the rest as waste.",
+      "confidence_rule": "A run of at least 4 consecutive planning steps (reasoning blocks and plan/to-do updates) with no exploration, edit, check or response in between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two steps of the run are counted as necessary. A later step is waste only when it adds no decision: a reasoning block with at most 25% content words new to the prompt and the run so far, or a to-do update identical to an earlier one in the run. A step that adds a decision is never waste, and a run with no such restating step is not a finding.",
       "id": "excessive_planning",
       "kind": "waste",
       "waste": "over_processing"
     },
     {
-      "confidence_rule": "At least 3 consecutive edit calls to one file with only reasoning and their results in between. 0.70 for 3, plus 0.05 per extra edit, capped at 0.85. Only the round-trip overhead (results and waiting of edits after the first) is counted as waste, never the change itself.",
+      "confidence_rule": "Consecutive edit calls to one file, with only reasoning and the results of those edits in between, spread over at least 3 round trips (a round trip ends when a result arrives; calls sent together before any result are one round trip). 0.70 for 3 round trips, plus 0.05 per extra, capped at 0.85. Only the round-trip overhead (the results of edits after the first round trip) is counted as waste, never the change itself.",
       "id": "fragmented_edits",
       "kind": "waste",
-      "waste": "over_processing"
+      "waste": "motion"
     },
     {
       "confidence_rule": "Judged only once the agent has responded after the read. A read counts as used when a later reasoning, response or tool call names the file, or names something the file defines, or edits it. Otherwise 0.65 when the file defined names that were never used, 0.55 when it defined none. Always uncertain: reading to rule something out is legitimate, and only repository evidence (L3) can tell.",
@@ -262,13 +820,13 @@
       "waste": "inventory"
     },
     {
-      "confidence_rule": "A later tool call by the agent itself shares at least 3 content words and at least half of the smaller word set with the handoff's task. Confidence 0.45 + 0.40 × overlap, capped at 0.85. The handoff (and its waiting time) is the waste; the agent's own call is kept.",
+      "confidence_rule": "A later tool call by the agent itself shares at least 3 content words with the handoff's task and covers at least half of the task's words. Confidence 0.45 + 0.40 × coverage, capped at 0.85. The handoff (and its waiting time) is the waste; the agent's own call is kept.",
       "id": "unnecessary_handoff",
       "kind": "waste",
       "waste": "handoffs"
     },
     {
-      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, and at most 25% of its content words are new (in neither the earlier block nor the prompt). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
+      "confidence_rule": "Same prompt and no edit in between. The later block shares at least 3 content words with the earlier one, at most 25% of its content words are new (in neither the earlier block nor the prompt), and none of its new words comes from a tool result observed since the earlier block (that would be new evidence). Confidence 0.85 − novelty, minus 0.10 when the later block has fewer than 6 content words. The restated share (1 − novelty) of the later block is waste.",
       "id": "repeated_reasoning",
       "kind": "waste",
       "waste": "over_processing"
@@ -278,6 +836,36 @@
       "id": "regeneration",
       "kind": "waste",
       "waste": "overproduction"
+    },
+    {
+      "confidence_rule": "An edit or write whose alignment to the intent in force is below the drift band (default 0.25), against an intent of at least 3 key terms: 0.85 when the names it defines continue a goal the developer dropped, or the agent's own reasoning or narration since the prompt called it additional ('also', 'while I'm at it') and names it; 0.55 (uncertain) when it only defines new names the intent does not mention, or defines no names and only its added words (at least 3) depart. Before any prompt, or against a shorter intent: no finding.",
+      "id": "intent_drift",
+      "kind": "waste",
+      "waste": "overproduction"
+    },
+    {
+      "confidence_rule": "Per task (prompt), counting distinct context items (file reads, searches, fetches, handoffs, exploring shell commands) before the first edit: a finding when they exceed per_file (3) × files the task changes + slack (3). Items past the band that are not reads of a changed file are the waste. Confidence 0.55 + 0.02 per item over the band, capped at 0.65: always uncertain at L2, since only repository scope (L3) can tell whether the extra context was needed.",
+      "id": "excessive_context",
+      "kind": "waste",
+      "waste": "inventory"
+    },
+    {
+      "confidence_rule": "Per task (prompt): when the task first edits its n-th distinct file in place (Edit, not a new-file Write), it must have acquired at least min_per_file (1) × n distinct context items (reads, searches, fetches, handoffs, exploring shell). The first edit below that bound is the finding: 0.70 when that file was never read or written earlier in the session; 0.55 (uncertain) when it was, since context carried from an earlier task may suffice. A risk: it claims no cost.",
+      "id": "insufficient_context",
+      "kind": "risk",
+      "waste": "defects"
+    },
+    {
+      "confidence_rule": "Judged only once the agent has responded after it. A search (Grep, Glob) or traversing shell command (ls, find, tree, rg, grep) whose output lists file names, none of which a later event reads, edits or names: 0.60. Always uncertain at L2: a traversal can rule a place out, and only repository evidence (L3) can tell. Empty or unobserved output and repeats of an earlier traversal (left to repeated_exploration) are not findings.",
+      "id": "unused_traversal",
+      "kind": "waste",
+      "waste": "motion"
+    },
+    {
+      "confidence_rule": "A route.failover event (a model call that returned no tokens and did not succeed). 0.80 when a later response completed the work on another route, so the failed call added only waiting; 0.55 (uncertain) when no later response followed. The failover's wall time is the waste; it generated no tokens.",
+      "id": "failed_route",
+      "kind": "waste",
+      "waste": "waiting"
     }
   ],
   "findings": [
@@ -287,15 +875,15 @@
       "context_tokens": 38,
       "detector": "rework_cycle",
       "evidence": [
-        "1c91989c08c0ed50",
-        "67f5fdb471aa600f",
-        "d149692b66de4b4b",
-        "7bb0cb9e49bf57ce",
-        "763dc8c817be8d49",
-        "672962215503debc"
+        "fc247227d92a10f7",
+        "51039ae2dacbebc3",
+        "3fcd365aa84f70a8",
+        "d79e172da62edd11",
+        "dda7bccaad7cce2a",
+        "8f7cd1303a0b4752"
       ],
       "explanation": "1 edit(s) to src/parser.py after `pytest tests/test_parser.py -q` failed, then the same command failed with the same failure. The attempt was rework: it did not move the check.",
-      "id": "rework_cycle:d149692b66de4b4b",
+      "id": "rework_cycle:3fcd365aa84f70a8",
       "kind": "waste",
       "seconds": 9.0,
       "share": 1.0,
@@ -305,10 +893,10 @@
       "uncertain": false,
       "waste": "rework",
       "waste_events": [
-        "d149692b66de4b4b",
-        "7bb0cb9e49bf57ce",
-        "763dc8c817be8d49",
-        "672962215503debc"
+        "3fcd365aa84f70a8",
+        "d79e172da62edd11",
+        "dda7bccaad7cce2a",
+        "8f7cd1303a0b4752"
       ]
     }
   ],
@@ -332,6 +920,168 @@
       "target": "lower"
     }
   ],
+  "lean_concepts": [
+    {
+      "concept": "value",
+      "measures": [
+        {
+          "meaning": "Edits that change the software and the final response.",
+          "name": "Value-adding generated tokens",
+          "source": "a3:analysis.scorecard.activity_tokens.value_adding"
+        },
+        {
+          "meaning": "Value-adding work toward a verified outcome per unit of resource.",
+          "name": "Software Value Efficiency",
+          "source": "a3:analysis.scorecard.software_value_efficiency.tokens"
+        }
+      ]
+    },
+    {
+      "concept": "flow",
+      "measures": [
+        {
+          "meaning": "Share of generated tokens progressing or recovering.",
+          "name": "Agentic flow efficiency (tokens)",
+          "source": "a3:analysis.scorecard.flow_efficiency_tokens"
+        },
+        {
+          "meaning": "Share of agent wall time progressing or recovering.",
+          "name": "Agentic flow efficiency (time)",
+          "source": "a3:analysis.scorecard.flow_efficiency_time"
+        }
+      ]
+    },
+    {
+      "concept": "pull",
+      "measures": [
+        {
+          "meaning": "Context pushed into the window that no later action pulled.",
+          "name": "Unused context",
+          "source": "detector:unused_context"
+        },
+        {
+          "meaning": "Exploration not yet pulled into an action or a conclusion.",
+          "name": "Peak open hypotheses",
+          "source": "a3:analysis.wip.peak_by_kind.hypotheses"
+        }
+      ]
+    },
+    {
+      "concept": "wip",
+      "measures": [
+        {
+          "meaning": "Unresolved hypotheses, tasks, edits and failures per event.",
+          "name": "WIP after every event",
+          "source": "a3:analysis.wip.series"
+        },
+        {
+          "meaning": "The most unresolved work open at once.",
+          "name": "Peak WIP",
+          "source": "a3:analysis.wip.peak.total"
+        }
+      ]
+    },
+    {
+      "concept": "queues",
+      "measures": [
+        {
+          "meaning": "Changes queued behind the next check.",
+          "name": "Peak edits awaiting validation",
+          "source": "a3:analysis.wip.peak_by_kind.edits"
+        },
+        {
+          "meaning": "To-do items and subagent handoffs waiting to finish.",
+          "name": "Peak open tasks",
+          "source": "a3:analysis.wip.peak_by_kind.tasks"
+        }
+      ]
+    },
+    {
+      "concept": "rework",
+      "measures": [
+        {
+          "meaning": "A fix that left the same check failing the same way.",
+          "name": "Rework cycles",
+          "source": "detector:rework_cycle"
+        },
+        {
+          "meaning": "Generated tokens spent changing work again.",
+          "name": "Reworking tokens",
+          "source": "a3:analysis.scorecard.flow_tokens.reworking"
+        }
+      ]
+    },
+    {
+      "concept": "defects",
+      "measures": [
+        {
+          "meaning": "Edits answered without a check that covers them.",
+          "name": "Unvalidated implementation",
+          "source": "detector:unvalidated_implementation"
+        },
+        {
+          "meaning": "Edits of code the agent had not seen.",
+          "name": "Premature implementation",
+          "source": "detector:premature_implementation"
+        },
+        {
+          "meaning": "Failing checks never seen passing again.",
+          "name": "Unresolved failures",
+          "source": "a3:analysis.wip.final.failures"
+        }
+      ]
+    },
+    {
+      "concept": "waiting",
+      "measures": [
+        {
+          "meaning": "Agent time blocked on a delegated agent that was not needed.",
+          "name": "Waiting time",
+          "source": "a3:analysis.scorecard.flow_seconds.waiting"
+        },
+        {
+          "meaning": "Delegating work the agent then did itself.",
+          "name": "Unnecessary handoff",
+          "source": "detector:unnecessary_handoff"
+        }
+      ]
+    },
+    {
+      "concept": "over_processing",
+      "measures": [
+        {
+          "meaning": "The same call returning the same output.",
+          "name": "Repeated tool call",
+          "source": "detector:repeated_tool_call"
+        },
+        {
+          "meaning": "Reasoning that restates earlier reasoning.",
+          "name": "Repeated reasoning",
+          "source": "detector:repeated_reasoning"
+        },
+        {
+          "meaning": "A run of planning steps with no action.",
+          "name": "Excessive planning",
+          "source": "detector:excessive_planning"
+        },
+        {
+          "meaning": "Many small edits to one file where one would do.",
+          "name": "Fragmented edits",
+          "source": "detector:fragmented_edits"
+        }
+      ]
+    },
+    {
+      "concept": "motion",
+      "measures": [
+        {
+          "meaning": "Re-reading a file or re-running a search with identical results.",
+          "name": "Repeated exploration",
+          "source": "detector:repeated_exploration"
+        }
+      ]
+    }
+  ],
   "problem": "23% of the 396 tokens the agent generated went to avoidable work across 1 confident finding(s); flow efficiency is 77% of tokens and 80% of agent time.",
   "root_causes": [
     {
@@ -340,15 +1090,15 @@
       "context_tokens": 38,
       "detector": "rework_cycle",
       "evidence": [
-        "1c91989c08c0ed50",
-        "67f5fdb471aa600f",
-        "d149692b66de4b4b",
-        "7bb0cb9e49bf57ce",
-        "763dc8c817be8d49",
-        "672962215503debc"
+        "fc247227d92a10f7",
+        "51039ae2dacbebc3",
+        "3fcd365aa84f70a8",
+        "d79e172da62edd11",
+        "dda7bccaad7cce2a",
+        "8f7cd1303a0b4752"
       ],
       "explanation": "1 edit(s) to src/parser.py after `pytest tests/test_parser.py -q` failed, then the same command failed with the same failure. The attempt was rework: it did not move the check.",
-      "id": "rework_cycle:d149692b66de4b4b",
+      "id": "rework_cycle:3fcd365aa84f70a8",
       "kind": "waste",
       "seconds": 9.0,
       "share": 1.0,
@@ -358,10 +1108,10 @@
       "uncertain": false,
       "waste": "rework",
       "waste_events": [
-        "d149692b66de4b4b",
-        "7bb0cb9e49bf57ce",
-        "763dc8c817be8d49",
-        "672962215503debc"
+        "3fcd365aa84f70a8",
+        "d79e172da62edd11",
+        "dda7bccaad7cce2a",
+        "8f7cd1303a0b4752"
       ]
     }
   ],

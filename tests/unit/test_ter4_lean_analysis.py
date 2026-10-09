@@ -34,6 +34,7 @@ from ter.domain.lean.facts import (
     defined_identifiers,
     failure_signature,
     overlap,
+    runs_check,
     shell_intent,
     source_lines,
     tool_paths,
@@ -70,6 +71,34 @@ def analysis_of(script: Script, **kw: Any) -> Any:
 )
 def test_shell_intent(command: str, intent: ShellIntent) -> None:
     assert shell_intent(command) is intent
+
+
+@pytest.mark.req("TER-DET-005")
+@pytest.mark.parametrize(
+    ("command", "checks"),
+    [
+        ("pytest -q", True),
+        ("sed -i 's/a/b/' x.py && pytest -q tests/unit", True),
+        ("git checkout -- docs/x.md; mypy src/ | tail -1", True),
+        ("ruff check src && git add -A && git commit -qm x", True),
+        ("source .venv/bin/activate && python -m pytest -q", True),
+        ("gh pr checks 12 --watch", True),
+        ("pre-commit run --all-files", True),
+        ("git add -A && git commit -qm x", False),
+        ("mkdir -p out && python3 - <<'EOF'\nprint(1)\nEOF", False),
+        ("echo pytest && rm -f x", False),
+        ("grep -rn pytest docs", False),
+    ],
+)
+def test_runs_check_sees_checks_beside_changes(command: str, checks: bool) -> None:
+    assert runs_check(command) is checks
+
+
+@pytest.mark.req("TER-LEN-007")
+def test_ci_and_pre_commit_are_validation() -> None:
+    assert shell_intent("gh run watch 42") is ShellIntent.VALIDATE
+    assert shell_intent("pre-commit run --all-files") is ShellIntent.VALIDATE
+    assert shell_intent("gh pr view 12") is ShellIntent.OTHER
 
 
 @pytest.mark.req("TER-DET-006")
@@ -336,7 +365,7 @@ def test_detectors_are_plugins() -> None:
     a = analysis_of(s, registry=registry)
     assert [f.detector for f in a.findings] == ["every_prompt", "every_prompt"]
     assert a.detectors == (("every_prompt", "waiting", "risk", "always 0.5"),)
-    assert len(DEFAULT_REGISTRY) == 11
+    assert len(DEFAULT_REGISTRY) == 16
     assert all(d.confidence_rule and d.summary for d in DEFAULT_REGISTRY)
 
 
@@ -420,6 +449,8 @@ def test_a3_structure() -> None:
         "countermeasures",
         "follow_up",
         "detectors",
+        "lean_concepts",
+        "context_inventory",
     ]
     assert d["schema"] == "ter.a3/0.1"
     assert "avoidable" in report.problem and "risk" in report.problem

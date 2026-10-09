@@ -109,15 +109,32 @@ ter a3 ~/.claude/projects/my-project/SESSION_ID.jsonl --html a3.html
 | `UserPromptSubmit` | `intent.stated` (the prompt) |
 | `PreToolUse` | `tool.requested`, with the tool kind and input |
 | `PostToolUse` | `tool.requested` (same id as PreToolUse) and `tool.completed` with the tool response |
-| `Stop` | `task.completed`: the agent finished a turn |
-| `SubagentStop` | `subagent.completed`, in the parent session |
+| `Stop` | `task.completed`: the agent finished a turn, keyed by the turn it closes |
+| `SubagentStop` | `subagent.completed`, in the parent session, keyed by the payload's `agent_id`; none for a Claude Code internal helper agent (below) |
 | `SessionStart`, `SessionEnd`, `SubagentStart`, `PreCompact`, `Notification` | recognised as lifecycle; no event |
 | anything else, or a malformed payload | ignored, with a reason |
 
 Lifecycle events are counted (class `lifecycle`) but never scored, and they
 add no step to the Lean analysis. The Stop and SubagentStop mappings follow
-Claude Code's documented payloads; checking them against real ones, and
-correlating them with the transcript, waits on recorded hook data (issue #35).
+Claude Code's documented payloads. On real recordings (9 October 2026, two
+Claude Code sessions on Windows) every Stop matched the transcript's stop,
+and so did the SubagentStop of a real Agent-tool subagent: see
+[Checking recordings against transcripts](#checking-recordings-against-transcripts).
+
+**Internal helper agents.** Claude Code also fires `SubagentStop` for helper
+agents of its own, not only for subagents your agent starts with the Agent
+tool. On real recordings these had an empty `agent_type` and an
+`agent_transcript_path` (`<session>/subagents/agent-<agent_id>.jsonl`) that
+was never written, and they came even from a session that started no
+subagent. A SubagentStop with no `agent_type` whose `agent_transcript_path`
+does not exist is therefore treated as an internal helper: the raw payload
+is still recorded (`--record`), but no event is emitted (status
+`internal`). An event would count a handoff your agent never made, and the
+session source can never derive one from a transcript that does not exist,
+so the live stream would no longer equal the batch read of the session. The
+check is one `stat`; if it fails the stop keeps its event (fail open). A
+stop with an `agent_type`, or whose file exists, or with no
+`agent_transcript_path` at all (older releases) is recorded as before.
 
 ### Recording real payloads
 
@@ -136,6 +153,131 @@ your user (mode 0600), stay outside the repository, and go through redaction
 before any of them becomes a test fixture. A recording that cannot be written
 is reported on stderr as `ter hook: payload not recorded: <reason>`; the
 event is still handled and the hook still prints `{}`.
+
+### Checking recordings against transcripts
+
+Once you have recorded a few sessions, check how the events the hook derives
+line up with the events TER reads from the same sessions' transcripts:
+
+```bash
+python -m ter hooks check "$HOME/ter-data/hooks" ~/.claude/projects --json hooks-check.json
+```
+
+The first argument is the `--record` directory; the second is the Claude Code
+projects folder (or any folder of `.jsonl` transcripts, or one transcript).
+Each recorded session's transcript is the payloads' `transcript_path` when
+that file exists, else the `<session_id>.jsonl` found under the second
+argument. For each session the check:
+
+1. counts the payloads by hook and lists the payload **field names** seen per
+   hook;
+2. replays every recording through the path the live hook takes (same
+   translation, same receive time, the Stop's turn looked up in the
+   transcript), giving the hook-derived events;
+3. reads the transcript through the session source, giving the
+   transcript-derived events;
+4. reports, per event kind, how many hook events have an event with the same
+   id in the transcript stream (TER-OBS-007), their ids, and for each one
+   that does not, why: no transcript; the hook fell back to its own key (a
+   prompt whose record was not in the transcript when the hook ran, a tool
+   call without `tool_use_id`, a stop with no turn, a SubagentStop without
+   `agent_id`); same `tool_use_id` (or same prompt text) but a different id
+   rule; for a SubagentStop, no subagent transcript for its `agent_id` (a
+   real miss: a typed agent whose file is missing) or one that shows no
+   finish; the session source derives no events of that kind; or no
+   counterpart at all. Internal helper SubagentStops yield no event, so they
+   are not in this share: they are counted on their own line ("no transcript
+   by design"). Nor is a hook event received after the transcript's last
+   record, with no counterpart: when the check runs inside a live session,
+   the call running it has fired its hooks before the transcript holds its
+   records, so it is reported as "not yet written to the transcript";
+5. reports, for each Stop payload, whether its `task.completed` id equals the
+   id the session source derives for the same stop (TER-OBS-005).
+
+```text
+TER hooks check · 1 session(s)
+  hook events matching a transcript event id  3/4 (75.0%)   (TER-OBS-007)
+  Stop payloads matching the transcript stop  1/1 (100.0%)   (TER-OBS-005)
+  internal helper SubagentStops               0   (no transcript by design; not in TER-OBS-007)
+
+session 3f0c9a1e-hook-demo
+  transcript     transcripts-dir
+  payloads       PostToolUse 1 · PreToolUse 1 · SessionStart 1 · Stop 1 · UserPromptSubmit 1
+  ...
+    intent.stated       0/1 matched · 1 transcript-only
+      1 × hook prompt keyed by its text: its transcript record was not there when the hook ran (written later, or no transcript_path)
+    tool.requested      1/1 matched · 0 transcript-only
+```
+
+The report is content-free: counts, event ids (hashes), hook names, field
+names and fixed reason strings. It never prints a prompt, a tool input or a
+tool output, so you can share it (or its JSON) in issue #35 when the
+recordings themselves must stay private. It exits 0 whatever it finds, and 2
+only when the recordings or the transcripts folder cannot be read.
+
+How a stop is matched: Claude Code writes a `system` record with subtype
+`stop_hook_summary` after the Stop hooks ran. Both sides key the stop by the
+turn it closes, the last main-chain `assistant` record before it: the Stop
+hook reads the tail of `transcript_path` for the last such record written by
+the time the payload arrived, and the session source takes the last one
+before each `stop_hook_summary`. Both then use
+`make_event_id(session_id, turn_uuid, "stop", "task.completed")`
+(`ter/adapters/claude_code_turns.py`). If the hook cannot read the
+transcript, the stop is keyed by the second it arrived, as before, and the
+check reports it as unkeyed.
+
+Prompts and tool calls follow the same principle, one id rule per kind
+shared by both sides (`ter/adapters/claude_code_ids.py`; the full table is in
+[L1 Observed](../ter4/l1-observed.md#shared-id-rules-ter-obs-007)):
+
+- **Tool calls** are keyed by session + `tool_use_id` + kind. Pre/PostToolUse
+  payloads and the transcript's `tool_use`/`tool_result` blocks all carry the
+  `tool_use_id`. A transcript block without one (older transcripts) keeps the
+  record rule (uuid + block index), and a hook payload without one is keyed
+  by its input; neither can match.
+- **Prompts** are keyed by the transcript record that holds them: the hook
+  reads the last 1 MiB of `transcript_path` for the last main-chain `user`
+  record (or queued-prompt attachment) with the same text written by the
+  time the payload arrived, and uses that record's uuid and block, as the
+  session source does. The id never depends on the text, so redacted
+  sessions keep their ids. When no record holds the prompt yet, the prompt
+  keeps its text-and-second key and the check reports it as unkeyed.
+
+- **Subagents** are keyed by session + `agent_id`. Claude Code writes each
+  subagent's transcript to `<session id>/subagents/agent-<agent_id>.jsonl`
+  beside the session's own; the session source derives one
+  `subagent.completed` for each such file that shows the subagent finished
+  (its own last turn ended with no tool call pending, the parent's Agent
+  result reports it completed, or the parent was notified that the
+  background agent completed), at the time of the latest such marker. A
+  subagent resumed and stopped again keeps its one id. A SubagentStop
+  without `agent_id` is keyed by when it arrived and cannot match.
+
+What real recordings showed (9 October 2026, Claude Code on Windows, two
+sessions; summary in `tests/fixtures/hooks/real-check-2026-10-09.md`): 87 of
+94 hook events matched a transcript event id. Every prompt (11), tool
+request (34), tool completion (32) and stop (10 of 10, TER-OBS-005) matched,
+so each prompt's transcript record was found written by the time its
+`UserPromptSubmit` payload arrived. The 7 misses were all SubagentStop events, from before the session
+source derived `subagent.completed`.
+
+A second run the same day, after the session source derived
+`subagent.completed`, matched every prompt (12), tool request (37), tool
+completion (35) and stop (11 of 11). Its 9 SubagentStops all missed, and on
+inspection none was an Agent-tool subagent: every one had an empty
+`agent_type` and a transcript file that was never written (internal helper
+agents, above), 7 of them in a Remote Control session that started no
+subagent. The check now reports these apart.
+
+A third run, after the Remote Control session had spawned one Agent-tool
+subagent (`agent_type` `general-purpose`), matched that subagent's
+SubagentStop to the `subagent.completed` the session source derives from
+its transcript, along with every prompt (16), stop (15 of 15) and 45 tool
+requests and 42 completions. The misses were 10 internal helper stops and
+one tool call (request and completion) with no transcript record, most
+likely the call that was running the check from inside that session. With
+those set apart, every hook event whose record the transcript held got the
+transcript's id: TER-OBS-007 is verified on real data.
 
 ### Guarantees
 
@@ -156,11 +298,13 @@ event is still handled and the hook still prints `{}`.
 - **Passive.** While the maturity ceiling is L1, the hook returns an empty
   response (TER-OBS-008). Advisory interventions are L4 work.
 
-Known limits: a prompt's id includes the second it was received (hooks carry
-no prompt id), so the same text submitted twice counts twice, while one
-submission seen twice within a second (the hook registered in two settings
-files) counts once. Tool calls without a `tool_use_id` are keyed by content,
-and hook event ids differ from transcript event ids for the same session.
+Known limits: a prompt whose transcript record the hook cannot find yet is
+keyed by its text and the second it was received (hooks carry no prompt id),
+so the same text submitted twice counts twice, while one submission seen
+twice within a second (the hook registered in two settings files) counts
+once; such a prompt's id differs from the transcript's. Tool calls without a
+`tool_use_id` are keyed by content. `python -m ter hooks check` shows which
+ids match.
 
 ## The live waste monitor (TER 3)
 
@@ -234,8 +378,8 @@ the next session.
 | `repeated_exploration` | PreToolUse (`Read`) | `no-reread.sh` | Blocks re-reading a file whose contents have not changed since this session read the same range |
 | `repeated_tool_call` | PreToolUse (`Bash`) | `no-repeat.sh` | Blocks an identical command while `git diff` and `git status` are unchanged since it last ran |
 | `rework_cycle` | PostToolUse (`Bash`) | `same-failure.sh` | When a check fails with the same signature as last time, tells the agent to stop patching and re-diagnose |
-| `unvalidated_implementation` | PostToolUse (`Edit\|MultiEdit\|Write`) | inline command | Runs the session's own test command after each edit and feeds a failure back |
-| `regeneration` | PreToolUse (`Write`) | `edit-not-write.sh` | Blocks whole-file rewrites of files that exist, so changes go through Edit or MultiEdit |
+| `unvalidated_implementation` | PostToolUse (`Edit\|Write`) | inline command | Runs the session's own test command after each edit and feeds a failure back |
+| `regeneration` | PreToolUse (`Write`) | `edit-not-write.sh` | Blocks whole-file rewrites of files that exist, so changes go through Edit |
 
 The other detectors recommend settings or CLAUDE.md lines instead:
 `premature_implementation` suggests `"permissions": {"defaultMode": "plan"}`,
@@ -273,10 +417,10 @@ The snippet is the settings JSON, a blank line, then the script. For
 ```bash
 #!/usr/bin/env bash
 # .claude/hooks/edit-not-write.sh: PreToolUse(Write). Blocks whole-file rewrites
-# of files that already exist, so changes go through Edit/MultiEdit.
+# of files that already exist, so changes go through Edit.
 file=$(jq -r '.tool_input.file_path // empty')
 if [ -n "$file" ] && [ -f "$file" ]; then
-  echo "$file exists: change it with Edit or MultiEdit instead of rewriting it." >&2
+  echo "$file exists: change it with Edit instead of rewriting it." >&2
   exit 2
 fi
 ```

@@ -18,6 +18,7 @@ from ter.domain import (
 _ACTOR = {
     EventKind.PROMPT: Actor.USER,
     EventKind.TOOL_COMPLETED: Actor.TOOL,
+    EventKind.ROUTE_FAILOVER: Actor.SYSTEM,
 }
 
 
@@ -61,6 +62,13 @@ class Script:
     def say(self, text: str) -> Event:
         return self._add(EventKind.RESPONSE, text)
 
+    def failover(self, text: str) -> Event:
+        """A model route that failed and returned nothing (``route.failover``)."""
+        return self._add(EventKind.ROUTE_FAILOVER, text)
+
+    def lifecycle(self, kind: EventKind, text: str = "") -> Event:
+        return self._add(kind, text)
+
     def call(
         self,
         native: str,
@@ -81,6 +89,18 @@ class Script:
             EventKind.TOOL_COMPLETED, output, ToolCall(native, kind, call_id)
         )
         return request, result
+
+    def complete(self, request: Event, output: str = "ok") -> Event:
+        """The result of a request made with ``output=None``: lets a script
+        issue several calls in one model turn (parallel tool calls) before
+        their results arrive, as a transcript records them."""
+        assert request.tool is not None
+        tool = request.tool
+        return self._add(
+            EventKind.TOOL_COMPLETED,
+            output,
+            ToolCall(tool.native_name, tool.kind, tool.call_id),
+        )
 
     def read(
         self, path: str, output: str = "x = 1\n", **extra: Any

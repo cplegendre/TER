@@ -13,6 +13,7 @@ from ter.domain.lean import (
     FindingKind,
     LeanAnalysis,
     LeanWaste,
+    Outcome,
     explain,
 )
 
@@ -81,6 +82,36 @@ class TestRepeatedToolCall:
         s.read("a.py")
         s.read("a.py")
         assert found(s, "repeated_tool_call") == []
+
+    # Calibrated on real transcripts: a turn-ending call (a "no reply needed"
+    # tool) repeated once per turn was the whole of the confident findings.
+    def test_turn_ending_call_repeated_across_prompts_is_uncertain(self) -> None:
+        s = Script()
+        for message in ("first wake", "second wake", "third wake"):
+            s.prompt(message)
+            s.call("end_turn", ToolKind.OTHER, {"reason": "other"}, "ok")
+        findings = found(s, "repeated_tool_call")
+        assert len(findings) == 2
+        assert all(f.uncertain and f.confidence == 0.5 for f in findings)
+        assert "new prompt" in findings[0].explanation
+
+    def test_repeat_within_one_turn_after_a_response_is_still_waste(self) -> None:
+        s = Script()
+        s.prompt("check devices")
+        s.call("list_devices", ToolKind.OTHER, {}, "laptop")
+        s.say("One device.")
+        s.call("list_devices", ToolKind.OTHER, {}, "laptop")
+        [f] = found(s, "repeated_tool_call")
+        assert f.confidence == 0.9 and not f.uncertain
+
+    def test_boundary_validation_rerun_across_a_prompt_is_uncertain(self) -> None:
+        s = Script()
+        s.prompt("run the tests")
+        s.bash("pytest -q", PASS)
+        s.prompt("run them again")
+        s.bash("pytest -q", PASS)
+        [f] = found(s, "repeated_tool_call")
+        assert f.uncertain and f.confidence == 0.5
 
 
 # --- repeated_exploration ----------------------------------------------------
@@ -276,6 +307,63 @@ class TestUnvalidatedImplementation:
         [f] = found(s, "unvalidated_implementation")
         assert "src/a.py" in f.subject
 
+    # Calibrated on real transcripts: checks are often chained after a change
+    # in one shell line, which the shell intent reads as a change.
+    def test_check_chained_after_a_change_validates_the_edits(self) -> None:
+        s = Script()
+        s.prompt("fix it")
+        s.read("src/a.py")
+        s.edit("src/a.py")
+        _, done = s.bash("sed -i 's/x/y/' src/b.py && pytest -q tests/unit", PASS)
+        s.say("Done.")
+        a = run(s)
+        assert [
+            f for f in a.findings if f.detector == "unvalidated_implementation"
+        ] == []
+        assert done is not None
+        [result] = [x for x in a.steps if x.event_id == done.id]
+        assert result.outcome is Outcome.PASSED
+
+    def test_failing_check_chained_after_a_change_is_reported(self) -> None:
+        s = Script()
+        s.prompt("fix it")
+        s.read("src/a.py")
+        s.edit("src/a.py")
+        s.bash("sed -i 's/x/y/' src/b.py && pytest -q tests/unit", FAIL)
+        s.say("Done, mostly.")
+        [f] = found(s, "unvalidated_implementation")
+        assert "failing" in f.title and f.confidence == 0.85
+
+    def test_check_before_a_commit_validates_the_edits(self) -> None:
+        s = Script()
+        s.edit("src/a.py")
+        s.bash("ruff check src && git add -A && git commit -qm fix", "ok")
+        s.say("Done.")
+        assert found(s, "unvalidated_implementation") == []
+
+    def test_ci_checks_validate_the_edits(self) -> None:
+        s = Script()
+        s.edit("src/a.py")
+        s.bash("gh pr checks 12 --watch", "build pass")
+        s.say("Done.")
+        assert found(s, "unvalidated_implementation") == []
+
+    def test_change_line_without_a_check_does_not_validate(self) -> None:
+        s = Script()
+        s.edit("src/a.py")
+        s.bash("git add -A && git commit -qm fix", "ok")
+        s.say("Done.")
+        [f] = found(s, "unvalidated_implementation")
+        assert f.confidence == 0.85
+
+    def test_boundary_ad_hoc_script_beside_a_change_is_not_a_check(self) -> None:
+        s = Script()
+        s.edit("src/a.py")
+        s.bash("mkdir -p out && python3 - <<'EOF'\nprint(1)\nEOF", "1")
+        s.say("Done.")
+        [f] = found(s, "unvalidated_implementation")
+        assert f.confidence == 0.85
+
 
 # --- premature_implementation -----------------------------------------------
 
@@ -314,6 +402,29 @@ class TestPrematureImplementation:
         s.edit("src/new.py")
         assert found(s, "premature_implementation") == []
 
+    # Calibrated on real transcripts: the one confident finding was a file
+    # read with ``cat`` in the shell, whose output never names the file.
+    def test_file_read_through_the_shell_counts_as_seen(self) -> None:
+        s = Script()
+        s.prompt("fix the builder")
+        s.bash("sed -n 1,40p tests/a.py; cat tests/builder.py", "def f():\n    pass")
+        s.edit("/repo/tests/builder.py")
+        assert found(s, "premature_implementation") == []
+
+    def test_shell_command_naming_another_file_does_not_count(self) -> None:
+        s = Script()
+        s.bash("cat tests/other.py", "def f():\n    pass")
+        s.edit("/repo/tests/builder.py")
+        [f] = found(s, "premature_implementation")
+        assert f.confidence == 0.75
+
+    def test_boundary_shell_read_after_the_edit_does_not_count(self) -> None:
+        s = Script()
+        s.edit("/repo/tests/builder.py")
+        s.bash("cat tests/builder.py", "def f():\n    pass")
+        [f] = found(s, "premature_implementation")
+        assert f.confidence == 0.75
+
 
 # --- excessive_planning ------------------------------------------------------
 
@@ -324,14 +435,14 @@ class TestExcessivePlanning:
         s = Script()
         s.think("plan the retry decorator carefully")
         s.todo("design")
-        s.think("more thoughts on the retry design")
-        s.todo("design again")
+        restated = s.think("plan the retry decorator, carefully")
+        again, again_result = s.todo("design")
         s.read("a.py")
         [f] = found(s, "excessive_planning")
         assert f.confidence == 0.75
-        assert (
-            len(f.evidence) == 6 and len(f.waste_events) == 3
-        )  # steps and todo results
+        assert len(f.evidence) == 6  # steps and todo results
+        assert again_result is not None
+        assert set(f.waste_events) == {restated.id, again.id, again_result.id}
 
     def test_three_is_below_threshold(self) -> None:
         s = Script()
@@ -343,14 +454,54 @@ class TestExcessivePlanning:
 
     def test_run_at_end_of_session_counts(self) -> None:
         s = Script()
-        for i in range(5):
-            s.think(f"thought number {i}")
+        for _ in range(5):
+            s.think("thought about the retry plan")
         assert found(s, "excessive_planning")[0].confidence == 0.8
+
+    @pytest.mark.req("TER-LEN-004")
+    def test_planning_steps_that_add_decisions_are_never_waste(self) -> None:
+        s = Script()
+        s.prompt("Add a retry decorator to src/net.py")
+        s.think("I need a retry decorator with exponential backoff.")
+        s.think("It needs attempts, a base delay and a multiplier.")
+        s.think("Plan: write decorator, apply to fetch_json, run tests.")
+        s.todo("write decorator")
+        s.todo("apply decorator to fetch_json")
+        s.read("src/net.py")
+        assert found(s, "excessive_planning") == []
+
+    @pytest.mark.req("TER-LEN-004")
+    def test_only_the_restating_step_of_a_run_is_waste(self) -> None:
+        s = Script()
+        s.prompt("Add a retry decorator to src/net.py")
+        s.think("I need a retry decorator with exponential backoff.")
+        s.think("It needs attempts, a base delay and a multiplier.")
+        decision = s.think("Plan: write decorator, apply to fetch_json, run tests.")
+        restated = s.think("So: a retry decorator with exponential backoff.")
+        s.read("src/net.py")
+        [f] = found(s, "excessive_planning")
+        assert f.waste_events == (restated.id,)
+        assert decision.id in f.evidence and decision.id not in f.waste_events
+
+    @pytest.mark.req("TER-LEN-004")
+    def test_boundary_a_quarter_new_words_is_still_a_restatement(self) -> None:
+        s = Script()
+        s.think("alpha beta gamma delta")
+        s.think("epsilon zeta theta iota")
+        s.think("kappa lambda sigma omega")
+        # 1 of 4 content words new (25%): no decision added.
+        low = s.think("alpha beta gamma rho")
+        # 2 of 4 new (50%): a decision.
+        s.think("alpha beta upsilon chi")
+        s.read("a.py")
+        [f] = found(s, "excessive_planning")
+        assert f.waste_events == (low.id,)
 
 
 # --- fragmented_edits --------------------------------------------------------
 
 
+@pytest.mark.req("TER-DET-007")
 class TestFragmentedEdits:
     def test_three_edits_in_a_row(self) -> None:
         s = Script()
@@ -362,6 +513,7 @@ class TestFragmentedEdits:
         s.bash("pytest -q", PASS)
         [f] = found(s, "fragmented_edits")
         assert f.confidence == 0.7 and f.tokens == 0 and f.context_tokens > 0
+        assert f.waste is LeanWaste.MOTION
 
     def test_two_edits_are_fine(self) -> None:
         s = Script()
@@ -390,6 +542,40 @@ class TestFragmentedEdits:
         for i in range(5):
             s.edit("a.py", str(i))
         assert found(s, "fragmented_edits")[0].confidence == 0.8
+
+    def test_edits_sent_in_one_turn_are_one_round_trip(self) -> None:
+        # Parallel Edit calls: all requested before the first result arrives.
+        s = Script()
+        s.read("a.py")
+        calls = [s.edit("a.py", str(i), output=None)[0] for i in range(4)]
+        for call in calls:
+            s.complete(call, "updated")
+        assert found(s, "fragmented_edits") == []
+
+    def test_two_round_trips_are_fine_however_many_calls(self) -> None:
+        s = Script()
+        first = [s.edit("a.py", str(i), output=None)[0] for i in range(3)]
+        for call in first:
+            s.complete(call, "updated")
+        s.think("one more hunk")
+        s.edit("a.py", "3")
+        assert found(s, "fragmented_edits") == []
+
+    def test_round_trips_not_calls_are_counted(self) -> None:
+        s = Script()
+        first = [s.edit("a.py", str(i), output=None)[0] for i in range(3)]
+        first_results = [s.complete(call, "updated") for call in first]
+        _, second = s.edit("a.py", "3")
+        _, third = s.edit("a.py", "4")
+        [f] = found(s, "fragmented_edits")
+        assert f.confidence == 0.7
+        assert f.title.startswith("5 edits to a.py over 3 round trips")
+        assert "parallel Edit calls" in f.explanation
+        assert "multi-edit" not in f.explanation.lower()
+        # The first round trip is the change; only later results are overhead.
+        assert second is not None and third is not None
+        assert f.waste_events == (second.id, third.id)
+        assert not set(f.waste_events) & {r.id for r in first_results}
 
 
 # --- unused_context ----------------------------------------------------------
@@ -430,6 +616,7 @@ class TestUnusedContext:
 # --- unnecessary_handoff -----------------------------------------------------
 
 
+@pytest.mark.req("TER-DET-008")
 class TestUnnecessaryHandoff:
     def test_handoff_then_same_work_directly(self) -> None:
         s = Script()
@@ -455,6 +642,36 @@ class TestUnnecessaryHandoff:
         s.read("pyproject.toml")
         assert found(s, "unnecessary_handoff") == []
 
+    # Calibrated on real transcripts: an orchestrator that hands long briefs
+    # to parallel workers, then reviews and merges their output, shares a few
+    # words of each brief with every short command it runs.
+    def test_reviewing_a_long_brief_with_a_short_command_is_fine(self) -> None:
+        brief = (
+            "Implement the scorecard in src/lean/analysis.py: add flow efficiency, "
+            "peak work in progress and waiting time per stage; extend the golden "
+            "snapshots, document the scorecard section, run pytest, ruff and mypy, "
+            "commit on your branch and report the commit ids and check results."
+        )
+        s = Script()
+        s.prompt("Build the scorecard with a worker")
+        s.task("Lean scorecard", brief, "Async agent launched")
+        s.bash("sed -n 1,80p src/lean/analysis.py", "def scorecard(): ...")
+        s.bash("git merge --no-edit worker-scorecard", "Merge made")
+        assert found(s, "unnecessary_handoff") == []
+
+    def test_boundary_half_of_the_task_covered_is_uncertain(self) -> None:
+        s = Script()
+        s.task("Fetch release notes", "alpha beta gamma")
+        s.bash("curl https://x.invalid/notes/release/fetch", "notes")
+        [f] = found(s, "unnecessary_handoff")
+        assert f.uncertain and f.confidence == 0.65
+
+    def test_boundary_less_than_half_of_the_task_is_fine(self) -> None:
+        s = Script()
+        s.task("Fetch release notes", "alpha beta gamma delta")
+        s.bash("curl https://x.invalid/notes/release/fetch", "notes")
+        assert found(s, "unnecessary_handoff") == []
+
 
 # --- repeated_reasoning ------------------------------------------------------
 
@@ -470,6 +687,7 @@ class TestRepeatedReasoning:
         [f] = found(s, "repeated_reasoning")
         assert f.confidence >= 0.7 and 0 < f.share <= 1
 
+    @pytest.mark.req("TER-LEN-004")
     def test_new_decision_is_not_a_restatement(self) -> None:
         s = Script()
         s.prompt("Add a verbose flag")
@@ -485,6 +703,27 @@ class TestRepeatedReasoning:
         s.edit("a.py")
         s.think("I should find where the parser handles arguments.")
         assert found(s, "repeated_reasoning") == []
+
+    @pytest.mark.req("TER-LEN-004")
+    def test_reasoning_that_uses_new_evidence_is_not_waste(self) -> None:
+        s = Script()
+        s.prompt("Add a verbose flag")
+        s.think("I should find where the parser handles arguments.")
+        s.search("parser", "src/cli.py:3: parser = build_parser()")
+        # One new word in five (below the 25% decision bound), but it is what
+        # the search just showed: new evidence.
+        s.think("I need to find where the parser handles arguments in build_parser.")
+        assert found(s, "repeated_reasoning") == []
+
+    @pytest.mark.req("TER-LEN-004")
+    def test_boundary_new_word_not_from_evidence_is_still_restated(self) -> None:
+        s = Script()
+        s.prompt("Add a verbose flag")
+        s.think("I should find where the parser handles arguments.")
+        s.search("parser", "src/cli.py:3: parser = build_parser()")
+        s.think("I need to find where the parser handles arguments in parse_cli.")
+        [f] = found(s, "repeated_reasoning")
+        assert f.share == pytest.approx(0.8)
 
 
 # --- regeneration ------------------------------------------------------------

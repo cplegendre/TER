@@ -36,9 +36,42 @@ changing `--max-tool-output`, `--keep-tool` or `--quote-files` needs a new
 and session copied to two places) are refused before anything is written.
 
 It prints a summary and flags sessions below 99% coverage (TER-SRC-005: the
-session source should map almost every real record). It exits 1 when a
+session source should account for almost every real record). It exits 1 when a
 session could not be read or loaded (the rest are still imported), and 2 on
 bad input such as an invalid label file.
+
+## Coverage of real record types
+
+Coverage is the share of a session's records the Claude Code session source
+accounts for: `user` and `assistant` records mapped to events, plus record
+types documented as metadata that carry no agent activity
+(`METADATA_TYPES` in `ter.adapters.driven.claude_code.session_source`):
+`agent-name`, `ai-title`, `artifact-autoreact-ledger`,
+`artifact-comment-monitor`, `atis-latch`, `attachment`, `bridge-session`,
+`cost-state`, `custom-title`, `file-history-delta`, `file-history-snapshot`,
+`fork-context-ref`, `frame-link`, `last-prompt`, `mode`, `permission-mode`,
+`pr-link`, `queue-operation`, `summary` and `system`. The manifest lists them per session
+under `metadata_by_type`; anything else stays under `unrecognised_by_type`, so
+a new Claude Code record type lowers coverage until it is classified.
+
+Leigh's first import (286 sessions, 9 Oct 2026) put every session below 99%
+because these types were unknown. One of them hid real intent: a prompt typed
+while the agent works arrives as an `attachment` of type `queued_command`, not
+as a `user` record. The session source now emits a typed queued prompt as
+`intent.stated` in file order (TER-SRC-024); task notifications and messages
+from other agents in the same queue stay metadata.
+
+The second import (corpus-v2, same day, after that fix) left 33 of 286
+sessions below 99%, all from six more types written by Remote Control and
+artifact sessions: `bridge-session` (492 records), `frame-link` (318),
+`fork-context-ref` (34), `artifact-autoreact-ledger` (25),
+`artifact-comment-monitor` (23) and `agent-name` (12). None carries a prompt,
+tool call or response, so they are metadata too.
+
+The reference corpus for TER-SRC-005 is a content-free fingerprint,
+`tests/fixtures/corpus/reference-record-types.json` (record counts by type,
+attachment type and system subtype, sessions named by salted hash), written by
+`scripts/corpus_record_types.py`. See `tests/fixtures/corpus/README.md`.
 
 ## What redaction does
 

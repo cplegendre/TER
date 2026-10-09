@@ -13,6 +13,7 @@ import json
 import time
 import tomllib
 from pathlib import Path
+from typing import Any
 
 import grimp
 import pytest
@@ -276,6 +277,26 @@ def _explain(
     return use_case(SESSION, outcome_ref)
 
 
+def _behaviour_only(a3: dict[str, Any]) -> dict[str, Any]:
+    analysis = dict(a3["analysis"])
+    analysis["scorecard"] = {
+        k: v
+        for k, v in analysis["scorecard"].items()
+        if k != "software_value_efficiency"
+    }
+    analysis["dimensions"] = [
+        {
+            **d,
+            "measures": [
+                m for m in d["measures"] if m["key"] != "software_value_efficiency"
+            ],
+        }
+        for d in analysis["dimensions"]
+        if d["dimension"] != "outcome"
+    ]
+    return {**a3, "analysis": analysis}
+
+
 @pytest.mark.req("TER-SCR-004", "TER-SCR-006")
 def test_the_verdict_sits_beside_an_unchanged_scorecard() -> None:
     plain = _explain(None)
@@ -285,7 +306,9 @@ def test_the_verdict_sits_beside_an_unchanged_scorecard() -> None:
     assert judged.analysis.as_dict() == plain.analysis.as_dict()
     a3 = judged.a3.as_dict()
     outcome = a3.pop("outcome")
-    assert a3 == plain.a3.as_dict()  # every behaviour measure is unchanged
+    # Every behaviour measure is unchanged; only the figures that join value
+    # to the verdict (Software Value Efficiency, the outcome dimension) differ.
+    assert _behaviour_only(a3) == _behaviour_only(plain.a3.as_dict())
     assert isinstance(outcome, dict)
     assert outcome["verdict"] == "rejected"
     assert outcome["generated_tokens_per_verified_outcome"] is None
@@ -372,7 +395,7 @@ def test_cli_outcome_option_shows_the_verdict(tmp_path: Path) -> None:
     )
     assert json.loads(out)["outcome"]["required_checks"] == 5
     code, out, _ = _run(["explain", str(SESSION)])
-    assert "outcome" not in out
+    assert "outcome          " not in out
 
 
 def test_cli_outcome_option_reports_missing_and_unreadable_files(

@@ -19,7 +19,7 @@ fold (:func:`explain`), so live and batch agree by construction.
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Protocol
 
 from ..events import Event, EventId, EventKind, ToolKind
@@ -27,21 +27,35 @@ from .detectors import (
     DEFAULT_REGISTRY,
     DetectorRegistry,
     SessionView,
+    exploration_labels,
     validation_cycles,
 )
 from .graph import EvidenceGraph, build_graph
+from .intent import (
+    DEFAULT_INTENT_CONFIG,
+    LEXICAL_ALIGNMENT,
+    AlignmentScorer,
+    IntentConfig,
+    IntentLog,
+    IntentTimeline,
+    build_intent,
+)
 from .model import (
     STAGE_ORDER,
     ActivityClass,
     CycleVerdict,
+    ExplorationLabel,
     Finding,
     FindingKind,
     FlowState,
+    Outcome,
+    ShellIntent,
     Stage,
     Step,
     ValidationCycle,
 )
 from .steps import StepLog
+from .wip import WipReport, WipTracker
 
 __all__ = [
     "Classification",
@@ -159,6 +173,10 @@ class Scorecard:
     rework_cycles: int
     ter: TerMeasure | None
     composite: Composite | None
+    # Quality: validation runs by what their output said (TER-SCR-001).
+    validation_runs: int = 0
+    validations_passed: int = 0
+    validations_failed: int = 0
 
     def activity_share(self, key: ActivityClass | str) -> float:
         total = sum(n for _, n in self.activity_tokens)
@@ -193,6 +211,9 @@ class Scorecard:
             if self.ter is None
             else {"value": round(self.ter.value, 4), "method": self.ter.method},
             "composite": None if self.composite is None else self.composite.as_dict(),
+            "validation_runs": self.validation_runs,
+            "validations_passed": self.validations_passed,
+            "validations_failed": self.validations_failed,
         }
 
 
@@ -210,6 +231,17 @@ class LeanAnalysis:
     scorecard: Scorecard
     graph: EvidenceGraph
     detectors: tuple[tuple[str, str, str, str], ...]
+    #: Unresolved hypotheses, tasks, edits and failures after every event.
+    wip: WipReport
+    intent: IntentTimeline = field(default_factory=IntentTimeline)
+
+    @property
+    def drift_findings(self) -> tuple[Finding, ...]:
+        """Findings of the ``intent_drift`` detector (TER-ITN-003)."""
+        return tuple(f for f in self.findings if f.detector == "intent_drift")
+
+    #: Why each exploration request happened (TER-DET-009, point 38).
+    exploration: tuple[ExplorationLabel, ...] = ()
 
     @property
     def waste_findings(self) -> tuple[Finding, ...]:
@@ -246,6 +278,7 @@ class LeanAnalysis:
             "cycles": [c.as_dict() for c in self.cycles],
             "value_stream": [s.as_dict() for s in self.value_stream],
             "scorecard": self.scorecard.as_dict(),
+            "wip": self.wip.as_dict(),
             "classifications": [
                 [
                     c.event_id,
@@ -262,6 +295,8 @@ class LeanAnalysis:
                 {"id": i, "waste": w, "kind": k, "confidence_rule": r}
                 for i, w, k, r in self.detectors
             ],
+            "intent": self.intent.as_dict([f.id for f in self.drift_findings]),
+            "exploration": [e.as_dict() for e in self.exploration],
         }
         if graph:
             out["evidence_graph"] = self.graph.as_dict()
@@ -311,6 +346,11 @@ def _base_class(
         return (
             ActivityClass.NECESSARY_NON_VALUE_ADDING,
             "stage:implement set-up command",
+        )
+    if step.is_failover:
+        return (
+            ActivityClass.NECESSARY_NON_VALUE_ADDING,
+            "stage:respond failed model route returned nothing",
         )
     if step.stage is Stage.RESPOND:
         if step.index in finals:
@@ -429,6 +469,7 @@ def _scorecard(
             act[base.value] += amount * (1 - c.avoidable_share - c.uncertain_share)
     pairs = list(zip(steps, classes, strict=True))
     context = sum(s.context_tokens for s in steps)
+    runs = [s for s in steps if s.is_completion and s.shell is ShellIntent.VALIDATE]
     flow_tokens = apportion(flow_tok, generated)
     activity_tokens = apportion(act_tok, generated)
     waste = [f for f in findings if f.kind is FindingKind.WASTE]
@@ -482,6 +523,9 @@ def _scorecard(
         rework_cycles=sum(c.verdict is CycleVerdict.REWORK for c in cycles),
         ter=ter,
         composite=composite,
+        validation_runs=len(runs),
+        validations_passed=sum(s.outcome is Outcome.PASSED for s in runs),
+        validations_failed=sum(s.outcome is Outcome.FAILED for s in runs),
     )
 
 
@@ -528,9 +572,18 @@ def analyse_steps(
     *,
     ter: TerMeasure | None = None,
     registry: DetectorRegistry = DEFAULT_REGISTRY,
+    intent: IntentTimeline | None = None,
+    wip: WipReport | None = None,
 ) -> LeanAnalysis:
-    """Run every detector over ``steps`` and build the analysis."""
-    view = SessionView.of(steps)
+    """Run every detector over ``steps`` and build the analysis.
+
+    ``intent`` is the session's intent timeline (:func:`.intent.build_intent`);
+    without one, the intent detectors have nothing to judge against. ``wip`` is
+    the WIP the incremental fold counted; without it, WIP is recounted from the
+    steps alone (:meth:`WipTracker.of_steps`).
+    """
+    timeline = intent if intent is not None else IntentTimeline()
+    view = SessionView.of(steps, timeline)
     findings = registry.run(view)
     cycles = validation_cycles(view)
     classes = _classify(steps, findings, cycles)
@@ -550,6 +603,9 @@ def analyse_steps(
         detectors=tuple(
             (d.id, d.waste.value, d.kind.value, d.confidence_rule) for d in registry
         ),
+        intent=timeline,
+        wip=WipTracker.of_steps(steps) if wip is None else wip,
+        exploration=exploration_labels(view),
     )
 
 
@@ -558,25 +614,44 @@ class LeanAnalyser:
 
     def __init__(self) -> None:
         self._log = StepLog()
+        self._intent = IntentLog()
+        self._wip = WipTracker()
         self._session_id: str | None = None
 
     def __len__(self) -> int:
         return len(self._log)
 
     def add(self, event: Event, tokens: int) -> bool:
+        before = len(self._log)
         accepted = self._log.add(event, tokens)
-        if accepted and self._session_id is None:
+        if len(self._log) > before:
+            self._intent.add(event)
+        if not accepted:
+            return False
+        if self._session_id is None:
             self._session_id = event.session_id
-        return accepted
+        self._wip.add(event, None if event.kind.is_lifecycle else self._log.last)
+        return True
 
     def analysis(
         self,
         *,
         ter: TerMeasure | None = None,
         registry: DetectorRegistry = DEFAULT_REGISTRY,
+        alignment: AlignmentScorer = LEXICAL_ALIGNMENT,
+        intent_config: IntentConfig = DEFAULT_INTENT_CONFIG,
     ) -> LeanAnalysis:
+        steps = self._log.steps()
+        timeline = build_intent(
+            steps, self._intent.reads(), scorer=alignment, config=intent_config
+        )
         return analyse_steps(
-            self._session_id, self._log.steps(), ter=ter, registry=registry
+            self._session_id,
+            steps,
+            ter=ter,
+            registry=registry,
+            intent=timeline,
+            wip=self._wip.report(),
         )
 
 
@@ -586,9 +661,13 @@ def explain(
     *,
     ter: TerMeasure | None = None,
     registry: DetectorRegistry = DEFAULT_REGISTRY,
+    alignment: AlignmentScorer = LEXICAL_ALIGNMENT,
+    intent_config: IntentConfig = DEFAULT_INTENT_CONFIG,
 ) -> LeanAnalysis:
     """Batch L2 analysis of a whole stream: the fold of :meth:`LeanAnalyser.add`."""
     analyser = LeanAnalyser()
     for event in events:
         analyser.add(event, tokenizer.count(event.text))
-    return analyser.analysis(ter=ter, registry=registry)
+    return analyser.analysis(
+        ter=ter, registry=registry, alignment=alignment, intent_config=intent_config
+    )

@@ -108,3 +108,17 @@ requirements:
     rationale: >-
       Issue #36: labels humans cannot agree on cannot be calibrated against.
     status: planned
+
+  - id: TER-ANL-025
+    pattern: ubiquitous
+    text: >-
+      The calibration reporter shall report precision and recall with 95
+      percent confidence intervals for every waste category.
+    level: L5
+    source_points: [90, 100]
+    rationale: >-
+      Issue #41: each detector is judged on its own error profile against
+      gold labels. Calibration needs the gold labels of TER-CAL-001 and
+      TER-CAL-002 (issues #36 and #41), so it belongs to L5 Corrective,
+      not L2.
+    status: planned
