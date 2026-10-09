@@ -1,0 +1,508 @@
+{
+  "run": {
+    "id": "412da6a027da",
+    "goal": "Add retry with backoff to the provider client",
+    "status": "succeeded",
+    "workflow": "software",
+    "created_at": "2026-10-08T19:41:46.782980+00:00",
+    "finished_at": "2026-10-08T19:41:47.281580+00:00"
+  },
+  "tasks": [
+    {
+      "id": "research-a208947d",
+      "run_id": "412da6a027da",
+      "title": "Research constraints",
+      "role": "researcher",
+      "status": "succeeded",
+      "provider": "mock",
+      "model": "mock-smart",
+      "input_tokens": 130,
+      "output_tokens": 236,
+      "error": null,
+      "artifact_path": "/sandbox/artifacts/412da6a027da/researcher-a208947d.md",
+      "created_at": "2026-10-08T19:41:46.787335+00:00",
+      "finished_at": "2026-10-08T19:41:46.940535+00:00"
+    },
+    {
+      "id": "architecture-00da15c3",
+      "run_id": "412da6a027da",
+      "title": "Design architecture",
+      "role": "architect",
+      "status": "succeeded",
+      "provider": "mock",
+      "model": "mock-smart",
+      "input_tokens": 365,
+      "output_tokens": 331,
+      "error": null,
+      "artifact_path": "/sandbox/artifacts/412da6a027da/architect-00da15c3.md",
+      "created_at": "2026-10-08T19:41:46.787413+00:00",
+      "finished_at": "2026-10-08T19:41:47.016423+00:00"
+    },
+    {
+      "id": "coder-38fce30e",
+      "run_id": "412da6a027da",
+      "title": "Implementation design",
+      "role": "coder",
+      "status": "succeeded",
+      "provider": "mock",
+      "model": "mock-smart",
+      "input_tokens": 458,
+      "output_tokens": 330,
+      "error": null,
+      "artifact_path": "/sandbox/artifacts/412da6a027da/coder-38fce30e.md",
+      "created_at": "2026-10-08T19:41:46.787452+00:00",
+      "finished_at": "2026-10-08T19:41:47.088527+00:00"
+    },
+    {
+      "id": "tests-b2e95356",
+      "run_id": "412da6a027da",
+      "title": "Test strategy",
+      "role": "tester",
+      "status": "succeeded",
+      "provider": "mock",
+      "model": "mock-smart",
+      "input_tokens": 458,
+      "output_tokens": 330,
+      "error": null,
+      "artifact_path": "/sandbox/artifacts/412da6a027da/tester-b2e95356.md",
+      "created_at": "2026-10-08T19:41:46.787478+00:00",
+      "finished_at": "2026-10-08T19:41:47.120632+00:00"
+    },
+    {
+      "id": "review-6850bf03",
+      "run_id": "412da6a027da",
+      "title": "Independent review",
+      "role": "reviewer",
+      "status": "succeeded",
+      "provider": "mock",
+      "model": "mock-smart",
+      "input_tokens": 806,
+      "output_tokens": 331,
+      "error": null,
+      "artifact_path": "/sandbox/artifacts/412da6a027da/reviewer-6850bf03.md",
+      "created_at": "2026-10-08T19:41:46.787500+00:00",
+      "finished_at": "2026-10-08T19:41:47.185230+00:00"
+    },
+    {
+      "id": "security-581f180f",
+      "run_id": "412da6a027da",
+      "title": "Security review",
+      "role": "security",
+      "status": "succeeded",
+      "provider": "mock",
+      "model": "mock-smart",
+      "input_tokens": 461,
+      "output_tokens": 331,
+      "error": null,
+      "artifact_path": "/sandbox/artifacts/412da6a027da/security-581f180f.md",
+      "created_at": "2026-10-08T19:41:46.787525+00:00",
+      "finished_at": "2026-10-08T19:41:47.153187+00:00"
+    },
+    {
+      "id": "integrate-dffc9664",
+      "run_id": "412da6a027da",
+      "title": "Integrate final recommendation",
+      "role": "integrator",
+      "status": "succeeded",
+      "provider": "mock",
+      "model": "mock-smart",
+      "input_tokens": 805,
+      "output_tokens": 332,
+      "error": null,
+      "artifact_path": "/sandbox/artifacts/412da6a027da/integrator-dffc9664.md",
+      "created_at": "2026-10-08T19:41:46.787548+00:00",
+      "finished_at": "2026-10-08T19:41:47.217753+00:00"
+    },
+    {
+      "id": "judge-fbe2cb8a",
+      "run_id": "412da6a027da",
+      "title": "Verify final synthesis",
+      "role": "judge",
+      "status": "succeeded",
+      "provider": "mock",
+      "model": "mock-smart",
+      "input_tokens": 462,
+      "output_tokens": 330,
+      "error": null,
+      "artifact_path": "/sandbox/artifacts/412da6a027da/judge-fbe2cb8a.md",
+      "created_at": "2026-10-08T19:41:46.787572+00:00",
+      "finished_at": "2026-10-08T19:41:47.249452+00:00"
+    },
+    {
+      "id": "final-745fdc78",
+      "run_id": "412da6a027da",
+      "title": "Apply verification and finalize",
+      "role": "integrator",
+      "status": "succeeded",
+      "provider": "mock",
+      "model": "mock-smart",
+      "input_tokens": 808,
+      "output_tokens": 332,
+      "error": null,
+      "artifact_path": "/sandbox/artifacts/412da6a027da/integrator-745fdc78.md",
+      "created_at": "2026-10-08T19:41:46.787593+00:00",
+      "finished_at": "2026-10-08T19:41:47.280995+00:00"
+    }
+  ],
+  "events": [
+    {
+      "state": "created",
+      "created_at": "2026-10-08T19:41:46.783223+00:00",
+      "detail": {
+        "goal": "Add retry with backoff to the provider client",
+        "workflow": "software",
+        "confidential": false
+      }
+    },
+    {
+      "state": "execution_mode",
+      "created_at": "2026-10-08T19:41:46.784479+00:00",
+      "detail": {
+        "mode": "build",
+        "retained_tasks": 9
+      }
+    },
+    {
+      "state": "planned",
+      "created_at": "2026-10-08T19:41:46.784733+00:00",
+      "detail": {
+        "task_count": 9,
+        "planner": "heuristic"
+      }
+    },
+    {
+      "state": "task_started",
+      "created_at": "2026-10-08T19:41:46.788091+00:00",
+      "detail": {
+        "task_id": "research-a208947d",
+        "permission": "allow"
+      }
+    },
+    {
+      "state": "route_decision",
+      "created_at": "2026-10-08T19:41:46.868860+00:00",
+      "detail": {
+        "task_id": "research-a208947d",
+        "capability": "research",
+        "candidates": [
+          {
+            "provider": "flaky",
+            "model": "flaky-large",
+            "score": 14.05
+          },
+          {
+            "provider": "mock",
+            "model": "mock-smart",
+            "score": 11.85
+          },
+          {
+            "provider": "mock",
+            "model": "mock-fast",
+            "score": 11.45
+          }
+        ]
+      }
+    },
+    {
+      "state": "task_started",
+      "created_at": "2026-10-08T19:41:46.941236+00:00",
+      "detail": {
+        "task_id": "architecture-00da15c3",
+        "permission": "allow"
+      }
+    },
+    {
+      "state": "route_decision",
+      "created_at": "2026-10-08T19:41:46.941484+00:00",
+      "detail": {
+        "task_id": "architecture-00da15c3",
+        "capability": "reasoning",
+        "candidates": [
+          {
+            "provider": "flaky",
+            "model": "flaky-large",
+            "score": 14.05
+          },
+          {
+            "provider": "mock",
+            "model": "mock-smart",
+            "score": 11.85
+          },
+          {
+            "provider": "mock",
+            "model": "mock-fast",
+            "score": 11.45
+          }
+        ]
+      }
+    },
+    {
+      "state": "task_started",
+      "created_at": "2026-10-08T19:41:47.017012+00:00",
+      "detail": {
+        "task_id": "coder-38fce30e",
+        "permission": "allow"
+      }
+    },
+    {
+      "state": "route_decision",
+      "created_at": "2026-10-08T19:41:47.017411+00:00",
+      "detail": {
+        "task_id": "coder-38fce30e",
+        "capability": "coding",
+        "candidates": [
+          {
+            "provider": "flaky",
+            "model": "flaky-large",
+            "score": 14.05
+          },
+          {
+            "provider": "mock",
+            "model": "mock-smart",
+            "score": 11.85
+          },
+          {
+            "provider": "mock",
+            "model": "mock-fast",
+            "score": 11.45
+          }
+        ]
+      }
+    },
+    {
+      "state": "task_started",
+      "created_at": "2026-10-08T19:41:47.089388+00:00",
+      "detail": {
+        "task_id": "tests-b2e95356",
+        "permission": "allow"
+      }
+    },
+    {
+      "state": "route_decision",
+      "created_at": "2026-10-08T19:41:47.089575+00:00",
+      "detail": {
+        "task_id": "tests-b2e95356",
+        "capability": "testing",
+        "candidates": [
+          {
+            "provider": "mock",
+            "model": "mock-smart",
+            "score": 11.85
+          },
+          {
+            "provider": "mock",
+            "model": "mock-fast",
+            "score": 11.45
+          }
+        ]
+      }
+    },
+    {
+      "state": "task_started",
+      "created_at": "2026-10-08T19:41:47.121542+00:00",
+      "detail": {
+        "task_id": "security-581f180f",
+        "permission": "allow"
+      }
+    },
+    {
+      "state": "route_decision",
+      "created_at": "2026-10-08T19:41:47.121804+00:00",
+      "detail": {
+        "task_id": "security-581f180f",
+        "capability": "security",
+        "candidates": [
+          {
+            "provider": "mock",
+            "model": "mock-smart",
+            "score": 11.85
+          },
+          {
+            "provider": "mock",
+            "model": "mock-fast",
+            "score": 11.45
+          }
+        ]
+      }
+    },
+    {
+      "state": "task_started",
+      "created_at": "2026-10-08T19:41:47.153899+00:00",
+      "detail": {
+        "task_id": "review-6850bf03",
+        "permission": "allow"
+      }
+    },
+    {
+      "state": "route_decision",
+      "created_at": "2026-10-08T19:41:47.154132+00:00",
+      "detail": {
+        "task_id": "review-6850bf03",
+        "capability": "review",
+        "candidates": [
+          {
+            "provider": "mock",
+            "model": "mock-smart",
+            "score": 11.85
+          },
+          {
+            "provider": "mock",
+            "model": "mock-fast",
+            "score": 11.45
+          }
+        ]
+      }
+    },
+    {
+      "state": "task_started",
+      "created_at": "2026-10-08T19:41:47.185881+00:00",
+      "detail": {
+        "task_id": "integrate-dffc9664",
+        "permission": "allow"
+      }
+    },
+    {
+      "state": "route_decision",
+      "created_at": "2026-10-08T19:41:47.186647+00:00",
+      "detail": {
+        "task_id": "integrate-dffc9664",
+        "capability": "reasoning",
+        "candidates": [
+          {
+            "provider": "mock",
+            "model": "mock-smart",
+            "score": 11.85
+          },
+          {
+            "provider": "mock",
+            "model": "mock-fast",
+            "score": 11.45
+          }
+        ]
+      }
+    },
+    {
+      "state": "task_started",
+      "created_at": "2026-10-08T19:41:47.218274+00:00",
+      "detail": {
+        "task_id": "judge-fbe2cb8a",
+        "permission": "allow"
+      }
+    },
+    {
+      "state": "route_decision",
+      "created_at": "2026-10-08T19:41:47.218501+00:00",
+      "detail": {
+        "task_id": "judge-fbe2cb8a",
+        "capability": "review",
+        "candidates": [
+          {
+            "provider": "mock",
+            "model": "mock-smart",
+            "score": 11.85
+          },
+          {
+            "provider": "mock",
+            "model": "mock-fast",
+            "score": 11.45
+          }
+        ]
+      }
+    },
+    {
+      "state": "task_started",
+      "created_at": "2026-10-08T19:41:47.249951+00:00",
+      "detail": {
+        "task_id": "final-745fdc78",
+        "permission": "allow"
+      }
+    },
+    {
+      "state": "route_decision",
+      "created_at": "2026-10-08T19:41:47.250177+00:00",
+      "detail": {
+        "task_id": "final-745fdc78",
+        "capability": "reasoning",
+        "candidates": [
+          {
+            "provider": "mock",
+            "model": "mock-smart",
+            "score": 11.85
+          },
+          {
+            "provider": "mock",
+            "model": "mock-fast",
+            "score": 11.45
+          }
+        ]
+      }
+    },
+    {
+      "state": "succeeded",
+      "created_at": "2026-10-08T19:41:47.281676+00:00",
+      "detail": {
+        "task_count": 9,
+        "resumed": false
+      }
+    }
+  ],
+  "errors": [
+    {
+      "task_id": "research-a208947d",
+      "code": "PROVIDER_UNAVAILABLE",
+      "message": "flaky: upstream 503",
+      "retryable": 1,
+      "created_at": "2026-10-08T19:41:46.909483+00:00",
+      "detail": {
+        "provider": "flaky",
+        "model": "flaky-large"
+      }
+    },
+    {
+      "task_id": "architecture-00da15c3",
+      "code": "PROVIDER_UNAVAILABLE",
+      "message": "flaky: upstream 503",
+      "retryable": 1,
+      "created_at": "2026-10-08T19:41:46.985181+00:00",
+      "detail": {
+        "provider": "flaky",
+        "model": "flaky-large"
+      }
+    },
+    {
+      "task_id": "coder-38fce30e",
+      "code": "PROVIDER_UNAVAILABLE",
+      "message": "flaky: upstream 503",
+      "retryable": 1,
+      "created_at": "2026-10-08T19:41:47.057414+00:00",
+      "detail": {
+        "provider": "flaky",
+        "model": "flaky-large"
+      }
+    }
+  ],
+  "routes": {
+    "flaky/flaky-large": {
+      "calls": 3,
+      "successes": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "avg_latency_ms": 40.7,
+      "success_rate": 0.0,
+      "tokens": 0
+    },
+    "mock/mock-smart": {
+      "calls": 9,
+      "successes": 9,
+      "input_tokens": 4753,
+      "output_tokens": 2883,
+      "avg_latency_ms": 30.0,
+      "success_rate": 1.0,
+      "tokens": 7636
+    }
+  },
+  "audit": {
+    "valid": true,
+    "root": "60958ca7e6f64947adec0e3d136b3756607044ec8fad2227227e85107faa39fe"
+  }
+}
