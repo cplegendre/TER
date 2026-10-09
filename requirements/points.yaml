@@ -1552,14 +1552,14 @@ points:
       Introduce a real-time event stream as a core architectural boundary.
     level: L1
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - An EventIngest port is the only way events enter analysis.
     rules: [TER-OBS-001, TER-OBS-011]
     verification:
       - 'test: tests/contract/test_event_ingest.py'
+      - 'test: tests/contract/test_ingest_wiring.py'
       - 'test: tests/contract/test_event_log.py::test_records_of_an_earlier_schema_version_still_decode'
-      - 'planned: recorded sessions enter analysis through EventIngest too (TER-OBS-001)'
 
   - id: P102
     text: >-
@@ -1568,7 +1568,7 @@ points:
     kind: capability
     status: done
     definition_of_done:
-      - The Claude Code adapter converts JSONL to ter.event/0.1 events.
+      - The Claude Code adapter converts JSONL to ter.event events.
     rules: [TER-SRC-001, TER-OBS-001]
     verification:
       - 'test: tests/unit/test_ter4_adapters.py::TestClaudeCodeJsonlSource::test_tool_results_inherit_their_request_kind'
@@ -1683,7 +1683,7 @@ points:
       recompute entire sessions.
     level: L1
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Applying one event updates state without reprocessing earlier
@@ -1691,7 +1691,7 @@ points:
     rules: [TER-ANL-011]
     verification:
       - 'test: tests/unit/test_ter4_stream.py::test_batch_is_the_fold_of_apply'
-      - 'planned: operation-count test showing apply does not reprocess earlier events (TER-ANL-011)'
+      - 'test: tests/unit/test_ter4_stream_incremental.py'
 
   - id: P111
     text: >-
@@ -2973,15 +2973,14 @@ points:
         An external capability enters as a capability pack (port, contract
         suite, EARS requirements, fake, reference adapter) and the core
         never imports its package (ADR 0005).
-    rules: [TER-ARC-002, TER-ARC-003, TER-ARC-004, TER-ARC-005, TER-ARC-006]
+    rules: [TER-ARC-002, TER-ARC-003, TER-ARC-004, TER-ARC-005, TER-ARC-006, TER-ARC-007, TER-ARC-008]
     verification:
       - 'test: tests/unit/test_ter4_capabilities.py'
+      - 'test: tests/unit/test_ter4_plugins.py'
       - 'test: tests/contract/test_outcome_source.py'
-      - >-
-        planned: TER-ARC-002 once repository engines, policies and the
-        analysers load through the capability registry (ports for them do not
-        exist yet; detectors register through DetectorRegistry)
       - 'test: tests/unit/test_ter4_lean_analysis.py::test_detectors_are_plugins'
+      - 'planned: repository engines load as plugins at L3 (TER-ARC-007)'
+      - 'planned: intervention policies load as plugins at L4 (TER-ARC-008)'
       - 'test: tests/architecture/test_import_contracts.py::test_core_never_imports_external_capability_packages'
 
   - id: P198
@@ -2997,7 +2996,8 @@ points:
         tools and validation through ports.
     rules: [TER-INT-013, TER-OBS-001]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-013, TER-OBS-001'
+      - 'test: tests/contract/test_ingest_wiring.py'
+      - 'planned: passing tests tagged req for TER-INT-013'
 
   - id: P199
     text: >-

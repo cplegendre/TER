@@ -395,7 +395,19 @@ def test_cli_lint_checks_points(
     proof = text.index("'test: ", start)
     end = text.index("'", proof + 1) + 1
     text = text[:proof] + "'branch: work/other pending proof'" + text[end:]
+    # ... and a rule still planned here, so its proof really is elsewhere.
+    rules = text.index("rules: [", start)
+    text = text[: rules + len("rules: [")] + "TER-OBS-099, " + text[rules + 8 :]
     points.write_text(text, encoding="utf-8")
+    l1 = copy / "l1_observed.yaml"
+    l1.write_text(
+        l1.read_text(encoding="utf-8").rstrip("\n")
+        + "\n\n  - id: TER-OBS-099\n    pattern: ubiquitous\n"
+        + "    text: >-\n      TER shall observe a pending behaviour.\n"
+        + "    level: L1\n    source_points: [102]\n"
+        + "    rationale: >-\n      Test fixture.\n    status: planned\n",
+        encoding="utf-8",
+    )
     pending = ["--catalogue", str(copy), "--root", str(ROOT), "lint"]
     code, out = _run(capsys, *pending)
     assert code == 0 and "warning: P102: [POINT-PENDING]" in out

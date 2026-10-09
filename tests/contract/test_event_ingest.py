@@ -17,7 +17,7 @@ from ter.adapters.driven.event_log import JsonlEventLog
 from ter.adapters.driven.in_memory import InMemoryEventLog
 from ter.adapters.driven.tokenizers import RegexTokenizer
 from ter.application import ObserveEvent, RecordEvent
-from ter.domain import Event, SessionTrace, analyse_batch
+from ter.domain import Event, SessionTrace, analyse_batch, explain_batch
 from ter.ports import EventIngest
 
 from golden.corpus import CORPUS
@@ -55,6 +55,17 @@ def test_live_report_equals_batch_report(
             assert ingest.apply(event).accepted
         expected = analyse_batch(trace.events, RegexTokenizer())
         assert ingest.report(trace.session_id) == expected
+
+
+@pytest.mark.req("TER-ANL-010")
+def test_live_explanation_equals_batch_explanation(
+    ingest: EventIngest, traces: list[SessionTrace]
+) -> None:
+    for trace in traces:
+        for event in trace.events:
+            ingest.apply(event)
+        expected = explain_batch(trace.events, RegexTokenizer())
+        assert ingest.explain(trace.session_id) == expected
 
 
 @pytest.mark.req("TER-OBS-004")

@@ -30,7 +30,7 @@ from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from functools import cache
 from types import CodeType
-from typing import Any, Protocol
+from typing import Any, Generic, Protocol
 
 from ..domain.capabilities import (
     CAPABILITY_GROUP,
@@ -40,14 +40,17 @@ from ..domain.capabilities import (
     UnknownCapabilityError,
     parse_capability_key,
 )
-from ..ports import DRIVEN_PORTS
+from ..domain.lean.detectors import DEFAULT_REGISTRY, DetectorRegistry
+from ..ports import CAPABILITY_KINDS, WasteDetectorPlugin
 
 __all__ = [
     "BUILTIN_CAPABILITIES",
     "BUILTIN_ORIGIN",
     "CapabilityRegistry",
     "EntryLike",
+    "builtin_detectors",
     "default_registry",
+    "detector_registry",
     "installed_entry_points",
 ]
 
@@ -67,6 +70,21 @@ BUILTIN_CAPABILITIES: dict[str, str] = {
 }
 
 BUILTIN_ORIGIN = "built-in"
+
+
+def builtin_detectors(
+    detectors: DetectorRegistry = DEFAULT_REGISTRY,
+) -> dict[str, str]:
+    """TER's own waste detectors as capabilities, ``WasteDetector.<id>``.
+
+    Derived from the domain's detector catalogue, so a detector added to
+    :data:`~ter.domain.lean.detectors.DEFAULT_REGISTRY` is listed here with
+    no second table to keep in step.
+    """
+    return {
+        f"WasteDetector.{d.id}": f"{type(d).__module__}:{type(d).__qualname__}"
+        for d in detectors
+    }
 
 
 class EntryLike(Protocol):
@@ -109,20 +127,36 @@ def _origin(entry: EntryLike) -> str:
     return f"entry point ({name})" if name else "entry point"
 
 
+def _protocols(port: type[object]) -> tuple[type[object], ...]:
+    """The port and the Protocols it extends (a plugin Protocol may only
+    re-export a domain Protocol, as ``WasteDetectorPlugin`` does)."""
+    return tuple(
+        k
+        for k in port.__mro__
+        if getattr(k, "_is_protocol", False) and k not in (Protocol, Generic)
+    )
+
+
 def _methods(port: type[object]) -> tuple[str, ...]:
     """The callable members a port Protocol declares."""
     return tuple(
         sorted(
-            n for n, v in vars(port).items() if not n.startswith("_") and callable(v)
+            {
+                n
+                for k in _protocols(port)
+                for n, v in vars(k).items()
+                if not n.startswith("_") and callable(v)
+            }
         )
     )
 
 
 def _members(port: type[object]) -> tuple[str, ...]:
-    annotations: Mapping[str, object] = vars(port).get("__annotations__", {})
-    return tuple(
-        sorted(set(_methods(port)) | {n for n in annotations if not n.startswith("_")})
-    )
+    annotated: set[str] = set()
+    for k in _protocols(port):
+        annotations: Mapping[str, object] = vars(k).get("__annotations__", {})
+        annotated |= {n for n in annotations if not n.startswith("_")}
+    return tuple(sorted(set(_methods(port)) | annotated))
 
 
 def _self_assignments(code: CodeType) -> set[str]:
@@ -184,7 +218,7 @@ class CapabilityRegistry:
         *,
         builtins: Mapping[str, str] = BUILTIN_CAPABILITIES,
         discover: Callable[[], Iterable[EntryLike]] | None = installed_entry_points,
-        ports: Mapping[str, type[object]] = DRIVEN_PORTS,
+        ports: Mapping[str, type[object]] = CAPABILITY_KINDS,
     ) -> None:
         self._ports = dict(ports)
         self._discover = discover
@@ -356,5 +390,40 @@ class CapabilityRegistry:
 
 @cache
 def default_registry() -> CapabilityRegistry:
-    """The installation's registry: built-ins plus installed entry points."""
-    return CapabilityRegistry()
+    """The installation's registry: built-ins (adapters and TER's own waste
+    detectors) plus installed entry points."""
+    return CapabilityRegistry(builtins={**BUILTIN_CAPABILITIES, **builtin_detectors()})
+
+
+def detector_registry(
+    registry: CapabilityRegistry | None = None,
+    builtins: DetectorRegistry = DEFAULT_REGISTRY,
+) -> DetectorRegistry:
+    """The waste detectors an analysis runs: TER's catalogue, in catalogue
+    order, then every other ``WasteDetector`` capability, by key.
+
+    Installing a package that declares a ``WasteDetector.<id>`` entry point is
+    what turns its detector on (TER-ARC-002). A plugin that fails to load,
+    does not satisfy the protocol, or reuses a detector id already running is
+    left out and recorded in :attr:`CapabilityRegistry.problems`; the
+    analysis never fails because of a plugin.
+    """
+    registry = registry if registry is not None else default_registry()
+    detectors = DetectorRegistry(builtins)
+    for cap in registry.capabilities("WasteDetector"):
+        if cap.origin == BUILTIN_ORIGIN and cap.name in builtins:
+            continue
+        try:
+            detector = registry.create(cap.port, cap.name)
+        except CapabilityError:
+            continue  # recorded as a problem
+        assert isinstance(detector, WasteDetectorPlugin)  # checked by create
+        if detector.id in detectors:
+            registry._problem(
+                cap.key,
+                cap.target,
+                f"detector id {detector.id!r} is already running; this plugin is ignored",
+            )
+            continue
+        detectors.register(detector)
+    return detectors

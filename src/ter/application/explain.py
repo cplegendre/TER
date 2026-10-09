@@ -17,7 +17,6 @@ from ..domain.outcome import (
     OutcomeVerdict,
     judge,
 )
-from ..domain.stream import explain_batch
 from ..ports.driven import (
     OutcomeSource,
     PriceBook,
@@ -25,6 +24,7 @@ from ..ports.driven import (
     TerScorer,
     Tokenizer,
 )
+from .observe import IngestFactory, fresh_ingest, ingest_all
 
 __all__ = ["ExplainSession", "ExplainedSession"]
 
@@ -56,9 +56,10 @@ class ExplainSession:
         scorer: TerScorer | None = None,
         outcomes: OutcomeSource | None = None,
         prices: PriceBook | None = None,
+        ingest: IngestFactory | None = None,
     ) -> None:
         self._source = source
-        self._tokenizer = tokenizer
+        self._ingest = fresh_ingest(tokenizer, ingest)
         self._scorer = scorer
         self._outcomes = outcomes
         self._prices = prices
@@ -75,7 +76,10 @@ class ExplainSession:
             if self._scorer is not None
             else None
         )
-        analysis = explain_batch(trace.events, self._tokenizer, ter=ter)
+        # The recording enters analysis through EventIngest, like a live
+        # session (TER-OBS-001).
+        ingest = ingest_all(self._ingest(), trace.events)
+        analysis = ingest.explain(trace.session_id, ter=ter)
         verdict = self._judge(outcome_ref, contract)
         intents = tuple(e.text for e in trace.events if e.kind is EventKind.PROMPT)
         return ExplainedSession(

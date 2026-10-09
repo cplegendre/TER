@@ -23,6 +23,7 @@ from .driven import (
     Tokenizer,
 )
 from .driving import EventIngest
+from .plugins import WasteDetectorPlugin
 
 #: Driven ports a capability (``ter.capabilities`` entry point) can plug into,
 #: by the name its key uses: ``<Port>.<adapter>`` (ADR 0005).
@@ -38,7 +39,15 @@ DRIVEN_PORTS: dict[str, type[object]] = {
     "Tokenizer": Tokenizer,
 }
 
+#: Everything a capability can plug into: the driven ports, plus the analysis
+#: plugins (waste detectors) that run inside the core (TER-ARC-002).
+CAPABILITY_KINDS: dict[str, type[object]] = {
+    **DRIVEN_PORTS,
+    "WasteDetector": WasteDetectorPlugin,
+}
+
 __all__ = [
+    "CAPABILITY_KINDS",
     "DRIVEN_PORTS",
     "AlignmentScorer",
     "Clock",
@@ -50,4 +59,5 @@ __all__ = [
     "SessionSource",
     "TerScorer",
     "Tokenizer",
+    "WasteDetectorPlugin",
 ]

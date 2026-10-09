@@ -25,20 +25,21 @@ requirements:
     rationale: >-
       Incremental state keeps live analysis cheap enough to run on every
       hook.
-    status: planned
+    status: verified
 
   - id: TER-OBS-001
     pattern: ubiquitous
     text: >-
       TER shall accept every live and recorded observation through the
-      EventIngest port as ter.event/0.1 events.
+      EventIngest port as ter.event events.
     level: L1
     port: EventIngest
     source_points: [101, 102, 198]
     rationale: >-
       One ingest boundary makes live and post-hoc analysis the same
-      pipeline.
-    status: planned
+      pipeline. The wording names no contract version: the stream is at
+      ter.event/0.3 and versions only add kinds (TER-OBS-011).
+    status: verified
 
   - id: TER-OBS-002
     pattern: event-driven

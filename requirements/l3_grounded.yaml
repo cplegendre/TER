@@ -293,3 +293,16 @@ requirements:
       source session and the outcome verdict from outcome evidence beside
       the analysis, so neither can yet be recomputed from the event log.
     status: planned
+
+  - id: TER-ARC-007
+    pattern: ubiquitous
+    text: >-
+      TER shall load repository engines through the ter.capabilities plugin
+      registry.
+    level: L3
+    source_points: [197]
+    rationale: >-
+      The L3 part of TER-ARC-002: repository evidence engines are plugins
+      like analysers, detectors and agent adapters, but no repository
+      engine exists before L3.
+    status: planned
