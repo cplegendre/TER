@@ -152,6 +152,8 @@ class StreamReport:
     edits_since_validation: int
     peak_edits_without_validation: int
     timeline: tuple[TimelineRow, ...]
+    #: What the source cannot report (``SessionTrace.usage_limits``).
+    usage_limits: tuple[str, ...] = ()
 
     def count(self, key: EventKind | ToolKind | EventClass) -> int:
         """Return the count for an event kind, tool kind or event class."""
@@ -191,7 +193,7 @@ class StreamReport:
 
     def as_dict(self) -> dict[str, object]:
         """A JSON-ready projection, stable enough to snapshot."""
-        return {
+        out: dict[str, object] = {
             "session_id": self.session_id,
             "tokenizer": self.tokenizer,
             "tokens_exact": self.tokens_exact,
@@ -227,6 +229,9 @@ class StreamReport:
                 for r in self.timeline
             ],
         }
+        if self.usage_limits:
+            out["usage_limits"] = list(self.usage_limits)
+        return out
 
 
 def canonical_arguments(arguments: Mapping[str, object]) -> str:

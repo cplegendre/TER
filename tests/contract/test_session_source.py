@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 
 from ter.adapters.driven.claude_code import ClaudeCodeJsonlSource
+from ter.adapters.driven.gare import GareRunSource
 from ter.adapters.driven.in_memory import InMemorySessionSource
 from ter.domain import Actor, EventKind
 from ter.ports import SessionSource
@@ -25,13 +26,22 @@ def _claude() -> tuple[SessionSource, list[str]]:
     return ClaudeCodeJsonlSource(), [str(p) for p in CORPUS.values()]
 
 
+GARE_RUNS = Path(__file__).resolve().parents[1] / "fixtures" / "gare"
+
+
+def _gare() -> tuple[SessionSource, list[str]]:
+    return GareRunSource(), [str(p) for p in sorted(GARE_RUNS.iterdir()) if p.is_dir()]
+
+
 def _memory() -> tuple[SessionSource, list[str]]:
     real = ClaudeCodeJsonlSource()
     traces = {name: real.read(path) for name, path in CORPUS.items()}
     return InMemorySessionSource(traces), list(traces)
 
 
-@pytest.fixture(params=[_claude, _memory], ids=["claude-code-jsonl", "in-memory"])
+@pytest.fixture(
+    params=[_claude, _gare, _memory], ids=["claude-code-jsonl", "gare-run", "in-memory"]
+)
 def source(request: pytest.FixtureRequest) -> tuple[SessionSource, list[str]]:
     factory: Factory = request.param
     return factory()

@@ -7,6 +7,7 @@ live report and the batch report of one event stream are the same value.
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
 
 from ..domain.events import Event, EventId
@@ -104,7 +105,10 @@ class AnalyseTrace:
 
     def __call__(self, ref: str | Path) -> StreamReport:
         trace = self._source.read(ref)
-        return analyse_batch(trace.events, self._tokenizer)
+        report = analyse_batch(trace.events, self._tokenizer)
+        if trace.usage_limits:
+            report = replace(report, usage_limits=trace.usage_limits)
+        return report
 
 
 class AnalyseEventLog:
