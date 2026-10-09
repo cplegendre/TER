@@ -1564,10 +1564,12 @@ points:
     definition_of_done:
       - The event model uses provider-neutral tool kinds.
       - A second harness adapter passes the SessionSource contract suite.
-    rules: [TER-SRC-003, TER-SRC-010]
+    rules: [TER-SRC-003, TER-SRC-010, TER-SRC-011, TER-SRC-012, TER-SRC-017, TER-EVT-001]
     verification:
       - 'test: tests/unit/test_ter4_adapters.py::TestToolMap::test_every_kind_except_other_has_a_claude_tool'
-      - 'planned: second harness adapter in tests/contract'
+      - 'test: tests/contract/test_session_source.py'
+      - 'test: tests/unit/test_ter4_gare.py'
+      - 'planned: a real recorded GARE run passes the same suite (issue #55, TER-SRC-010)'
 
   - id: P104
     text: >-
@@ -1594,9 +1596,11 @@ points:
       - >-
         Provider adapters implement ports around the neutral domain,
         enforced by the hexagon contracts.
-    rules: [TER-ARC-001]
+    rules: [TER-ARC-001, TER-SRC-013, TER-SRC-014, TER-SRC-016]
     verification:
       - 'test: tests/architecture/test_import_contracts.py'
+      - 'test: tests/unit/test_ter4_gare.py::test_gare_traces_carry_no_cache_tokens_and_say_so'
+      - 'test: tests/unit/test_ter4_gare.py::test_explanations_and_a3s_state_the_sources_limits'
 
   - id: P106
     text: >-

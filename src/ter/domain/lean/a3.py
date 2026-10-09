@@ -55,6 +55,8 @@ class A3Report:
     countermeasures: tuple[Countermeasure, ...]
     follow_up: tuple[FollowUp, ...]
     outcome: OutcomeVerdict | None = None
+    #: What the session's source cannot report (``SessionTrace.usage_limits``).
+    usage_limits: tuple[str, ...] = ()
 
     @property
     def tokens_per_verified_outcome(self) -> float | None:
@@ -87,6 +89,8 @@ class A3Report:
                 for i, w, k, r in a.detectors
             ],
         }
+        if self.usage_limits:
+            out["usage_limits"] = list(self.usage_limits)
         if self.outcome is not None:
             per = self.tokens_per_verified_outcome
             out["outcome"] = {
@@ -155,9 +159,11 @@ def build_a3(
     analysis: LeanAnalysis,
     intents: Sequence[str] = (),
     outcome: OutcomeVerdict | None = None,
+    usage_limits: Sequence[str] = (),
 ) -> A3Report:
     """Assemble the A3 from an analysis, the developer's prompts and, when
-    known, the outcome verdict (shown beside the analysis, never read by it)."""
+    known, the outcome verdict (shown beside the analysis, never read by it).
+    ``usage_limits`` are the source's, stated beside the figures they qualify."""
     findings = analysis.findings
     ranked = sorted(
         findings,
@@ -186,4 +192,5 @@ def build_a3(
             avoidable_share=sc.activity_share(ActivityClass.AVOIDABLE),
         ),
         outcome=outcome,
+        usage_limits=tuple(usage_limits),
     )
