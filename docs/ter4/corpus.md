@@ -46,8 +46,8 @@ Coverage is the share of a session's records the Claude Code session source
 accounts for: `user` and `assistant` records mapped to events, plus record
 types documented as metadata that carry no agent activity
 (`METADATA_TYPES` in `ter.adapters.driven.claude_code.session_source`):
-`ai-title`, `atis-latch`, `attachment`, `custom-title`,
-`file-history-snapshot`, `last-prompt`, `mode`, `permission-mode`, `pr-link`,
+`ai-title`, `atis-latch`, `attachment`, `cost-state`, `custom-title`,
+`file-history-delta`, `file-history-snapshot`, `last-prompt`, `mode`, `permission-mode`, `pr-link`,
 `queue-operation`, `summary` and `system`. The manifest lists them per session
 under `metadata_by_type`; anything else stays under `unrecognised_by_type`, so
 a new Claude Code record type lowers coverage until it is classified.

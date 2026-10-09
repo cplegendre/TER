@@ -80,6 +80,8 @@ def _metadata_records() -> list[dict[str, Any]]:
         {"type": "custom-title", "sessionId": "s1"},
         {"type": "summary", "summary": "s", "leafUuid": "u1"},
         {"type": "file-history-snapshot", "messageId": "u1", "snapshot": {}},
+        {"type": "file-history-delta", "messageId": "u1"},
+        {"type": "cost-state", "sessionId": "s1"},
         {
             "type": "system",
             "subtype": "stop_hook_summary",
