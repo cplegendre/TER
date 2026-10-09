@@ -6,6 +6,7 @@ A fake that drifts from the real adapter's obligations fails
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable, Mapping
 from dataclasses import replace
 from datetime import date, datetime, timedelta
@@ -14,6 +15,16 @@ from pathlib import Path
 from ...domain.events import Event, SessionTrace
 from ...domain.outcome import OutcomeEvidence, OutcomeFormatError
 from ...domain.pricing import PriceEntry, PriceSchedule, Rates
+from ...domain.repository import (
+    FileCommit,
+    RepositoryDiff,
+    RepositoryEvidenceError,
+    SourceStructure,
+    TextMatch,
+    UnknownPathError,
+    module_name,
+)
+from ...domain.repository import tests_importing as repository_tests_importing
 
 
 class InMemorySessionSource:
@@ -122,3 +133,73 @@ class InMemoryOutcomeSource:
         if key in self._malformed:
             raise OutcomeFormatError(f"{key}: in-memory record marked malformed")
         return self._records.get(key)
+
+
+class InMemoryRepositoryEvidence:
+    """A :class:`~ter.ports.driven.RepositoryEvidence` over files held in code.
+
+    ``imports`` gives, per Python file, the absolute modules its import
+    statements name (``import a.b`` -> ``"a.b"``; ``from a import b`` ->
+    ``"a"`` and ``"a.b"``), in place of reading them from text; the
+    test-to-source rule itself is the domain's, shared with the real engines.
+    ``structures``, ``diff`` and ``histories`` are served as given; an engine
+    built without them answers ``None``, as one without that evidence must.
+    """
+
+    def __init__(
+        self,
+        files: Mapping[str, str],
+        *,
+        imports: Mapping[str, Iterable[str]] | None = None,
+        structures: Mapping[str, SourceStructure] | None = None,
+        diff: RepositoryDiff | None = None,
+        histories: Mapping[str, Iterable[FileCommit]] | None = None,
+        name: str = "in-memory",
+    ) -> None:
+        self.name = name
+        self._files = dict(files)
+        self._imports = {p: tuple(m) for p, m in (imports or {}).items()}
+        self._structures = dict(structures) if structures is not None else None
+        self._diff = diff
+        self._histories = (
+            {p: tuple(h) for p, h in histories.items()}
+            if histories is not None
+            else None
+        )
+
+    def files(self) -> tuple[str, ...]:
+        return tuple(sorted(self._files))
+
+    def text(self, path: str) -> str:
+        if path not in self._files:
+            raise UnknownPathError(f"{path!r} is not a file of the repository")
+        return self._files[path]
+
+    def search(self, needle: str, *, regex: bool = False) -> tuple[TextMatch, ...]:
+        if not needle:
+            raise RepositoryEvidenceError("search needs a non-empty needle")
+        pattern = re.compile(needle if regex else re.escape(needle))
+        return tuple(
+            TextMatch(path, number, line)
+            for path in self.files()
+            for number, line in enumerate(
+                self._files[path].removesuffix("\n").split("\n"), start=1
+            )
+            if self._files[path] and pattern.search(line.removesuffix("\r"))
+        )
+
+    def tests_importing(self, path: str) -> tuple[str, ...]:
+        self.text(path)
+        files = frozenset(self._files)
+        return repository_tests_importing(module_name(path, files), self._imports)
+
+    def structure(self, path: str) -> SourceStructure | None:
+        self.text(path)
+        return None if self._structures is None else self._structures.get(path)
+
+    def diff(self) -> RepositoryDiff | None:
+        return self._diff
+
+    def history(self, path: str) -> tuple[FileCommit, ...] | None:
+        self.text(path)
+        return None if self._histories is None else self._histories.get(path, ())

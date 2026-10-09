@@ -56,13 +56,13 @@ flowchart LR
 | Package | Holds | May import |
 |---|---|---|
 | `ter.domain` | Event model, maturity levels, TER scoring (`scoring`: phase scores, weighted aggregate, raw ratio, aligned/waste accounting), pricing (`pricing`: `Rates`, dated `PriceSchedule`, cost arithmetic), the incremental `AnalysisEngine` (L1), the `SessionReport` view-model (`report`), the Lean model, detectors, evidence graph, scorecard and A3 view-model (`ter.domain.lean`, L2), outcome and acceptance verdicts (`outcome`, see [outcome.md](outcome.md)), capability value types (`capabilities`) | stdlib, numpy |
-| `ter.ports` | Driven: `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `PriceBook`, `EventLog`, `TerScorer`, `OutcomeSource`. Driving: `EventIngest` | `ter.domain` |
+| `ter.ports` | Driven: `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `PriceBook`, `EventLog`, `TerScorer`, `OutcomeSource`, `RepositoryEvidence`. Driving: `EventIngest` | `ter.domain` |
 | `ter.application` | Use cases: `ObserveEvent`, `RecordEvent`, `AnalyseTrace`, `AnalyseEventLog` (L1), `ExplainSession` (L2) | ports, domain |
 | `ter.adapters` | Everything that knows a vendor, format or IO | anything inward, plus `ter_calculator` |
 | `ter.bootstrap` | Wiring, the capability registry (`ter.capabilities` entry points, ADR 0005) and the maturity ceiling | everything |
 
 The rules are enforced, not described. `[tool.importlinter]` in
-`pyproject.toml` declares seven contracts, and both the `lint-imports` CI step
+`pyproject.toml` declares eight contracts, and both the `lint-imports` CI step
 and `tests/architecture` fail when one breaks:
 
 1. **hexagon-layers**: bootstrap → adapters → application → ports → domain, never outward.
@@ -76,6 +76,7 @@ and `tests/architecture` fail when one breaks:
    `ter.bootstrap.main`.
 6. **report-renderers**: the SVG, HTML and A3 renderers read only their view-models (`SessionReport`, `A3Report`), never TER 3 types (see [reports.md](reports.md), [l2-explained.md](l2-explained.md)).
 7. **behaviour-blind-to-outcome**: the modules that compute behaviour measures (events, pricing, scoring, the L1 engine, the Lean analysis, detectors, steps, graph and countermeasures) never import `ter.domain.outcome`, so no measure reads the outcome verdict (point 5, [outcome.md](outcome.md)).
+8. **provider-neutral-evidence**: the repository evidence values and engines import no model SDK, tokenizer, embedder, TER 3 internals or external capability stack (P054, [l3-grounded.md](l3-grounded.md)).
 
 ## Strangler moves so far
 
@@ -188,6 +189,20 @@ of done are in [l2-explained.md](l2-explained.md); the model is ADR 0004.
 | Findings, scorecard, A3 JSON and HTML frozen | `tests/golden/test_lean_snapshots.py` | TER-LEN-008, TER-RPT-003, TER-RPT-004 |
 | A3 self-contained and accessible; countermeasures from findings only | `tests/unit/test_ter4_a3.py`, `test_ter4_lean_analysis.py` | TER-RPT-004, TER-RPT-005 |
 | `TerScorer` adapters meet one contract | `tests/contract/test_ter_scorer.py` | TER-ANL-012 |
+
+### L3 gate, in progress
+
+Repository evidence comes through one provider-neutral port with three
+engines loaded as capabilities. Details are in
+[l3-grounded.md](l3-grounded.md).
+
+| Check | Where | Requirement |
+|---|---|---|
+| Every engine and the fake meet one contract | `tests/contract/test_repository_evidence.py` | TER-EVD-001, TER-EVD-003 |
+| Only the engines read version control or syntax trees | `tests/architecture/test_repository_evidence_boundary.py`, `lint-imports` | TER-EVD-001 |
+| Lexical answers depend on content only; frozen | `tests/unit/test_ter4_repository_evidence.py`, `tests/golden/test_repository_evidence_snapshot.py` | TER-EVD-002 |
+| Python symbols, imports, call edges; Git diff and history | `tests/unit/test_ter4_repository_evidence.py` | TER-EVD-012, TER-EVD-013 |
+| Engines load through the capability registry | same | TER-ARC-007 |
 
 Tests carry `@pytest.mark.req("<id>")`. The EARS requirement catalogue and
 the CI traceability gate that checks these links are described in

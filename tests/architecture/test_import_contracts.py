@@ -23,6 +23,7 @@ EXPECTED_CONTRACTS = {
     "ter3-uses-hexagon-edges",
     "report-renderers",
     "behaviour-blind-to-outcome",
+    "provider-neutral-evidence",
 }
 
 

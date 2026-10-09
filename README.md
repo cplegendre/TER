@@ -210,6 +210,7 @@ All guides: [docs/guides](docs/guides/README.md). Reference:
 [TER 4 architecture](docs/ter4/architecture.md) ·
 [L1 Observed](docs/ter4/l1-observed.md) ·
 [L2 Explained](docs/ter4/l2-explained.md) ·
+[L3 Grounded](docs/ter4/l3-grounded.md) ·
 [visual reports](docs/ter4/reports.md) ·
 [outcome and acceptance](docs/ter4/outcome.md) ·
 [real session corpus](docs/ter4/corpus.md) ·

@@ -14,6 +14,12 @@ from ..domain.events import Event, SessionTrace
 from ..domain.lean.intent import AlignmentScorer as AlignmentScorer
 from ..domain.outcome import OutcomeEvidence
 from ..domain.pricing import Rates
+from ..domain.repository import (
+    FileCommit,
+    RepositoryDiff,
+    SourceStructure,
+    TextMatch,
+)
 
 if TYPE_CHECKING:
     # Annotation-only, so short-lived entry points (hooks) do not pay for
@@ -153,3 +159,54 @@ class OutcomeSource(Protocol):
     name: str
 
     def outcome(self, ref: str | Path) -> OutcomeEvidence | None: ...
+
+
+@runtime_checkable
+class RepositoryEvidence(Protocol):
+    """Evidence about one repository, independent of any model provider.
+
+    TER obtains repository evidence only through this port (TER-EVD-001).
+    An adapter is built for one repository root; engines differ in depth
+    (lexical text, Git history, syntax trees) and say what they cannot do by
+    returning ``None``, never by guessing. Engines load as capabilities,
+    ``RepositoryEvidence.<engine>`` (TER-ARC-007).
+
+    Obligations, verified by ``tests/contract/test_repository_evidence.py``:
+
+    * paths are relative to the root, use ``/`` and come sorted; nothing in
+      a version control directory is listed; every answer is a pure
+      function of the repository content, so equal content yields equal
+      evidence wherever the repository lives (TER-EVD-002);
+    * ``text(path)`` returns a listed file's text; a path the repository
+      does not list raises ``UnknownPathError`` (every method that takes a
+      path does);
+    * ``search(needle)`` returns every line containing ``needle`` (a regular
+      expression when ``regex`` is true), sorted by path then line, from
+      every UTF-8 text file;
+    * ``tests_importing(path)`` returns every test module (``test_*.py`` or
+      ``*_test.py``) whose import statements load the Python module at
+      ``path``, sorted (TER-EVD-003); a non-Python path raises
+      ``UnsupportedLanguageError``;
+    * ``structure(path)`` returns the file's symbols, imports and call edges
+      from its syntax tree, or ``None`` when the engine does not support the
+      file's language (TER-EVD-012);
+    * ``diff()`` and ``history(path)`` return the working tree's changes and
+      a file's commits (newest first), or ``None`` when the engine has no
+      version control evidence (TER-EVD-013).
+    """
+
+    name: str
+
+    def files(self) -> tuple[str, ...]: ...
+
+    def text(self, path: str) -> str: ...
+
+    def search(self, needle: str, *, regex: bool = False) -> tuple[TextMatch, ...]: ...
+
+    def tests_importing(self, path: str) -> tuple[str, ...]: ...
+
+    def structure(self, path: str) -> SourceStructure | None: ...
+
+    def diff(self) -> RepositoryDiff | None: ...
+
+    def history(self, path: str) -> tuple[FileCommit, ...] | None: ...

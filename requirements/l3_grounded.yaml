@@ -47,7 +47,7 @@ requirements:
     source_points: [51, 53, 54]
     rationale: >-
       Repository intelligence must not depend on a model provider.
-    status: planned
+    status: verified
 
   - id: TER-EVD-002
     pattern: ubiquitous
@@ -60,21 +60,23 @@ requirements:
     rationale: >-
       A deterministic lexical baseline makes richer engines measurable
       against it.
-    status: planned
+    status: verified
 
   - id: TER-EVD-003
     pattern: event-driven
     text: >-
-      When a detector requests repository evidence for a source module, the
-      repository evidence adapter shall return every test module that
-      imports that source module.
+      When a detector requests repository evidence for a Python source
+      module, the repository evidence adapter shall return every test module
+      whose import statements import that source module.
     level: L3
     port: RepositoryEvidence
     source_points: [60]
     rationale: >-
       Detectors judge whether an edit was verified by knowing which tests
-      exercise the edited code.
-    status: planned
+      exercise the edited code. Python first; other languages are
+      TER-EVD-014. Imports made by calling importlib are not import
+      statements and are not seen.
+    status: verified
 
   - id: TER-EVD-004
     pattern: event-driven
@@ -140,27 +142,46 @@ requirements:
   - id: TER-EVD-012
     pattern: optional
     text: >-
-      Where a programming language is supported, the repository evidence
-      adapter shall return the symbols, imports and call edges of each
-      source file from its syntax tree.
+      Where the repository evidence adapter supports the language of a
+      source file, the repository evidence adapter shall return the symbols,
+      imports and call edges of that file from its syntax tree.
     level: L3
     port: RepositoryEvidence
     source_points: [52, 56, 57, 58, 59]
     rationale: >-
       AST, symbol, import and call evidence tell TER which code relates to
-      the task.
-    status: planned
+      the task. The python-ast engine supports Python; an engine returns no
+      structure for a language it does not support.
+    status: verified
 
   - id: TER-EVD-013
     pattern: optional
     text: >-
-      Where the repository is a Git working tree, the repository evidence
-      adapter shall return the current diff and the history of each file.
+      Where the repository is a Git working tree, the Git repository
+      evidence adapter shall return the current diff and the history of each
+      file.
     level: L3
     port: RepositoryEvidence
     source_points: [61, 62]
     rationale: >-
-      Change awareness is optional evidence that grounds live analysis.
+      Change awareness is optional evidence that grounds live analysis. The
+      Git engine refuses a directory that is not the top level of a work
+      tree; the other engines return no diff or history.
+    status: verified
+
+  - id: TER-EVD-014
+    pattern: event-driven
+    text: >-
+      When a detector requests repository evidence for a source module in a
+      supported language other than Python, the repository evidence adapter
+      shall return every test module that imports that source module.
+    level: L3
+    port: RepositoryEvidence
+    source_points: [60]
+    rationale: >-
+      Split from TER-EVD-003, which proves the test-to-source rule for
+      Python import statements only. Each further language needs its own
+      import and test-module rules.
     status: planned
 
   - id: TER-GRF-001
@@ -319,4 +340,4 @@ requirements:
       The L3 part of TER-ARC-002: repository evidence engines are plugins
       like analysers, detectors and agent adapters, but no repository
       engine exists before L3.
-    status: planned
+    status: verified

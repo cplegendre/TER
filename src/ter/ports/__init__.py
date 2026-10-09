@@ -1,7 +1,8 @@
 """Ports: the Protocols between the TER core and the outside world.
 
 Driven ports (``ter.ports.driven``) are what TER needs from outside: session
-sources, tokenizers, embedders, clocks, price books. Every driven port has one contract
+sources, tokenizers, embedders, clocks, price books, repository
+evidence. Every driven port has one contract
 suite under ``tests/contract``, and both the real adapter and its in-memory
 fake must pass it.
 
@@ -18,6 +19,7 @@ from .driven import (
     EventLog,
     OutcomeSource,
     PriceBook,
+    RepositoryEvidence,
     SessionSource,
     TerScorer,
     Tokenizer,
@@ -34,6 +36,7 @@ DRIVEN_PORTS: dict[str, type[object]] = {
     "EventLog": EventLog,
     "OutcomeSource": OutcomeSource,
     "PriceBook": PriceBook,
+    "RepositoryEvidence": RepositoryEvidence,
     "SessionSource": SessionSource,
     "TerScorer": TerScorer,
     "Tokenizer": Tokenizer,
@@ -56,6 +59,7 @@ __all__ = [
     "EventLog",
     "OutcomeSource",
     "PriceBook",
+    "RepositoryEvidence",
     "SessionSource",
     "TerScorer",
     "Tokenizer",

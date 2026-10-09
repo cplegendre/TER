@@ -76,8 +76,12 @@ domain**. Concretely:
 - No behaviour measure imports `ter.domain.outcome`: the outcome verdict is
   shown beside the measures, never read by them
   ([outcome.md](../ter4/outcome.md)).
+- Repository evidence (`ter.domain.repository` and the engines in
+  `ter.adapters.driven.repository`) imports no model SDK, tokenizer or
+  embedder: what a repository says never depends on which model reads it
+  ([l3-grounded.md](../ter4/l3-grounded.md)).
 
-These are seven import-linter contracts in `[tool.importlinter]` in
+These are eight import-linter contracts in `[tool.importlinter]` in
 `pyproject.toml`. `lint-imports` in CI and
 `tests/architecture/test_import_contracts.py` both enforce them:
 
@@ -102,6 +106,7 @@ add an exemption.
 | `EventLog` | driven | `JsonlEventLog` | `InMemoryEventLog` | `tests/contract/test_event_log.py` |
 | `TerScorer` | driven | `Ter3Scorer` (wraps TER 3) | `FixedTerScorer` | `tests/contract/test_ter_scorer.py` |
 | `OutcomeSource` | driven | `JUnitOutcomeSource` (JUnit XML test results, [outcome.md](../ter4/outcome.md)) | `InMemoryOutcomeSource` | `tests/contract/test_outcome_source.py` |
+| `RepositoryEvidence` | driven | `LexicalRepositoryEvidence`, `GitRepositoryEvidence`, `PythonSyntaxEvidence` ([l3-grounded.md](../ter4/l3-grounded.md)) | `InMemoryRepositoryEvidence` | `tests/contract/test_repository_evidence.py` |
 | `EventIngest` | driving | `ObserveEvent` (long-lived process), `RecordEvent` (append-only, one hook process) | n/a | `tests/contract/test_event_ingest.py` |
 
 Ports are `typing.Protocol` classes in `src/ter/ports/driven.py` and

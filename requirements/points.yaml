@@ -815,14 +815,16 @@ points:
       Extend intent analysis with software-repository evidence.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Intent analysis takes repository evidence as an input through the
         RepositoryEvidence port.
     rules: [TER-EVD-001]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-001'
+      - 'test: tests/contract/test_repository_evidence.py'
+      - 'test: tests/architecture/test_repository_evidence_boundary.py'
+      - 'planned: intent analysis takes repository evidence through the port (TER-ITN-006, TER-LEN-009, L3)'
 
   - id: P052
     text: >-
@@ -830,14 +832,16 @@ points:
       components relate to the requested task.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         For a task, TER lists the related files, symbols, tests, modules and
         components with the evidence for each.
     rules: [TER-EVD-012]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-012'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestTestsImporting'
+      - 'planned: per-task listing of related files, symbols and tests (change surface, TER-EVD-006, L3 step 4)'
 
   - id: P053
     text: >-
@@ -845,14 +849,16 @@ points:
       model.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         TGV-style repository intelligence is available as a
         RepositoryEvidence adapter.
     rules: [TER-EVD-001]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-001'
+      - 'test: tests/contract/test_repository_evidence.py'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestRepositoryEnginesArePlugins'
+      - 'planned: a TGV-style repository intelligence engine behind the RepositoryEvidence port (lexical, Git and Python syntax engines exist)'
 
   - id: P054
     text: >-
@@ -860,118 +866,129 @@ points:
       providers.
     level: L3
     kind: principle
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         The repository evidence layer imports no model-provider SDK,
         enforced by an import-linter contract.
     rules: [TER-EVD-001]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-001'
+      - 'test: tests/architecture/test_repository_evidence_boundary.py'
+      - 'test: tests/architecture/test_import_contracts.py::test_every_import_contract_is_kept'
+      - 'ci: Architecture import contracts'
 
   - id: P055
     text: >-
       Support lexical repository analysis as a deterministic baseline.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         A lexical adapter returns deterministic results, frozen by a golden
         test.
     rules: [TER-EVD-002]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-002'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestLexicalDeterminism'
+      - 'test: tests/golden/test_repository_evidence_snapshot.py::test_lexical_evidence_matches_golden_snapshot'
 
   - id: P056
     text: >-
       Add AST-aware analysis for supported programming languages.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - At least Python is supported with AST-derived evidence.
     rules: [TER-EVD-012]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-012'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
+      - 'test: tests/golden/test_repository_evidence_snapshot.py::test_python_syntax_evidence_matches_golden_snapshot'
 
   - id: P057
     text: >-
       Add symbol-aware repository navigation.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Symbol definitions and references can be navigated from evidence
         queries.
     rules: [TER-EVD-012]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-012'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
+      - 'planned: navigate symbol references (beyond call edges) from evidence queries'
 
   - id: P058
     text: >-
       Add import and dependency relationship analysis.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - The adapter returns import and dependency edges between modules.
     rules: [TER-EVD-012]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-012'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestLexicalImports'
 
   - id: P059
     text: >-
       Add call-graph evidence where practical.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - The adapter returns call edges for supported languages.
     rules: [TER-EVD-012]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-012'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
 
   - id: P060
     text: >-
       Add test-to-source relationships.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         For any source module, the adapter returns every test module that
         imports it.
-    rules: [TER-EVD-003]
+    rules: [TER-EVD-003, TER-EVD-014]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-003'
+      - 'test: tests/contract/test_repository_evidence.py::test_returns_every_test_module_that_imports_a_source_module'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestTestsImporting'
+      - 'planned: test-to-source links for languages other than Python (TER-EVD-014)'
 
   - id: P061
     text: >-
       Add Git history and change-awareness as optional evidence.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Git history per file is available when the repository is a Git
         working tree, and absent otherwise without error.
     rules: [TER-EVD-013]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-013'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestGitHistory'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestGitWorkTree'
+      - 'test: tests/contract/test_repository_evidence.py::test_diff_and_history_are_version_control_evidence_or_none'
 
   - id: P062
     text: >-
       Understand the current Git diff during live analysis.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - Live analysis reads the current diff on each relevant event.
     rules: [TER-EVD-013]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-013'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestGitDiff'
+      - 'planned: live analysis reads the current diff on each relevant event (L3, with the change surface)'
 
   - id: P063
     text: >-
@@ -3010,7 +3027,8 @@ points:
       - 'test: tests/unit/test_ter4_plugins.py'
       - 'test: tests/contract/test_outcome_source.py'
       - 'test: tests/unit/test_ter4_lean_analysis.py::test_detectors_are_plugins'
-      - 'planned: repository engines load as plugins at L3 (TER-ARC-007)'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestRepositoryEnginesArePlugins'
+      - 'test: tests/contract/test_repository_evidence.py'
       - 'planned: intervention policies load as plugins at L4 (TER-ARC-008)'
       - 'test: tests/architecture/test_import_contracts.py::test_core_never_imports_external_capability_packages'
 

@@ -1,0 +1,421 @@
+{
+  "engine": "python-ast",
+  "files": [
+    "README.md",
+    "src/pkg/__init__.py",
+    "src/pkg/core.py",
+    "src/pkg/util.py",
+    "tests/helpers.py",
+    "tests/test_both.py",
+    "tests/test_core.py",
+    "tests/test_other.py",
+    "tests/test_util.py",
+    "tests/unit/core_test.py"
+  ],
+  "search": {
+    "add": [
+      {
+        "line": 1,
+        "path": "README.md",
+        "text": "Add numbers with pkg.core.add(a, b)."
+      },
+      {
+        "line": 1,
+        "path": "src/pkg/core.py",
+        "text": "def add(a, b):"
+      },
+      {
+        "line": 7,
+        "path": "src/pkg/core.py",
+        "text": "        return sum(add(x, 0) for x in xs)"
+      },
+      {
+        "line": 1,
+        "path": "src/pkg/util.py",
+        "text": "from .core import add"
+      },
+      {
+        "line": 5,
+        "path": "src/pkg/util.py",
+        "text": "    return add(x, x)"
+      },
+      {
+        "line": 8,
+        "path": "tests/test_both.py",
+        "text": "    assert core.add(1, 1) == util.twice(1)"
+      },
+      {
+        "line": 1,
+        "path": "tests/test_core.py",
+        "text": "from pkg.core import add"
+      },
+      {
+        "line": 4,
+        "path": "tests/test_core.py",
+        "text": "def test_add():"
+      },
+      {
+        "line": 5,
+        "path": "tests/test_core.py",
+        "text": "    assert add(1, 2) == 3"
+      }
+    ],
+    "def ": [
+      {
+        "line": 1,
+        "path": "src/pkg/core.py",
+        "text": "def add(a, b):"
+      },
+      {
+        "line": 6,
+        "path": "src/pkg/core.py",
+        "text": "    def total(self, xs):"
+      },
+      {
+        "line": 4,
+        "path": "src/pkg/util.py",
+        "text": "def twice(x):"
+      },
+      {
+        "line": 7,
+        "path": "tests/test_both.py",
+        "text": "def test_both():"
+      },
+      {
+        "line": 4,
+        "path": "tests/test_core.py",
+        "text": "def test_add():"
+      },
+      {
+        "line": 4,
+        "path": "tests/test_other.py",
+        "text": "def test_json():"
+      },
+      {
+        "line": 4,
+        "path": "tests/test_util.py",
+        "text": "def test_twice():"
+      }
+    ],
+    "import": [
+      {
+        "line": 1,
+        "path": "src/pkg/util.py",
+        "text": "from .core import add"
+      },
+      {
+        "line": 1,
+        "path": "tests/helpers.py",
+        "text": "from pkg.core import Calc"
+      },
+      {
+        "line": 1,
+        "path": "tests/test_both.py",
+        "text": "from pkg import ("
+      },
+      {
+        "line": 1,
+        "path": "tests/test_core.py",
+        "text": "from pkg.core import add"
+      },
+      {
+        "line": 1,
+        "path": "tests/test_other.py",
+        "text": "import json"
+      },
+      {
+        "line": 1,
+        "path": "tests/test_util.py",
+        "text": "import pkg.util as u"
+      },
+      {
+        "line": 1,
+        "path": "tests/unit/core_test.py",
+        "text": "from pkg.core import Calc"
+      }
+    ],
+    "pkg.core": [
+      {
+        "line": 1,
+        "path": "README.md",
+        "text": "Add numbers with pkg.core.add(a, b)."
+      },
+      {
+        "line": 1,
+        "path": "tests/helpers.py",
+        "text": "from pkg.core import Calc"
+      },
+      {
+        "line": 1,
+        "path": "tests/test_core.py",
+        "text": "from pkg.core import add"
+      },
+      {
+        "line": 1,
+        "path": "tests/unit/core_test.py",
+        "text": "from pkg.core import Calc"
+      }
+    ]
+  },
+  "structure": {
+    "README.md": null,
+    "src/pkg/__init__.py": {
+      "calls": [],
+      "error": null,
+      "imports": [],
+      "language": "python",
+      "module": "pkg",
+      "path": "src/pkg/__init__.py",
+      "symbols": []
+    },
+    "src/pkg/core.py": {
+      "calls": [
+        {
+          "callee": "sum",
+          "caller": "Calc.total",
+          "line": 7,
+          "resolved": null
+        },
+        {
+          "callee": "add",
+          "caller": "Calc.total",
+          "line": 7,
+          "resolved": "pkg.core.add"
+        }
+      ],
+      "error": null,
+      "imports": [],
+      "language": "python",
+      "module": "pkg.core",
+      "path": "src/pkg/core.py",
+      "symbols": [
+        {
+          "end_line": 2,
+          "kind": "function",
+          "line": 1,
+          "name": "add"
+        },
+        {
+          "end_line": 7,
+          "kind": "class",
+          "line": 5,
+          "name": "Calc"
+        },
+        {
+          "end_line": 7,
+          "kind": "method",
+          "line": 6,
+          "name": "Calc.total"
+        }
+      ]
+    },
+    "src/pkg/util.py": {
+      "calls": [
+        {
+          "callee": "add",
+          "caller": "twice",
+          "line": 5,
+          "resolved": "pkg.core.add"
+        }
+      ],
+      "error": null,
+      "imports": [
+        {
+          "line": 1,
+          "module": "pkg.core",
+          "names": [
+            "add"
+          ]
+        }
+      ],
+      "language": "python",
+      "module": "pkg.util",
+      "path": "src/pkg/util.py",
+      "symbols": [
+        {
+          "end_line": 5,
+          "kind": "function",
+          "line": 4,
+          "name": "twice"
+        }
+      ]
+    },
+    "tests/helpers.py": {
+      "calls": [],
+      "error": null,
+      "imports": [
+        {
+          "line": 1,
+          "module": "pkg.core",
+          "names": [
+            "Calc"
+          ]
+        }
+      ],
+      "language": "python",
+      "module": "helpers",
+      "path": "tests/helpers.py",
+      "symbols": []
+    },
+    "tests/test_both.py": {
+      "calls": [
+        {
+          "callee": "core.add",
+          "caller": "test_both",
+          "line": 8,
+          "resolved": "pkg.core.add"
+        },
+        {
+          "callee": "util.twice",
+          "caller": "test_both",
+          "line": 8,
+          "resolved": "pkg.util.twice"
+        }
+      ],
+      "error": null,
+      "imports": [
+        {
+          "line": 1,
+          "module": "pkg",
+          "names": [
+            "core",
+            "util"
+          ]
+        }
+      ],
+      "language": "python",
+      "module": "test_both",
+      "path": "tests/test_both.py",
+      "symbols": [
+        {
+          "end_line": 8,
+          "kind": "function",
+          "line": 7,
+          "name": "test_both"
+        }
+      ]
+    },
+    "tests/test_core.py": {
+      "calls": [
+        {
+          "callee": "add",
+          "caller": "test_add",
+          "line": 5,
+          "resolved": "pkg.core.add"
+        }
+      ],
+      "error": null,
+      "imports": [
+        {
+          "line": 1,
+          "module": "pkg.core",
+          "names": [
+            "add"
+          ]
+        }
+      ],
+      "language": "python",
+      "module": "test_core",
+      "path": "tests/test_core.py",
+      "symbols": [
+        {
+          "end_line": 5,
+          "kind": "function",
+          "line": 4,
+          "name": "test_add"
+        }
+      ]
+    },
+    "tests/test_other.py": {
+      "calls": [],
+      "error": null,
+      "imports": [
+        {
+          "line": 1,
+          "module": "json",
+          "names": []
+        }
+      ],
+      "language": "python",
+      "module": "test_other",
+      "path": "tests/test_other.py",
+      "symbols": [
+        {
+          "end_line": 5,
+          "kind": "function",
+          "line": 4,
+          "name": "test_json"
+        }
+      ]
+    },
+    "tests/test_util.py": {
+      "calls": [
+        {
+          "callee": "u.twice",
+          "caller": "test_twice",
+          "line": 5,
+          "resolved": "pkg.util.twice"
+        }
+      ],
+      "error": null,
+      "imports": [
+        {
+          "line": 1,
+          "module": "pkg.util",
+          "names": []
+        }
+      ],
+      "language": "python",
+      "module": "test_util",
+      "path": "tests/test_util.py",
+      "symbols": [
+        {
+          "end_line": 5,
+          "kind": "function",
+          "line": 4,
+          "name": "test_twice"
+        }
+      ]
+    },
+    "tests/unit/core_test.py": {
+      "calls": [],
+      "error": null,
+      "imports": [
+        {
+          "line": 1,
+          "module": "pkg.core",
+          "names": [
+            "Calc"
+          ]
+        }
+      ],
+      "language": "python",
+      "module": "core_test",
+      "path": "tests/unit/core_test.py",
+      "symbols": []
+    }
+  },
+  "tests_importing": {
+    "src/pkg/__init__.py": [
+      "tests/test_both.py",
+      "tests/test_core.py",
+      "tests/test_util.py",
+      "tests/unit/core_test.py"
+    ],
+    "src/pkg/core.py": [
+      "tests/test_both.py",
+      "tests/test_core.py",
+      "tests/unit/core_test.py"
+    ],
+    "src/pkg/util.py": [
+      "tests/test_both.py",
+      "tests/test_util.py"
+    ],
+    "tests/helpers.py": [],
+    "tests/test_both.py": [],
+    "tests/test_core.py": [],
+    "tests/test_other.py": [],
+    "tests/test_util.py": [],
+    "tests/unit/core_test.py": []
+  }
+}

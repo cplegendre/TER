@@ -399,7 +399,7 @@ existed map as follows.
 | TER-LEAN-030 | TER-GRF-002, TER-GRF-003 (TER-GRF-001 planned: decision nodes) | verified | `test_ter4_lean_analysis.py`, properties, `test_ter4_a3.py` |
 | TER-LEAN-040 | TER-SCR-002, TER-FLW-001, TER-SCR-001 | verified | `test_ter4_lean_analysis.py`, properties, `test_ter4_wip_scorecard.py` |
 | TER-LEAN-050 | TER-ANL-010 | verified | `tests/equivalence/test_live_static.py`, properties |
-| TER-LEAN-060 | TER-ARC-002 (TER-ARC-007, 008 planned: repository engines at L3, policies at L4) | verified | `tests/unit/test_ter4_plugins.py`, `test_ter4_lean_analysis.py` |
+| TER-LEAN-060 | TER-ARC-002 (TER-ARC-007 verified at L3: repository engines, see [l3-grounded.md](l3-grounded.md); TER-ARC-008 planned: policies at L4) | verified | `tests/unit/test_ter4_plugins.py`, `test_ter4_lean_analysis.py` |
 | TER-A3-001, 005 | TER-RPT-003 | verified | `test_ter4_lean_analysis.py`, `test_ter4_a3.py`, golden A3 JSON |
 | TER-A3-002 | TER-RPT-004 | verified | `tests/unit/test_ter4_a3.py`, golden A3 HTML |
 | TER-A3-003 | TER-RPT-005 | verified | `test_ter4_lean_analysis.py` |

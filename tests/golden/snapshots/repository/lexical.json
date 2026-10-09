@@ -1,0 +1,195 @@
+{
+  "engine": "lexical",
+  "files": [
+    "README.md",
+    "src/pkg/__init__.py",
+    "src/pkg/core.py",
+    "src/pkg/util.py",
+    "tests/helpers.py",
+    "tests/test_both.py",
+    "tests/test_core.py",
+    "tests/test_other.py",
+    "tests/test_util.py",
+    "tests/unit/core_test.py"
+  ],
+  "search": {
+    "add": [
+      {
+        "line": 1,
+        "path": "README.md",
+        "text": "Add numbers with pkg.core.add(a, b)."
+      },
+      {
+        "line": 1,
+        "path": "src/pkg/core.py",
+        "text": "def add(a, b):"
+      },
+      {
+        "line": 7,
+        "path": "src/pkg/core.py",
+        "text": "        return sum(add(x, 0) for x in xs)"
+      },
+      {
+        "line": 1,
+        "path": "src/pkg/util.py",
+        "text": "from .core import add"
+      },
+      {
+        "line": 5,
+        "path": "src/pkg/util.py",
+        "text": "    return add(x, x)"
+      },
+      {
+        "line": 8,
+        "path": "tests/test_both.py",
+        "text": "    assert core.add(1, 1) == util.twice(1)"
+      },
+      {
+        "line": 1,
+        "path": "tests/test_core.py",
+        "text": "from pkg.core import add"
+      },
+      {
+        "line": 4,
+        "path": "tests/test_core.py",
+        "text": "def test_add():"
+      },
+      {
+        "line": 5,
+        "path": "tests/test_core.py",
+        "text": "    assert add(1, 2) == 3"
+      }
+    ],
+    "def ": [
+      {
+        "line": 1,
+        "path": "src/pkg/core.py",
+        "text": "def add(a, b):"
+      },
+      {
+        "line": 6,
+        "path": "src/pkg/core.py",
+        "text": "    def total(self, xs):"
+      },
+      {
+        "line": 4,
+        "path": "src/pkg/util.py",
+        "text": "def twice(x):"
+      },
+      {
+        "line": 7,
+        "path": "tests/test_both.py",
+        "text": "def test_both():"
+      },
+      {
+        "line": 4,
+        "path": "tests/test_core.py",
+        "text": "def test_add():"
+      },
+      {
+        "line": 4,
+        "path": "tests/test_other.py",
+        "text": "def test_json():"
+      },
+      {
+        "line": 4,
+        "path": "tests/test_util.py",
+        "text": "def test_twice():"
+      }
+    ],
+    "import": [
+      {
+        "line": 1,
+        "path": "src/pkg/util.py",
+        "text": "from .core import add"
+      },
+      {
+        "line": 1,
+        "path": "tests/helpers.py",
+        "text": "from pkg.core import Calc"
+      },
+      {
+        "line": 1,
+        "path": "tests/test_both.py",
+        "text": "from pkg import ("
+      },
+      {
+        "line": 1,
+        "path": "tests/test_core.py",
+        "text": "from pkg.core import add"
+      },
+      {
+        "line": 1,
+        "path": "tests/test_other.py",
+        "text": "import json"
+      },
+      {
+        "line": 1,
+        "path": "tests/test_util.py",
+        "text": "import pkg.util as u"
+      },
+      {
+        "line": 1,
+        "path": "tests/unit/core_test.py",
+        "text": "from pkg.core import Calc"
+      }
+    ],
+    "pkg.core": [
+      {
+        "line": 1,
+        "path": "README.md",
+        "text": "Add numbers with pkg.core.add(a, b)."
+      },
+      {
+        "line": 1,
+        "path": "tests/helpers.py",
+        "text": "from pkg.core import Calc"
+      },
+      {
+        "line": 1,
+        "path": "tests/test_core.py",
+        "text": "from pkg.core import add"
+      },
+      {
+        "line": 1,
+        "path": "tests/unit/core_test.py",
+        "text": "from pkg.core import Calc"
+      }
+    ]
+  },
+  "structure": {
+    "README.md": null,
+    "src/pkg/__init__.py": null,
+    "src/pkg/core.py": null,
+    "src/pkg/util.py": null,
+    "tests/helpers.py": null,
+    "tests/test_both.py": null,
+    "tests/test_core.py": null,
+    "tests/test_other.py": null,
+    "tests/test_util.py": null,
+    "tests/unit/core_test.py": null
+  },
+  "tests_importing": {
+    "src/pkg/__init__.py": [
+      "tests/test_both.py",
+      "tests/test_core.py",
+      "tests/test_util.py",
+      "tests/unit/core_test.py"
+    ],
+    "src/pkg/core.py": [
+      "tests/test_both.py",
+      "tests/test_core.py",
+      "tests/unit/core_test.py"
+    ],
+    "src/pkg/util.py": [
+      "tests/test_both.py",
+      "tests/test_util.py"
+    ],
+    "tests/helpers.py": [],
+    "tests/test_both.py": [],
+    "tests/test_core.py": [],
+    "tests/test_other.py": [],
+    "tests/test_util.py": [],
+    "tests/unit/core_test.py": []
+  }
+}
