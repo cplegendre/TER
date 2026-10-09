@@ -20,12 +20,16 @@ from typing import NewType
 #: Version of the normalised ``ter.event`` contract. Bumped on any change to
 #: the fields below that consumers can observe.
 #:
-#: 0.2 added the lifecycle kinds ``task.completed`` and ``subagent.completed``.
-EVENT_SCHEMA_VERSION = "ter.event/0.2"
+#: 0.2 added the lifecycle kinds ``task.completed`` and ``subagent.completed``;
+#: 0.3 the routing kinds ``route.selected``, ``route.failover``,
+#: ``attempt.started``, ``verification.completed`` and ``outcome.recorded``.
+EVENT_SCHEMA_VERSION = "ter.event/0.3"
 
 #: Every contract version this build reads. Each is a subset of the current
 #: one, so a record written under any of them decodes unchanged.
-READABLE_SCHEMA_VERSIONS = frozenset({"ter.event/0.1", EVENT_SCHEMA_VERSION})
+READABLE_SCHEMA_VERSIONS = frozenset(
+    {"ter.event/0.1", "ter.event/0.2", EVENT_SCHEMA_VERSION}
+)
 
 #: Stable, content-derived identity of an event. The same source record always
 #: yields the same id, which makes replay idempotent and findings citable.
@@ -51,11 +55,23 @@ class EventKind(StrEnum):
     TOOL_COMPLETED = "tool.completed"
     TASK_COMPLETED = "task.completed"
     SUBAGENT_COMPLETED = "subagent.completed"
+    # Routing harnesses (GARE, issue #52): how a run chose, retried and
+    # judged its routes.
+    ROUTE_SELECTED = "route.selected"
+    ROUTE_FAILOVER = "route.failover"
+    ATTEMPT_STARTED = "attempt.started"
+    VERIFICATION_COMPLETED = "verification.completed"
+    OUTCOME_RECORDED = "outcome.recorded"
 
     @property
     def is_lifecycle(self) -> bool:
-        """True for markers of the session's shape that carry no conversation."""
-        return self in {EventKind.TASK_COMPLETED, EventKind.SUBAGENT_COMPLETED}
+        """True for markers of the session's shape that carry no conversation.
+
+        Task and subagent ends, and a routing harness's route, attempt,
+        verification and outcome markers: none is a step of the value stream
+        and none is scored.
+        """
+        return self in _LIFECYCLE
 
     @property
     def is_generated(self) -> bool:
@@ -65,6 +81,19 @@ class EventKind(StrEnum):
             EventKind.RESPONSE,
             EventKind.TOOL_REQUESTED,
         }
+
+
+_LIFECYCLE = frozenset(
+    {
+        EventKind.TASK_COMPLETED,
+        EventKind.SUBAGENT_COMPLETED,
+        EventKind.ROUTE_SELECTED,
+        EventKind.ROUTE_FAILOVER,
+        EventKind.ATTEMPT_STARTED,
+        EventKind.VERIFICATION_COMPLETED,
+        EventKind.OUTCOME_RECORDED,
+    }
+)
 
 
 class ToolKind(StrEnum):
@@ -138,6 +167,24 @@ class Event:
     parent_id: EventId | None = None
 
 
+#: How each known usage limit reads beside the figures it qualifies
+#: (TER-SRC-014, TER-SRC-016).
+USAGE_LIMIT_TEXT: Mapping[str, str] = {
+    "no-cache-tokens": "the source reports no cache tokens; cache figures are 0",
+    "no-response-text": (
+        "the source exports no response text; text tokens count route labels, "
+        "not what the model wrote"
+    ),
+}
+#: Limits that qualify token counts taken from event text, not usage figures.
+TEXT_LIMITS = frozenset({"no-response-text"})
+
+
+def describe_limit(limit: str) -> str:
+    """The reader-facing text for a usage limit (the id when unknown)."""
+    return USAGE_LIMIT_TEXT.get(limit, limit)
+
+
 @dataclass(frozen=True)
 class UnrecognisedRecord:
     """A source record the adapter could not map, kept so coverage is honest."""
@@ -155,6 +202,9 @@ class SessionTrace:
     events: tuple[Event, ...]
     unrecognised: tuple[UnrecognisedRecord, ...] = ()
     schema_version: str = EVENT_SCHEMA_VERSION
+    #: What the source cannot report, e.g. ``no-cache-tokens``; reports state
+    #: each limit beside their token figures.
+    usage_limits: tuple[str, ...] = ()
 
     @property
     def unrecognised_by_type(self) -> Mapping[str, int]:

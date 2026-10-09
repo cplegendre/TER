@@ -353,7 +353,8 @@ def test_capabilities_command_keeps_a_built_in_a_plugin_tried_to_hijack() -> Non
     code, text = _cli(reg.capabilities(), problems)
     assert code == 1
     usable = text.split("\n  !")[0]
-    assert "8 usable, 1 problem(s)" in usable  # every built-in still counts
+    # Every built-in still counts.
+    assert f"{len(BUILTIN_CAPABILITIES)} usable, 1 problem(s)" in usable
     assert any(
         line.split()[:3]
         == ["Tokenizer", "regex", "ter.adapters.driven.tokenizers:RegexTokenizer"]
