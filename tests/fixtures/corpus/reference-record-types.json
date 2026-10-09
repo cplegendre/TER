@@ -1,0 +1,226 @@
+{
+ "schema": "ter.corpus-record-types/1",
+ "sessions": [
+  {
+   "session": "ter-cloud-73aee6de414a99cd",
+   "subagent": true,
+   "records": 540,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 196,
+    "attachment": 225,
+    "user": 119
+   },
+   "attachment_types": {
+    "auto_mode": 1,
+    "credential_org": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 96,
+    "edited_text_file": 6,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 3,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 107
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "ter-cloud-9ed3ac0b65d5a1b2",
+   "subagent": true,
+   "records": 492,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 171,
+    "attachment": 211,
+    "user": 110
+   },
+   "attachment_types": {
+    "auto_mode": 1,
+    "credential_org": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 91,
+    "edited_text_file": 8,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 98
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "ter-cloud-f4152d7d4c2a5f89",
+   "subagent": true,
+   "records": 480,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 173,
+    "attachment": 193,
+    "user": 114
+   },
+   "attachment_types": {
+    "auto_mode": 1,
+    "credential_org": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 77,
+    "edited_text_file": 6,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 4,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 93
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "ter-cloud-7dff95b8d6ee5d6e",
+   "subagent": true,
+   "records": 73,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 22,
+    "attachment": 33,
+    "user": 18
+   },
+   "attachment_types": {
+    "auto_mode": 1,
+    "credential_org": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 6,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 14
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "ter-cloud-b2a054b16f6fea53",
+   "subagent": true,
+   "records": 420,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 152,
+    "attachment": 176,
+    "user": 92
+   },
+   "attachment_types": {
+    "auto_mode": 1,
+    "credential_org": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 75,
+    "edited_text_file": 5,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 82
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "ter-cloud-397864efef02b8db",
+   "subagent": true,
+   "records": 407,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 140,
+    "attachment": 173,
+    "user": 94
+   },
+   "attachment_types": {
+    "auto_mode": 1,
+    "credential_org": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 71,
+    "edited_text_file": 8,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 80
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "ter-cloud-f5681ac85e7839f3",
+   "subagent": false,
+   "records": 854,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 52,
+    "assistant": 218,
+    "atis-latch": 52,
+    "attachment": 255,
+    "last-prompt": 51,
+    "queue-operation": 60,
+    "system": 7,
+    "user": 159
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "context_sections": 1,
+    "credential_org": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 64,
+    "edited_text_file": 1,
+    "environment": 1,
+    "hook_additional_context": 25,
+    "hook_success": 17,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 7,
+    "relevant_memories": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "task_reminder": 14,
+    "total_tokens_reminder": 111
+   },
+   "system_subtypes": {
+    "stop_hook_summary": 7
+   }
+  }
+ ]
+}

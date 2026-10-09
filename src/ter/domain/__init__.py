@@ -16,6 +16,7 @@ from .events import (
     TokenUsage,
     ToolCall,
     ToolKind,
+    MetadataRecord,
     UnrecognisedRecord,
     make_event_id,
 )
@@ -100,6 +101,7 @@ __all__ = [
     "ToolKind",
     "UncertaintySummary",
     "UnknownModelError",
+    "MetadataRecord",
     "UnrecognisedRecord",
     "WasteByType",
     "WasteEntry",

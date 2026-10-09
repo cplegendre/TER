@@ -221,9 +221,11 @@ def _shift(*, redirect: str, announce: bool, edit: str = MEAN_EDIT) -> Script:
 
 @pytest.mark.req("TER-ITN-003")
 class TestIntentDrift:
-    def test_unrequested_new_names_are_drift(self) -> None:
+    def test_unrequested_new_names_alone_are_uncertain_drift(self) -> None:
+        # Real sessions showed new names alone are no evidence: implementing
+        # anything defines them, so the finding is shown but never counted.
         [f] = drift(_shift(redirect=MODE, announce=False))
-        assert f.confidence == 0.75 and not f.uncertain
+        assert f.confidence == 0.55 and f.uncertain
         assert f.kind.value == "waste" and f.activity_class is ActivityClass.AVOIDABLE
         assert len(f.waste_events) == 2  # the edit and its result
 
@@ -423,6 +425,7 @@ def test_the_same_edit_is_valued_against_the_current_intent() -> None:
     def session(prompt: str) -> tuple[LeanAnalysis, str]:
         s = Script()
         s.prompt(prompt)
+        s.think("I will also add a mean and a variance function to src/stats.py.")
         request, _ = s.edit("src/stats.py", "", MEAN_EDIT)
         return run(s), request.id
 

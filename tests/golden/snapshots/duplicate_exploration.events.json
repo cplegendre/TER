@@ -1,5 +1,5 @@
 {
-  "coverage": 0.952381,
+  "coverage": 1.0,
   "events": [
     [
       0,
@@ -278,10 +278,11 @@
       83
     ]
   ],
+  "metadata": {
+    "file-history-snapshot": 1
+  },
   "schema": "ter.event/0.4",
   "session_id": "golden-explore",
   "source_format": "claude-code-jsonl",
-  "unrecognised": {
-    "file-history-snapshot": 1
-  }
+  "unrecognised": {}
 }

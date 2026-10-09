@@ -205,6 +205,19 @@ class UnrecognisedRecord:
 
 
 @dataclass(frozen=True)
+class MetadataRecord:
+    """A source record of a documented type that carries no agent activity.
+
+    Harness bookkeeping (titles, queue operations, permission modes, injected
+    reminders) is recognised rather than mapped: it describes the session, it
+    is not something the developer or the agent did (TER-SRC-005).
+    """
+
+    line: int
+    record_type: str
+
+
+@dataclass(frozen=True)
 class SessionTrace:
     """A whole session as normalised events, plus what could not be mapped."""
 
@@ -212,6 +225,8 @@ class SessionTrace:
     source_format: str
     events: tuple[Event, ...]
     unrecognised: tuple[UnrecognisedRecord, ...] = ()
+    #: Records of documented types that carry no agent activity.
+    metadata: tuple[MetadataRecord, ...] = ()
     schema_version: str = EVENT_SCHEMA_VERSION
     #: What the source cannot report, e.g. ``no-cache-tokens``; reports state
     #: each limit beside their token figures.
@@ -222,11 +237,20 @@ class SessionTrace:
         return dict(Counter(r.record_type for r in self.unrecognised))
 
     @property
+    def metadata_by_type(self) -> Mapping[str, int]:
+        return dict(Counter(r.record_type for r in self.metadata))
+
+    @property
     def coverage(self) -> float:
-        """Share of source records that produced at least one event (1.0 when empty)."""
+        """Share of source records accounted for (1.0 when empty).
+
+        A record is accounted for when it produced at least one event or is a
+        documented metadata record; unrecognised records are the rest.
+        """
         mapped = len({e.provenance.record_id for e in self.events})
-        total = mapped + len(self.unrecognised)
-        return 1.0 if total == 0 else mapped / total
+        known = mapped + len(self.metadata)
+        total = known + len(self.unrecognised)
+        return 1.0 if total == 0 else known / total
 
     def generated(self) -> tuple[Event, ...]:
         """Events the agent generated; user input and tool output are excluded."""

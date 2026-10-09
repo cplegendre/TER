@@ -1008,9 +1008,9 @@ class IntentDrift:
         "drift band (default 0.25), against an intent of at least 3 key terms: "
         "0.85 when the names it defines continue a goal the developer dropped, "
         "or the agent's own reasoning or narration since the prompt called it "
-        "additional ('also', 'while I'm at it') and names it; 0.75 when it "
-        "defines new names the intent does not mention; 0.55 (uncertain) when "
-        "it defines no names and only its added words (at least 3) depart. "
+        "additional ('also', 'while I'm at it') and names it; 0.55 (uncertain) "
+        "when it only defines new names the intent does not mention, or defines "
+        "no names and only its added words (at least 3) depart. "
         "Before any prompt, or against a shorter intent: no finding."
     )
 
@@ -1054,8 +1054,15 @@ class IntentDrift:
                     confidence = 0.85
                     why = "The agent itself called it additional work."
                 else:
-                    confidence = 0.75
-                    why = "The intent does not mention what it defines."
+                    # Calibrated on real sessions (9 Oct 2026): new names alone
+                    # were 17 of 17 false positives (the requested new module,
+                    # helper scripts), since implementing anything defines names.
+                    confidence = 0.55
+                    why = (
+                        "The intent does not mention what it defines, but new "
+                        "code always defines new names, so this may be the "
+                        "requested change."
+                    )
             else:
                 if len(a.subject) < _MIN_DRIFT_WORDS:
                     continue

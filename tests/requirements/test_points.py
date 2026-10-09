@@ -392,9 +392,13 @@ def test_cli_lint_checks_points(
     points = copy / "points.yaml"
     text = points.read_text(encoding="utf-8")
     start = text.index("id: P102")
-    proof = text.index("'test: ", start)
-    end = text.index("'", proof + 1) + 1
-    text = text[:proof] + "'branch: work/other pending proof'" + text[end:]
+    stop = text.index("- id:", start)
+    block = text[start:stop]
+    while "'test: " in block:
+        proof = block.index("'test: ")
+        end = block.index("'", proof + 1) + 1
+        block = block[:proof] + "'branch: work/other pending proof'" + block[end:]
+    text = text[:start] + block + text[stop:]
     # ... and a rule still planned here, so its proof really is elsewhere.
     rules = text.index("rules: [", start)
     text = text[: rules + len("rules: [")] + "TER-OBS-099, " + text[rules + 8 :]

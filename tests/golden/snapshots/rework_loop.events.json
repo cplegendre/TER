@@ -1,5 +1,5 @@
 {
-  "coverage": 0.941176,
+  "coverage": 1.0,
   "events": [
     [
       0,
@@ -242,10 +242,11 @@
       46
     ]
   ],
+  "metadata": {
+    "summary": 1
+  },
   "schema": "ter.event/0.4",
   "session_id": "golden-rework",
   "source_format": "claude-code-jsonl",
-  "unrecognised": {
-    "summary": 1
-  }
+  "unrecognised": {}
 }
