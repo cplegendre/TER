@@ -221,6 +221,8482 @@
    "system_subtypes": {
     "stop_hook_summary": 7
    }
+  },
+  {
+   "session": "leigh-pc-fa1b83094b4e2107",
+   "subagent": false,
+   "records": 24,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 1,
+    "atis-latch": 2,
+    "attachment": 10,
+    "cost-state": 2,
+    "file-history-snapshot": 2,
+    "last-prompt": 1,
+    "mode": 2,
+    "permission-mode": 2,
+    "system": 1,
+    "user": 1
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 1
+   },
+   "system_subtypes": {
+    "turn_duration": 1
+   }
+  },
+  {
+   "session": "leigh-pc-f55428eba938c1df",
+   "subagent": false,
+   "records": 29,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 1,
+    "atis-latch": 3,
+    "attachment": 12,
+    "cost-state": 2,
+    "file-history-snapshot": 1,
+    "last-prompt": 2,
+    "mode": 3,
+    "permission-mode": 3,
+    "system": 1,
+    "user": 1
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 1
+   },
+   "system_subtypes": {
+    "turn_duration": 1
+   }
+  },
+  {
+   "session": "leigh-pc-a1ee67d84a184fb5",
+   "subagent": true,
+   "records": 115,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 59,
+    "attachment": 13,
+    "user": 43
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-8e506b365ab68fa1",
+   "subagent": true,
+   "records": 123,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 77,
+    "attachment": 13,
+    "user": 33
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-6494ec3c6bb5fad4",
+   "subagent": true,
+   "records": 141,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 87,
+    "attachment": 13,
+    "user": 41
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-f6102a7c7edba575",
+   "subagent": true,
+   "records": 104,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 51,
+    "attachment": 13,
+    "user": 40
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-ad3a17344dcf5097",
+   "subagent": true,
+   "records": 114,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 60,
+    "attachment": 13,
+    "user": 41
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-e4a5406373ff53af",
+   "subagent": true,
+   "records": 107,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 54,
+    "attachment": 13,
+    "user": 40
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-81250d3f7ce4a26d",
+   "subagent": true,
+   "records": 106,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 53,
+    "attachment": 13,
+    "user": 40
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-50a9212ae16116ec",
+   "subagent": true,
+   "records": 110,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 58,
+    "attachment": 13,
+    "user": 39
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-d66fae4e45dcd0b6",
+   "subagent": true,
+   "records": 126,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 74,
+    "attachment": 13,
+    "user": 39
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-9f5a31a9a68ce257",
+   "subagent": true,
+   "records": 158,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 103,
+    "attachment": 13,
+    "user": 42
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-10e66f25c26acbe4",
+   "subagent": true,
+   "records": 154,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 96,
+    "attachment": 13,
+    "user": 45
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-954bf3516dd77858",
+   "subagent": true,
+   "records": 145,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 91,
+    "attachment": 13,
+    "user": 41
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-6c0d545b5a9a23f9",
+   "subagent": true,
+   "records": 102,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 52,
+    "attachment": 13,
+    "user": 37
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-7bcdc5aa78c5020c",
+   "subagent": true,
+   "records": 127,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 77,
+    "attachment": 13,
+    "user": 37
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-36d041c87910de1a",
+   "subagent": true,
+   "records": 135,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 83,
+    "attachment": 13,
+    "user": 39
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-fe48c71b16703f17",
+   "subagent": true,
+   "records": 116,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 60,
+    "attachment": 13,
+    "user": 43
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-c1c8d9861732d017",
+   "subagent": true,
+   "records": 112,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 58,
+    "attachment": 13,
+    "user": 41
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-4b5873f7017dd73d",
+   "subagent": true,
+   "records": 109,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 65,
+    "attachment": 13,
+    "user": 31
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-ed7c0f5f2ac5f7fe",
+   "subagent": true,
+   "records": 298,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 153,
+    "attachment": 14,
+    "user": 131
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-e68a22c4cd801dc5",
+   "subagent": true,
+   "records": 193,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 95,
+    "attachment": 32,
+    "user": 66
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 18,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-8a4e9aedf17398a0",
+   "subagent": false,
+   "records": 1130,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 59,
+    "assistant": 340,
+    "atis-latch": 60,
+    "attachment": 121,
+    "cost-state": 2,
+    "file-history-delta": 81,
+    "file-history-snapshot": 4,
+    "last-prompt": 60,
+    "mode": 60,
+    "permission-mode": 60,
+    "pr-link": 17,
+    "queue-operation": 44,
+    "system": 5,
+    "user": 217
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 38,
+    "command_permissions": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 2,
+    "edited_text_file": 24,
+    "environment": 12,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "nested_memory": 3,
+    "prompt_snapshot": 2,
+    "queued_command": 22,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 8,
+    "skill_listing": 1
+   },
+   "system_subtypes": {
+    "local_command": 2,
+    "turn_duration": 3
+   }
+  },
+  {
+   "session": "leigh-pc-38399f3927a9481a",
+   "subagent": false,
+   "records": 95,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 4,
+    "assistant": 18,
+    "atis-latch": 5,
+    "attachment": 33,
+    "cost-state": 2,
+    "file-history-snapshot": 2,
+    "last-prompt": 5,
+    "mode": 5,
+    "permission-mode": 5,
+    "pr-link": 1,
+    "system": 2,
+    "user": 13
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "credential_org": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 9,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 10
+   },
+   "system_subtypes": {
+    "away_summary": 1,
+    "turn_duration": 1
+   }
+  },
+  {
+   "session": "leigh-pc-5baea9e3071d975a",
+   "subagent": false,
+   "records": 49,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 2,
+    "assistant": 5,
+    "atis-latch": 3,
+    "attachment": 23,
+    "cost-state": 2,
+    "file-history-snapshot": 1,
+    "last-prompt": 3,
+    "mode": 3,
+    "permission-mode": 3,
+    "system": 1,
+    "user": 3
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 2,
+    "batching_reminder_sent": 2,
+    "credential_org": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 3
+   },
+   "system_subtypes": {
+    "turn_duration": 1
+   }
+  },
+  {
+   "session": "leigh-pc-85d32df8cefc0b22",
+   "subagent": true,
+   "records": 117,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 47,
+    "attachment": 36,
+    "fork-context-ref": 1,
+    "user": 33
+   },
+   "attachment_types": {
+    "task_reminder": 4,
+    "total_tokens_reminder": 32
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-2c99af88a68334bf",
+   "subagent": false,
+   "records": 261,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 11,
+    "assistant": 90,
+    "atis-latch": 11,
+    "attachment": 52,
+    "cost-state": 2,
+    "file-history-delta": 2,
+    "file-history-snapshot": 4,
+    "last-prompt": 11,
+    "mode": 11,
+    "pr-link": 6,
+    "queue-operation": 2,
+    "system": 7,
+    "user": 52
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 2,
+    "skill_listing": 1,
+    "task_reminder": 7,
+    "total_tokens_reminder": 40
+   },
+   "system_subtypes": {
+    "away_summary": 2,
+    "local_command": 1,
+    "turn_duration": 4
+   }
+  },
+  {
+   "session": "leigh-pc-523c567cd76b146c",
+   "subagent": false,
+   "records": 779,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 35,
+    "assistant": 193,
+    "atis-latch": 36,
+    "attachment": 200,
+    "bridge-session": 37,
+    "cost-state": 2,
+    "file-history-delta": 29,
+    "file-history-snapshot": 5,
+    "last-prompt": 36,
+    "mode": 36,
+    "permission-mode": 36,
+    "pr-link": 6,
+    "queue-operation": 6,
+    "system": 6,
+    "user": 116
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 38,
+    "batching_reminder_sent": 58,
+    "command_permissions": 2,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "edited_text_file": 16,
+    "environment": 3,
+    "instructions": 1,
+    "model": 1,
+    "nested_memory": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 3,
+    "skill_listing": 1,
+    "total_tokens_reminder": 65
+   },
+   "system_subtypes": {
+    "away_summary": 1,
+    "turn_duration": 5
+   }
+  },
+  {
+   "session": "leigh-pc-b05c3f7b9e75799a",
+   "subagent": false,
+   "records": 3811,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 180,
+    "assistant": 1178,
+    "atis-latch": 181,
+    "attachment": 712,
+    "cost-state": 2,
+    "file-history-delta": 22,
+    "file-history-snapshot": 24,
+    "last-prompt": 182,
+    "mode": 181,
+    "permission-mode": 181,
+    "pr-link": 187,
+    "queue-operation": 64,
+    "system": 49,
+    "user": 668
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "command_permissions": 2,
+    "date": 2,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 3,
+    "edited_text_file": 18,
+    "environment": 1,
+    "hook_additional_context": 1,
+    "hook_success": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 21,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 2,
+    "total_tokens_reminder": 651
+   },
+   "system_subtypes": {
+    "away_summary": 14,
+    "turn_duration": 35
+   }
+  },
+  {
+   "session": "leigh-pc-ed040908761c72d1",
+   "subagent": true,
+   "records": 15,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 7,
+    "attachment": 3,
+    "user": 5
+   },
+   "attachment_types": {
+    "deferred_tools_delta": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-f632e6faded48ece",
+   "subagent": false,
+   "records": 407,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 18,
+    "assistant": 134,
+    "atis-latch": 18,
+    "attachment": 85,
+    "cost-state": 1,
+    "file-history-delta": 6,
+    "file-history-snapshot": 5,
+    "last-prompt": 17,
+    "mode": 18,
+    "pr-link": 3,
+    "queue-operation": 4,
+    "system": 5,
+    "user": 93
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "deferred_tools_delta": 1,
+    "queued_command": 2,
+    "skill_listing": 1,
+    "task_reminder": 11,
+    "total_tokens_reminder": 69
+   },
+   "system_subtypes": {
+    "local_command": 1,
+    "turn_duration": 4
+   }
+  },
+  {
+   "session": "leigh-pc-9f86fd48831c34df",
+   "subagent": true,
+   "records": 214,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 94,
+    "attachment": 64,
+    "user": 56
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 6,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 46
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-1d7554d2a5136593",
+   "subagent": true,
+   "records": 432,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 196,
+    "attachment": 116,
+    "user": 120
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 5,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 97
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-4f7f46811db6488c",
+   "subagent": true,
+   "records": 140,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 59,
+    "attachment": 44,
+    "user": 37
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 3,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 29
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-324417c0f45287dc",
+   "subagent": true,
+   "records": 597,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 270,
+    "attachment": 167,
+    "user": 160
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 7,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 11,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 2,
+    "total_tokens_reminder": 136
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-376deafa80ff19a8",
+   "subagent": true,
+   "records": 97,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 42,
+    "attachment": 30,
+    "user": 25
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 16
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-fd302b9afb66f70a",
+   "subagent": true,
+   "records": 118,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 60,
+    "attachment": 30,
+    "user": 28
+   },
+   "attachment_types": {
+    "date": 1,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "session_context": 1,
+    "total_tokens_reminder": 23
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-d45601cf0305b2d7",
+   "subagent": true,
+   "records": 157,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 66,
+    "attachment": 50,
+    "user": 41
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 36
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-d2063b362ce75672",
+   "subagent": true,
+   "records": 142,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 62,
+    "attachment": 42,
+    "user": 38
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 29
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-6d2d46e5033ec447",
+   "subagent": true,
+   "records": 178,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 76,
+    "attachment": 53,
+    "user": 49
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 39
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-a3db1222e98bf7f6",
+   "subagent": true,
+   "records": 110,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 48,
+    "attachment": 35,
+    "user": 27
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 23
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-58f21f29855f22fd",
+   "subagent": true,
+   "records": 168,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 72,
+    "attachment": 51,
+    "user": 45
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 37
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-c2cf2b21b9ef42fe",
+   "subagent": true,
+   "records": 170,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 75,
+    "attachment": 52,
+    "user": 43
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 4,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 36
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-b3b1d797ecd7cee3",
+   "subagent": true,
+   "records": 393,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 179,
+    "attachment": 109,
+    "user": 105
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 5,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 3,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 89
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-1db97282f3d7af7c",
+   "subagent": true,
+   "records": 269,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 124,
+    "attachment": 77,
+    "user": 68
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 62
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-c7d83e7934f38f83",
+   "subagent": true,
+   "records": 118,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 52,
+    "attachment": 35,
+    "user": 31
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 23
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-776a5d43b58cfb09",
+   "subagent": false,
+   "records": 1080,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 66,
+    "assistant": 334,
+    "atis-latch": 68,
+    "attachment": 199,
+    "cost-state": 1,
+    "file-history-delta": 6,
+    "file-history-snapshot": 3,
+    "last-prompt": 67,
+    "mode": 68,
+    "pr-link": 7,
+    "queue-operation": 52,
+    "system": 18,
+    "user": 191
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "edited_text_file": 7,
+    "environment": 1,
+    "hook_additional_context": 1,
+    "hook_success": 1,
+    "hook_system_message": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 7,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 15,
+    "skill_listing": 2,
+    "total_tokens_reminder": 153
+   },
+   "system_subtypes": {
+    "local_command": 1,
+    "scheduled_task_fire": 3,
+    "turn_duration": 14
+   }
+  },
+  {
+   "session": "leigh-pc-a5a780680a623bae",
+   "subagent": true,
+   "records": 338,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 152,
+    "attachment": 95,
+    "user": 91
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 4,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 76
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-de73d1eb9b3b1ba6",
+   "subagent": true,
+   "records": 203,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 89,
+    "attachment": 62,
+    "user": 52
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 4,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 45
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-da5424bad1024c9d",
+   "subagent": true,
+   "records": 970,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 433,
+    "attachment": 261,
+    "user": 276
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 10,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 4,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 234
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-700df2eb6103f908",
+   "subagent": true,
+   "records": 310,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 134,
+    "attachment": 93,
+    "user": 83
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 4,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 74
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-809af8902f9d4308",
+   "subagent": true,
+   "records": 331,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 149,
+    "attachment": 93,
+    "user": 89
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 3,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 76
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-9ae1ec9acda92347",
+   "subagent": true,
+   "records": 404,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 179,
+    "attachment": 114,
+    "user": 111
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 4,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 5,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 2,
+    "total_tokens_reminder": 91
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-a3b0031af5cf3764",
+   "subagent": true,
+   "records": 971,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 429,
+    "attachment": 275,
+    "user": 267
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 2,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 14,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 247
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-5159526fc5c5d511",
+   "subagent": true,
+   "records": 459,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 206,
+    "attachment": 129,
+    "user": 124
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 4,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 4,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 108
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-39d67b0491716df2",
+   "subagent": true,
+   "records": 500,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 224,
+    "attachment": 144,
+    "user": 132
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 5,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 5,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 121
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-9f6b8a18e33e4350",
+   "subagent": true,
+   "records": 547,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 261,
+    "attachment": 148,
+    "user": 138
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "command_permissions": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 12,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 4,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 118
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-38673056bb40b865",
+   "subagent": true,
+   "records": 284,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 129,
+    "attachment": 83,
+    "user": 72
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 67
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-1a0f01d9dfb55e95",
+   "subagent": true,
+   "records": 212,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 92,
+    "attachment": 65,
+    "user": 55
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 3,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 47
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-da3ccc72c47265f8",
+   "subagent": true,
+   "records": 346,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 152,
+    "attachment": 99,
+    "user": 95
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 8,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 77
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-7b4b5d15cd754a37",
+   "subagent": true,
+   "records": 222,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 99,
+    "attachment": 65,
+    "user": 58
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 5,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 47
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-f241c8881862d722",
+   "subagent": true,
+   "records": 165,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 70,
+    "attachment": 52,
+    "user": 43
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 5,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 33
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-bf2eb369cf591ad4",
+   "subagent": true,
+   "records": 436,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 191,
+    "attachment": 134,
+    "user": 111
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 5,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 11,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 105
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-415de13ca040c17d",
+   "subagent": true,
+   "records": 319,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 139,
+    "attachment": 93,
+    "user": 87
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 7,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 72
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-660f70d1a4b81dd6",
+   "subagent": false,
+   "records": 2135,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 114,
+    "assistant": 599,
+    "atis-latch": 115,
+    "attachment": 336,
+    "cost-state": 2,
+    "file-history-delta": 25,
+    "file-history-snapshot": 18,
+    "last-prompt": 115,
+    "mode": 115,
+    "pr-link": 96,
+    "queue-operation": 228,
+    "system": 37,
+    "user": 335
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 2,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 2,
+    "edited_text_file": 7,
+    "environment": 1,
+    "hook_additional_context": 1,
+    "hook_success": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 18,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 21,
+    "skill_listing": 2,
+    "total_tokens_reminder": 271
+   },
+   "system_subtypes": {
+    "away_summary": 4,
+    "informational": 2,
+    "local_command": 3,
+    "turn_duration": 28
+   }
+  },
+  {
+   "session": "leigh-pc-b66506306ef166d2",
+   "subagent": true,
+   "records": 621,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 279,
+    "attachment": 174,
+    "user": 168
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "command_permissions": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 11,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 147
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-4b525e3116690858",
+   "subagent": true,
+   "records": 695,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 311,
+    "attachment": 184,
+    "user": 200
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "command_permissions": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 17,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 152
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-a6b16bb8893c17da",
+   "subagent": true,
+   "records": 599,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 261,
+    "attachment": 172,
+    "user": 166
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 6,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 7,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 146
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-8899e40c3c6983a2",
+   "subagent": true,
+   "records": 307,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 139,
+    "attachment": 92,
+    "user": 76
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 5,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 73
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-649ac24fd1a5b015",
+   "subagent": true,
+   "records": 464,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 206,
+    "attachment": 139,
+    "user": 119
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 12,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 3,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 111
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-812138352212faba",
+   "subagent": true,
+   "records": 151,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 63,
+    "attachment": 46,
+    "user": 42
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 31
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-4721d892c84f31bf",
+   "subagent": true,
+   "records": 445,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 200,
+    "attachment": 121,
+    "user": 124
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 6,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 6,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 96
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-228bd85024de8d09",
+   "subagent": true,
+   "records": 121,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 52,
+    "attachment": 37,
+    "user": 32
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 23
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-89625991dda7af47",
+   "subagent": true,
+   "records": 602,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 264,
+    "attachment": 175,
+    "user": 163
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 12,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 4,
+    "read_truncation_notice": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 145
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-5c48315ad0355689",
+   "subagent": true,
+   "records": 148,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 68,
+    "attachment": 41,
+    "user": 39
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 28
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-ec90fe4095eb8b2f",
+   "subagent": true,
+   "records": 188,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 83,
+    "attachment": 58,
+    "user": 47
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 43
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-202f3b82cc64841c",
+   "subagent": true,
+   "records": 716,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 317,
+    "attachment": 208,
+    "user": 191
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 6,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 10,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 179
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-a860075a46a1db6c",
+   "subagent": true,
+   "records": 249,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 108,
+    "attachment": 73,
+    "user": 68
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 57
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-356bc32feac8d795",
+   "subagent": true,
+   "records": 141,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 60,
+    "attachment": 47,
+    "user": 34
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 31
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-0f79dac387952d50",
+   "subagent": true,
+   "records": 781,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 347,
+    "attachment": 215,
+    "user": 219
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 16,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 4,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 182
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-36885ec037c85377",
+   "subagent": true,
+   "records": 117,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 50,
+    "attachment": 39,
+    "user": 28
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 26
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-7930fde71c6994c0",
+   "subagent": false,
+   "records": 1524,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 65,
+    "assistant": 394,
+    "atis-latch": 65,
+    "attachment": 227,
+    "cost-state": 2,
+    "file-history-delta": 7,
+    "file-history-snapshot": 8,
+    "last-prompt": 66,
+    "mode": 66,
+    "permission-mode": 66,
+    "pr-link": 98,
+    "queue-operation": 189,
+    "system": 36,
+    "user": 235
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "command_permissions": 2,
+    "date": 2,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 4,
+    "edited_text_file": 2,
+    "environment": 1,
+    "hook_additional_context": 1,
+    "hook_success": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 15,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 2,
+    "skill_listing": 1,
+    "total_tokens_reminder": 186
+   },
+   "system_subtypes": {
+    "away_summary": 3,
+    "informational": 2,
+    "turn_duration": 31
+   }
+  },
+  {
+   "session": "leigh-pc-3f70f3b09d8558f9",
+   "subagent": true,
+   "records": 69,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 26,
+    "attachment": 27,
+    "user": 16
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 13
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-54dad972367dcb55",
+   "subagent": true,
+   "records": 288,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 129,
+    "attachment": 83,
+    "user": 76
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 2,
+    "edited_text_file": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 66
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-ac8fdf482f1e8c8d",
+   "subagent": true,
+   "records": 60,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 21,
+    "attachment": 25,
+    "user": 14
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 11
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-ae845e0c3b0bebfb",
+   "subagent": true,
+   "records": 74,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 27,
+    "attachment": 29,
+    "user": 18
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 15
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-877ca2d661468431",
+   "subagent": true,
+   "records": 52,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 17,
+    "attachment": 22,
+    "user": 13
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 8
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-d20366ff25805a34",
+   "subagent": true,
+   "records": 114,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 47,
+    "attachment": 38,
+    "user": 29
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 24
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-a9b6759ae2908f44",
+   "subagent": false,
+   "records": 1933,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 90,
+    "artifact-autoreact-ledger": 3,
+    "artifact-comment-monitor": 2,
+    "assistant": 581,
+    "atis-latch": 91,
+    "attachment": 295,
+    "cost-state": 2,
+    "file-history-delta": 37,
+    "file-history-snapshot": 7,
+    "frame-link": 53,
+    "last-prompt": 92,
+    "mode": 91,
+    "permission-mode": 91,
+    "pr-link": 59,
+    "queue-operation": 98,
+    "system": 31,
+    "user": 310
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "command_permissions": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 3,
+    "edited_text_file": 12,
+    "environment": 1,
+    "hook_additional_context": 1,
+    "hook_success": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 26,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 6,
+    "skill_listing": 2,
+    "total_tokens_reminder": 231
+   },
+   "system_subtypes": {
+    "away_summary": 5,
+    "informational": 2,
+    "turn_duration": 24
+   }
+  },
+  {
+   "session": "leigh-pc-753648c53e1bd063",
+   "subagent": true,
+   "records": 73,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 34,
+    "attachment": 18,
+    "fork-context-ref": 1,
+    "user": 20
+   },
+   "attachment_types": {
+    "edited_text_file": 2,
+    "total_tokens_reminder": 16
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-5f2cb9c9acb8c007",
+   "subagent": true,
+   "records": 34,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 17,
+    "attachment": 8,
+    "fork-context-ref": 1,
+    "user": 8
+   },
+   "attachment_types": {
+    "edited_text_file": 1,
+    "total_tokens_reminder": 7
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-c8956e588a6eeaad",
+   "subagent": true,
+   "records": 68,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 33,
+    "attachment": 17,
+    "fork-context-ref": 1,
+    "user": 17
+   },
+   "attachment_types": {
+    "edited_text_file": 1,
+    "total_tokens_reminder": 16
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-7c2d8c2652a43629",
+   "subagent": true,
+   "records": 124,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 59,
+    "attachment": 29,
+    "fork-context-ref": 1,
+    "user": 35
+   },
+   "attachment_types": {
+    "edited_text_file": 1,
+    "total_tokens_reminder": 28
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-d2138bc5d2b2b0b2",
+   "subagent": true,
+   "records": 99,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 47,
+    "attachment": 25,
+    "fork-context-ref": 1,
+    "user": 26
+   },
+   "attachment_types": {
+    "edited_text_file": 1,
+    "total_tokens_reminder": 24
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-682300ae72a81b8b",
+   "subagent": true,
+   "records": 152,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 70,
+    "attachment": 38,
+    "fork-context-ref": 1,
+    "user": 43
+   },
+   "attachment_types": {
+    "edited_text_file": 1,
+    "total_tokens_reminder": 37
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-26176d4b255dcd17",
+   "subagent": true,
+   "records": 139,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 67,
+    "attachment": 33,
+    "fork-context-ref": 1,
+    "user": 38
+   },
+   "attachment_types": {
+    "edited_text_file": 1,
+    "total_tokens_reminder": 32
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-dae626397e5797d5",
+   "subagent": true,
+   "records": 52,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 24,
+    "attachment": 14,
+    "fork-context-ref": 1,
+    "user": 13
+   },
+   "attachment_types": {
+    "edited_text_file": 1,
+    "read_truncation_notice": 1,
+    "total_tokens_reminder": 12
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-b59ab2490da4c569",
+   "subagent": false,
+   "records": 376,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 20,
+    "assistant": 118,
+    "atis-latch": 21,
+    "attachment": 62,
+    "cost-state": 1,
+    "file-history-delta": 2,
+    "file-history-snapshot": 3,
+    "last-prompt": 20,
+    "mode": 21,
+    "pr-link": 1,
+    "queue-operation": 20,
+    "system": 17,
+    "user": 70
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "hook_additional_context": 1,
+    "hook_success": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 2,
+    "skill_listing": 1,
+    "total_tokens_reminder": 45
+   },
+   "system_subtypes": {
+    "away_summary": 2,
+    "local_command": 1,
+    "scheduled_task_fire": 2,
+    "turn_duration": 12
+   }
+  },
+  {
+   "session": "leigh-pc-b2e2b50abcdce489",
+   "subagent": false,
+   "records": 10,
+   "unparsed_lines": 0,
+   "types": {
+    "attachment": 2,
+    "cost-state": 1,
+    "file-history-snapshot": 1,
+    "last-prompt": 1,
+    "mode": 1,
+    "permission-mode": 1,
+    "user": 3
+   },
+   "attachment_types": {
+    "hook_additional_context": 1,
+    "hook_success": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-5541ff5c4cc4ae10",
+   "subagent": false,
+   "records": 679,
+   "unparsed_lines": 0,
+   "types": {
+    "artifact-autoreact-ledger": 2,
+    "artifact-comment-monitor": 3,
+    "assistant": 200,
+    "atis-latch": 38,
+    "attachment": 143,
+    "cost-state": 3,
+    "file-history-delta": 20,
+    "file-history-snapshot": 3,
+    "frame-link": 16,
+    "last-prompt": 39,
+    "mode": 38,
+    "pr-link": 19,
+    "queue-operation": 10,
+    "system": 6,
+    "user": 139
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "command_permissions": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 8,
+    "environment": 1,
+    "hook_additional_context": 1,
+    "hook_success": 1,
+    "hook_system_message": 2,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 2,
+    "total_tokens_reminder": 115
+   },
+   "system_subtypes": {
+    "away_summary": 1,
+    "informational": 1,
+    "local_command": 1,
+    "turn_duration": 3
+   }
+  },
+  {
+   "session": "leigh-pc-79ae82d8a9dc537f",
+   "subagent": true,
+   "records": 115,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 53,
+    "attachment": 28,
+    "user": 34
+   },
+   "attachment_types": {
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 19
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-a9ef2905a0e49e7f",
+   "subagent": true,
+   "records": 139,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 65,
+    "attachment": 33,
+    "user": 41
+   },
+   "attachment_types": {
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 24
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-aa399897408ab8c7",
+   "subagent": true,
+   "records": 163,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 72,
+    "attachment": 38,
+    "user": 53
+   },
+   "attachment_types": {
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 29
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-d4e7c5d6cda2dc79",
+   "subagent": false,
+   "records": 931,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 45,
+    "artifact-autoreact-ledger": 2,
+    "artifact-comment-monitor": 3,
+    "assistant": 214,
+    "atis-latch": 46,
+    "attachment": 246,
+    "cost-state": 3,
+    "file-history-delta": 9,
+    "file-history-snapshot": 5,
+    "frame-link": 40,
+    "last-prompt": 47,
+    "mode": 46,
+    "permission-mode": 46,
+    "pr-link": 16,
+    "queue-operation": 12,
+    "system": 12,
+    "user": 139
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 82,
+    "batching_reminder_sent": 60,
+    "command_permissions": 2,
+    "date": 2,
+    "deferred_tools_delta": 2,
+    "edited_text_file": 7,
+    "environment": 1,
+    "hook_additional_context": 1,
+    "hook_success": 1,
+    "instructions": 2,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 6,
+    "skill_listing": 2,
+    "total_tokens_reminder": 69
+   },
+   "system_subtypes": {
+    "away_summary": 1,
+    "informational": 2,
+    "turn_duration": 9
+   }
+  },
+  {
+   "session": "leigh-pc-1e185772c909c57f",
+   "subagent": false,
+   "records": 193,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 8,
+    "assistant": 66,
+    "atis-latch": 8,
+    "attachment": 40,
+    "cost-state": 1,
+    "file-history-delta": 2,
+    "file-history-snapshot": 2,
+    "last-prompt": 7,
+    "mode": 8,
+    "permission-mode": 8,
+    "pr-link": 2,
+    "system": 2,
+    "user": 39
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 3,
+    "skill_listing": 1,
+    "task_reminder": 5,
+    "total_tokens_reminder": 29
+   },
+   "system_subtypes": {
+    "turn_duration": 2
+   }
+  },
+  {
+   "session": "leigh-pc-bb7515a4d530b5d9",
+   "subagent": true,
+   "records": 64,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 31,
+    "attachment": 16,
+    "fork-context-ref": 1,
+    "user": 16
+   },
+   "attachment_types": {
+    "skill_listing": 1,
+    "total_tokens_reminder": 15
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-2829bc2455c3374c",
+   "subagent": true,
+   "records": 89,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 37,
+    "attachment": 32,
+    "user": 20
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 15
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-54905c28fbfdd1c8",
+   "subagent": true,
+   "records": 170,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 63,
+    "attachment": 66,
+    "system": 1,
+    "user": 40
+   },
+   "attachment_types": {
+    "agent_listing_delta": 2,
+    "auto_mode": 2,
+    "compact_file_reference": 1,
+    "date": 2,
+    "deferred_tools_delta": 4,
+    "deferred_tools_record": 2,
+    "edited_text_file": 1,
+    "environment": 2,
+    "file": 4,
+    "instructions": 2,
+    "mcp_instructions_delta": 2,
+    "model": 2,
+    "prompt_snapshot": 4,
+    "remote_session_change": 2,
+    "session_context": 2,
+    "skill_listing": 1,
+    "task_status": 1,
+    "thinking_drop": 1,
+    "total_tokens_reminder": 29
+   },
+   "system_subtypes": {
+    "compact_boundary": 1
+   }
+  },
+  {
+   "session": "leigh-pc-8ff08124c0dee18b",
+   "subagent": true,
+   "records": 492,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 207,
+    "attachment": 163,
+    "system": 2,
+    "user": 120
+   },
+   "attachment_types": {
+    "agent_listing_delta": 3,
+    "auto_mode": 3,
+    "compact_file_reference": 2,
+    "date": 3,
+    "deferred_tools_delta": 6,
+    "deferred_tools_record": 3,
+    "edited_text_file": 2,
+    "environment": 3,
+    "file": 8,
+    "instructions": 3,
+    "mcp_instructions_delta": 3,
+    "model": 3,
+    "prompt_snapshot": 6,
+    "remote_session_change": 3,
+    "session_context": 3,
+    "skill_listing": 1,
+    "task_status": 4,
+    "thinking_drop": 1,
+    "total_tokens_reminder": 103
+   },
+   "system_subtypes": {
+    "compact_boundary": 2
+   }
+  },
+  {
+   "session": "leigh-pc-29bd7d08ebee6c4e",
+   "subagent": true,
+   "records": 147,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 61,
+    "attachment": 52,
+    "fork-context-ref": 1,
+    "system": 1,
+    "user": 32
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "compact_file_reference": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "file": 4,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "task_status": 1,
+    "thinking_drop": 1,
+    "total_tokens_reminder": 30
+   },
+   "system_subtypes": {
+    "compact_boundary": 1
+   }
+  },
+  {
+   "session": "leigh-pc-50d3b3d02baef900",
+   "subagent": true,
+   "records": 89,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 43,
+    "attachment": 22,
+    "fork-context-ref": 1,
+    "user": 23
+   },
+   "attachment_types": {
+    "skill_listing": 1,
+    "total_tokens_reminder": 21
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-726911292fffd015",
+   "subagent": true,
+   "records": 195,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 78,
+    "attachment": 70,
+    "system": 1,
+    "user": 46
+   },
+   "attachment_types": {
+    "agent_listing_delta": 2,
+    "auto_mode": 2,
+    "date": 2,
+    "deferred_tools_delta": 4,
+    "deferred_tools_record": 2,
+    "environment": 2,
+    "instructions": 2,
+    "mcp_instructions_delta": 2,
+    "model": 2,
+    "prompt_snapshot": 4,
+    "queued_command": 1,
+    "remote_session_change": 2,
+    "session_context": 2,
+    "skill_listing": 1,
+    "thinking_drop": 1,
+    "total_tokens_reminder": 39
+   },
+   "system_subtypes": {
+    "compact_boundary": 1
+   }
+  },
+  {
+   "session": "leigh-pc-edcf1e59493983c0",
+   "subagent": true,
+   "records": 57,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 29,
+    "attachment": 13,
+    "fork-context-ref": 1,
+    "user": 14
+   },
+   "attachment_types": {
+    "total_tokens_reminder": 13
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-a8724733d2aea348",
+   "subagent": true,
+   "records": 128,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 49,
+    "attachment": 48,
+    "fork-context-ref": 1,
+    "system": 1,
+    "user": 29
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "compact_file_reference": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "file": 4,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 26
+   },
+   "system_subtypes": {
+    "compact_boundary": 1
+   }
+  },
+  {
+   "session": "leigh-pc-9f1e0f7e517c8a1a",
+   "subagent": true,
+   "records": 291,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 129,
+    "attachment": 87,
+    "fork-context-ref": 1,
+    "system": 1,
+    "user": 73
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "compact_file_reference": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "file": 4,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "task_status": 2,
+    "thinking_drop": 1,
+    "total_tokens_reminder": 63
+   },
+   "system_subtypes": {
+    "compact_boundary": 1
+   }
+  },
+  {
+   "session": "leigh-pc-365075b464c9c176",
+   "subagent": true,
+   "records": 88,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 43,
+    "attachment": 21,
+    "fork-context-ref": 1,
+    "user": 23
+   },
+   "attachment_types": {
+    "total_tokens_reminder": 21
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-1bd897daa313607e",
+   "subagent": true,
+   "records": 99,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 41,
+    "attachment": 34,
+    "user": 24
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 19
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-31fb847f718b1170",
+   "subagent": true,
+   "records": 267,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 109,
+    "attachment": 90,
+    "system": 1,
+    "user": 67
+   },
+   "attachment_types": {
+    "agent_listing_delta": 2,
+    "auto_mode": 2,
+    "compact_file_reference": 3,
+    "date": 2,
+    "deferred_tools_delta": 4,
+    "deferred_tools_record": 2,
+    "environment": 2,
+    "file": 2,
+    "instructions": 2,
+    "mcp_instructions_delta": 2,
+    "model": 2,
+    "prompt_snapshot": 4,
+    "remote_session_change": 2,
+    "session_context": 2,
+    "skill_listing": 1,
+    "task_status": 2,
+    "total_tokens_reminder": 54
+   },
+   "system_subtypes": {
+    "compact_boundary": 1
+   }
+  },
+  {
+   "session": "leigh-pc-75fd5a41c6135154",
+   "subagent": true,
+   "records": 259,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 102,
+    "attachment": 91,
+    "fork-context-ref": 1,
+    "system": 2,
+    "user": 63
+   },
+   "attachment_types": {
+    "agent_listing_delta": 2,
+    "auto_mode": 2,
+    "compact_file_reference": 4,
+    "date": 2,
+    "deferred_tools_delta": 4,
+    "deferred_tools_record": 2,
+    "edited_text_file": 1,
+    "environment": 2,
+    "file": 6,
+    "instructions": 2,
+    "mcp_instructions_delta": 2,
+    "model": 2,
+    "prompt_snapshot": 4,
+    "remote_session_change": 2,
+    "session_context": 2,
+    "skill_listing": 1,
+    "thinking_drop": 2,
+    "total_tokens_reminder": 49
+   },
+   "system_subtypes": {
+    "compact_boundary": 2
+   }
+  },
+  {
+   "session": "leigh-pc-b9ba0008c8e4c72f",
+   "subagent": true,
+   "records": 152,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 65,
+    "attachment": 50,
+    "user": 37
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "command_permissions": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 33
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-f145c0e5579a0bfe",
+   "subagent": true,
+   "records": 133,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 54,
+    "attachment": 47,
+    "user": 32
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 29
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-17960d628ad6f7a3",
+   "subagent": true,
+   "records": 207,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 83,
+    "attachment": 70,
+    "system": 1,
+    "user": 53
+   },
+   "attachment_types": {
+    "agent_listing_delta": 2,
+    "auto_mode": 2,
+    "compact_file_reference": 1,
+    "date": 2,
+    "deferred_tools_delta": 4,
+    "deferred_tools_record": 2,
+    "edited_text_file": 3,
+    "environment": 2,
+    "file": 2,
+    "instructions": 2,
+    "mcp_instructions_delta": 2,
+    "model": 2,
+    "prompt_snapshot": 4,
+    "remote_session_change": 2,
+    "session_context": 2,
+    "skill_listing": 1,
+    "thinking_drop": 1,
+    "total_tokens_reminder": 34
+   },
+   "system_subtypes": {
+    "compact_boundary": 1
+   }
+  },
+  {
+   "session": "leigh-pc-ec5c2841dfa7746e",
+   "subagent": true,
+   "records": 44,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 22,
+    "attachment": 10,
+    "fork-context-ref": 1,
+    "user": 11
+   },
+   "attachment_types": {
+    "total_tokens_reminder": 10
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-6c7fddd0e0b5d901",
+   "subagent": true,
+   "records": 106,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 45,
+    "attachment": 31,
+    "user": 30
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "read_truncation_notice": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 15
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-a1ca90ce0cc7fe2a",
+   "subagent": true,
+   "records": 338,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 141,
+    "attachment": 112,
+    "system": 1,
+    "user": 84
+   },
+   "attachment_types": {
+    "agent_listing_delta": 2,
+    "auto_mode": 2,
+    "compact_file_reference": 1,
+    "date": 2,
+    "deferred_tools_delta": 4,
+    "deferred_tools_record": 2,
+    "edited_text_file": 4,
+    "environment": 2,
+    "file": 4,
+    "instructions": 2,
+    "mcp_instructions_delta": 2,
+    "model": 2,
+    "prompt_snapshot": 4,
+    "queued_command": 2,
+    "remote_session_change": 2,
+    "session_context": 2,
+    "skill_listing": 1,
+    "task_status": 3,
+    "thinking_drop": 1,
+    "total_tokens_reminder": 68
+   },
+   "system_subtypes": {
+    "compact_boundary": 1
+   }
+  },
+  {
+   "session": "leigh-pc-3d881d7d6c91dcad",
+   "subagent": true,
+   "records": 143,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 58,
+    "attachment": 51,
+    "fork-context-ref": 1,
+    "system": 1,
+    "user": 32
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "compact_file_reference": 3,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "file": 2,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "task_status": 2,
+    "thinking_drop": 1,
+    "total_tokens_reminder": 29
+   },
+   "system_subtypes": {
+    "compact_boundary": 1
+   }
+  },
+  {
+   "session": "leigh-pc-631f39272e46fa36",
+   "subagent": true,
+   "records": 75,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 31,
+    "attachment": 27,
+    "user": 17
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 11
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-d2372bc168b226a7",
+   "subagent": true,
+   "records": 18,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 9,
+    "attachment": 4,
+    "fork-context-ref": 1,
+    "user": 4
+   },
+   "attachment_types": {
+    "skill_listing": 1,
+    "total_tokens_reminder": 3
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-b56fdfd1439a6633",
+   "subagent": true,
+   "records": 54,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 26,
+    "attachment": 13,
+    "fork-context-ref": 1,
+    "user": 14
+   },
+   "attachment_types": {
+    "total_tokens_reminder": 13
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-95c85907cfde010b",
+   "subagent": true,
+   "records": 475,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 192,
+    "attachment": 162,
+    "system": 2,
+    "user": 119
+   },
+   "attachment_types": {
+    "agent_listing_delta": 3,
+    "auto_mode": 3,
+    "compact_file_reference": 6,
+    "date": 3,
+    "deferred_tools_delta": 6,
+    "deferred_tools_record": 3,
+    "edited_text_file": 3,
+    "environment": 3,
+    "file": 4,
+    "instructions": 3,
+    "mcp_instructions_delta": 3,
+    "model": 3,
+    "prompt_snapshot": 6,
+    "remote_session_change": 3,
+    "session_context": 3,
+    "skill_listing": 1,
+    "task_status": 1,
+    "thinking_drop": 2,
+    "total_tokens_reminder": 103
+   },
+   "system_subtypes": {
+    "compact_boundary": 2
+   }
+  },
+  {
+   "session": "leigh-pc-e79cb01e9d547a35",
+   "subagent": true,
+   "records": 100,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 47,
+    "attachment": 26,
+    "fork-context-ref": 1,
+    "user": 26
+   },
+   "attachment_types": {
+    "skill_listing": 1,
+    "total_tokens_reminder": 25
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-db11452a6d1ed899",
+   "subagent": true,
+   "records": 138,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 55,
+    "attachment": 52,
+    "fork-context-ref": 1,
+    "system": 1,
+    "user": 29
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "compact_file_reference": 2,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "file": 3,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "task_status": 4,
+    "thinking_drop": 1,
+    "total_tokens_reminder": 26
+   },
+   "system_subtypes": {
+    "compact_boundary": 1
+   }
+  },
+  {
+   "session": "leigh-pc-4dc53e06422359c3",
+   "subagent": true,
+   "records": 176,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 65,
+    "attachment": 71,
+    "system": 1,
+    "user": 39
+   },
+   "attachment_types": {
+    "agent_listing_delta": 2,
+    "auto_mode": 2,
+    "compact_file_reference": 2,
+    "date": 2,
+    "deferred_tools_delta": 4,
+    "deferred_tools_record": 2,
+    "edited_text_file": 1,
+    "environment": 3,
+    "file": 2,
+    "instructions": 2,
+    "mcp_instructions_delta": 2,
+    "model": 2,
+    "prompt_snapshot": 4,
+    "remote_session_change": 2,
+    "session_context": 2,
+    "skill_listing": 2,
+    "task_status": 1,
+    "thinking_drop": 1,
+    "total_tokens_reminder": 33
+   },
+   "system_subtypes": {
+    "compact_boundary": 1
+   }
+  },
+  {
+   "session": "leigh-pc-8de41299436d0792",
+   "subagent": true,
+   "records": 130,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 57,
+    "attachment": 39,
+    "user": 34
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "read_truncation_notice": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 23
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-f52cd77b22ac76f5",
+   "subagent": false,
+   "records": 8927,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 397,
+    "artifact-autoreact-ledger": 8,
+    "artifact-comment-monitor": 2,
+    "assistant": 2223,
+    "atis-latch": 398,
+    "attachment": 1750,
+    "bridge-session": 398,
+    "file-history-delta": 15,
+    "file-history-snapshot": 65,
+    "frame-link": 46,
+    "last-prompt": 397,
+    "mode": 398,
+    "permission-mode": 398,
+    "pr-link": 370,
+    "queue-operation": 468,
+    "system": 273,
+    "user": 1321
+   },
+   "attachment_types": {
+    "agent_listing_delta": 16,
+    "auto_mode": 16,
+    "bash_output_audience_note": 59,
+    "batching_reminder_sent": 53,
+    "command_permissions": 1,
+    "compact_file_reference": 18,
+    "date": 19,
+    "deferred_tools_delta": 31,
+    "deferred_tools_record": 21,
+    "edited_text_file": 8,
+    "environment": 153,
+    "file": 57,
+    "hook_success": 12,
+    "instructions": 22,
+    "invoked_skills": 2,
+    "mcp_instructions_delta": 16,
+    "model": 16,
+    "prompt_snapshot": 32,
+    "queued_command": 46,
+    "remote_session_change": 16,
+    "session_context": 16,
+    "silent_turn_reminder": 6,
+    "skill_listing": 4,
+    "task_status": 9,
+    "thinking_drop": 12,
+    "total_tokens_reminder": 1089
+   },
+   "system_subtypes": {
+    "away_summary": 20,
+    "bridge_status": 1,
+    "compact_boundary": 15,
+    "local_command": 2,
+    "scheduled_task_fire": 51,
+    "stop_hook_summary": 2,
+    "turn_duration": 182
+   }
+  },
+  {
+   "session": "leigh-pc-45be35d385cef630",
+   "subagent": true,
+   "records": 31,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 12,
+    "attachment": 14,
+    "user": 5
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 4
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-067ed68eaa6acafd",
+   "subagent": true,
+   "records": 99,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 45,
+    "attachment": 21,
+    "user": 33
+   },
+   "attachment_types": {
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "plan_mode": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 11
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-17194f3733173b00",
+   "subagent": true,
+   "records": 148,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 69,
+    "attachment": 23,
+    "user": 56
+   },
+   "attachment_types": {
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 14
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-11e0646e537bab58",
+   "subagent": true,
+   "records": 47,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 20,
+    "attachment": 15,
+    "user": 12
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 5
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-b86617c98821b872",
+   "subagent": true,
+   "records": 39,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 16,
+    "attachment": 14,
+    "user": 9
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 4
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-6ab267f6cba491a0",
+   "subagent": true,
+   "records": 57,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 25,
+    "attachment": 16,
+    "user": 16
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 6
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-62958cec923e5402",
+   "subagent": true,
+   "records": 43,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 18,
+    "attachment": 14,
+    "user": 11
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 4
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-60b32dc29d0c82c9",
+   "subagent": true,
+   "records": 18,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 5,
+    "attachment": 11,
+    "user": 2
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-f0bee6145ea47738",
+   "subagent": true,
+   "records": 39,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 16,
+    "attachment": 14,
+    "user": 9
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 4
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-9870d5f361823789",
+   "subagent": true,
+   "records": 79,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 37,
+    "attachment": 25,
+    "user": 17
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 15
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-f46da021c427ffc7",
+   "subagent": false,
+   "records": 647,
+   "unparsed_lines": 0,
+   "types": {
+    "agent-name": 9,
+    "ai-title": 34,
+    "assistant": 154,
+    "atis-latch": 34,
+    "attachment": 143,
+    "cost-state": 2,
+    "file-history-delta": 6,
+    "file-history-snapshot": 8,
+    "last-prompt": 34,
+    "mode": 34,
+    "permission-mode": 34,
+    "pr-link": 6,
+    "queue-operation": 22,
+    "system": 16,
+    "user": 111
+   },
+   "attachment_types": {
+    "agent_listing_delta": 2,
+    "command_permissions": 1,
+    "compact_file_reference": 2,
+    "date": 2,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 3,
+    "environment": 2,
+    "file": 3,
+    "model": 2,
+    "plan_file_reference": 1,
+    "plan_mode": 1,
+    "plan_mode_exit": 1,
+    "prompt_snapshot": 4,
+    "queued_command": 4,
+    "remote_session_change": 2,
+    "session_context": 2,
+    "skill_listing": 1,
+    "task_reminder": 13,
+    "total_tokens_reminder": 95
+   },
+   "system_subtypes": {
+    "compact_boundary": 1,
+    "turn_duration": 15
+   }
+  },
+  {
+   "session": "leigh-pc-ec77af5eeb648cb4",
+   "subagent": false,
+   "records": 10,
+   "unparsed_lines": 0,
+   "types": {
+    "bridge-session": 2,
+    "cost-state": 2,
+    "last-prompt": 1,
+    "mode": 1,
+    "permission-mode": 1,
+    "system": 3
+   },
+   "attachment_types": {},
+   "system_subtypes": {
+    "bridge_status": 1,
+    "local_command": 2
+   }
+  },
+  {
+   "session": "leigh-pc-381a3cacf4abd0ff",
+   "subagent": false,
+   "records": 251,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 7,
+    "assistant": 50,
+    "atis-latch": 11,
+    "attachment": 70,
+    "bridge-session": 11,
+    "file-history-snapshot": 8,
+    "last-prompt": 11,
+    "mode": 11,
+    "permission-mode": 11,
+    "queue-operation": 4,
+    "system": 21,
+    "user": 36
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "credential_org": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 6,
+    "environment": 1,
+    "hook_success": 23,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 27
+   },
+   "system_subtypes": {
+    "away_summary": 1,
+    "bridge_status": 1,
+    "informational": 7,
+    "stop_hook_summary": 5,
+    "turn_duration": 7
+   }
+  },
+  {
+   "session": "leigh-pc-e4696713b8960007",
+   "subagent": false,
+   "records": 100,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 5,
+    "assistant": 30,
+    "atis-latch": 6,
+    "attachment": 16,
+    "cost-state": 1,
+    "file-history-snapshot": 4,
+    "last-prompt": 5,
+    "mode": 6,
+    "pr-link": 2,
+    "queue-operation": 2,
+    "system": 4,
+    "user": 19
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 2,
+    "skill_listing": 1
+   },
+   "system_subtypes": {
+    "local_command": 1,
+    "turn_duration": 3
+   }
+  },
+  {
+   "session": "leigh-pc-86cfc59dfd4404d0",
+   "subagent": false,
+   "records": 158,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 9,
+    "assistant": 50,
+    "atis-latch": 10,
+    "attachment": 16,
+    "cost-state": 1,
+    "file-history-snapshot": 3,
+    "last-prompt": 9,
+    "mode": 10,
+    "permission-mode": 10,
+    "pr-link": 1,
+    "queue-operation": 4,
+    "system": 3,
+    "user": 32
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {
+    "informational": 1,
+    "turn_duration": 2
+   }
+  },
+  {
+   "session": "leigh-pc-6162535487cc1305",
+   "subagent": false,
+   "records": 43,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 3,
+    "atis-latch": 2,
+    "attachment": 13,
+    "cost-state": 2,
+    "file-history-snapshot": 4,
+    "last-prompt": 2,
+    "mode": 2,
+    "permission-mode": 2,
+    "system": 5,
+    "user": 8
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 2
+   },
+   "system_subtypes": {
+    "local_command": 2,
+    "turn_duration": 3
+   }
+  },
+  {
+   "session": "leigh-pc-98b4fbaf25b83f75",
+   "subagent": true,
+   "records": 349,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 202,
+    "attachment": 21,
+    "user": 126
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 6,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-dfdb2b8978978b87",
+   "subagent": true,
+   "records": 681,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 411,
+    "attachment": 31,
+    "user": 239
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 2,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 15,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-7c788380825d5d60",
+   "subagent": true,
+   "records": 447,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 266,
+    "attachment": 21,
+    "user": 160
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 7,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-dca5e21be48f5426",
+   "subagent": true,
+   "records": 174,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 97,
+    "attachment": 18,
+    "user": 59
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-1dbcf795b72f0c7b",
+   "subagent": true,
+   "records": 264,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 156,
+    "attachment": 16,
+    "user": 92
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-0562217623b30bb8",
+   "subagent": true,
+   "records": 178,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 102,
+    "attachment": 16,
+    "user": 60
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-22f76151f64f5253",
+   "subagent": true,
+   "records": 608,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 365,
+    "attachment": 30,
+    "user": 213
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 16,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-a7902425984496b6",
+   "subagent": true,
+   "records": 224,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 128,
+    "attachment": 20,
+    "user": 76
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 5,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-209f287d31152e0d",
+   "subagent": true,
+   "records": 249,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 149,
+    "attachment": 15,
+    "user": 85
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-64202afff8be8396",
+   "subagent": true,
+   "records": 112,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 61,
+    "attachment": 16,
+    "user": 35
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-ad3421b818e00ec3",
+   "subagent": true,
+   "records": 561,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 333,
+    "attachment": 21,
+    "user": 207
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 6,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-63560909321018c7",
+   "subagent": true,
+   "records": 58,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 25,
+    "attachment": 16,
+    "user": 17
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-d501868f0f3434ff",
+   "subagent": true,
+   "records": 227,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 129,
+    "attachment": 22,
+    "user": 76
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 8,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-4bc6a0114d9409bc",
+   "subagent": true,
+   "records": 41,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 16,
+    "attachment": 14,
+    "user": 11
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-af394e70f460799d",
+   "subagent": true,
+   "records": 34,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 11,
+    "attachment": 14,
+    "user": 9
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-838d3c0712c24e04",
+   "subagent": true,
+   "records": 240,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 140,
+    "attachment": 21,
+    "user": 79
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 2,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 5,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-9af1309b6920211e",
+   "subagent": true,
+   "records": 187,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 106,
+    "attachment": 20,
+    "user": 61
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 3,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 3,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-2b7e35f6de13f7d8",
+   "subagent": true,
+   "records": 275,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 159,
+    "attachment": 23,
+    "user": 93
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 9,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-c142147762e8f230",
+   "subagent": true,
+   "records": 401,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 246,
+    "attachment": 14,
+    "user": 141
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-b2978baaf5e13f9a",
+   "subagent": true,
+   "records": 126,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 68,
+    "attachment": 16,
+    "user": 42
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-628722d8841cb57c",
+   "subagent": true,
+   "records": 283,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 167,
+    "attachment": 20,
+    "user": 96
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 6,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-e8ba8572acca84cd",
+   "subagent": true,
+   "records": 216,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 122,
+    "attachment": 18,
+    "user": 76
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 4,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-5b063c190c328fa0",
+   "subagent": true,
+   "records": 123,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 66,
+    "attachment": 15,
+    "user": 42
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-29d039f147572fde",
+   "subagent": true,
+   "records": 84,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 42,
+    "attachment": 16,
+    "user": 26
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-46e22fec12797d60",
+   "subagent": true,
+   "records": 218,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 127,
+    "attachment": 17,
+    "user": 74
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-e2d83bd9d88a96c3",
+   "subagent": true,
+   "records": 683,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 424,
+    "attachment": 22,
+    "user": 237
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 8,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-e9c64bc443e42a1e",
+   "subagent": true,
+   "records": 111,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 61,
+    "attachment": 14,
+    "user": 36
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-f122366ef781e6eb",
+   "subagent": true,
+   "records": 98,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 52,
+    "attachment": 16,
+    "user": 30
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-f8f56505840091ad",
+   "subagent": true,
+   "records": 133,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 76,
+    "attachment": 14,
+    "user": 43
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-dd4869b5a177e11c",
+   "subagent": true,
+   "records": 359,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 211,
+    "attachment": 27,
+    "user": 121
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 6,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 7,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-0a0a4512c88c2ab1",
+   "subagent": true,
+   "records": 64,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 31,
+    "attachment": 14,
+    "user": 19
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-6b7f72d1a5258b56",
+   "subagent": true,
+   "records": 107,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 52,
+    "attachment": 20,
+    "user": 35
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 5,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-63a10ad85fe80621",
+   "subagent": true,
+   "records": 332,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 198,
+    "attachment": 18,
+    "user": 116
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 3,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-a1ee260b229b2930",
+   "subagent": true,
+   "records": 142,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 79,
+    "attachment": 15,
+    "user": 48
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-f732fad1bfe00ebc",
+   "subagent": true,
+   "records": 209,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 122,
+    "attachment": 15,
+    "user": 72
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-8e3111a37c2515ec",
+   "subagent": true,
+   "records": 215,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 124,
+    "attachment": 19,
+    "user": 72
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 5,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-69c620672c7deaec",
+   "subagent": true,
+   "records": 197,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 112,
+    "attachment": 20,
+    "user": 65
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 5,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-5bfceb776e32b915",
+   "subagent": true,
+   "records": 343,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 205,
+    "attachment": 18,
+    "user": 120
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 4,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-d030f58b46079287",
+   "subagent": true,
+   "records": 219,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 127,
+    "attachment": 17,
+    "user": 75
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-aabb84e85b6d2ea3",
+   "subagent": true,
+   "records": 59,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 28,
+    "attachment": 14,
+    "user": 17
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-94446253f2c2be5f",
+   "subagent": true,
+   "records": 186,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 106,
+    "attachment": 17,
+    "user": 63
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-6c19f37bfbc18fd3",
+   "subagent": true,
+   "records": 312,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 185,
+    "attachment": 20,
+    "user": 107
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 4,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-264ee74d57fda4cc",
+   "subagent": true,
+   "records": 66,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 32,
+    "attachment": 15,
+    "user": 19
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-cfca5fd6719c9fba",
+   "subagent": false,
+   "records": 2813,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 146,
+    "artifact-autoreact-ledger": 7,
+    "artifact-comment-monitor": 9,
+    "assistant": 940,
+    "atis-latch": 147,
+    "attachment": 50,
+    "cost-state": 2,
+    "file-history-delta": 23,
+    "file-history-snapshot": 45,
+    "frame-link": 129,
+    "last-prompt": 147,
+    "mode": 147,
+    "pr-link": 170,
+    "queue-operation": 271,
+    "system": 89,
+    "user": 491
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "command_permissions": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 2,
+    "edited_text_file": 5,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 22,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 8,
+    "skill_listing": 1
+   },
+   "system_subtypes": {
+    "away_summary": 2,
+    "informational": 2,
+    "local_command": 1,
+    "turn_duration": 84
+   }
+  },
+  {
+   "session": "leigh-pc-8e9437ec2160f0e3",
+   "subagent": false,
+   "records": 94,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 5,
+    "assistant": 30,
+    "atis-latch": 6,
+    "attachment": 13,
+    "cost-state": 1,
+    "file-history-snapshot": 5,
+    "last-prompt": 5,
+    "mode": 6,
+    "system": 6,
+    "user": 17
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {
+    "away_summary": 1,
+    "local_command": 1,
+    "turn_duration": 4
+   }
+  },
+  {
+   "session": "leigh-pc-4e5983db2822304f",
+   "subagent": false,
+   "records": 671,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 33,
+    "assistant": 165,
+    "atis-latch": 34,
+    "attachment": 202,
+    "cost-state": 2,
+    "file-history-delta": 11,
+    "file-history-snapshot": 4,
+    "last-prompt": 34,
+    "mode": 34,
+    "permission-mode": 34,
+    "pr-link": 11,
+    "queue-operation": 14,
+    "system": 5,
+    "user": 88
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 45,
+    "batching_reminder_sent": 59,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "edited_text_file": 4,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 7,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 5,
+    "skill_listing": 1,
+    "total_tokens_reminder": 69
+   },
+   "system_subtypes": {
+    "away_summary": 2,
+    "turn_duration": 3
+   }
+  },
+  {
+   "session": "leigh-pc-46715c8baa64afb2",
+   "subagent": false,
+   "records": 641,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 40,
+    "assistant": 240,
+    "atis-latch": 41,
+    "attachment": 25,
+    "cost-state": 2,
+    "file-history-delta": 8,
+    "file-history-snapshot": 6,
+    "last-prompt": 41,
+    "mode": 41,
+    "permission-mode": 41,
+    "queue-operation": 9,
+    "system": 8,
+    "user": 139
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 8,
+    "skill_listing": 1
+   },
+   "system_subtypes": {
+    "away_summary": 2,
+    "informational": 1,
+    "turn_duration": 5
+   }
+  },
+  {
+   "session": "leigh-pc-c33a667eec814c37",
+   "subagent": false,
+   "records": 447,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 23,
+    "assistant": 143,
+    "atis-latch": 24,
+    "attachment": 85,
+    "cost-state": 1,
+    "file-history-snapshot": 2,
+    "last-prompt": 23,
+    "mode": 24,
+    "permission-mode": 24,
+    "pr-link": 2,
+    "queue-operation": 2,
+    "system": 3,
+    "user": 91
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 70
+   },
+   "system_subtypes": {
+    "away_summary": 1,
+    "turn_duration": 2
+   }
+  },
+  {
+   "session": "leigh-pc-311bc7f9d8717300",
+   "subagent": true,
+   "records": 121,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 55,
+    "attachment": 28,
+    "user": 38
+   },
+   "attachment_types": {
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 19
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-69d4a0cd206f456f",
+   "subagent": true,
+   "records": 87,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 39,
+    "attachment": 22,
+    "user": 26
+   },
+   "attachment_types": {
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 13
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-b0a54a88ad1df5cb",
+   "subagent": true,
+   "records": 121,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 55,
+    "attachment": 31,
+    "user": 35
+   },
+   "attachment_types": {
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 22
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-9cc8171443c95492",
+   "subagent": true,
+   "records": 70,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 30,
+    "attachment": 21,
+    "user": 19
+   },
+   "attachment_types": {
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 12
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-26d8aa73d2e43636",
+   "subagent": true,
+   "records": 76,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 33,
+    "attachment": 21,
+    "user": 22
+   },
+   "attachment_types": {
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 12
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-9dc528c33a74e7a3",
+   "subagent": true,
+   "records": 95,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 42,
+    "attachment": 24,
+    "user": 29
+   },
+   "attachment_types": {
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 14
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-55269962a3c82aa1",
+   "subagent": false,
+   "records": 902,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 42,
+    "artifact-autoreact-ledger": 1,
+    "artifact-comment-monitor": 1,
+    "assistant": 197,
+    "atis-latch": 43,
+    "attachment": 210,
+    "bridge-session": 43,
+    "cost-state": 2,
+    "file-history-delta": 15,
+    "file-history-snapshot": 4,
+    "frame-link": 30,
+    "last-prompt": 44,
+    "mode": 43,
+    "permission-mode": 43,
+    "pr-link": 30,
+    "queue-operation": 24,
+    "system": 13,
+    "user": 117
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 55,
+    "batching_reminder_sent": 62,
+    "command_permissions": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "edited_text_file": 3,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 5,
+    "skill_listing": 1,
+    "total_tokens_reminder": 69
+   },
+   "system_subtypes": {
+    "away_summary": 1,
+    "informational": 1,
+    "turn_duration": 11
+   }
+  },
+  {
+   "session": "leigh-pc-e20ea9ecf1332065",
+   "subagent": false,
+   "records": 561,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 30,
+    "assistant": 160,
+    "atis-latch": 31,
+    "attachment": 185,
+    "cost-state": 1,
+    "file-history-delta": 14,
+    "file-history-snapshot": 2,
+    "last-prompt": 30,
+    "mode": 31,
+    "pr-link": 8,
+    "system": 2,
+    "user": 67
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 36,
+    "batching_reminder_sent": 64,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 4,
+    "environment": 1,
+    "hook_system_message": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 3,
+    "skill_listing": 1,
+    "total_tokens_reminder": 65
+   },
+   "system_subtypes": {
+    "local_command": 1,
+    "turn_duration": 1
+   }
+  },
+  {
+   "session": "leigh-pc-bfc290aa24b62171",
+   "subagent": true,
+   "records": 139,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 61,
+    "attachment": 39,
+    "user": 39
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 26
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-0c74bfd1d09bb04b",
+   "subagent": true,
+   "records": 256,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 117,
+    "attachment": 68,
+    "user": 71
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 54
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-709826b9d7ee4249",
+   "subagent": false,
+   "records": 770,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 38,
+    "assistant": 242,
+    "atis-latch": 39,
+    "attachment": 151,
+    "cost-state": 2,
+    "file-history-delta": 2,
+    "file-history-snapshot": 5,
+    "last-prompt": 39,
+    "mode": 39,
+    "permission-mode": 39,
+    "pr-link": 33,
+    "queue-operation": 11,
+    "system": 16,
+    "user": 114
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "command_permissions": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 26,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 3,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 4,
+    "skill_listing": 1,
+    "total_tokens_reminder": 104
+   },
+   "system_subtypes": {
+    "away_summary": 5,
+    "informational": 2,
+    "local_command": 2,
+    "turn_duration": 7
+   }
+  },
+  {
+   "session": "leigh-pc-584bb83c70470b90",
+   "subagent": true,
+   "records": 330,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 160,
+    "attachment": 78,
+    "user": 92
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 60,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 5,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-f5230f5a0c93b5f0",
+   "subagent": true,
+   "records": 139,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 64,
+    "attachment": 36,
+    "user": 39
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 18,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 6,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-684631de636446c6",
+   "subagent": true,
+   "records": 169,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 78,
+    "attachment": 42,
+    "user": 49
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 27,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 3,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-cefec6563ada8d79",
+   "subagent": true,
+   "records": 254,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 119,
+    "attachment": 65,
+    "user": 70
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 49,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 4,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-91c67103de13c014",
+   "subagent": false,
+   "records": 1209,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 65,
+    "assistant": 385,
+    "atis-latch": 66,
+    "attachment": 180,
+    "cost-state": 4,
+    "file-history-delta": 16,
+    "file-history-snapshot": 7,
+    "last-prompt": 68,
+    "mode": 66,
+    "permission-mode": 66,
+    "pr-link": 39,
+    "queue-operation": 18,
+    "system": 11,
+    "user": 218
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 116,
+    "command_permissions": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "edited_text_file": 12,
+    "environment": 17,
+    "instructions": 2,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 5,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 14,
+    "skill_listing": 3
+   },
+   "system_subtypes": {
+    "away_summary": 1,
+    "turn_duration": 10
+   }
+  },
+  {
+   "session": "leigh-pc-cd995cea7915fa66",
+   "subagent": true,
+   "records": 41,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 15,
+    "attachment": 12,
+    "fork-context-ref": 1,
+    "user": 13
+   },
+   "attachment_types": {
+    "prompt_snapshot": 1,
+    "task_reminder": 1,
+    "total_tokens_reminder": 10
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-770a6cd8cb786646",
+   "subagent": true,
+   "records": 87,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 35,
+    "attachment": 22,
+    "fork-context-ref": 1,
+    "user": 29
+   },
+   "attachment_types": {
+    "prompt_snapshot": 1,
+    "task_reminder": 3,
+    "total_tokens_reminder": 18
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-3c898ae2250577de",
+   "subagent": true,
+   "records": 150,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 70,
+    "attachment": 20,
+    "user": 60
+   },
+   "attachment_types": {
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "plan_mode": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 10
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-bcba69c6d6c3fae1",
+   "subagent": true,
+   "records": 114,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 52,
+    "attachment": 16,
+    "user": 46
+   },
+   "attachment_types": {
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "model": 1,
+    "plan_mode": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 6
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-419ecd12efcd2feb",
+   "subagent": false,
+   "records": 258,
+   "unparsed_lines": 0,
+   "types": {
+    "agent-name": 3,
+    "ai-title": 14,
+    "assistant": 62,
+    "atis-latch": 14,
+    "attachment": 55,
+    "cost-state": 2,
+    "file-history-delta": 1,
+    "file-history-snapshot": 4,
+    "last-prompt": 14,
+    "mode": 14,
+    "permission-mode": 14,
+    "queue-operation": 14,
+    "system": 8,
+    "user": 39
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 2,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "plan_mode": 1,
+    "plan_mode_exit": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 3,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "task_reminder": 4,
+    "total_tokens_reminder": 33
+   },
+   "system_subtypes": {
+    "turn_duration": 8
+   }
+  },
+  {
+   "session": "leigh-pc-e50e1ad335bbb5c3",
+   "subagent": false,
+   "records": 217,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 10,
+    "artifact-autoreact-ledger": 2,
+    "artifact-comment-monitor": 3,
+    "assistant": 64,
+    "atis-latch": 11,
+    "attachment": 41,
+    "cost-state": 2,
+    "file-history-delta": 1,
+    "file-history-snapshot": 1,
+    "frame-link": 4,
+    "last-prompt": 11,
+    "mode": 11,
+    "permission-mode": 11,
+    "queue-operation": 2,
+    "system": 2,
+    "user": 41
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "command_permissions": 2,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 27
+   },
+   "system_subtypes": {
+    "turn_duration": 2
+   }
+  },
+  {
+   "session": "leigh-pc-91357b3411cb8434",
+   "subagent": false,
+   "records": 4,
+   "unparsed_lines": 0,
+   "types": {
+    "cost-state": 1,
+    "mode": 1,
+    "permission-mode": 1,
+    "system": 1
+   },
+   "attachment_types": {},
+   "system_subtypes": {
+    "informational": 1
+   }
+  },
+  {
+   "session": "leigh-pc-95dda74863fa5797",
+   "subagent": false,
+   "records": 538,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 27,
+    "assistant": 161,
+    "atis-latch": 28,
+    "attachment": 99,
+    "cost-state": 2,
+    "file-history-delta": 1,
+    "file-history-snapshot": 6,
+    "last-prompt": 28,
+    "mode": 28,
+    "permission-mode": 28,
+    "pr-link": 20,
+    "queue-operation": 7,
+    "system": 6,
+    "user": 97
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 64,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 10,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 3,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 10,
+    "skill_listing": 1
+   },
+   "system_subtypes": {
+    "turn_duration": 6
+   }
+  },
+  {
+   "session": "leigh-pc-1b42487fde198f7d",
+   "subagent": false,
+   "records": 731,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 39,
+    "assistant": 194,
+    "atis-latch": 40,
+    "attachment": 246,
+    "cost-state": 1,
+    "file-history-delta": 1,
+    "file-history-snapshot": 4,
+    "last-prompt": 39,
+    "mode": 40,
+    "pr-link": 5,
+    "queue-operation": 26,
+    "system": 5,
+    "user": 91
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 55,
+    "batching_reminder_sent": 74,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "hook_system_message": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 12,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 4,
+    "skill_listing": 1,
+    "total_tokens_reminder": 88
+   },
+   "system_subtypes": {
+    "local_command": 1,
+    "turn_duration": 4
+   }
+  },
+  {
+   "session": "leigh-pc-0a35ed8204604126",
+   "subagent": false,
+   "records": 140,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 7,
+    "assistant": 40,
+    "atis-latch": 8,
+    "attachment": 15,
+    "cost-state": 3,
+    "file-history-delta": 1,
+    "file-history-snapshot": 5,
+    "last-prompt": 9,
+    "mode": 8,
+    "permission-mode": 8,
+    "pr-link": 4,
+    "system": 6,
+    "user": 26
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 1,
+    "skill_listing": 2
+   },
+   "system_subtypes": {
+    "informational": 1,
+    "turn_duration": 5
+   }
+  },
+  {
+   "session": "leigh-pc-2904f8282594a67e",
+   "subagent": false,
+   "records": 315,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 12,
+    "assistant": 91,
+    "atis-latch": 13,
+    "attachment": 70,
+    "cost-state": 1,
+    "file-history-delta": 10,
+    "file-history-snapshot": 5,
+    "last-prompt": 12,
+    "mode": 13,
+    "permission-mode": 13,
+    "pr-link": 6,
+    "queue-operation": 4,
+    "system": 5,
+    "user": 60
+   },
+   "attachment_types": {
+    "agent_listing_delta": 2,
+    "date": 2,
+    "deferred_tools_delta": 2,
+    "environment": 2,
+    "instructions": 2,
+    "model": 2,
+    "prompt_snapshot": 3,
+    "queued_command": 1,
+    "remote_session_change": 2,
+    "session_context": 2,
+    "skill_listing": 1,
+    "task_reminder": 7,
+    "total_tokens_reminder": 42
+   },
+   "system_subtypes": {
+    "turn_duration": 5
+   }
+  },
+  {
+   "session": "leigh-pc-e96271fb6ec271ca",
+   "subagent": false,
+   "records": 1425,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 59,
+    "assistant": 378,
+    "atis-latch": 60,
+    "attachment": 330,
+    "cost-state": 2,
+    "file-history-delta": 94,
+    "file-history-snapshot": 7,
+    "last-prompt": 60,
+    "mode": 60,
+    "permission-mode": 60,
+    "queue-operation": 21,
+    "system": 13,
+    "user": 281
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 72,
+    "batching_reminder_sent": 90,
+    "command_permissions": 1,
+    "date": 2,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "edited_text_file": 30,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 2,
+    "prompt_snapshot": 2,
+    "queued_command": 7,
+    "remote_session_change": 2,
+    "session_context": 1,
+    "silent_turn_reminder": 11,
+    "skill_listing": 1,
+    "total_tokens_reminder": 102
+   },
+   "system_subtypes": {
+    "away_summary": 2,
+    "informational": 2,
+    "turn_duration": 9
+   }
+  },
+  {
+   "session": "leigh-pc-4b2da396495a21f6",
+   "subagent": true,
+   "records": 616,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 278,
+    "attachment": 160,
+    "user": 178
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 6,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 140
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-91b6ebc5b1668806",
+   "subagent": true,
+   "records": 666,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 304,
+    "attachment": 170,
+    "user": 192
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 6,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 151
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-783673c6b675ff6b",
+   "subagent": true,
+   "records": 889,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 404,
+    "attachment": 231,
+    "user": 254
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 8,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 8,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 202
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-a5799d8dd7671a4a",
+   "subagent": true,
+   "records": 495,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 218,
+    "attachment": 139,
+    "user": 138
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 5,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 9,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 112
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-474d5bc80be6d98c",
+   "subagent": false,
+   "records": 1104,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 26,
+    "assistant": 334,
+    "atis-latch": 58,
+    "attachment": 184,
+    "cost-state": 2,
+    "file-history-delta": 2,
+    "file-history-snapshot": 5,
+    "last-prompt": 58,
+    "mode": 58,
+    "permission-mode": 58,
+    "pr-link": 56,
+    "queue-operation": 84,
+    "system": 15,
+    "user": 164
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 2,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 2,
+    "edited_text_file": 2,
+    "environment": 10,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 6,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 9,
+    "skill_listing": 1,
+    "total_tokens_reminder": 142
+   },
+   "system_subtypes": {
+    "away_summary": 2,
+    "informational": 2,
+    "turn_duration": 11
+   }
+  },
+  {
+   "session": "leigh-pc-6b4e396dbfb1e4e9",
+   "subagent": false,
+   "records": 922,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 41,
+    "assistant": 233,
+    "atis-latch": 42,
+    "attachment": 318,
+    "cost-state": 4,
+    "file-history-delta": 18,
+    "file-history-snapshot": 4,
+    "last-prompt": 44,
+    "mode": 42,
+    "pr-link": 34,
+    "queue-operation": 16,
+    "system": 7,
+    "user": 119
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 55,
+    "batching_reminder_sent": 106,
+    "date": 2,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 5,
+    "environment": 9,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 6,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 9,
+    "skill_listing": 2,
+    "total_tokens_reminder": 115
+   },
+   "system_subtypes": {
+    "informational": 1,
+    "local_command": 1,
+    "turn_duration": 5
+   }
+  },
+  {
+   "session": "leigh-pc-6fc37dacbffd7927",
+   "subagent": false,
+   "records": 359,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 19,
+    "assistant": 109,
+    "atis-latch": 20,
+    "attachment": 73,
+    "cost-state": 2,
+    "file-history-delta": 2,
+    "file-history-snapshot": 2,
+    "last-prompt": 20,
+    "mode": 20,
+    "permission-mode": 20,
+    "pr-link": 11,
+    "queue-operation": 2,
+    "system": 4,
+    "user": 55
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 2,
+    "environment": 7,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 3,
+    "skill_listing": 1,
+    "total_tokens_reminder": 49
+   },
+   "system_subtypes": {
+    "away_summary": 1,
+    "informational": 1,
+    "turn_duration": 2
+   }
+  },
+  {
+   "session": "leigh-pc-67b2467dbf4dcde2",
+   "subagent": true,
+   "records": 117,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 50,
+    "attachment": 21,
+    "fork-context-ref": 1,
+    "user": 45
+   },
+   "attachment_types": {
+    "prompt_snapshot": 1,
+    "task_reminder": 4,
+    "total_tokens_reminder": 16
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-64f1dfe58da784cd",
+   "subagent": true,
+   "records": 74,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 27,
+    "attachment": 24,
+    "fork-context-ref": 1,
+    "user": 22
+   },
+   "attachment_types": {
+    "prompt_snapshot": 1,
+    "task_reminder": 2,
+    "total_tokens_reminder": 21
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-c04a55ef078e9fc1",
+   "subagent": true,
+   "records": 55,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 24,
+    "attachment": 10,
+    "fork-context-ref": 1,
+    "user": 20
+   },
+   "attachment_types": {
+    "prompt_snapshot": 1,
+    "task_reminder": 2,
+    "total_tokens_reminder": 7
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-7423c641552b2249",
+   "subagent": true,
+   "records": 88,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 38,
+    "attachment": 20,
+    "fork-context-ref": 1,
+    "user": 29
+   },
+   "attachment_types": {
+    "prompt_snapshot": 1,
+    "task_reminder": 3,
+    "total_tokens_reminder": 16
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-a14947e94db09112",
+   "subagent": false,
+   "records": 364,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 12,
+    "assistant": 114,
+    "atis-latch": 13,
+    "attachment": 62,
+    "cost-state": 2,
+    "file-history-delta": 16,
+    "file-history-snapshot": 5,
+    "last-prompt": 13,
+    "mode": 13,
+    "pr-link": 5,
+    "queue-operation": 8,
+    "system": 10,
+    "user": 91
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "task_reminder": 9,
+    "total_tokens_reminder": 42
+   },
+   "system_subtypes": {
+    "away_summary": 1,
+    "local_command": 1,
+    "turn_duration": 8
+   }
+  },
+  {
+   "session": "leigh-pc-8d630e482f90175e",
+   "subagent": true,
+   "records": 47,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 14,
+    "attachment": 22,
+    "user": 11
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 8
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-685dedd85f299624",
+   "subagent": true,
+   "records": 60,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 20,
+    "attachment": 25,
+    "user": 15
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 10
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-a0aa4dd8ace8ed8e",
+   "subagent": true,
+   "records": 44,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 14,
+    "attachment": 19,
+    "user": 11
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 5
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-8e04e0034ac3b156",
+   "subagent": true,
+   "records": 46,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 14,
+    "attachment": 22,
+    "user": 10
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 8
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-a39b804c901e9471",
+   "subagent": true,
+   "records": 44,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 13,
+    "attachment": 21,
+    "user": 10
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 7
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-213b05ebe30d1675",
+   "subagent": true,
+   "records": 45,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 15,
+    "attachment": 19,
+    "user": 11
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 5
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-b6e04fc4b30b95ef",
+   "subagent": true,
+   "records": 47,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 15,
+    "attachment": 21,
+    "user": 11
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 7
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-6aa17d4e6d9e50c2",
+   "subagent": true,
+   "records": 37,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 9,
+    "attachment": 20,
+    "user": 8
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 6
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-1d7842d103aaab8b",
+   "subagent": true,
+   "records": 45,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 15,
+    "attachment": 21,
+    "user": 9
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 7
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-a4f4a9e370c8e23d",
+   "subagent": false,
+   "records": 421,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 20,
+    "assistant": 130,
+    "atis-latch": 21,
+    "attachment": 65,
+    "cost-state": 2,
+    "file-history-delta": 6,
+    "file-history-snapshot": 3,
+    "last-prompt": 21,
+    "mode": 21,
+    "permission-mode": 21,
+    "pr-link": 6,
+    "queue-operation": 18,
+    "system": 15,
+    "user": 72
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "command_permissions": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 48
+   },
+   "system_subtypes": {
+    "away_summary": 2,
+    "informational": 1,
+    "turn_duration": 12
+   }
+  },
+  {
+   "session": "leigh-pc-b5837ffd8f1f1b99",
+   "subagent": true,
+   "records": 297,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 141,
+    "attachment": 70,
+    "user": 86
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 51,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 4,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 3,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-4605bf867a4ec6af",
+   "subagent": true,
+   "records": 299,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 144,
+    "attachment": 67,
+    "user": 88
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 49,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 3,
+    "environment": 2,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-36a427c3884ce006",
+   "subagent": true,
+   "records": 167,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 80,
+    "attachment": 37,
+    "user": 50
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 21,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 3,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-9c26e7a523da090c",
+   "subagent": true,
+   "records": 376,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 175,
+    "attachment": 85,
+    "user": 116
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 68,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 2,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 4,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-0aa01de7d417e267",
+   "subagent": true,
+   "records": 147,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 67,
+    "attachment": 39,
+    "user": 41
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 25,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-82c4ec4a003a43cb",
+   "subagent": true,
+   "records": 180,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 85,
+    "attachment": 46,
+    "user": 49
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 32,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-15971d41edf23363",
+   "subagent": true,
+   "records": 89,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 36,
+    "attachment": 28,
+    "user": 25
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 16,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-e0b4babc2ca04849",
+   "subagent": true,
+   "records": 129,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 58,
+    "attachment": 35,
+    "user": 36
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 20,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 2,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-c43c6200886ecb08",
+   "subagent": false,
+   "records": 674,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 33,
+    "assistant": 171,
+    "atis-latch": 34,
+    "attachment": 75,
+    "cost-state": 2,
+    "file-history-delta": 6,
+    "file-history-snapshot": 6,
+    "last-prompt": 33,
+    "mode": 34,
+    "permission-mode": 34,
+    "pr-link": 43,
+    "queue-operation": 72,
+    "system": 18,
+    "user": 113
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 36,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 3,
+    "edited_text_file": 3,
+    "environment": 7,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 8,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 7,
+    "skill_listing": 1
+   },
+   "system_subtypes": {
+    "agents_killed": 1,
+    "informational": 2,
+    "turn_duration": 15
+   }
+  },
+  {
+   "session": "leigh-pc-4ef195607acb9ef8",
+   "subagent": false,
+   "records": 1653,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 101,
+    "assistant": 487,
+    "atis-latch": 102,
+    "attachment": 363,
+    "cost-state": 2,
+    "file-history-delta": 57,
+    "file-history-snapshot": 7,
+    "last-prompt": 102,
+    "mode": 102,
+    "pr-link": 6,
+    "queue-operation": 11,
+    "system": 12,
+    "user": 301
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "command_permissions": 1,
+    "date": 2,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 2,
+    "edited_text_file": 42,
+    "environment": 3,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 5,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 297
+   },
+   "system_subtypes": {
+    "away_summary": 5,
+    "local_command": 1,
+    "turn_duration": 6
+   }
+  },
+  {
+   "session": "leigh-pc-45bd2ca4387e31f1",
+   "subagent": true,
+   "records": 195,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 87,
+    "attachment": 48,
+    "fork-context-ref": 1,
+    "user": 59
+   },
+   "attachment_types": {
+    "edited_text_file": 6,
+    "environment": 1,
+    "queued_command": 3,
+    "total_tokens_reminder": 38
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-5549f7bf3a881465",
+   "subagent": true,
+   "records": 242,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 113,
+    "attachment": 56,
+    "fork-context-ref": 1,
+    "user": 72
+   },
+   "attachment_types": {
+    "edited_text_file": 3,
+    "environment": 1,
+    "total_tokens_reminder": 52
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-4854612bbaca5798",
+   "subagent": true,
+   "records": 345,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 176,
+    "attachment": 61,
+    "fork-context-ref": 1,
+    "user": 107
+   },
+   "attachment_types": {
+    "edited_text_file": 3,
+    "environment": 1,
+    "queued_command": 2,
+    "total_tokens_reminder": 55
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-04c23ce0aea07377",
+   "subagent": true,
+   "records": 254,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 127,
+    "attachment": 53,
+    "fork-context-ref": 1,
+    "user": 73
+   },
+   "attachment_types": {
+    "edited_text_file": 9,
+    "environment": 1,
+    "queued_command": 2,
+    "total_tokens_reminder": 41
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-82beb555c0c0ca8d",
+   "subagent": true,
+   "records": 417,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 190,
+    "attachment": 107,
+    "fork-context-ref": 1,
+    "user": 119
+   },
+   "attachment_types": {
+    "edited_text_file": 9,
+    "environment": 1,
+    "queued_command": 3,
+    "total_tokens_reminder": 94
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-1020e2cccfb32f2e",
+   "subagent": false,
+   "records": 1374,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 81,
+    "assistant": 404,
+    "atis-latch": 82,
+    "attachment": 220,
+    "cost-state": 2,
+    "file-history-delta": 27,
+    "file-history-snapshot": 3,
+    "last-prompt": 82,
+    "mode": 82,
+    "permission-mode": 82,
+    "pr-link": 38,
+    "queue-operation": 32,
+    "system": 9,
+    "user": 230
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "edited_text_file": 11,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 19,
+    "skill_listing": 1,
+    "total_tokens_reminder": 175
+   },
+   "system_subtypes": {
+    "away_summary": 1,
+    "turn_duration": 8
+   }
+  },
+  {
+   "session": "leigh-pc-3315c9a2cafad144",
+   "subagent": false,
+   "records": 34,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 2,
+    "atis-latch": 2,
+    "attachment": 12,
+    "cost-state": 2,
+    "file-history-snapshot": 2,
+    "last-prompt": 2,
+    "mode": 2,
+    "permission-mode": 2,
+    "system": 4,
+    "user": 4
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 1
+   },
+   "system_subtypes": {
+    "local_command": 2,
+    "turn_duration": 2
+   }
+  },
+  {
+   "session": "leigh-pc-61850efc5a41cd2d",
+   "subagent": false,
+   "records": 501,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 34,
+    "assistant": 221,
+    "atis-latch": 35,
+    "attachment": 16,
+    "cost-state": 2,
+    "file-history-delta": 4,
+    "file-history-snapshot": 5,
+    "last-prompt": 35,
+    "mode": 35,
+    "pr-link": 5,
+    "system": 6,
+    "user": 103
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 3,
+    "skill_listing": 1
+   },
+   "system_subtypes": {
+    "away_summary": 1,
+    "local_command": 1,
+    "turn_duration": 4
+   }
+  },
+  {
+   "session": "leigh-pc-48c3590a5956fcc5",
+   "subagent": false,
+   "records": 561,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 29,
+    "assistant": 143,
+    "atis-latch": 30,
+    "attachment": 179,
+    "cost-state": 1,
+    "file-history-delta": 6,
+    "file-history-snapshot": 3,
+    "last-prompt": 29,
+    "mode": 30,
+    "permission-mode": 30,
+    "pr-link": 8,
+    "queue-operation": 4,
+    "system": 4,
+    "user": 65
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 33,
+    "batching_reminder_sent": 60,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 1,
+    "environment": 3,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 4,
+    "skill_listing": 1,
+    "total_tokens_reminder": 65
+   },
+   "system_subtypes": {
+    "away_summary": 1,
+    "turn_duration": 3
+   }
+  },
+  {
+   "session": "leigh-pc-c6da027359e2563b",
+   "subagent": false,
+   "records": 1,
+   "unparsed_lines": 0,
+   "types": {
+    "bridge-session": 1
+   },
+   "attachment_types": {},
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-f127b39a3fb673de",
+   "subagent": false,
+   "records": 27,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 1,
+    "atis-latch": 3,
+    "attachment": 11,
+    "cost-state": 2,
+    "file-history-snapshot": 1,
+    "last-prompt": 3,
+    "mode": 2,
+    "permission-mode": 2,
+    "system": 1,
+    "user": 1
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 1
+   },
+   "system_subtypes": {
+    "turn_duration": 1
+   }
+  },
+  {
+   "session": "leigh-pc-448b61538b3791d5",
+   "subagent": false,
+   "records": 566,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 29,
+    "assistant": 186,
+    "atis-latch": 30,
+    "attachment": 109,
+    "cost-state": 2,
+    "file-history-delta": 4,
+    "file-history-snapshot": 5,
+    "last-prompt": 30,
+    "mode": 30,
+    "permission-mode": 30,
+    "pr-link": 1,
+    "queue-operation": 13,
+    "system": 7,
+    "user": 90
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 1,
+    "edited_text_file": 1,
+    "environment": 7,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "queued_command": 5,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 3,
+    "skill_listing": 1,
+    "total_tokens_reminder": 80
+   },
+   "system_subtypes": {
+    "away_summary": 1,
+    "turn_duration": 6
+   }
+  },
+  {
+   "session": "leigh-pc-3518fd31f32b82b0",
+   "subagent": true,
+   "records": 64,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 20,
+    "attachment": 31,
+    "user": 13
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 5,
+    "batching_reminder_sent": 6,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "read_truncation_notice": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 6
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-c0608836c7d29b64",
+   "subagent": true,
+   "records": 59,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 17,
+    "attachment": 32,
+    "user": 10
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 5,
+    "batching_reminder_sent": 7,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "read_truncation_notice": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 7
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-75392d088d0fa86d",
+   "subagent": true,
+   "records": 48,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 15,
+    "attachment": 24,
+    "user": 9
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 4,
+    "batching_reminder_sent": 4,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 4
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-91a6c1d4ef35d327",
+   "subagent": true,
+   "records": 53,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 16,
+    "attachment": 27,
+    "user": 10
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 5,
+    "batching_reminder_sent": 5,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 5
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-f9fd572614b94f81",
+   "subagent": true,
+   "records": 68,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 23,
+    "attachment": 32,
+    "user": 13
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 7,
+    "batching_reminder_sent": 6,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "environment": 1,
+    "instructions": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "read_truncation_notice": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 6
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-965db48db26a8dc4",
+   "subagent": false,
+   "records": 349,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 20,
+    "assistant": 76,
+    "atis-latch": 21,
+    "attachment": 81,
+    "cost-state": 4,
+    "file-history-delta": 7,
+    "file-history-snapshot": 5,
+    "last-prompt": 23,
+    "mode": 21,
+    "permission-mode": 21,
+    "queue-operation": 10,
+    "system": 12,
+    "user": 48
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 11,
+    "batching_reminder_sent": 23,
+    "command_permissions": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "instructions": 2,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 1,
+    "skill_listing": 2,
+    "total_tokens_reminder": 29
+   },
+   "system_subtypes": {
+    "away_summary": 2,
+    "turn_duration": 10
+   }
+  },
+  {
+   "session": "leigh-pc-9b279c6cd2f2d5c6",
+   "subagent": true,
+   "records": 112,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 38,
+    "attachment": 53,
+    "user": 21
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 9,
+    "batching_reminder_sent": 14,
+    "credential_org": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "edited_text_file": 1,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 14
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-ce880d95c402710e",
+   "subagent": true,
+   "records": 134,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 40,
+    "attachment": 69,
+    "user": 25
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 20,
+    "batching_reminder_sent": 17,
+    "credential_org": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 17
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-59d0e2c5a06e8203",
+   "subagent": true,
+   "records": 130,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 42,
+    "attachment": 63,
+    "user": 25
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 13,
+    "batching_reminder_sent": 17,
+    "credential_org": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "read_truncation_notice": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 17
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-38b0589619a2d5d4",
+   "subagent": true,
+   "records": 108,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 41,
+    "attachment": 44,
+    "user": 23
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 9,
+    "batching_reminder_sent": 10,
+    "credential_org": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 10
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-187d853edbb994f0",
+   "subagent": true,
+   "records": 125,
+   "unparsed_lines": 0,
+   "types": {
+    "assistant": 39,
+    "attachment": 59,
+    "user": 27
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 16,
+    "batching_reminder_sent": 14,
+    "credential_org": 1,
+    "date": 1,
+    "deferred_tools_delta": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "skill_listing": 1,
+    "total_tokens_reminder": 14
+   },
+   "system_subtypes": {}
+  },
+  {
+   "session": "leigh-pc-76a9d350bb4495cd",
+   "subagent": false,
+   "records": 351,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 18,
+    "assistant": 76,
+    "atis-latch": 19,
+    "attachment": 110,
+    "cost-state": 2,
+    "file-history-delta": 5,
+    "file-history-snapshot": 1,
+    "last-prompt": 19,
+    "mode": 19,
+    "permission-mode": 19,
+    "queue-operation": 10,
+    "system": 7,
+    "user": 46
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "bash_output_audience_note": 19,
+    "batching_reminder_sent": 34,
+    "command_permissions": 1,
+    "credential_org": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "edited_text_file": 2,
+    "environment": 1,
+    "instructions": 1,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 4,
+    "skill_listing": 1,
+    "total_tokens_reminder": 36
+   },
+   "system_subtypes": {
+    "away_summary": 1,
+    "turn_duration": 6
+   }
+  },
+  {
+   "session": "leigh-pc-748e154f46ac3136",
+   "subagent": false,
+   "records": 198,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 13,
+    "assistant": 40,
+    "atis-latch": 14,
+    "attachment": 48,
+    "cost-state": 4,
+    "file-history-delta": 3,
+    "file-history-snapshot": 3,
+    "last-prompt": 16,
+    "mode": 14,
+    "permission-mode": 14,
+    "system": 3,
+    "user": 26
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "auto_mode": 1,
+    "command_permissions": 1,
+    "date": 2,
+    "deferred_tools_delta": 2,
+    "deferred_tools_record": 2,
+    "environment": 5,
+    "instructions": 2,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 2,
+    "skill_listing": 2,
+    "total_tokens_reminder": 22
+   },
+   "system_subtypes": {
+    "turn_duration": 3
+   }
+  },
+  {
+   "session": "leigh-pc-dfcefc6f2bfbbc8b",
+   "subagent": false,
+   "records": 7,
+   "unparsed_lines": 0,
+   "types": {
+    "cost-state": 2,
+    "last-prompt": 1,
+    "mode": 1,
+    "permission-mode": 1,
+    "system": 2
+   },
+   "attachment_types": {},
+   "system_subtypes": {
+    "local_command": 2
+   }
+  },
+  {
+   "session": "leigh-pc-2aa8f5150084d322",
+   "subagent": false,
+   "records": 186,
+   "unparsed_lines": 0,
+   "types": {
+    "ai-title": 12,
+    "assistant": 51,
+    "atis-latch": 13,
+    "attachment": 21,
+    "cost-state": 2,
+    "file-history-delta": 2,
+    "file-history-snapshot": 3,
+    "last-prompt": 13,
+    "mode": 13,
+    "permission-mode": 13,
+    "system": 4,
+    "user": 39
+   },
+   "attachment_types": {
+    "agent_listing_delta": 1,
+    "bash_output_audience_note": 3,
+    "command_permissions": 1,
+    "date": 1,
+    "deferred_tools_delta": 1,
+    "deferred_tools_record": 2,
+    "edited_text_file": 1,
+    "environment": 2,
+    "mcp_instructions_delta": 1,
+    "model": 1,
+    "prompt_snapshot": 2,
+    "read_truncation_notice": 1,
+    "remote_session_change": 1,
+    "session_context": 1,
+    "silent_turn_reminder": 1,
+    "skill_listing": 1
+   },
+   "system_subtypes": {
+    "away_summary": 2,
+    "turn_duration": 2
+   }
   }
  ]
 }
