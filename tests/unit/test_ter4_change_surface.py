@@ -244,8 +244,8 @@ class TestImportLinterReader:
             "[importlinter]\nroot_package = app\n\n"
             "[importlinter:contract:layers]\nname = Layers\ntype = layers\n"
             "layers =\n    app.ui\n    (app.api | app.cli)\n    app.core : app.util\n\n"
-            "[importlinter:contract:acyclic]\nname = No cycles\n"
-            "type = acyclic_siblings\nancestors = app\n"
+            "[importlinter:contract:custom]\nname = Custom\n"
+            "type = myproject.contracts.CustomContract\nmodules = app\n"
         )
         [c] = ImportLinterContracts().read(".importlinter", text)
         assert c.id == "layers" and c.name == "Layers"

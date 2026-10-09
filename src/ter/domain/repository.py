@@ -665,11 +665,24 @@ class ContractFormatError(RepositoryEvidenceError):
 
 
 class ContractKind(StrEnum):
-    """The import-linter contract types TER evaluates."""
+    """The contract types TER evaluates: import-linter's (on Python module
+    names) and dependency-cruiser's ``forbidden`` path rules (on repository
+    paths, :attr:`by_path`)."""
 
     FORBIDDEN = "forbidden"
     LAYERS = "layers"
     INDEPENDENCE = "independence"
+    # TER-EVD-015: the import-linter types TER-EVD-007 left out, and a
+    # second contract source for TypeScript and JavaScript repositories.
+    PROTECTED = "protected"
+    ACYCLIC_SIBLINGS = "acyclic_siblings"
+    PATH_FORBIDDEN = "path_forbidden"
+
+    @property
+    def by_path(self) -> bool:
+        """Whether the contract names files by repository path (a
+        TypeScript, JavaScript, Svelte or Vue import), not Python modules."""
+        return self is ContractKind.PATH_FORBIDDEN
 
 
 @dataclass(frozen=True)
@@ -696,8 +709,21 @@ class ArchitectureContract:
       imports a higher one. With ``containers``, the layers are the
       containers' children (``<container>.<layer>``);
     * ``independence``: no module under one of ``modules`` imports a module
-      under another.
+      under another;
+    * ``protected``: a module under ``protected_modules`` is imported only
+      by modules under ``allowed_importers`` or under the same protected
+      module;
+    * ``acyclic_siblings``: within each package under ``ancestors`` (down
+      to ``depth`` levels, not below a ``skip_descendants`` module), the
+      children's imports of each other form no cycle;
+    * ``path_forbidden`` (dependency-cruiser): no file whose repository
+      path matches a ``from_paths`` regular expression (and no
+      ``from_paths_not`` one) imports a file whose path matches a
+      ``to_paths`` one (and no ``to_paths_not`` one). ``$1`` ... ``$9`` in a
+      ``to`` expression stand for the groups the ``from`` path matched.
 
+    With ``as_packages`` false, ``forbidden`` and ``protected`` module
+    names stand for those modules alone, not for the modules under them.
     ``ignore_imports`` are ``importer -> imported`` patterns exempt from the
     contract; ``*`` stands for one module name part, ``**`` for any number.
     """
@@ -713,6 +739,16 @@ class ArchitectureContract:
     ignore_imports: tuple[str, ...] = ()
     #: Where the contract was declared (a repository path).
     source: str = ""
+    protected_modules: tuple[str, ...] = ()
+    allowed_importers: tuple[str, ...] = ()
+    as_packages: bool = True
+    ancestors: tuple[str, ...] = ()
+    depth: int = 10
+    skip_descendants: tuple[str, ...] = ()
+    from_paths: tuple[str, ...] = ()
+    from_paths_not: tuple[str, ...] = ()
+    to_paths: tuple[str, ...] = ()
+    to_paths_not: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -748,10 +784,154 @@ def _ignored(importer: str, imported: str, patterns: Iterable[str]) -> bool:
     return False
 
 
-def _owner(module: str, candidates: Iterable[str]) -> str | None:
-    """The most specific candidate ``module`` lies within."""
-    owners = [c for c in candidates if within(module, c)]
+def _owner(
+    module: str, candidates: Iterable[str], as_packages: bool = True
+) -> str | None:
+    """The most specific candidate ``module`` lies within (is, when not
+    ``as_packages``)."""
+    owners = [
+        c for c in candidates if (within(module, c) if as_packages else module == c)
+    ]
     return max(owners, key=len) if owners else None
+
+
+def _protected_violation(
+    contract: ArchitectureContract, importer: str, imported: str
+) -> str | None:
+    """import-linter ``protected``: only allowed importers (and the
+    protected module itself) import a protected module. Like import-linter,
+    only direct imports are judged."""
+    as_packages = contract.as_packages
+    target = _owner(imported, contract.protected_modules, as_packages)
+    if target is None:
+        return None
+    if _owner(importer, (target,), as_packages) is not None:
+        return None  # inside the protected package
+    if _owner(importer, contract.allowed_importers, as_packages) is not None:
+        return None
+    allowed = ", ".join(contract.allowed_importers) or "no module"
+    return f"{target} is protected: only {allowed} may import it"
+
+
+def _sibling_package(
+    contract: ArchitectureContract, importer: str, imported: str
+) -> tuple[str, str, str] | None:
+    """``(package, importer's child, imported's child)`` when the import
+    links two children of a package the ``acyclic_siblings`` contract
+    covers: the deepest package both lie under, within an ancestor, at most
+    ``depth`` levels below it, and not within a skipped descendant."""
+    a, b = importer.split("."), imported.split(".")
+    common = 0
+    while common < min(len(a), len(b)) and a[common] == b[common]:
+        common += 1
+    if common >= len(a) or common >= len(b) or common == 0:
+        return None  # one contains the other, or no common package
+    package = ".".join(a[:common])
+    ancestor = _owner(package, contract.ancestors)
+    if ancestor is None:
+        return None
+    if common - (ancestor.count(".") + 1) > contract.depth:
+        return None
+    skipped = [s for s in contract.skip_descendants if within(package, s)]
+    if any(s != ancestor for s in skipped):
+        return None
+    return package, ".".join(a[: common + 1]), ".".join(b[: common + 1])
+
+
+def _cycle_violation(
+    contract: ArchitectureContract,
+    importer: str,
+    imported: str,
+    graph: Mapping[str, Collection[str]] | None,
+) -> str | None:
+    """import-linter ``acyclic_siblings``, judged for one new import: it
+    breaks the contract when it adds a dependency between two children of a
+    covered package, and the imported child already depends, directly or
+    through other children, on the importing one (``graph``: every module's
+    direct imports before this one). A cycle that was there before is not
+    this import's doing."""
+    if graph is None:
+        return None
+    found = _sibling_package(contract, importer, imported)
+    if found is None:
+        return None
+    package, source, target = found
+    depth = package.count(".") + 2  # parts in a child's name
+    edges: dict[str, set[str]] = {}
+    for module, targets in graph.items():
+        if not within(module, package) or module == package:
+            continue
+        child = ".".join(module.split(".")[:depth])
+        for t in targets:
+            if within(t, package) and t != package and not within(t, child):
+                if not _ignored(module, t, contract.ignore_imports):
+                    edges.setdefault(child, set()).add(".".join(t.split(".")[:depth]))
+    if target in edges.get(source, ()):
+        return None  # the dependency was already there
+    path = _path_between(edges, target, source)
+    if path is None:
+        return None
+    chain = " -> ".join([source, *path])
+    return (
+        f"the children of {package} must not import each other in a cycle, "
+        f"and this import closes one: {chain}"
+    )
+
+
+def _path_between(
+    edges: Mapping[str, Collection[str]], start: str, goal: str
+) -> list[str] | None:
+    """The shortest chain of edges from ``start`` to ``goal`` (both ends
+    included), or ``None``."""
+    previous: dict[str, str | None] = {start: None}
+    queue = [start]
+    for node in queue:
+        if node == goal:
+            chain = [node]
+            while (step := previous[chain[-1]]) is not None:
+                chain.append(step)
+            return chain[::-1]
+        for nxt in sorted(edges.get(node, ())):
+            if nxt not in previous:
+                previous[nxt] = node
+                queue.append(nxt)
+    return None
+
+
+def _substitute(pattern: str, groups: Sequence[str | None]) -> str:
+    """dependency-cruiser group matching: ``$1`` ... ``$9`` in a ``to``
+    expression stand for what the ``from`` expression's groups matched."""
+
+    def group(m: re.Match[str]) -> str:
+        n = int(m.group(1))
+        value = groups[n - 1] if n <= len(groups) else None
+        return re.escape(value or "")
+
+    return re.sub(r"\$([1-9])", group, pattern)
+
+
+def _path_violation(
+    contract: ArchitectureContract, importer: str, imported: str
+) -> str | None:
+    """dependency-cruiser ``forbidden``: a rule on ``from.path``/
+    ``from.pathNot`` and ``to.path``/``to.pathNot`` regular expressions
+    (searched, as JavaScript's ``RegExp.test`` does)."""
+    groups: Sequence[str | None] = ()
+    if contract.from_paths:
+        match = next(
+            (m for p in contract.from_paths if (m := re.search(p, importer))), None
+        )
+        if match is None:
+            return None
+        groups = match.groups()
+    if any(re.search(p, importer) for p in contract.from_paths_not):
+        return None
+    to = [_substitute(p, groups) for p in contract.to_paths]
+    if to and not any(re.search(p, imported) for p in to):
+        return None
+    if any(re.search(_substitute(p, groups), imported) for p in contract.to_paths_not):
+        return None
+    return f"{importer} must not import {imported}"
 
 
 def _layer_violations(
@@ -782,9 +962,21 @@ def _layer_violations(
 
 
 def contract_violations(
-    importer: str, imported: str, contracts: Iterable[ArchitectureContract]
+    importer: str,
+    imported: str,
+    contracts: Iterable[ArchitectureContract],
+    *,
+    by_path: bool = False,
+    graph: Mapping[str, Collection[str]] | None = None,
 ) -> tuple[ContractViolation, ...]:
     """Every contract the import of ``imported`` by ``importer`` breaks.
+
+    ``importer`` and ``imported`` are Python module names, or with
+    ``by_path`` repository paths (a TypeScript, JavaScript, Svelte or Vue
+    import); only the contracts of that kind (:attr:`ContractKind.by_path`)
+    are judged. ``graph`` (module -> modules it imports directly, before this
+    import) is what an ``acyclic_siblings`` contract is judged against;
+    without it that contract is not judged.
 
     Only this one direct import is judged: indirect chains, which
     import-linter also forbids by default, need the whole import graph after
@@ -792,14 +984,24 @@ def contract_violations(
     """
     out: list[ContractViolation] = []
     for contract in contracts:
+        if contract.kind.by_path != by_path:
+            continue
         if _ignored(importer, imported, contract.ignore_imports):
             continue
         rules: list[str] = []
+        rule: str | None = None
         if contract.kind is ContractKind.FORBIDDEN:
-            source = _owner(importer, contract.source_modules)
-            target = _owner(imported, contract.forbidden_modules)
+            as_packages = contract.as_packages
+            source = _owner(importer, contract.source_modules, as_packages)
+            target = _owner(imported, contract.forbidden_modules, as_packages)
             if source is not None and target is not None:
                 rules.append(f"{source} must not import {target}")
+        elif contract.kind is ContractKind.PROTECTED:
+            rule = _protected_violation(contract, importer, imported)
+        elif contract.kind is ContractKind.ACYCLIC_SIBLINGS:
+            rule = _cycle_violation(contract, importer, imported, graph)
+        elif contract.kind is ContractKind.PATH_FORBIDDEN:
+            rule = _path_violation(contract, importer, imported)
         elif contract.kind is ContractKind.INDEPENDENCE:
             source = _owner(importer, contract.modules)
             target = _owner(imported, contract.modules)
@@ -807,6 +1009,8 @@ def contract_violations(
                 rules.append(f"{source} and {target} must be independent")
         else:
             rules.extend(_layer_violations(contract, importer, imported))
+        if rule is not None:
+            rules.append(rule)
         out.extend(
             ContractViolation(contract.id, contract.name, importer, imported, r)
             for r in rules

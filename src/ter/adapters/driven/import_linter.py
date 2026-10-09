@@ -7,9 +7,13 @@ Reads the contracts a repository declares for `import-linter
 (``[tool.importlinter]`` and its ``[[tool.importlinter.contracts]]`` tables).
 
 The contract types TER evaluates are ``forbidden``, ``layers`` and
-``independence``. Other types (``acyclic_siblings``, ``protected``, custom
-ones) are left out: TER has no rule for them, and guessing one would report
-violations the project never declared. Layers keep import-linter's notation:
+``independence`` (TER-EVD-007), and ``protected`` (``protected_modules``,
+``allowed_importers``, ``as_packages``) and ``acyclic_siblings``
+(``ancestors``, ``depth``, ``skip_descendants``) (TER-EVD-015);
+``as_packages`` is read for ``forbidden`` too. Custom types are left out:
+TER has no rule for them, and guessing one would report violations the
+project never declared. Module names with wildcards (``app.*.models``) are
+read as written, so they match no module. Layers keep import-linter's notation:
 ``a | b`` for independent siblings, ``a : b`` for siblings that may import
 each other, and a parenthesised optional layer ``(a)``.
 
@@ -56,6 +60,40 @@ def _modules(value: object, where: str, key: str) -> tuple[str, ...]:
     return tuple(out)
 
 
+#: The import-linter contract types TER evaluates.
+_IMPORT_LINTER_KINDS = frozenset(
+    {
+        ContractKind.FORBIDDEN,
+        ContractKind.LAYERS,
+        ContractKind.INDEPENDENCE,
+        ContractKind.PROTECTED,
+        ContractKind.ACYCLIC_SIBLINGS,
+    }
+)
+
+
+def _flag(value: object, default: bool, where: str, key: str) -> bool:
+    """A boolean, from TOML or from INI text (``True``, ``false``)."""
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str) and value.strip().lower() in ("true", "false"):
+        return value.strip().lower() == "true"
+    raise ContractFormatError(f"{where}: {key} must be true or false")
+
+
+def _count(value: object, default: int, where: str, key: str) -> int:
+    """A non-negative whole number, from TOML or from INI text."""
+    if value is None:
+        return default
+    if isinstance(value, str) and value.strip().isdigit():
+        return int(value.strip())
+    if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+        return value
+    raise ContractFormatError(f"{where}: {key} must be a whole number")
+
+
 def _layer(text: str) -> Layer:
     text = text.strip()
     if text.startswith("(") and text.endswith(")"):
@@ -83,19 +121,29 @@ def _contract(
     if not isinstance(name, str):
         raise ContractFormatError(f"{where}: contract {contract_id} name must be text")
     here = f"{where} contract {contract_id}"
+    if kind not in _IMPORT_LINTER_KINDS:
+        return None  # a kind another source declares (dependency-cruiser)
+
+    def modules(key: str) -> tuple[str, ...]:
+        return _modules(fields.get(key), here, key)
+
     contract = ArchitectureContract(
         id=contract_id,
         name=name.strip(),
         kind=kind,
-        source_modules=_modules(fields.get("source_modules"), here, "source_modules"),
-        forbidden_modules=_modules(
-            fields.get("forbidden_modules"), here, "forbidden_modules"
-        ),
-        layers=tuple(_layer(t) for t in _modules(fields.get("layers"), here, "layers")),
-        containers=_modules(fields.get("containers"), here, "containers"),
-        modules=_modules(fields.get("modules"), here, "modules"),
-        ignore_imports=_modules(fields.get("ignore_imports"), here, "ignore_imports"),
+        source_modules=modules("source_modules"),
+        forbidden_modules=modules("forbidden_modules"),
+        layers=tuple(_layer(t) for t in modules("layers")),
+        containers=modules("containers"),
+        modules=modules("modules"),
+        ignore_imports=modules("ignore_imports"),
         source=where,
+        protected_modules=modules("protected_modules"),
+        allowed_importers=modules("allowed_importers"),
+        as_packages=_flag(fields.get("as_packages"), True, here, "as_packages"),
+        ancestors=modules("ancestors"),
+        depth=_count(fields.get("depth"), 10, here, "depth"),
+        skip_descendants=modules("skip_descendants"),
     )
     missing = {
         ContractKind.FORBIDDEN: not (
@@ -103,6 +151,8 @@ def _contract(
         ),
         ContractKind.LAYERS: not contract.layers,
         ContractKind.INDEPENDENCE: not contract.modules,
+        ContractKind.PROTECTED: not contract.protected_modules,
+        ContractKind.ACYCLIC_SIBLINGS: not contract.ancestors,
     }[kind]
     if missing:
         raise ContractFormatError(

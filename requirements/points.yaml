@@ -949,13 +949,15 @@ points:
       Add call-graph evidence where practical.
     level: L3
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - The adapter returns call edges for supported languages.
     rules: [TER-EVD-012, TER-EVD-016]
     verification:
       - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
-      - 'planned: call edges of TypeScript, JavaScript, Svelte and Vue files (TER-EVD-016)'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestCallEdges'
+      - 'test: tests/contract/test_repository_evidence.py::test_an_engine_that_reads_a_language_returns_its_call_edges'
+      - 'test: tests/golden/test_repository_evidence_snapshot.py::test_multi_language_syntax_evidence_matches_golden_snapshot'
 
   - id: P060
     text: >-
@@ -1053,7 +1055,8 @@ points:
       - 'test: tests/unit/test_ter4_change_surface.py::TestBoundaryViolation'
       - 'test: tests/contract/test_architecture_contracts.py'
       - 'test: tests/unit/test_ter4_grounded_cli.py'
-      - 'planned: other languages and contract types (TER-EVD-015); real-data check (D4)'
+      - 'test: tests/unit/test_ter4_contract_kinds.py'
+      - 'planned: real-data check on sessions with their repository and start commit (D4)'
 
   - id: P066
     text: >-

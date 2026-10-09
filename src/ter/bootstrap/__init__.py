@@ -101,7 +101,8 @@ def make_outcome_source(name: str = "junit") -> OutcomeSource:
 
 def make_contracts(name: str = "import-linter") -> ArchitectureContracts:
     """An ``ArchitectureContracts.<name>`` capability; ``import-linter`` reads
-    import-linter configuration (TER-EVD-007)."""
+    import-linter configuration (TER-EVD-007), ``dependency-cruiser`` the
+    forbidden rules of ``.dependency-cruiser.json`` (TER-EVD-015)."""
     reader = default_registry().create("ArchitectureContracts", name)
     assert isinstance(reader, ArchitectureContracts)  # checked by the registry
     return reader
@@ -226,7 +227,11 @@ def cli_services() -> CliServices:
             lambda: make_ingest(tokenizer),
             # L3: the repository as it was when the session started.
             repository_evidence(repo, repo_engine) if repo is not None else None,
-            make_contracts() if repo is not None else None,
+            (
+                (make_contracts(), make_contracts("dependency-cruiser"))
+                if repo is not None
+                else None
+            ),
         )
         return use_case(path, outcome)
 

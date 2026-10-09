@@ -211,8 +211,9 @@ requirements:
   - id: TER-EVD-015
     pattern: event-driven
     text: >-
-      When an edit adds an import that breaks a declared architecture
-      contract that TER-EVD-007 does not evaluate, TER shall report an
+      When an edit adds a direct import that breaks a declared
+      import-linter protected or acyclic_siblings contract, or a declared
+      dependency-cruiser forbidden path rule, TER shall report an
       architectural boundary violation.
     level: L3
     port: RepositoryEvidence
@@ -220,9 +221,16 @@ requirements:
     rationale: >-
       Split from TER-EVD-007, which proves the rule for Python modules and
       import-linter forbidden, layers and independence contracts on direct
-      imports. Other languages, other contract types (acyclic siblings,
-      protected modules) and indirect import chains need their own rules.
-    status: planned
+      imports. This adds the remaining built-in import-linter types
+      (protected; acyclic_siblings, judged as the new import closing a cycle
+      among siblings over the start commit's import graph and the session's
+      earlier edits) and, for TypeScript, JavaScript, Svelte and Vue files,
+      dependency-cruiser's forbidden rules on from/to path and pathNot read
+      from .dependency-cruiser.json. Not evaluated: indirect import chains,
+      wildcard module expressions, custom import-linter types,
+      dependency-cruiser rules with other conditions, allowed rules and
+      configurations written as JavaScript.
+    status: verified
 
   - id: TER-EVD-016
     pattern: optional
@@ -237,8 +245,10 @@ requirements:
       Split from TER-EVD-012, which proves symbols and imports for these
       languages but call edges for Python only. Resolving a call needs the
       bindings an import introduces and, for methods, the types a tokenizer
-      does not see.
-    status: planned
+      does not see: a call resolves to the file its import loads and the
+      exported name, a method call on a local receiver keeps no target, and
+      calls on a computed receiver are not read.
+    status: verified
 
   - id: TER-EVD-017
     pattern: ubiquitous
