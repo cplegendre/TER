@@ -75,6 +75,103 @@
   },
   "background": {
     "events": 12,
+    "intent": {
+      "alignment": [
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "29ac509d3f256cb6",
+          "names": [],
+          "revision": 1,
+          "score": 1.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "5b871efa33b4dc56",
+          "names": [],
+          "revision": 1,
+          "score": 1.0
+        },
+        {
+          "band": "aligned",
+          "basis": "names",
+          "event_id": "66675543479d5262",
+          "names": [
+            "login"
+          ],
+          "revision": 1,
+          "score": 1.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "6ca218051b06fb6d",
+          "names": [],
+          "revision": 1,
+          "score": 0.8
+        },
+        {
+          "band": "partial",
+          "basis": "text",
+          "event_id": "3ab48e38b9dac2c5",
+          "names": [],
+          "revision": 1,
+          "score": 0.4
+        },
+        {
+          "band": "aligned",
+          "basis": "changed_words",
+          "event_id": "0c500468149caeae",
+          "names": [],
+          "revision": 1,
+          "score": 0.6
+        },
+        {
+          "band": "unknown",
+          "basis": "text",
+          "event_id": "db87d39fd196b34d",
+          "names": [],
+          "revision": 1,
+          "score": null
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "96610fb80b1bda8a",
+          "names": [],
+          "revision": 1,
+          "score": 1.0
+        }
+      ],
+      "changes": [],
+      "config": {
+        "drift_below": 0.25,
+        "low_below": 0.25,
+        "min_events": 3
+      },
+      "drift": [],
+      "low_alignment_periods": [],
+      "revisions": [
+        {
+          "abandoned": [],
+          "event_id": "efbc3fb8debf69d2",
+          "prompt": "Add a login page with email and password validation",
+          "relation": "opened",
+          "revision": 1,
+          "similarity": null,
+          "terms": [
+            "email",
+            "login",
+            "pag",
+            "password",
+            "validation"
+          ]
+        }
+      ],
+      "rule": "Overlap coefficient |intent ∩ activity| / min(|intent|, |activity|) of key terms (content words, identifier parts and file-name parts, stemmed, without stopwords or generic programming words); 0 when either side has no terms.",
+      "scorer": "lexical"
+    },
     "intents": [
       "Add a login page with email and password validation"
     ]
@@ -275,6 +372,12 @@
     {
       "confidence_rule": "A whole-file write of a file the agent had itself written, keeping at least 80% of its lines: 0.80. A whole-file write of a file it had read (3+ lines), keeping at least 60% of them: 0.60 (uncertain; small files are often rewritten on purpose). The retained share of the write is waste.",
       "id": "regeneration",
+      "kind": "waste",
+      "waste": "overproduction"
+    },
+    {
+      "confidence_rule": "An edit or write whose alignment to the intent in force is below the drift band (default 0.25), against an intent of at least 3 key terms: 0.85 when the names it defines continue a goal the developer dropped, or the agent's own reasoning or narration since the prompt called it additional ('also', 'while I'm at it') and names it; 0.75 when it defines new names the intent does not mention; 0.55 (uncertain) when it defines no names and only its added words (at least 3) depart. Before any prompt, or against a shorter intent: no finding.",
+      "id": "intent_drift",
       "kind": "waste",
       "waste": "overproduction"
     }

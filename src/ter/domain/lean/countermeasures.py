@@ -519,6 +519,28 @@ def _regeneration(ctx: _Context) -> tuple[str, list[Action]]:
     )
 
 
+def _drift(ctx: _Context) -> tuple[str, list[Action]]:
+    return (
+        "Stay inside the stated intent",
+        [
+            Action(
+                ActionKind.CLAUDE_MD,
+                "Ask the agent to propose extra work instead of doing it.",
+                "- Do only what the current request asks. When you see something else worth "
+                "doing, mention it in your answer and wait for the go-ahead; when the user "
+                "changes the goal, drop the old one.",
+                "markdown",
+            ),
+            Action(
+                ActionKind.PRACTICE,
+                f"Unrequested changes this session: {_list(ctx.subjects)}. If they were "
+                "wanted, say so in the prompt next time, so the intent records them and they "
+                "count as value; if not, revert them.",
+            ),
+        ],
+    )
+
+
 _CATALOGUE: dict[str, Callable[[_Context], tuple[str, list[Action]]]] = {
     "repeated_tool_call": _repeated_tool_call,
     "repeated_exploration": _repeated_exploration,
@@ -531,6 +553,7 @@ _CATALOGUE: dict[str, Callable[[_Context], tuple[str, list[Action]]]] = {
     "unnecessary_handoff": _handoff,
     "repeated_reasoning": _reasoning,
     "regeneration": _regeneration,
+    "intent_drift": _drift,
 }
 
 
@@ -607,6 +630,7 @@ _MEASURES: dict[str, tuple[str, str]] = {
     "unnecessary_handoff": ("Handoffs redone by the agent", "0"),
     "repeated_reasoning": ("Restated reasoning blocks", "fewer"),
     "regeneration": ("Whole-file rewrites of existing content", "0"),
+    "intent_drift": ("Edits departing from the intent with no intent change", "0"),
 }
 
 

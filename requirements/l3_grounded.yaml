@@ -197,6 +197,37 @@ requirements:
       datasets.
     status: verified
 
+  - id: TER-ITN-006
+    pattern: unwanted
+    text: >-
+      If agent exploration or reasoning departs from the current intent
+      without a recorded intent change, and repository evidence shows it
+      touches nothing the intended change depends on, then TER shall classify
+      the departure as drift.
+    level: L3
+    port: RepositoryEvidence
+    source_points: [48]
+    rationale: >-
+      Exploration that looks unrelated in words is often needed; only
+      repository evidence of what the change depends on separates it from
+      drift. L2 judges edits and writes (TER-ITN-003).
+    status: planned
+
+  - id: TER-LEN-009
+    pattern: ubiquitous
+    text: >-
+      TER shall judge the value of each exploration, reasoning and validation
+      event against the software outcome stated in the current intent, using
+      repository evidence of what the outcome required.
+    level: L3
+    port: RepositoryEvidence
+    source_points: [6, 7]
+    rationale: >-
+      Whether a read or a check served the requested outcome depends on the
+      repository, not on the event stream alone. L2 judges edits and writes
+      (TER-LEN-003).
+    status: planned
+
   - id: TER-RTE-001
     pattern: ubiquitous
     text: >-

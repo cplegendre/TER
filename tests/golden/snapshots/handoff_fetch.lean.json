@@ -185,6 +185,12 @@
       "id": "regeneration",
       "kind": "waste",
       "waste": "overproduction"
+    },
+    {
+      "confidence_rule": "An edit or write whose alignment to the intent in force is below the drift band (default 0.25), against an intent of at least 3 key terms: 0.85 when the names it defines continue a goal the developer dropped, or the agent's own reasoning or narration since the prompt called it additional ('also', 'while I'm at it') and names it; 0.75 when it defines new names the intent does not mention; 0.55 (uncertain) when it defines no names and only its added words (at least 3) depart. Before any prompt, or against a shorter intent: no finding.",
+      "id": "intent_drift",
+      "kind": "waste",
+      "waste": "overproduction"
     }
   ],
   "events": 13,
@@ -433,6 +439,98 @@
       "waste_events": []
     }
   ],
+  "intent": {
+    "alignment": [
+      {
+        "band": "aligned",
+        "basis": "text",
+        "event_id": "4172b0441cd7cfba",
+        "names": [],
+        "revision": 1,
+        "score": 0.5
+      },
+      {
+        "band": "aligned",
+        "basis": "text",
+        "event_id": "f1146cba7555b4e6",
+        "names": [],
+        "revision": 1,
+        "score": 1.0
+      },
+      {
+        "band": "aligned",
+        "basis": "text",
+        "event_id": "21222454fe82bdbe",
+        "names": [],
+        "revision": 1,
+        "score": 0.6
+      },
+      {
+        "band": "aligned",
+        "basis": "text",
+        "event_id": "3b63c8d624bcf410",
+        "names": [],
+        "revision": 1,
+        "score": 0.5
+      },
+      {
+        "band": "unknown",
+        "basis": "text",
+        "event_id": "0c09dd0c065ec07b",
+        "names": [],
+        "revision": 1,
+        "score": null
+      },
+      {
+        "band": "aligned",
+        "basis": "text",
+        "event_id": "4f983f4cbf7260c1",
+        "names": [],
+        "revision": 1,
+        "score": 1.0
+      },
+      {
+        "band": "low",
+        "basis": "text",
+        "event_id": "71f7f1f147f2ae8d",
+        "names": [],
+        "revision": 1,
+        "score": 0.2
+      }
+    ],
+    "changes": [],
+    "config": {
+      "drift_below": 0.25,
+      "low_below": 0.25,
+      "min_events": 3
+    },
+    "drift": [],
+    "low_alignment_periods": [],
+    "revisions": [
+      {
+        "abandoned": [],
+        "event_id": "cfe38703c440c315",
+        "prompt": "Upgrade the requests dependency in pyproject.toml to the latest 2.x release and",
+        "relation": "opened",
+        "revision": 1,
+        "similarity": null,
+        "terms": [
+          "break",
+          "changelog",
+          "check",
+          "dependency",
+          "latest",
+          "pyproject",
+          "releas",
+          "request",
+          "toml",
+          "upgrad"
+        ]
+      }
+    ],
+    "rule": "Overlap coefficient |intent ∩ activity| / min(|intent|, |activity|) of key terms (content words, identifier parts and file-name parts, stemmed, without stopwords or generic programming words); 0 when either side has no terms.",
+    "scorer": "lexical"
+  },
   "schema": "ter.lean/0.1",
   "scorecard": {
     "activity_seconds": {

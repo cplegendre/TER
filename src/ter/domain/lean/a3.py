@@ -79,7 +79,11 @@ class A3Report:
             "schema": A3_SCHEMA,
             "title": self.title,
             "session_id": self.session_id,
-            "background": {"intents": list(self.intents), "events": a.events},
+            "background": {
+                "intents": list(self.intents),
+                "events": a.events,
+                "intent": a.intent.as_dict([f.id for f in a.drift_findings]),
+            },
             "problem": self.problem,
             "current_state": {"value_stream": [s.as_dict() for s in a.value_stream]},
             "analysis": {

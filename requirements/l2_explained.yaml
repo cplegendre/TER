@@ -287,7 +287,7 @@ requirements:
     source_points: [45, 46]
     rationale: >-
       Intent is a first-class, evolving object rather than the first prompt.
-    status: planned
+    status: verified
 
   - id: TER-ITN-002
     pattern: event-driven
@@ -298,18 +298,21 @@ requirements:
     source_points: [47]
     rationale: >-
       Explicit intent changes reset what counts as value.
-    status: planned
+    status: verified
 
   - id: TER-ITN-003
     pattern: unwanted
     text: >-
-      If agent activity departs from the current intent without a recorded
-      intent change, then TER shall classify the departure as drift.
+      If an agent edit or write departs from the current intent without a
+      recorded intent change, then TER shall classify the departure as drift.
     level: L2
     source_points: [48]
     rationale: >-
-      Drift is departure without the user's say-so.
-    status: planned
+      Drift is departure without the user's say-so. At L2 only changes to
+      the software are judged; departures in exploration and reasoning are
+      reported as low alignment (TER-ITN-005) until repository evidence can
+      tell relevant exploration from drift (TER-ITN-006).
+    status: verified
 
   - id: TER-ITN-004
     pattern: ubiquitous
@@ -320,7 +323,7 @@ requirements:
     source_points: [49]
     rationale: >-
       Distance to intent is the basic alignment signal.
-    status: planned
+    status: verified
 
   - id: TER-ITN-005
     pattern: state-driven
@@ -331,7 +334,7 @@ requirements:
     source_points: [50]
     rationale: >-
       Sustained low alignment matters more than a single off-topic event.
-    status: planned
+    status: verified
 
   - id: TER-LEN-001
     pattern: ubiquitous
@@ -359,14 +362,17 @@ requirements:
   - id: TER-LEN-003
     pattern: ubiquitous
     text: >-
-      TER shall judge the value of each event against the software outcome
-      stated in the current intent.
+      TER shall judge the value of each agent edit and write against the
+      software outcome stated in the current intent.
     level: L2
     source_points: [6, 7]
     rationale: >-
       Value is defined by the developer's requested outcome, not by activity
-      volume.
-    status: planned
+      volume. At L2 a change that departs from the intent loses its
+      value-adding class through a drift finding; judging exploration,
+      reasoning and validation against the outcome needs repository
+      evidence (TER-LEN-009).
+    status: verified
 
   - id: TER-LEN-004
     pattern: unwanted

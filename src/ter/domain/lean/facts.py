@@ -16,6 +16,7 @@ from collections.abc import Mapping
 from .model import Outcome, ShellIntent
 
 __all__ = [
+    "STOPWORDS",
     "content_words",
     "defined_identifiers",
     "failure_signature",
@@ -135,6 +136,9 @@ _STOPWORDS = frozenset(
     make sure first next last think file files use using used
     """.split()
 )
+
+#: Words too common to say what a text is about (shared with :mod:`.intent`).
+STOPWORDS = _STOPWORDS
 
 
 def normalise_command(command: str) -> str:

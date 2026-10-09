@@ -108,6 +108,137 @@
   },
   "background": {
     "events": 20,
+    "intent": {
+      "alignment": [
+        {
+          "band": "partial",
+          "basis": "text",
+          "event_id": "85ed37b31edb7b93",
+          "names": [],
+          "revision": 1,
+          "score": 0.4286
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "f2873718c65cddef",
+          "names": [],
+          "revision": 1,
+          "score": 1.0
+        },
+        {
+          "band": "low",
+          "basis": "text",
+          "event_id": "77dbe291b043466d",
+          "names": [],
+          "revision": 1,
+          "score": 0.1667
+        },
+        {
+          "band": "low",
+          "basis": "changed_words",
+          "event_id": "b5dc801f9ba2fcf1",
+          "names": [],
+          "revision": 1,
+          "score": 0.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "1c91989c08c0ed50",
+          "names": [],
+          "revision": 1,
+          "score": 0.6667
+        },
+        {
+          "band": "partial",
+          "basis": "text",
+          "event_id": "b79c917cdfc846b5",
+          "names": [],
+          "revision": 1,
+          "score": 0.3333
+        },
+        {
+          "band": "low",
+          "basis": "changed_words",
+          "event_id": "d149692b66de4b4b",
+          "names": [],
+          "revision": 1,
+          "score": 0.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "763dc8c817be8d49",
+          "names": [],
+          "revision": 1,
+          "score": 0.6667
+        },
+        {
+          "band": "low",
+          "basis": "text",
+          "event_id": "c502b1c166401b3c",
+          "names": [],
+          "revision": 1,
+          "score": 0.2222
+        },
+        {
+          "band": "low",
+          "basis": "text",
+          "event_id": "f32c8aba5faf2655",
+          "names": [],
+          "revision": 1,
+          "score": 0.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "1721cb31e33a6b9b",
+          "names": [],
+          "revision": 1,
+          "score": 0.6667
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "ee6a5952b4a08820",
+          "names": [],
+          "revision": 1,
+          "score": 0.5556
+        }
+      ],
+      "changes": [],
+      "config": {
+        "drift_below": 0.25,
+        "low_below": 0.25,
+        "min_events": 3
+      },
+      "drift": [],
+      "low_alignment_periods": [],
+      "revisions": [
+        {
+          "abandoned": [],
+          "event_id": "e2450187ade21441",
+          "prompt": "The duration parser in src/parser.py fails for hours like '2h'. Fix parse_durati",
+          "relation": "opened",
+          "revision": 1,
+          "similarity": null,
+          "terms": [
+            "duration",
+            "exist",
+            "fail",
+            "hour",
+            "keep",
+            "pars",
+            "parser",
+            "test",
+            "work"
+          ]
+        }
+      ],
+      "rule": "Overlap coefficient |intent ∩ activity| / min(|intent|, |activity|) of key terms (content words, identifier parts and file-name parts, stemmed, without stopwords or generic programming words); 0 when either side has no terms.",
+      "scorer": "lexical"
+    },
     "intents": [
       "The duration parser in src/parser.py fails for hours like '2h'. Fix parse_duration so hours work and keep the existing tests passing."
     ]
@@ -287,6 +418,12 @@
     {
       "confidence_rule": "A whole-file write of a file the agent had itself written, keeping at least 80% of its lines: 0.80. A whole-file write of a file it had read (3+ lines), keeping at least 60% of them: 0.60 (uncertain; small files are often rewritten on purpose). The retained share of the write is waste.",
       "id": "regeneration",
+      "kind": "waste",
+      "waste": "overproduction"
+    },
+    {
+      "confidence_rule": "An edit or write whose alignment to the intent in force is below the drift band (default 0.25), against an intent of at least 3 key terms: 0.85 when the names it defines continue a goal the developer dropped, or the agent's own reasoning or narration since the prompt called it additional ('also', 'while I'm at it') and names it; 0.75 when it defines new names the intent does not mention; 0.55 (uncertain) when it defines no names and only its added words (at least 3) depart. Before any prompt, or against a shorter intent: no finding.",
+      "id": "intent_drift",
       "kind": "waste",
       "waste": "overproduction"
     }

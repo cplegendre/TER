@@ -1,31 +1,37 @@
 {
   "analysis": {
     "cycles": [],
-    "pareto": [],
+    "pareto": [
+      {
+        "findings": 1,
+        "tokens": 110,
+        "waste": "overproduction"
+      }
+    ],
     "scorecard": {
       "activity_seconds": {
-        "avoidable": 0.0,
+        "avoidable": 3.0,
         "necessary_non_value_adding": 15.0,
         "uncertain": 0.0,
-        "value_adding": 12.0
+        "value_adding": 9.0
       },
       "activity_tokens": {
-        "avoidable": 0,
+        "avoidable": 110,
         "necessary_non_value_adding": 94,
         "uncertain": 0,
-        "value_adding": 327
+        "value_adding": 217
       },
       "agent_seconds": 27.0,
       "composite": {
         "components": [
           {
             "name": "Flow efficiency (tokens)",
-            "value": 1.0,
+            "value": 0.7387,
             "weight": 0.3333
           },
           {
             "name": "Flow efficiency (time)",
-            "value": 1.0,
+            "value": 0.8889,
             "weight": 0.3333
           },
           {
@@ -35,27 +41,27 @@
           }
         ],
         "formula": "Unweighted mean of Flow efficiency (tokens), Flow efficiency (time), TER.",
-        "value": 0.9772
+        "value": 0.8531
       },
       "context_tokens": 33,
       "developer_seconds": 3.0,
-      "findings": 0,
-      "flow_efficiency_time": 1.0,
-      "flow_efficiency_tokens": 1.0,
+      "findings": 1,
+      "flow_efficiency_time": 0.8889,
+      "flow_efficiency_tokens": 0.7387,
       "flow_seconds": {
         "inventory": 0.0,
-        "progressing": 27.0,
+        "progressing": 24.0,
         "recovering": 0.0,
         "repeating": 0.0,
-        "reworking": 0.0,
+        "reworking": 3.0,
         "waiting": 0.0
       },
       "flow_tokens": {
         "inventory": 0,
-        "progressing": 421,
+        "progressing": 311,
         "recovering": 0,
         "repeating": 0,
-        "reworking": 0,
+        "reworking": 110,
         "waiting": 0
       },
       "generated_tokens": 421,
@@ -68,13 +74,145 @@
       },
       "uncertain_findings": 0,
       "uncertain_waste_tokens": 0,
-      "waste_context_tokens": 0,
-      "waste_seconds": 0.0,
-      "waste_tokens": 0
+      "waste_context_tokens": 11,
+      "waste_seconds": 3.0,
+      "waste_tokens": 110
     }
   },
   "background": {
     "events": 14,
+    "intent": {
+      "alignment": [
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "9f1830571498ab8a",
+          "names": [],
+          "revision": 1,
+          "score": 0.5
+        },
+        {
+          "band": "aligned",
+          "basis": "names",
+          "event_id": "ff2bdafc4174f0ae",
+          "names": [
+            "median"
+          ],
+          "revision": 1,
+          "score": 1.0
+        },
+        {
+          "band": "low",
+          "basis": "text",
+          "event_id": "8c8981ce0ad931aa",
+          "names": [],
+          "revision": 2,
+          "score": 0.0
+        },
+        {
+          "band": "low",
+          "basis": "names",
+          "event_id": "3a726cf05dd3f436",
+          "names": [
+            "mean",
+            "variance"
+          ],
+          "revision": 2,
+          "score": 0.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "49e3059cba2ea9f8",
+          "names": [],
+          "revision": 2,
+          "score": 0.8571
+        },
+        {
+          "band": "aligned",
+          "basis": "names",
+          "event_id": "5783fac4e7fb70bd",
+          "names": [
+            "mode"
+          ],
+          "revision": 2,
+          "score": 1.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "dce4ed64099ffef5",
+          "names": [],
+          "revision": 2,
+          "score": 0.5
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "98eb228a9ef62c5e",
+          "names": [],
+          "revision": 2,
+          "score": 1.0
+        }
+      ],
+      "changes": [
+        {
+          "abandoned": [
+            "median"
+          ],
+          "event_id": "952a574075aacf7c",
+          "from_revision": 1,
+          "reason": "explicit redirect ('Actually')",
+          "to_revision": 2
+        }
+      ],
+      "config": {
+        "drift_below": 0.25,
+        "low_below": 0.25,
+        "min_events": 3
+      },
+      "drift": [
+        "intent_drift:3a726cf05dd3f436"
+      ],
+      "low_alignment_periods": [],
+      "revisions": [
+        {
+          "abandoned": [],
+          "event_id": "48ba27d45b86300c",
+          "prompt": "Write a function in src/stats.py that returns the median of a list of numbers.",
+          "relation": "opened",
+          "revision": 1,
+          "similarity": null,
+          "terms": [
+            "list",
+            "median",
+            "number",
+            "stat"
+          ]
+        },
+        {
+          "abandoned": [
+            "median"
+          ],
+          "event_id": "952a574075aacf7c",
+          "prompt": "Actually, forget the median. Instead add a mode function that returns the most c",
+          "relation": "changed",
+          "revision": 2,
+          "similarity": 0.25,
+          "terms": [
+            "common",
+            "empty",
+            "error",
+            "list",
+            "mod",
+            "rais",
+            "valu"
+          ]
+        }
+      ],
+      "rule": "Overlap coefficient |intent ∩ activity| / min(|intent|, |activity|) of key terms (content words, identifier parts and file-name parts, stemmed, without stopwords or generic programming words); 0 when either side has no terms.",
+      "scorer": "lexical"
+    },
     "intents": [
       "Write a function in src/stats.py that returns the median of a list of numbers.",
       "Actually, forget the median. Instead add a mode function that returns the most common value, and raise ValueError on an empty list."
@@ -92,6 +230,30 @@
     "unused_tokens": 0
   },
   "countermeasures": [
+    {
+      "actions": [
+        {
+          "kind": "claude_md",
+          "language": "markdown",
+          "snippet": "- Do only what the current request asks. When you see something else worth doing, mention it in your answer and wait for the go-ahead; when the user changes the goal, drop the old one.",
+          "text": "Ask the agent to propose extra work instead of doing it."
+        },
+        {
+          "kind": "practice",
+          "language": null,
+          "snippet": null,
+          "text": "Unrequested changes this session: `mean, variance`. If they were wanted, say so in the prompt next time, so the intent records them and they count as value; if not, revert them."
+        }
+      ],
+      "addresses": [
+        "intent_drift:3a726cf05dd3f436"
+      ],
+      "detector": "intent_drift",
+      "rationale": "1 finding(s), 110 generated tokens: Edit departs from the intent: mean, variance.",
+      "title": "Stay inside the stated intent",
+      "uncertain": false,
+      "waste": "overproduction"
+    },
     {
       "actions": [
         {
@@ -150,9 +312,10 @@
         "uncertain_tokens": 0
       },
       {
-        "avoidable_tokens": 0,
+        "avoidable_tokens": 110,
         "context_tokens": 32,
         "findings": [
+          "intent_drift:3a726cf05dd3f436",
           "premature_implementation:ff2bdafc4174f0ae"
         ],
         "seconds": 9.0,
@@ -249,9 +412,41 @@
       "id": "regeneration",
       "kind": "waste",
       "waste": "overproduction"
+    },
+    {
+      "confidence_rule": "An edit or write whose alignment to the intent in force is below the drift band (default 0.25), against an intent of at least 3 key terms: 0.85 when the names it defines continue a goal the developer dropped, or the agent's own reasoning or narration since the prompt called it additional ('also', 'while I'm at it') and names it; 0.75 when it defines new names the intent does not mention; 0.55 (uncertain) when it defines no names and only its added words (at least 3) depart. Before any prompt, or against a shorter intent: no finding.",
+      "id": "intent_drift",
+      "kind": "waste",
+      "waste": "overproduction"
     }
   ],
   "findings": [
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.85,
+      "context_tokens": 11,
+      "detector": "intent_drift",
+      "evidence": [
+        "952a574075aacf7c",
+        "8c8981ce0ad931aa",
+        "3a726cf05dd3f436",
+        "915dd336f4f690a2"
+      ],
+      "explanation": "Edit of src/stats.py is about mean, variance, which scores 0.00 against intent revision 2 (below 0.25), and no intent change was recorded. The agent itself called it additional work.",
+      "id": "intent_drift:3a726cf05dd3f436",
+      "kind": "waste",
+      "seconds": 3.0,
+      "share": 1.0,
+      "subject": "mean, variance",
+      "title": "Edit departs from the intent: mean, variance",
+      "tokens": 110,
+      "uncertain": false,
+      "waste": "overproduction",
+      "waste_events": [
+        "3a726cf05dd3f436",
+        "915dd336f4f690a2"
+      ]
+    },
     {
       "activity_class": "avoidable",
       "confidence": 0.45,
@@ -277,25 +472,57 @@
   "follow_up": [
     {
       "current": "1",
+      "how": "findings[detector=intent_drift]",
+      "metric": "Edits departing from the intent with no intent change",
+      "target": "0"
+    },
+    {
+      "current": "1",
       "how": "findings[detector=premature_implementation]",
       "metric": "Edits to files not read first",
       "target": "0"
     },
     {
-      "current": "100%",
+      "current": "74%",
       "how": "scorecard.flow_efficiency_tokens",
       "metric": "Agentic flow efficiency (tokens)",
       "target": "higher"
     },
     {
-      "current": "0%",
+      "current": "26%",
       "how": "scorecard.activity_tokens.avoidable",
       "metric": "Avoidable share of generated tokens",
       "target": "lower"
     }
   ],
-  "problem": "0% of the 421 tokens the agent generated went to avoidable work across 0 confident finding(s); flow efficiency is 100% of tokens and 100% of agent time; 1 risk(s) to the outcome were flagged.",
+  "problem": "26% of the 421 tokens the agent generated went to avoidable work across 1 confident finding(s); flow efficiency is 74% of tokens and 89% of agent time; 1 risk(s) to the outcome were flagged.",
   "root_causes": [
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.85,
+      "context_tokens": 11,
+      "detector": "intent_drift",
+      "evidence": [
+        "952a574075aacf7c",
+        "8c8981ce0ad931aa",
+        "3a726cf05dd3f436",
+        "915dd336f4f690a2"
+      ],
+      "explanation": "Edit of src/stats.py is about mean, variance, which scores 0.00 against intent revision 2 (below 0.25), and no intent change was recorded. The agent itself called it additional work.",
+      "id": "intent_drift:3a726cf05dd3f436",
+      "kind": "waste",
+      "seconds": 3.0,
+      "share": 1.0,
+      "subject": "mean, variance",
+      "title": "Edit departs from the intent: mean, variance",
+      "tokens": 110,
+      "uncertain": false,
+      "waste": "overproduction",
+      "waste_events": [
+        "3a726cf05dd3f436",
+        "915dd336f4f690a2"
+      ]
+    },
     {
       "activity_class": "avoidable",
       "confidence": 0.45,
