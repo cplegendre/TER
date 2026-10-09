@@ -147,7 +147,7 @@
       200
     ]
   ],
-  "schema": "ter.event/0.2",
+  "schema": "ter.event/0.3",
   "session_id": "session-test-001",
   "source_format": "claude-code-jsonl",
   "unrecognised": {}

@@ -30,6 +30,7 @@ from typing import IO, TYPE_CHECKING
 
 from ...application.explain import ExplainedSession
 from ...domain.capabilities import Capability, CapabilityProblem
+from ...domain.events import TEXT_LIMITS, describe_limit
 from ...domain.lean import LeanAnalysis
 from ...domain.outcome import OutcomeFormatError, OutcomeVerdict
 from ...domain.stream import StreamReport
@@ -178,6 +179,12 @@ def _explain(
     except OutcomeFormatError as exc:
         err.write(f"Cannot read outcome: {exc}\n")
         return 2
+    if ter_mode != "off" and explained.analysis.scorecard.ter is None:
+        # TER 3 reads Claude Code transcripts only (TER-SRC-017).
+        err.write(
+            f"No TER score: TER 3 scoring reads Claude Code transcripts, "
+            f"not {explained.trace.source_format}\n"
+        )
     if args.graph is not None:
         _write(args.graph, _json(explained.analysis.graph.as_dict()))
         err.write(f"Wrote {args.graph}\n")
@@ -189,6 +196,7 @@ def _explain(
             out.write(_json(analysis))
         else:
             out.write(format_findings(explained.analysis))
+            out.write(format_limits(explained.a3.usage_limits))
             out.write(format_outcome(explained.a3.outcome, outcome_path))
         return 0
 
@@ -209,6 +217,7 @@ def _explain(
         wrote = True
     if not wrote:
         out.write(format_findings(explained.analysis))
+        out.write(format_limits(explained.a3.usage_limits))
         out.write(format_outcome(explained.a3.outcome, outcome_path))
     return 0
 
@@ -510,13 +519,15 @@ def format_report(report: StreamReport) -> str:
         ("by tool", _pairs(report.by_tool)),
         (
             "text tokens",
-            f"{_pairs(report.tokens_by_class)}  [{report.tokenizer}, {trust}]",
+            f"{_pairs(report.tokens_by_class)}  [{report.tokenizer}, {trust}]"
+            + _limits(report.usage_limits, text=True),
         ),
         (
             "usage",
             f"input {usage.input_tokens:,} · output {usage.output_tokens:,} · "
             f"cache write {usage.cache_creation_tokens:,} · "
-            f"cache read {usage.cache_read_tokens:,}",
+            f"cache read {usage.cache_read_tokens:,}"
+            + _limits(report.usage_limits, text=False),
         ),
         ("duplicate calls", f"{len(report.duplicate_tool_calls)}"),
         ("repeated reads", f"{report.repeated_read_count}  {reads}"),
@@ -534,18 +545,32 @@ def format_report(report: StreamReport) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _limits(limits: Sequence[str], *, text: bool) -> str:
+    """The limits that qualify text token counts, or the usage figures."""
+    return "".join(
+        f"  [{describe_limit(limit)}]"
+        for limit in limits
+        if (limit in TEXT_LIMITS) is text
+    )
+
+
+def format_limits(limits: Sequence[str]) -> str:
+    """Every usage limit of the trace an explanation was built from."""
+    return "".join(f"  limit            {describe_limit(lim)}\n" for lim in limits)
+
+
 def format_timeline(report: StreamReport, *, limit: int | None = None) -> str:
     """One line per accepted event, with the signals it raised."""
     rows = report.timeline if limit is None else report.timeline[:limit]
-    header = (
-        f"  {'#':>4}  {'kind':<15} {'actor':<9} {'tool':<13} {'tokens':>7}  signals"
-    )
+    # Routing kinds such as verification.completed are wider than the rest.
+    width = max([15, *(len(row.kind.value) for row in rows)])
+    header = f"  {'#':>4}  {'kind':<{width}} {'actor':<9} {'tool':<13} {'tokens':>7}  signals"
     lines = ["Timeline", header]
     for row in rows:
         tool = row.tool_kind.value if row.tool_kind else ""
         signals = ", ".join(s.value for s in row.signals)
         lines.append(
-            f"  {row.index:>4}  {row.kind.value:<15} {row.actor.value:<9} "
+            f"  {row.index:>4}  {row.kind.value:<{width}} {row.actor.value:<9} "
             f"{tool:<13} {row.tokens:>7}  {signals}".rstrip()
         )
     hidden = len(report.timeline) - len(rows)

@@ -278,7 +278,7 @@
       83
     ]
   ],
-  "schema": "ter.event/0.2",
+  "schema": "ter.event/0.3",
   "session_id": "golden-explore",
   "source_format": "claude-code-jsonl",
   "unrecognised": {

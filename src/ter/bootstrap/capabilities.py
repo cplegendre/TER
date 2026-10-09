@@ -60,6 +60,7 @@ BUILTIN_CAPABILITIES: dict[str, str] = {
     "OutcomeSource.junit": "ter.adapters.driven.junit:JUnitOutcomeSource",
     "PriceBook.json": "ter.adapters.driven.pricing:JsonPriceBook",
     "SessionSource.claude-code": "ter.adapters.driven.claude_code:ClaudeCodeJsonlSource",
+    "SessionSource.gare": "ter.adapters.driven.gare:GareRunSource",
     "TerScorer.ter3": "ter.adapters.driven.ter3:Ter3Scorer",
     "Tokenizer.regex": "ter.adapters.driven.tokenizers:RegexTokenizer",
     "Tokenizer.tiktoken": "ter.adapters.driven.tokenizers:TiktokenTokenizer",

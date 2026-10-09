@@ -1,0 +1,135 @@
+{
+  "run": {
+    "id": "78cad60f1908",
+    "goal": "Fix add so it returns the sum",
+    "status": "blocked",
+    "workflow": "mission",
+    "created_at": "2026-10-08T19:41:55.418458+00:00",
+    "finished_at": "2026-10-08T19:41:55.524729+00:00"
+  },
+  "tasks": [
+    {
+      "id": "mission-coder-1-d3f3047f",
+      "run_id": "78cad60f1908",
+      "title": "Generate patch attempt 1",
+      "role": "coder",
+      "status": "failed",
+      "provider": "mock",
+      "model": "mock-smart",
+      "input_tokens": 346,
+      "output_tokens": 330,
+      "error": "no valid <gare_patch> block",
+      "artifact_path": "/sandbox/artifacts/78cad60f1908/attempt-1.patch",
+      "created_at": "2026-10-08T19:41:55.458970+00:00",
+      "finished_at": "2026-10-08T19:41:55.491005+00:00"
+    },
+    {
+      "id": "mission-investigate-1-1c56d9f8",
+      "run_id": "78cad60f1908",
+      "title": "Diagnose failed patch attempt 1",
+      "role": "reviewer",
+      "status": "failed",
+      "provider": "mock",
+      "model": "mock-smart",
+      "input_tokens": 236,
+      "output_tokens": 331,
+      "error": "confidence 0.00 is below repair threshold 0.60",
+      "artifact_path": null,
+      "created_at": "2026-10-08T19:41:55.491196+00:00",
+      "finished_at": "2026-10-08T19:41:55.522448+00:00"
+    }
+  ],
+  "events": [
+    {
+      "state": "created",
+      "created_at": "2026-10-08T19:41:55.418501+00:00",
+      "detail": {
+        "goal": "Fix add so it returns the sum",
+        "mode": "local"
+      }
+    },
+    {
+      "state": "worktree_ready",
+      "created_at": "2026-10-08T19:41:55.442578+00:00",
+      "detail": {
+        "path": "/sandbox/worktrees/78cad60f1908",
+        "base_sha": "0046fe5f4b77c3f90a08a2d623300af890a09d97"
+      }
+    },
+    {
+      "state": "route_decision",
+      "created_at": "2026-10-08T19:41:55.459774+00:00",
+      "detail": {
+        "task_id": "mission-coder-1-d3f3047f",
+        "capability": "coding",
+        "candidates": [
+          {
+            "provider": "mock",
+            "model": "mock-smart",
+            "score": 11.85
+          }
+        ]
+      }
+    },
+    {
+      "state": "route_decision",
+      "created_at": "2026-10-08T19:41:55.491351+00:00",
+      "detail": {
+        "task_id": "mission-investigate-1-1c56d9f8",
+        "capability": "reasoning",
+        "candidates": [
+          {
+            "provider": "mock",
+            "model": "mock-smart",
+            "score": 11.85
+          }
+        ]
+      }
+    },
+    {
+      "state": "diagnosis",
+      "created_at": "2026-10-08T19:41:55.522640+00:00",
+      "detail": {
+        "attempt": 1,
+        "status": "insufficient_evidence",
+        "reason": "confidence 0.00 is below repair threshold 0.60",
+        "confidence": 0.0,
+        "fingerprint": "d5158170226fd70b1e4d"
+      }
+    },
+    {
+      "state": "repair_stopped",
+      "created_at": "2026-10-08T19:41:55.524396+00:00",
+      "detail": {
+        "attempt": 1,
+        "diagnosis_status": "insufficient_evidence",
+        "reason": "confidence 0.00 is below repair threshold 0.60"
+      }
+    },
+    {
+      "state": "blocked",
+      "created_at": "2026-10-08T19:41:55.524862+00:00",
+      "detail": {
+        "score": 5,
+        "attempts": 1,
+        "diagnoses": 1
+      }
+    }
+  ],
+  "errors": [],
+  "routes": {
+    "mock/mock-smart": {
+      "calls": 2,
+      "successes": 1,
+      "input_tokens": 582,
+      "output_tokens": 661,
+      "avg_latency_ms": null,
+      "success_rate": 0.5,
+      "tokens": 1243
+    }
+  },
+  "audit": {
+    "valid": true,
+    "root": "58986f96c726690401dd37ceb283843f970b781e81bf50d41c0ba31e006383f2"
+  }
+}
