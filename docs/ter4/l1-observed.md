@@ -124,6 +124,7 @@ called by both sides.
 | `task.completed` | `make_event_id(session, turn_uuid, "stop", kind)` | the last main-chain `assistant` record in the transcript tail by the receive time | the last main-chain `assistant` record before each `stop_hook_summary` |
 | `subagent.completed` | `make_event_id("claude-code-hooks", session, "SubagentStop", agent_id)` (the hook's original key, kept) | SubagentStop `agent_id` | each finished `<session>/subagents/agent-<agent_id>.jsonl` |
 | `reasoning`, `response` | `make_event_id(session, record_uuid, block_index, kind)` | no hook | every block |
+| `context.supplied` (system, lifecycle) | `make_event_id("ter.context", session, bundle_id, fragment_id)` | no hook: appended by `python -m ter context bundle` (TER-EVD-004), text = JSON with the bundle, fragment id, source, reason, role, form and tokens | none: a transcript records no supply |
 
 How each side finds the record is in `ter/adapters/claude_code_turns.py`:
 
@@ -251,6 +252,14 @@ the transcript's id, so TER-OBS-007 is verified on real data.
 Each `apply` is O(1) amortised in session length: counters, hash sets and an
 insertion-ordered map of open requests. Redelivered events (same id) are
 discarded before any state changes.
+
+Records are not activity. A `metric.recorded` or `verdict.recorded` event
+(`EventKind.is_record`, TER-EXP-002) is a measure TER recorded about the
+session, its TER 3 ratio or its outcome verdict, appended after the
+session's last event so a report is recomputed from the log alone. The
+engine accepts it once by id and reads a recorded TER 3 ratio for the
+explanation, but no count, token figure or timeline row includes it (see
+[l3-grounded.md](l3-grounded.md#recorded-measures-ter-exp-002)).
 
 ## Using it
 

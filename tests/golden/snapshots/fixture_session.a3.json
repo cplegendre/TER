@@ -539,7 +539,35 @@
     },
     "intents": [
       "Add a login page with email and password validation"
-    ]
+    ],
+    "profile": {
+      "dominant_basis": "edits",
+      "dominant_language": "Python",
+      "languages": [
+        {
+          "edits": 1,
+          "evidence": [
+            "fa615a96e084b535"
+          ],
+          "files_edited": 1,
+          "files_read": 0,
+          "language": "HTML",
+          "reads": 0
+        },
+        {
+          "edits": 1,
+          "evidence": [
+            "ebdc557f2464af54"
+          ],
+          "files_edited": 1,
+          "files_read": 0,
+          "language": "Python",
+          "reads": 0
+        }
+      ],
+      "stack": null,
+      "unrecognised_extensions": {}
+    }
   },
   "context_inventory": {
     "model_turns": 6,
@@ -767,6 +795,12 @@
     {
       "confidence_rule": "A route.failover event (a model call that returned no tokens and did not succeed). 0.80 when a later response completed the work on another route, so the failed call added only waiting; 0.55 (uncertain) when no later response followed. The failover's wall time is the waste; it generated no tokens.",
       "id": "failed_route",
+      "kind": "waste",
+      "waste": "waiting"
+    },
+    {
+      "confidence_rule": "A route.escalated step (or a re-attempt whose first response another model served) after a completed response of the same task, followed before the next prompt or escalation by no new file read, no new check result and no new tool output. 0.80 for a recorded route.escalated with an escalated response; 0.60 (uncertain) for a re-attempt on another model, since a routing harness's verification results are not steps and the change may be lateral; 0.50 (uncertain) when no escalated response was recorded. The escalation marker and the escalated response are the waste.",
+      "id": "unearned_escalation",
       "kind": "waste",
       "waste": "waiting"
     }

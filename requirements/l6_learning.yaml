@@ -197,3 +197,62 @@ requirements:
       by default and crashed on a folder or scored a usage export as a
       transcript.
     status: verified
+
+  - id: TER-STK-010
+    pattern: ubiquitous
+    text: >-
+      The stack comparison shall report, for each stratum of dominant
+      language or repository stack by task category label and outcome label,
+      the stratum's session count and the median generated tokens, context
+      tokens, flow efficiency, unused context share and rework, regeneration
+      and exploration rates of its sessions.
+    level: L6
+    source_points: [182, 185]
+    rationale: >-
+      Leigh's request: compare token use and waste across languages and
+      stacks. Task type, size and outcome confound a raw comparison, so
+      sessions are compared only within one task category and outcome.
+      Proving the tool needs synthetic data only; the finding needs a real
+      corpus with several stacks (the points stay open).
+    status: verified
+
+  - id: TER-STK-011
+    pattern: unwanted
+    text: >-
+      If a stratum holds fewer sessions than the stated minimum, then the
+      stack comparison shall mark the stratum insufficient and report no
+      measure and no comparison for it.
+    level: L6
+    source_points: [182, 185]
+    rationale: >-
+      A median of two sessions is an anecdote; the default minimum is five.
+    status: verified
+
+  - id: TER-STK-012
+    pattern: ubiquitous
+    text: >-
+      The stack comparison shall report, beside each median a stratum
+      reports, the 25th and 75th percentiles of that measure, and for each
+      waste rate the share of the stratum's sessions with a value whose rate
+      is above zero.
+    level: L6
+    source_points: [182, 185]
+    rationale: >-
+      On the owner's 52 sessions every median waste rate was 0, because most
+      sessions have no waste of a given kind. The share of sessions with any
+      such waste and the interquartile range show what the median hides.
+    status: verified
+
+  - id: TER-STK-013
+    pattern: unwanted
+    text: >-
+      If a session reads and edits no file, then the stack comparison shall
+      group it by language as none (no files) and leave that group out of
+      every comparison.
+    level: L6
+    source_points: [182, 185]
+    rationale: >-
+      A session with no file says nothing about a language; grouping it as
+      unknown mixed it with sessions whose files no table knows, and let it
+      be compared as if it were a language.
+    status: verified

@@ -61,6 +61,11 @@ _SUBJECT_KEYS = (
 )
 
 
+#: Routing markers that are steps of the value stream: the session waited on
+#: them.
+_STEP_MARKERS = frozenset({EventKind.ROUTE_FAILOVER, EventKind.ROUTE_ESCALATED})
+
+
 def stage_of_tool(kind: ToolKind, shell: ShellIntent | None) -> Stage:
     """The value-stream stage a tool request belongs to."""
     if kind is ToolKind.EXEC_SHELL:
@@ -119,6 +124,9 @@ class StepLog:
         self._requests: dict[str, _Open] = {}
         # Requests that carry no call id and have no result yet, oldest first.
         self._unkeyed: list[str] = []
+        # An ``attempt.started`` seen since the last step: the next step opens
+        # a new attempt (TER-DET-011).
+        self._attempt = False
 
     def __len__(self) -> int:
         return len(self._steps)
@@ -128,12 +136,19 @@ class StepLog:
         if event.id in self._seen:
             return False
         self._seen.add(event.id)
-        if event.kind.is_lifecycle and event.kind is not EventKind.ROUTE_FAILOVER:
+        if event.kind is EventKind.ATTEMPT_STARTED:
+            self._attempt = True
+        if event.kind.is_lifecycle and event.kind not in _STEP_MARKERS:
             # A task or subagent finishing, a route chosen or an attempt
             # started is not a step of the value stream. A failed model route
-            # is: the session waited on it (TER-DET-008).
+            # is: the session waited on it (TER-DET-008); so is an escalated
+            # one (TER-DET-011).
             return True
-        self._steps.append(self._read(event, tokens))
+        step = self._read(event, tokens)
+        if self._attempt:
+            step = replace(step, opens_attempt=True)
+            self._attempt = False
+        self._steps.append(step)
         return True
 
     @property
@@ -172,8 +187,9 @@ class StepLog:
             stage = Stage.INTENT
         elif event.kind is EventKind.RESPONSE:
             stage = Stage.RESPOND
-        elif event.kind is EventKind.ROUTE_FAILOVER:
-            # A model call that failed on its way to a response.
+        elif event.kind in _STEP_MARKERS:
+            # A model call that failed on its way to a response, or a
+            # recorded escalation to another model.
             stage = Stage.RESPOND
             subject = event.text
         elif event.kind is EventKind.REASONING:

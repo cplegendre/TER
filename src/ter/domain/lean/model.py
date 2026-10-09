@@ -241,6 +241,10 @@ class Step:
     #: commands, even when ``shell`` reads it as a change (``sed -i … &&
     #: pytest``); see :func:`~.facts.runs_check`.
     runs_check: bool = False
+    #: The first step after an ``attempt.started`` marker: the first event of
+    #: a new attempt at the task (TER-DET-011 reads a re-attempt served by
+    #: another model as an escalation).
+    opens_attempt: bool = False
 
     @property
     def is_generated(self) -> bool:
@@ -275,6 +279,11 @@ class Step:
     def is_failover(self) -> bool:
         """A model route that failed and returned nothing (``route.failover``)."""
         return self.kind is EventKind.ROUTE_FAILOVER
+
+    @property
+    def is_escalation(self) -> bool:
+        """A recorded model escalation (``route.escalated``, TER-RTE-002)."""
+        return self.kind is EventKind.ROUTE_ESCALATED
 
 
 @dataclass(frozen=True)

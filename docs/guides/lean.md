@@ -135,6 +135,7 @@ publishes its `confidence_rule` in plain language, and each finding lists the
 | `insufficient_context` | defects (risk) | a task edits its n-th file in place with fewer than n context items (0.70; 0.55 when an earlier task read the file) | each file edited in place has a context item in the task |
 | `unused_traversal` | motion | a search or `ls`/`find` lists files nothing later reads, edits or names (0.60, always uncertain) | a listed file is used later, or the output lists none |
 | `failed_route` | waiting | a model call fails over (`route.failover`) and another route does the work (0.80) | no route fails |
+| `unearned_escalation` | waiting | a recorded escalation (`route.escalated`) after a completed answer, and the escalated call reads no new file, runs no new check and produces no new tool output (0.80) | the escalated call adds such evidence, or no answer preceded it |
 
 The full confidence rules are in the
 [detector catalogue](../ter4/l2-explained.md#detector-catalogue) and in each

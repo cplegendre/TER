@@ -286,7 +286,8 @@ def test_capabilities_command_lists_adapters_and_reports_broken_ones() -> None:
     problems = reg.check()
     code, text = _cli(reg.capabilities(), problems)
     assert code == 1
-    assert "Tokenizer      regex" in text
+    # Columns are as wide as the longest port name, so match any padding.
+    assert any(line.split()[:2] == ["Tokenizer", "regex"] for line in text.splitlines())
     assert "! Tokenizer.fragile (plugin.broken:Thing): failed to load" in text
     assert "fragile  " not in text  # broken ones are not listed as usable
     code, _ = _cli(CapabilityRegistry(discover=None).capabilities(), ())

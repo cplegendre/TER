@@ -36,7 +36,7 @@ flowchart LR
 | Plan | `reasoning`, `plan.todo` | necessary non-value-adding |
 | Implement | `fs.edit`, `fs.write` (value-adding); changing or other shell (`pip install`, `git commit`) | value-adding / necessary NVA |
 | Validate | shell recognised as a check: test runners, linters, type checkers, build, ad-hoc `python -c` | necessary non-value-adding |
-| Respond | `response`: the last one before the next prompt delivers the outcome; `route.failover`: a model call that failed on its way to a response | value-adding (final) / necessary NVA (narration, failed route) |
+| Respond | `response`: the last one before the next prompt delivers the outcome; `route.failover`: a model call that failed on its way to a response; `route.escalated`: a recorded escalation to another model | value-adding (final) / necessary NVA (narration, failed route, escalation) |
 
 Other routing markers (`route.selected`, `attempt.started`,
 `verification.completed`, `outcome.recorded`) and task or subagent ends are
@@ -90,6 +90,7 @@ at L3 and L4.
 | `insufficient_context` (22) | defects (risk) | the prompt, the items, the edit | per task, the n-th distinct file edited in place with fewer than 1 × n context items: 0.70; 0.55 when the file was read or written in an earlier task | CLAUDE.md "evidence for every file changed"; `permissions.defaultMode: plan` |
 | `unused_traversal` (28) | motion | the search or walk and its result | after a response, a Grep/Glob or `ls`/`find`/`tree`/`rg` whose listed file names nothing later reads, edits or names: 0.60 — always uncertain at L2; empty output and repeats are not findings | CLAUDE.md "search for a target"; layout map |
 | `failed_route` (29, 30) | waiting | the `route.failover` and the response that did the work | a model call that failed over: 0.80 when a later response did the work on another route, 0.55 when none did; its wall time is the waste | demote or health-check the failing route; timeout and circuit breaker |
+| `unearned_escalation` (30) | waiting | the earlier response, the escalation and the escalated response | a `route.escalated` (or a re-attempt another model served) after a completed response of the task, with no new file read, check result or tool output before the next prompt: 0.80; 0.60 for a re-attempt (uncertain); 0.50 with no escalated response (uncertain). TER-DET-011, [L3](l3-grounded.md#escalation-without-new-evidence-ter-det-011) | escalate only on evidence in the routing profile; hand the stronger model new evidence |
 
 The context band (`ContextBand`: `min_per_file` 1, `per_file` 3, `slack` 3)
 is structural: it counts distinct context items (a file read once whatever
@@ -392,14 +393,14 @@ existed map as follows.
 | TER-LEAN-017 | TER-DET-004 | verified: unused and re-read context in tokens | `test_ter4_lean_detectors.py`, `tests/unit/test_ter4_context_cost.py` |
 | (new) | TER-ANL-040, TER-ANL-041 | verified: priced at the session date's prices; no cache fields → estimated | `tests/unit/test_ter4_context_cost.py`, `tests/contract/test_price_book.py` |
 | (new) | TER-EXP-001 | verified: stream report and A3 (cost included) recomputed from a reloaded event log; the TER 3 ratio and outcome verdict are TER-EXP-002 (L3, planned) | `tests/equivalence/test_recompute_from_events.py` |
-| TER-LEAN-018 | TER-DET-008 (TER-DET-011 planned, L3: escalation after a successful call) | verified: redone handoffs and failed routes (`route.failover`) | `test_ter4_lean_detectors.py`, `test_ter4_lean_context_motion_waiting.py` |
+| TER-LEAN-018 | TER-DET-008, TER-DET-011 (L3) | verified: redone handoffs, failed routes (`route.failover`) and escalations that added no evidence (`unearned_escalation`) | `test_ter4_lean_detectors.py`, `test_ter4_lean_context_motion_waiting.py`, `test_ter4_unearned_escalation.py` |
 | TER-LEAN-019 | TER-LEN-004 | verified: `excessive_planning` and `repeated_reasoning` never claim a step that adds a decision or new evidence | `test_ter4_lean_detectors.py` |
 | (new) | TER-DET-003 | verified: `excessive_context` (uncertain) and `insufficient_context` against a configurable structural band | `test_ter4_lean_context_motion_waiting.py` |
 | (new) | TER-DET-009 | verified: exploration drivers | `test_ter4_lean_context_motion_waiting.py` |
 | TER-LEAN-030 | TER-GRF-002, TER-GRF-003 (TER-GRF-001 planned: decision nodes) | verified | `test_ter4_lean_analysis.py`, properties, `test_ter4_a3.py` |
 | TER-LEAN-040 | TER-SCR-002, TER-FLW-001, TER-SCR-001 | verified | `test_ter4_lean_analysis.py`, properties, `test_ter4_wip_scorecard.py` |
 | TER-LEAN-050 | TER-ANL-010 | verified | `tests/equivalence/test_live_static.py`, properties |
-| TER-LEAN-060 | TER-ARC-002 (TER-ARC-007, 008 planned: repository engines at L3, policies at L4) | verified | `tests/unit/test_ter4_plugins.py`, `test_ter4_lean_analysis.py` |
+| TER-LEAN-060 | TER-ARC-002 (TER-ARC-007 verified at L3: repository engines, see [l3-grounded.md](l3-grounded.md); TER-ARC-008 planned: policies at L4) | verified | `tests/unit/test_ter4_plugins.py`, `test_ter4_lean_analysis.py` |
 | TER-A3-001, 005 | TER-RPT-003 | verified | `test_ter4_lean_analysis.py`, `test_ter4_a3.py`, golden A3 JSON |
 | TER-A3-002 | TER-RPT-004 | verified | `tests/unit/test_ter4_a3.py`, golden A3 HTML |
 | TER-A3-003 | TER-RPT-005 | verified | `test_ter4_lean_analysis.py` |
@@ -449,7 +450,7 @@ catalogue review differ, the status here has been aligned with it.
 | 27 | done | `fragmented_edits` (motion) | Only overhead is waste, never the change |
 | 28 | done | Repeated reads (`repeated_exploration`), fragmented edits and unused traversals (`unused_traversal`, uncertain) are motion | As 18; unused traversals stay uncertain until L3 |
 | 29 | done | `unnecessary_handoff`, `failed_route` | The handoff is the waste; the agent's own call is kept |
-| 30 | partial | Failed routes (`route.failover`) are *waiting*; an escalation after a successful call needs `route.escalated` and answer text (TER-DET-011, L3) | Waiting is attributed only through findings |
+| 30 | done | Failed routes (`route.failover`) and escalations after a completed call that added no evidence (`unearned_escalation`, TER-DET-011, L3) are *waiting* | Waiting is attributed only through findings; "adds evidence" is structural (new file read, check result or tool output) |
 | 31, 32 | done | `WipTracker` counts unresolved hypotheses, tasks, edits and failures after every event; the A3 shows the series and its peak | WIP is a fold: O(1) amortised per event, batch equals live |
 | 33 | later | The WIP–efficiency correlation needs the L6 dataset (issue #44) | A finding never fires on WIP alone without that evidence |
 | 34 | done | `unused_context` (inventory) | As 21 |

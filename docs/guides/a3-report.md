@@ -80,6 +80,8 @@ python -m ter a3 session.jsonl --html a3.html --ter model
 | `--ter off` | No TER in the scorecard |
 | `--tokenizer regex\|tiktoken` | How event text is counted (`regex` is offline) |
 | `--outcome FILE` | Judge the run's test results (JUnit XML, e.g. `pytest --junitxml`) and show the verdict in an Outcome box beside the scorecard; also on `explain` ([outcome.md](../ter4/outcome.md)) |
+| `--repo DIR` | L3: ground the analysis on the repository the session worked in, checked out at its start commit: change surface per task, edits outside it, imports that break the repository's import-linter contracts; also on `explain` ([l3-grounded.md](../ter4/l3-grounded.md)) |
+| `--repo-engine NAME` | Repository engine for `--repo` (default `syntax`: Python, TypeScript, JavaScript, Svelte and Vue imports) |
 
 The page is self-contained (no scripts, no requests), follows light and dark
 themes, and prints on one A3 landscape sheet. Every number in it is in the

@@ -6,7 +6,8 @@ A fake that drifts from the real adapter's obligations fails
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+import re
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import replace
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -14,6 +15,19 @@ from pathlib import Path
 from ...domain.events import Event, SessionTrace
 from ...domain.outcome import OutcomeEvidence, OutcomeFormatError
 from ...domain.pricing import PriceEntry, PriceSchedule, Rates
+from ...domain.routing import RoutingProfile, RoutingProfileError
+from ...domain.repository import (
+    ArchitectureContract,
+    ContractFormatError,
+    FileCommit,
+    RepositoryDiff,
+    RepositoryEvidenceError,
+    SourceStructure,
+    TextMatch,
+    UnknownPathError,
+    module_name,
+)
+from ...domain.repository import tests_importing as repository_tests_importing
 
 
 class InMemorySessionSource:
@@ -122,3 +136,143 @@ class InMemoryOutcomeSource:
         if key in self._malformed:
             raise OutcomeFormatError(f"{key}: in-memory record marked malformed")
         return self._records.get(key)
+
+
+class InMemoryRepositoryEvidence:
+    """A :class:`~ter.ports.driven.RepositoryEvidence` over files held in code.
+
+    ``imports`` gives, per Python file, the absolute modules its import
+    statements name (``import a.b`` -> ``"a.b"``; ``from a import b`` ->
+    ``"a"`` and ``"a.b"``), in place of reading them from text; the
+    test-to-source rule itself is the domain's, shared with the real engines.
+    ``structures``, ``diff`` and ``histories`` are served as given; an engine
+    built without them answers ``None``, as one without that evidence must.
+    ``parse`` stands in for a syntax tree of text that is not a listed
+    file's own (``structure_of``).
+    """
+
+    def __init__(
+        self,
+        files: Mapping[str, str],
+        *,
+        imports: Mapping[str, Iterable[str]] | None = None,
+        structures: Mapping[str, SourceStructure] | None = None,
+        diff: RepositoryDiff | None = None,
+        histories: Mapping[str, Iterable[FileCommit]] | None = None,
+        parse: Callable[[str, str], SourceStructure | None] | None = None,
+        name: str = "in-memory",
+    ) -> None:
+        self.name = name
+        self._parse = parse
+        self._files = dict(files)
+        self._imports = {p: tuple(m) for p, m in (imports or {}).items()}
+        self._structures = dict(structures) if structures is not None else None
+        self._diff = diff
+        self._histories = (
+            {p: tuple(h) for p, h in histories.items()}
+            if histories is not None
+            else None
+        )
+
+    def files(self) -> tuple[str, ...]:
+        return tuple(sorted(self._files))
+
+    def text(self, path: str) -> str:
+        if path not in self._files:
+            raise UnknownPathError(f"{path!r} is not a file of the repository")
+        return self._files[path]
+
+    def search(self, needle: str, *, regex: bool = False) -> tuple[TextMatch, ...]:
+        if not needle:
+            raise RepositoryEvidenceError("search needs a non-empty needle")
+        pattern = re.compile(needle if regex else re.escape(needle))
+        return tuple(
+            TextMatch(path, number, line)
+            for path in self.files()
+            for number, line in enumerate(
+                self._files[path].removesuffix("\n").split("\n"), start=1
+            )
+            if self._files[path] and pattern.search(line.removesuffix("\r"))
+        )
+
+    def tests_importing(self, path: str) -> tuple[str, ...]:
+        self.text(path)
+        files = frozenset(self._files)
+        return repository_tests_importing(module_name(path, files), self._imports)
+
+    def structure(self, path: str) -> SourceStructure | None:
+        self.text(path)
+        return None if self._structures is None else self._structures.get(path)
+
+    def structure_of(self, path: str, text: str) -> SourceStructure | None:
+        """A listed file's structure for its own text; ``parse`` (when given)
+        for any other text."""
+        if path in self._files and text == self._files[path]:
+            return self.structure(path)
+        return None if self._parse is None else self._parse(path, text)
+
+    def diff(self) -> RepositoryDiff | None:
+        return self._diff
+
+    def history(self, path: str) -> tuple[FileCommit, ...] | None:
+        self.text(path)
+        return None if self._histories is None else self._histories.get(path, ())
+
+
+class InMemoryArchitectureContracts:
+    """A :class:`~ter.ports.driven.ArchitectureContracts` serving contracts
+    held in code, by the text they were declared in.
+
+    ``declared`` maps a repository path to ``{text: contracts}``; any other
+    text of a source file declares nothing, and a text listed in ``broken``
+    raises :class:`ContractFormatError`, as a real reader does.
+    """
+
+    name = "in-memory"
+
+    def __init__(
+        self,
+        declared: Mapping[str, Mapping[str, Iterable[ArchitectureContract]]],
+        *,
+        broken: Iterable[str] = (),
+    ) -> None:
+        self._declared = {
+            path: {text: tuple(c) for text, c in by_text.items()}
+            for path, by_text in declared.items()
+        }
+        self._broken = frozenset(broken)
+
+    def sources(self) -> tuple[str, ...]:
+        return tuple(self._declared)
+
+    def read(self, path: str, text: str) -> tuple[ArchitectureContract, ...]:
+        if text in self._broken:
+            raise ContractFormatError(f"{path}: cannot read its contracts")
+        return self._declared.get(path, {}).get(text, ())
+
+
+class InMemoryRoutingProfiles:
+    """A :class:`~ter.ports.driven.RoutingProfiles` serving profiles built in
+    code, with the real adapter's semantics (TER-RTE-001)."""
+
+    name = "in-memory"
+
+    def __init__(self, profiles: Iterable[RoutingProfile], default: str | None = None):
+        self._profiles = {p.name: p for p in profiles}
+        if not self._profiles:
+            raise RoutingProfileError("in-memory: no routing profiles")
+        self._default = default if default is not None else min(self._profiles)
+        if self._default not in self._profiles:
+            raise RoutingProfileError(f"in-memory: no profile {self._default!r}")
+
+    def names(self) -> tuple[str, ...]:
+        return tuple(sorted(self._profiles))
+
+    def default(self) -> str:
+        return self._default
+
+    def profile(self, name: str) -> RoutingProfile:
+        try:
+            return self._profiles[name]
+        except KeyError:
+            raise RoutingProfileError(f"Unknown routing profile {name!r}") from None

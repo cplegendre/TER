@@ -224,6 +224,12 @@
       "id": "failed_route",
       "kind": "waste",
       "waste": "waiting"
+    },
+    {
+      "confidence_rule": "A route.escalated step (or a re-attempt whose first response another model served) after a completed response of the same task, followed before the next prompt or escalation by no new file read, no new check result and no new tool output. 0.80 for a recorded route.escalated with an escalated response; 0.60 (uncertain) for a re-attempt on another model, since a routing harness's verification results are not steps and the change may be lateral; 0.50 (uncertain) when no escalated response was recorded. The escalation marker and the escalated response are the waste.",
+      "id": "unearned_escalation",
+      "kind": "waste",
+      "waste": "waiting"
     }
   ],
   "events": 14,
@@ -644,6 +650,26 @@
     ],
     "rule": "Overlap coefficient |intent ∩ activity| / min(|intent|, |activity|) of key terms (content words, identifier parts and file-name parts, stemmed, without stopwords or generic programming words); 0 when either side has no terms.",
     "scorer": "lexical"
+  },
+  "profile": {
+    "dominant_basis": "edits",
+    "dominant_language": "Python",
+    "languages": [
+      {
+        "edits": 3,
+        "evidence": [
+          "a09b1560a78f36dd",
+          "cf1d7311b82b594e",
+          "a319570797cdc7f7"
+        ],
+        "files_edited": 1,
+        "files_read": 0,
+        "language": "Python",
+        "reads": 0
+      }
+    ],
+    "stack": null,
+    "unrecognised_extensions": {}
   },
   "schema": "ter.lean/0.1",
   "scorecard": {

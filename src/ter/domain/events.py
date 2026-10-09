@@ -24,13 +24,20 @@ from typing import NewType
 #: 0.3 the routing kinds ``route.selected``, ``route.failover``,
 #: ``attempt.started``, ``verification.completed`` and ``outcome.recorded``;
 #: 0.4 the usage fields ``model`` and ``cache_reported``, so a session can be
-#: priced from its events alone (TER-ANL-040, TER-ANL-041, TER-EXP-001).
-EVENT_SCHEMA_VERSION = "ter.event/0.4"
+#: priced from its events alone (TER-ANL-040, TER-ANL-041, TER-EXP-001);
+#: 0.5 the kind ``context.supplied`` (TER-EVD-004).
+EVENT_SCHEMA_VERSION = "ter.event/0.5"
 
 #: Every contract version this build reads. Each is a subset of the current
 #: one, so a record written under any of them decodes unchanged.
 READABLE_SCHEMA_VERSIONS = frozenset(
-    {"ter.event/0.1", "ter.event/0.2", "ter.event/0.3", EVENT_SCHEMA_VERSION}
+    {
+        "ter.event/0.1",
+        "ter.event/0.2",
+        "ter.event/0.3",
+        "ter.event/0.4",
+        EVENT_SCHEMA_VERSION,
+    }
 )
 
 #: Stable, content-derived identity of an event. The same source record always
@@ -64,6 +71,28 @@ class EventKind(StrEnum):
     ATTEMPT_STARTED = "attempt.started"
     VERIFICATION_COMPLETED = "verification.completed"
     OUTCOME_RECORDED = "outcome.recorded"
+    # Context bundles (TER-EVD-004, TER-CTX-001): TER handed one fragment
+    # of a context bundle to the agent.
+    CONTEXT_SUPPLIED = "context.supplied"
+    # Model routing (L3, TER-RTE-002, TER-DET-011): a router moved a task to
+    # a higher role of its routing profile. The text holds the triggering
+    # signal, both roles, the latency and the token usage
+    # (``ter.domain.routing.RouteEscalation``).
+    ROUTE_ESCALATED = "route.escalated"
+    # TER-EXP-002: measures TER records about a session (its TER 3 ratio and
+    # its outcome verdict), so every reported metric is recomputed from the
+    # event log alone. Records, not activity: the fold counts none of them.
+    METRIC_RECORDED = "metric.recorded"
+    VERDICT_RECORDED = "verdict.recorded"
+
+    @property
+    def is_record(self) -> bool:
+        """True for a measure TER recorded about the session (TER-EXP-002).
+
+        A record is not something the developer, the agent or a harness did:
+        no step, no count, no token figure includes it.
+        """
+        return self in (EventKind.METRIC_RECORDED, EventKind.VERDICT_RECORDED)
 
     @property
     def is_lifecycle(self) -> bool:
@@ -94,6 +123,8 @@ _LIFECYCLE = frozenset(
         EventKind.ATTEMPT_STARTED,
         EventKind.VERIFICATION_COMPLETED,
         EventKind.OUTCOME_RECORDED,
+        EventKind.CONTEXT_SUPPLIED,
+        EventKind.ROUTE_ESCALATED,
     }
 )
 

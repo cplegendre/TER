@@ -637,6 +637,141 @@ def _failed_route(ctx: _Context) -> tuple[str, list[Action]]:
     )
 
 
+def _unearned_escalation(ctx: _Context) -> tuple[str, list[Action]]:
+    return (
+        "Escalate only on evidence, and give the escalated model something new",
+        [
+            Action(
+                ActionKind.SETTING,
+                "In the routing profile, escalate only on a detector signal with "
+                "evidence (a failing check that does not move, a rework cycle), not "
+                f"after any completed answer ({_list(ctx.subjects)} added nothing "
+                "the earlier call lacked).",
+            ),
+            Action(
+                ActionKind.PRACTICE,
+                "When a task does escalate, hand the stronger model new evidence: the "
+                "failing test output, the files the first answer did not read. An "
+                "escalation that sees what the first model saw tends to answer the "
+                "same way, after a wait.",
+            ),
+        ],
+    )
+
+
+def _unrelated(ctx: _Context) -> tuple[str, list[Action]]:
+    return (
+        "Keep each task's edits inside its change surface",
+        [
+            Action(
+                ActionKind.CLAUDE_MD,
+                "Bound the change by the code the task names.",
+                "- Change only the files the request names, the modules they import or "
+                "that import them, and their tests. For anything else, say what you would "
+                "change and why, and wait for the go-ahead.",
+                "markdown",
+            ),
+            Action(
+                ActionKind.PRACTICE,
+                f"Edited with no import link to the task: {_list(ctx.subjects)}. Revert "
+                "them or move them to their own task and commit; if they were wanted, "
+                "name them in the prompt so they are inside the surface next time.",
+            ),
+        ],
+    )
+
+
+def _expansion(ctx: _Context) -> tuple[str, list[Action]]:
+    return (
+        "Make ripple edits a stated decision",
+        [
+            Action(
+                ActionKind.CLAUDE_MD,
+                "Ask the agent to announce a change that spreads past the named code.",
+                "- When a change has to spread beyond the files the request names and "
+                "their direct imports, list those files and why before editing them.",
+                "markdown",
+            ),
+            Action(
+                ActionKind.PRACTICE,
+                f"Verify first: {_list(ctx.subjects)} lie one import link beyond the "
+                "surface, and callers often have to change with what they call. If "
+                "these did not have to, ask for the narrower change next time.",
+            ),
+        ],
+    )
+
+
+def _exploration_drift(ctx: _Context) -> tuple[str, list[Action]]:
+    return (
+        "Keep exploration on what the change depends on",
+        [
+            Action(
+                ActionKind.CLAUDE_MD,
+                "Point the agent at the code the task depends on before it explores.",
+                "- Explore the files the request names, what they import or what "
+                "imports them, and their tests, docs and config first. Before "
+                "reading another package, say what you expect to find there.",
+                "markdown",
+            ),
+            Action(
+                ActionKind.PRACTICE,
+                f"Verify first: {_list(ctx.subjects)} lay off the change surface "
+                "and nothing later used them. If they were needed, name them in "
+                "the prompt or CLAUDE.md so the dependency is on record.",
+            ),
+        ],
+    )
+
+
+_LINT_IMPORTS_HOOK = (
+    'cd "$CLAUDE_PROJECT_DIR" && lint-imports >/dev/null 2>&1 '
+    "|| { echo 'lint-imports: an import breaks an architecture contract; "
+    "run lint-imports to see which' >&2; exit 2; }"
+)
+
+
+def _boundary(ctx: _Context) -> tuple[str, list[Action]]:
+    contracts = _list(ctx.subjects)
+    hook = _settings(
+        {
+            "PostToolUse": [
+                {
+                    "matcher": "Edit|Write",
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": _LINT_IMPORTS_HOOK,
+                            "timeout": 120,
+                        }
+                    ],
+                }
+            ]
+        }
+    )
+    return (
+        "Check the architecture contracts while the agent edits",
+        [
+            Action(
+                ActionKind.HOOK,
+                "Run import-linter after every edit and feed a broken contract back "
+                f"to the agent (broken this session: {contracts}).",
+                hook,
+                "json",
+            ),
+            Action(
+                ActionKind.CLAUDE_MD,
+                "Name the architecture rules the agent must keep.",
+                "- The import contracts in the project's import-linter configuration "
+                f"are rules, not suggestions ({contracts}). Before adding an import "
+                "across packages, check they allow it; run `lint-imports` after "
+                "changing imports.",
+                "markdown",
+            ),
+        ],
+    )
+
+
 _CATALOGUE: dict[str, Callable[[_Context], tuple[str, list[Action]]]] = {
     "repeated_tool_call": _repeated_tool_call,
     "repeated_exploration": _repeated_exploration,
@@ -654,6 +789,11 @@ _CATALOGUE: dict[str, Callable[[_Context], tuple[str, list[Action]]]] = {
     "insufficient_context": _insufficient_context,
     "unused_traversal": _unused_traversal,
     "failed_route": _failed_route,
+    "unearned_escalation": _unearned_escalation,
+    "unrelated_modification": _unrelated,
+    "surface_expansion": _expansion,
+    "boundary_violation": _boundary,
+    "exploration_drift": _exploration_drift,
 }
 
 
@@ -735,6 +875,17 @@ _MEASURES: dict[str, tuple[str, str]] = {
     "insufficient_context": ("Tasks with context below the band", "0"),
     "unused_traversal": ("Traversals whose files were never used (uncertain)", "fewer"),
     "failed_route": ("Failed model routes waited on", "0"),
+    "unearned_escalation": ("Escalations that added no evidence", "0"),
+    "unrelated_modification": ("Edits with no import link to the task", "0"),
+    "surface_expansion": (
+        "Edits one import link beyond the change surface (uncertain)",
+        "fewer",
+    ),
+    "boundary_violation": ("Imports that break an architecture contract", "0"),
+    "exploration_drift": (
+        "Reads off what the change depends on, with no intent change",
+        "0",
+    ),
 }
 
 

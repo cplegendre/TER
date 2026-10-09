@@ -16,7 +16,13 @@ from ..adapters.driving.cli import CliServices
 from ..adapters.driving.cli import main as cli_main
 from ..adapters.driven.in_memory import SystemClock
 from ..application.explain import ExplainedSession, ExplainSession
-from .capabilities import CapabilityRegistry, default_registry, detector_registry
+from ..application.route import RoutedSession, RouteSession
+from .capabilities import (
+    CapabilityRegistry,
+    default_registry,
+    detector_registry,
+    repository_evidence,
+)
 from ..application.observe import (
     AnalyseEventLog,
     AnalyseTrace,
@@ -25,7 +31,13 @@ from ..application.observe import (
 )
 from ..domain.capabilities import Capability, CapabilityProblem, UnknownCapabilityError
 from ..domain.stream import StreamReport
-from ..ports.driven import OutcomeSource, SessionSource, TerScorer, Tokenizer
+from ..ports.driven import (
+    ArchitectureContracts,
+    OutcomeSource,
+    SessionSource,
+    TerScorer,
+    Tokenizer,
+)
 from ..ports.driving import EventIngest
 
 if TYPE_CHECKING:
@@ -39,6 +51,7 @@ __all__ = [
     "default_event_log_dir",
     "detector_registry",
     "main",
+    "make_contracts",
     "make_ingest",
     "make_outcome_source",
     "make_recorder",
@@ -85,6 +98,15 @@ def make_outcome_source(name: str = "junit") -> OutcomeSource:
     source = default_registry().create("OutcomeSource", name)
     assert isinstance(source, OutcomeSource)  # checked by the registry
     return source
+
+
+def make_contracts(name: str = "import-linter") -> ArchitectureContracts:
+    """An ``ArchitectureContracts.<name>`` capability; ``import-linter`` reads
+    import-linter configuration (TER-EVD-007), ``dependency-cruiser`` the
+    forbidden rules of ``.dependency-cruiser.json`` (TER-EVD-015)."""
+    reader = default_registry().create("ArchitectureContracts", name)
+    assert isinstance(reader, ArchitectureContracts)  # checked by the registry
+    return reader
 
 
 def make_ter_scorer(mode: str) -> TerScorer | None:
@@ -183,7 +205,12 @@ def cli_services() -> CliServices:
         return make_recorder(directory)
 
     def explain_transcript(
-        path: Path, tokenizer: str, ter: str, outcome: Path | None = None
+        path: Path,
+        tokenizer: str,
+        ter: str,
+        outcome: Path | None = None,
+        repo: Path | None = None,
+        repo_engine: str = "syntax",
     ) -> ExplainedSession:
         from ..adapters.driven.claude_code import ClaudeCodeJsonlSource
         from ..adapters.driven.pricing import default_price_book
@@ -199,8 +226,42 @@ def cli_services() -> CliServices:
             make_outcome_source() if outcome is not None else None,
             default_price_book(),
             lambda: make_ingest(tokenizer),
+            # L3: the repository as it was when the session started.
+            repository_evidence(repo, repo_engine) if repo is not None else None,
+            (
+                (make_contracts(), make_contracts("dependency-cruiser"))
+                if repo is not None
+                else None
+            ),
         )
         return use_case(path, outcome)
+
+    def route_transcript(
+        path: Path,
+        tokenizer: str,
+        profile: str | None = None,
+        repo: Path | None = None,
+        repo_engine: str = "syntax",
+        profiles_dir: Path | None = None,
+    ) -> RoutedSession:
+        from ..adapters.driven.routing_profiles import (
+            JsonRoutingProfiles,
+            default_routing_profiles,
+        )
+
+        # Advisory routing (L3): decisions and route.escalated events for
+        # analysis, never sent to a live session (TER-INT-001).
+        use_case = RouteSession(
+            session_source_for(path),
+            make_tokenizer(tokenizer),
+            default_routing_profiles()
+            if profiles_dir is None
+            else JsonRoutingProfiles(profiles_dir),
+            lambda: make_ingest(tokenizer),
+            repository_evidence(repo, repo_engine) if repo is not None else None,
+            make_contracts() if repo is not None else None,
+        )
+        return use_case(path, profile)
 
     def capabilities() -> tuple[tuple[Capability, ...], tuple[CapabilityProblem, ...]]:
         registry = default_registry()
@@ -250,7 +311,10 @@ def cli_services() -> CliServices:
 
         return check_recordings(recordings, transcripts, ClaudeCodeJsonlSource().read)
 
+    from .context import context_services
+
     return CliServices(
+        context=context_services(session_source_for, make_tokenizer),
         hooks_check=hooks_check,
         capabilities=capabilities,
         import_corpus=import_corpus,
@@ -262,6 +326,7 @@ def cli_services() -> CliServices:
         default_log_dir=default_event_log_dir(),
         hook_clock=SystemClock(),
         explain_transcript=explain_transcript,
+        route_transcript=route_transcript,
     )
 
 

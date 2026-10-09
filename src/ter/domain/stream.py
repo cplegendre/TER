@@ -30,6 +30,8 @@ from typing import Protocol, TypeVar
 from .events import Actor, Event, EventId, EventKind, TokenUsage, ToolKind
 from .lean.analysis import LeanAnalyser, LeanAnalysis, TerMeasure
 from .lean.detectors import DEFAULT_REGISTRY, DetectorRegistry
+from .lean.grounding import RepositoryGrounding
+from .records import TER3_METRIC, read_metric
 from .lean.intent import (
     DEFAULT_INTENT_CONFIG,
     LEXICAL_ALIGNMENT,
@@ -298,6 +300,8 @@ class AnalysisEngine:
         self._peak_edits = 0
         self._timeline: list[TimelineRow] = []
         self._lean = LeanAnalyser()
+        #: The TER 3 ratio recorded in the stream (TER-EXP-002), if any.
+        self._ter: TerMeasure | None = None
 
     @property
     def session_id(self) -> str | None:
@@ -321,6 +325,13 @@ class AnalysisEngine:
             )
         self._session_id = event.session_id
         self._seen.add(event.id)
+        if event.kind.is_record:
+            # A measure TER recorded about the session (TER-EXP-002): read,
+            # never counted as activity.
+            metric = read_metric(event)
+            if metric is not None and metric.name == TER3_METRIC:
+                self._ter = TerMeasure(metric.value, metric.method)
+            return Signals(event.id, accepted=True)
 
         event_class = EventClass.of(event.kind)
         tokens = self._tokenizer.count(event.text)
@@ -437,19 +448,23 @@ class AnalysisEngine:
         registry: DetectorRegistry = DEFAULT_REGISTRY,
         alignment: AlignmentScorer = LEXICAL_ALIGNMENT,
         intent_config: IntentConfig = DEFAULT_INTENT_CONFIG,
+        repository: RepositoryGrounding | None = None,
     ) -> LeanAnalysis:
         """The L2 explanation so far: findings, value stream, scorecard, graph,
         intent timeline.
 
         Steps and intent facts are folded in :meth:`apply` in O(1) amortised
         time; detectors and alignment run here, over the session so far, in
-        time linear in its length.
+        time linear in its length. ``repository`` grounds the analysis on
+        repository evidence computed beforehand (L3). Without ``ter``, the
+        TER 3 ratio recorded in the stream is used (TER-EXP-002).
         """
         return self._lean.analysis(
-            ter=ter,
+            ter=ter if ter is not None else self._ter,
             registry=registry,
             alignment=alignment,
             intent_config=intent_config,
+            repository=repository,
         )
 
 
@@ -468,10 +483,15 @@ def explain_batch(
     registry: DetectorRegistry = DEFAULT_REGISTRY,
     alignment: AlignmentScorer = LEXICAL_ALIGNMENT,
     intent_config: IntentConfig = DEFAULT_INTENT_CONFIG,
+    repository: RepositoryGrounding | None = None,
 ) -> LeanAnalysis:
     """Explain a whole stream at once: the L2 view of the same fold as :func:`analyse_batch`."""
     engine = AnalysisEngine(tokenizer)
     engine.apply_all(events)
     return engine.explain(
-        ter=ter, registry=registry, alignment=alignment, intent_config=intent_config
+        ter=ter,
+        registry=registry,
+        alignment=alignment,
+        intent_config=intent_config,
+        repository=repository,
     )

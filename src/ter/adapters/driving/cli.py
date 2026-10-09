@@ -10,10 +10,15 @@ Commands::
     python -m ter observe --event-log DIR [--session ID] [--timeline] [--json]
     python -m ter hook [--event-log DIR] [--record DIR]  # one payload on stdin
     python -m ter explain SESSION.jsonl [--json] [--graph FILE] [--outcome FILE]
+                                        [--repo DIR [--repo-engine NAME]]
     python -m ter a3 SESSION.jsonl [--html FILE] [--json [FILE]] [--graph FILE]
                                    [--ter offline|model|off] [--outcome FILE]
+                                   [--repo DIR [--repo-engine NAME]]
+    python -m ter route SESSION.jsonl [--profile NAME] [--profiles DIR] [--json]
+                                      [--repo DIR [--repo-engine NAME]]
     python -m ter hooks check RECORDINGS TRANSCRIPTS [--json FILE]
     python -m ter capabilities                # adapters per port, and problems
+    python -m ter context bundle|report ...   # L3 context bundles (context_cli)
     python -m ter corpus import SRC... --out DIR [--labels CSV]
                                 [--max-tool-output N] [--keep-tool NAME]
                                 [--quote-files]
@@ -27,17 +32,23 @@ import sys
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import IO, TYPE_CHECKING
+from typing import IO, TYPE_CHECKING, Protocol
 
 from ...application.explain import ExplainedSession
-from ...domain.capabilities import Capability, CapabilityProblem
+from ...application.route import RoutedSession
+from ...domain.capabilities import Capability, CapabilityError, CapabilityProblem
 from ...domain.events import TEXT_LIMITS, describe_limit
 from ...domain.lean import LeanAnalysis, SoftwareValueEfficiency
+from ...domain.lean.surface import EditPlacement
 from ...domain.outcome import OutcomeFormatError, OutcomeVerdict
+from ...domain.repository import RepositoryEvidenceError
+from ...domain.routing import RoutingProfileError
+from ...domain.stack import StackKind, stack_label
 from ...domain.stream import StreamReport
 from ...ports.driven import Clock
 from ...ports.driving import EventIngest
 from .claude_hooks import HookStatus, run_hook
+from .context_cli import ContextServices, add_context_parser, run_context
 
 if TYPE_CHECKING:
     from ..driven.claude_code.corpus import CorpusImport
@@ -48,6 +59,8 @@ __all__ = [
     "format_capabilities",
     "format_corpus_import",
     "format_findings",
+    "format_profile",
+    "format_surfaces",
     "format_outcome",
     "format_report",
     "format_timeline",
@@ -68,10 +81,50 @@ TER_MODES = ("offline", "model", "off")
 OUTCOME_ROWS = 12
 #: Share of records the session source should map (TER-SRC-005).
 CORPUS_COVERAGE_TARGET = 0.99
+REPO_HELP = (
+    "L3: the repository the session worked in, checked out at the commit the "
+    "session started from: report each task's change surface, edits outside "
+    "it and imports that break the repository's import-linter contracts"
+)
+REPO_ENGINE_HELP = (
+    "RepositoryEvidence engine for --repo: syntax (default: the import graph "
+    "of Python, TypeScript, JavaScript, Svelte and Vue files), python-ast "
+    "(Python only), lexical (no import graph), git or any installed one"
+)
 OUTCOME_HELP = (
     "test results of the run (JUnit XML, e.g. from pytest --junitxml): judge "
     "the outcome and show the verdict beside the measures"
 )
+
+
+class ExplainTranscript(Protocol):
+    """``explain_transcript(path, tokenizer, ter, outcome, repo, repo_engine)``;
+    ``repo`` (L3) grounds the analysis on the repository at that path."""
+
+    def __call__(
+        self,
+        path: Path,
+        tokenizer: str,
+        ter: str,
+        outcome: Path | None = None,
+        repo: Path | None = None,
+        repo_engine: str = "syntax",
+    ) -> ExplainedSession: ...
+
+
+class RouteTranscript(Protocol):
+    """``route_transcript(path, tokenizer, profile, repo, repo_engine,
+    profiles_dir)`` (L3): classify and route a session's tasks by role."""
+
+    def __call__(
+        self,
+        path: Path,
+        tokenizer: str,
+        profile: str | None = None,
+        repo: Path | None = None,
+        repo_engine: str = "syntax",
+        profiles_dir: Path | None = None,
+    ) -> RoutedSession: ...
 
 
 @dataclass(frozen=True)
@@ -84,9 +137,7 @@ class CliServices:
     hook_ingest: Callable[[Path], EventIngest]
     default_log_dir: Path
     hook_clock: Clock | None = None
-    explain_transcript: (
-        Callable[[Path, str, str, Path | None], ExplainedSession] | None
-    ) = None
+    explain_transcript: ExplainTranscript | None = None
     capabilities: (
         Callable[[], tuple[tuple[Capability, ...], tuple[CapabilityProblem, ...]]]
         | None
@@ -106,6 +157,10 @@ class CliServices:
     #: ``hooks_check(recordings, transcripts)``; raises ``OSError`` or
     #: ``ValueError`` when the recordings cannot be read.
     hooks_check: Callable[[Path, Path], "HookCheck"] | None = None
+    #: L3 context bundles: ``python -m ter context`` (TER-CTX-001).
+    context: ContextServices | None = None
+    #: L3 advisory routing (``python -m ter route``).
+    route_transcript: RouteTranscript | None = None
 
 
 def main(
@@ -135,7 +190,7 @@ def main(
         if result.status is HookStatus.IGNORED and result.reason:
             err.write(f"ter hook: event not recorded: {result.reason}\n")
         return 0
-    if args.command in ("observe", "explain", "a3"):
+    if args.command in ("observe", "explain", "a3", "context", "route"):
         known = TOKENIZERS if services.tokenizers is None else services.tokenizers()
         if args.tokenizer not in known:
             err.write(
@@ -146,12 +201,16 @@ def main(
             return 2
     if args.command in ("explain", "a3"):
         return _explain(args, services, out, err)
+    if args.command == "route":
+        return _route(args, services, out, err)
     if args.command == "capabilities":
         return _capabilities(services, out, err)
     if args.command == "corpus":
         return _corpus(args, services, out, err)
     if args.command == "hooks":
         return _hooks_check(args, services, out, err)
+    if args.command == "context":
+        return run_context(args, services.context, out, err)
     return _observe(args, services, out, err)
 
 
@@ -179,13 +238,33 @@ def _explain(
     if outcome_path is not None and not outcome_path.is_file():
         err.write(f"No such outcome file: {outcome_path}\n")
         return 2
+    repo: Path | None = args.repo
+    if repo is not None and not repo.is_dir():
+        err.write(f"No such repository directory: {repo}\n")
+        return 2
     try:
-        explained = services.explain_transcript(
-            args.path, args.tokenizer, ter_mode, outcome_path
-        )
+        if repo is None:
+            explained = services.explain_transcript(
+                args.path, args.tokenizer, ter_mode, outcome_path
+            )
+        else:
+            explained = services.explain_transcript(
+                args.path,
+                args.tokenizer,
+                ter_mode,
+                outcome_path,
+                repo,
+                args.repo_engine,
+            )
     except OutcomeFormatError as exc:
         err.write(f"Cannot read outcome: {exc}\n")
         return 2
+    except (RepositoryEvidenceError, CapabilityError) as exc:
+        err.write(f"Cannot read repository {repo}: {exc}\n")
+        return 2
+    grounding = explained.grounding
+    if grounding is not None and grounding.contract_problem is not None:
+        err.write(f"Architecture contracts not checked: {grounding.contract_problem}\n")
     if ter_mode != "off" and explained.analysis.scorecard.ter is None:
         # TER 3 reads Claude Code transcripts only (TER-SRC-017).
         err.write(
@@ -229,6 +308,43 @@ def _explain(
         out.write(format_findings(explained.analysis, explained.a3.value_efficiency))
         out.write(format_limits(explained.a3.usage_limits))
         out.write(format_outcome(explained.a3.outcome, outcome_path))
+    return 0
+
+
+def _route(
+    args: argparse.Namespace, services: CliServices, out: IO[str], err: IO[str]
+) -> int:
+    from .route_report import format_routing
+
+    if services.route_transcript is None:
+        err.write("route is not available in this installation\n")
+        return 2
+    if not args.path.exists():
+        err.write(f"No such session file: {args.path}\n")
+        return 2
+    repo: Path | None = args.repo
+    if repo is not None and not repo.is_dir():
+        err.write(f"No such repository directory: {repo}\n")
+        return 2
+    try:
+        routed = services.route_transcript(
+            args.path,
+            args.tokenizer,
+            args.profile,
+            repo,
+            args.repo_engine,
+            args.profiles,
+        )
+    except RoutingProfileError as exc:
+        err.write(f"Cannot use routing profile: {exc}\n")
+        return 2
+    except (RepositoryEvidenceError, CapabilityError) as exc:
+        err.write(f"Cannot read repository {repo}: {exc}\n")
+        return 2
+    if args.json:
+        out.write(_json(routed.plan.as_dict()))
+    else:
+        out.write(format_routing(routed.plan, routed.analysis.repository is not None))
     return 0
 
 
@@ -443,6 +559,8 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
     )
     explain.add_argument("--tokenizer", default="regex", help=TOKENIZER_HELP)
     explain.add_argument("--outcome", type=Path, metavar="FILE", help=OUTCOME_HELP)
+    explain.add_argument("--repo", type=Path, metavar="DIR", help=REPO_HELP)
+    explain.add_argument("--repo-engine", default="syntax", help=REPO_ENGINE_HELP)
 
     a3 = commands.add_parser("a3", help="L2: a one-page Lean A3 report of a session")
     a3.add_argument("path", type=Path, help="Claude Code session .jsonl")
@@ -467,6 +585,28 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
     )
     a3.add_argument("--tokenizer", default="regex", help=TOKENIZER_HELP)
     a3.add_argument("--outcome", type=Path, metavar="FILE", help=OUTCOME_HELP)
+    a3.add_argument("--repo", type=Path, metavar="DIR", help=REPO_HELP)
+    a3.add_argument("--repo-engine", default="syntax", help=REPO_ENGINE_HELP)
+
+    add_context_parser(commands, default_log_dir, TOKENIZER_HELP, REPO_ENGINE_HELP)
+    route = commands.add_parser(
+        "route",
+        help="L3: classify each task and choose a model role for it (advisory)",
+    )
+    route.add_argument("path", type=Path, help="session .jsonl or GARE run")
+    route.add_argument(
+        "--profile", help="routing profile name (default: the profiles' default)"
+    )
+    route.add_argument(
+        "--profiles",
+        type=Path,
+        metavar="DIR",
+        help="read routing profiles from DIR/*.json instead of the shipped ones",
+    )
+    route.add_argument("--json", action="store_true", help="print the plan as JSON")
+    route.add_argument("--tokenizer", default="regex", help=TOKENIZER_HELP)
+    route.add_argument("--repo", type=Path, metavar="DIR", help=REPO_HELP)
+    route.add_argument("--repo-engine", default="syntax", help=REPO_ENGINE_HELP)
 
     commands.add_parser(
         "capabilities",
@@ -676,6 +816,90 @@ def format_outcome(verdict: OutcomeVerdict | None, path: Path | None) -> str:
     return "\n".join(lines) + "\n"
 
 
+def format_surfaces(analysis: LeanAnalysis) -> str:
+    """One line on the change surfaces of a grounded (L3) analysis."""
+    g = analysis.repository
+    placed = [e.placement for s in analysis.surfaces for e in s.edits]
+    counts = ", ".join(
+        f"{sum(p is kind for p in placed)} {kind.value.replace('_', ' ')}"
+        for kind in EditPlacement
+    )
+    contracts = (
+        "no contracts"
+        if g is None or not g.contracts
+        else f"{len(g.contracts)} contract(s) from {g.contract_source}"
+    )
+    line = (
+        f"  change surface   {len(analysis.surfaces)} task(s); edits: {counts}; "
+        f"{contracts}"
+    )
+    if g is not None and len(g.roots) > 1:
+        # More than one checkout named the repository (TER-EVD-017).
+        line += f"\n  repository roots {', '.join(g.roots)}"
+    return line
+
+
+def format_evidence(analysis: LeanAnalysis) -> str:
+    """Two lines on evidence usage and outcome value of a grounded (L3)
+    analysis (TER-EVD-008, TER-LEN-009); empty without them."""
+    u, v = analysis.usage, analysis.value
+    if u is None or v is None:
+        return ""
+    s = u.as_dict()["summary"]
+    assert isinstance(s, dict)
+    lines = [
+        f"  evidence usage   {s['reads']} read(s): {s['used']} used "
+        f"({s['material']} by a change, command or check), {s['unused']} unused "
+        f"({s['unused_context_tokens']:,} tok), {s['pending']} pending; "
+        f"{s['explored_and_changed']} of {s['files_explored']} file(s) read "
+        "were changed"
+    ]
+    totals: dict[str, int] = {}
+    for counts in v.counts().values():
+        for k, n in counts.items():
+            totals[k] = totals.get(k, 0) + n
+    lines.append(
+        "  outcome value    "
+        + ", ".join(f"{n} {k.replace('_', ' ')}" for k, n in totals.items())
+        + f" ({sum(j.uncertain and j.value.value != 'unjudged' for j in v.judgements)}"
+        " uncertain)"
+    )
+    return "\n".join(lines)
+
+
+def format_profile(analysis: LeanAnalysis) -> str:
+    """The session's languages and, when grounded, its stack (TER-STK-001,
+    TER-STK-002); empty when it named no file and has no stack."""
+    p = analysis.profile
+    parts = [
+        f"{u.language} {u.edits} edit(s)/{u.reads} read(s)" for u in p.languages[:4]
+    ]
+    if len(p.languages) > 4:
+        parts.append(f"{len(p.languages) - 4} more")
+    if p.unrecognised:
+        parts.append(f"{sum(n for _, n in p.unrecognised)} unrecognised")
+    lines: list[str] = []
+    if parts:
+        lines.append(
+            f"  languages        {', '.join(parts)}"
+            + (
+                ""
+                if p.dominant is None
+                else f" · dominant {p.dominant} (by {p.dominant_basis})"
+            )
+        )
+    if p.stack is not None:
+        facts = ", ".join(
+            f.name for f in p.stack.facts if f.kind is not StackKind.ECOSYSTEM
+        )
+        lines.append(
+            f"  stack            {stack_label(p.stack)}"
+            + (f" · {facts}" if facts else "")
+            + f" · {len(p.stack.manifests)} manifest(s)"
+        )
+    return "\n".join(lines)
+
+
 def format_findings(
     analysis: LeanAnalysis, sve: SoftwareValueEfficiency | None = None
 ) -> str:
@@ -718,6 +942,14 @@ def format_findings(
             + ", ".join(f"{k.value} {n}" for k, n in wip.peak_by_kind)
             + f"), {0 if final is None else final.total} open at the end"
         )
+    profile = format_profile(analysis)
+    if profile:
+        lines.append(profile)
+    if analysis.repository is not None:
+        lines.append(format_surfaces(analysis))
+        evidence = format_evidence(analysis)
+        if evidence:
+            lines.append(evidence)
     lines.append(
         f"  findings         {sc.findings} confident, {sc.uncertain_findings} uncertain, "
         f"{sc.risks} risk(s)"

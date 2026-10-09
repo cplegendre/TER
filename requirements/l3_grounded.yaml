@@ -12,7 +12,7 @@ requirements:
     source_points: [151, 152, 159]
     rationale: >-
       Evidence-selected context aims at sufficiency, not minimum size.
-    status: planned
+    status: verified
 
   - id: TER-CTX-003
     pattern: ubiquitous
@@ -24,7 +24,7 @@ requirements:
     rationale: >-
       Precision and recall compare full-context and selected-context
       strategies.
-    status: planned
+    status: verified
 
   - id: TER-CTX-004
     pattern: ubiquitous
@@ -35,7 +35,7 @@ requirements:
     source_points: [156, 157, 158]
     rationale: >-
       Context selection is a Lean inventory problem.
-    status: planned
+    status: verified
 
   - id: TER-EVD-001
     pattern: ubiquitous
@@ -47,7 +47,7 @@ requirements:
     source_points: [51, 53, 54]
     rationale: >-
       Repository intelligence must not depend on a model provider.
-    status: planned
+    status: verified
 
   - id: TER-EVD-002
     pattern: ubiquitous
@@ -60,21 +60,23 @@ requirements:
     rationale: >-
       A deterministic lexical baseline makes richer engines measurable
       against it.
-    status: planned
+    status: verified
 
   - id: TER-EVD-003
     pattern: event-driven
     text: >-
-      When a detector requests repository evidence for a source module, the
-      repository evidence adapter shall return every test module that
-      imports that source module.
+      When a detector requests repository evidence for a Python source
+      module, the repository evidence adapter shall return every test module
+      whose import statements import that source module.
     level: L3
     port: RepositoryEvidence
     source_points: [60]
     rationale: >-
       Detectors judge whether an edit was verified by knowing which tests
-      exercise the edited code.
-    status: planned
+      exercise the edited code. Python first; other languages are
+      TER-EVD-014. Imports made by calling importlib are not import
+      statements and are not seen.
+    status: verified
 
   - id: TER-EVD-004
     pattern: event-driven
@@ -87,7 +89,7 @@ requirements:
     rationale: >-
       Issue #42: bundle contents and reads are scored the same way, and
       selection reasons are auditable.
-    status: planned
+    status: verified
 
   - id: TER-EVD-005
     pattern: event-driven
@@ -100,7 +102,7 @@ requirements:
     rationale: >-
       Issue #42: recall needs a human-authored ground truth of the evidence
       a task cannot do without.
-    status: planned
+    status: verified
 
   - id: TER-EVD-006
     pattern: ubiquitous
@@ -108,23 +110,33 @@ requirements:
       TER shall compute the expected change surface of each task and report
       every edit outside it.
     level: L3
+    port: RepositoryEvidence
     source_points: [63, 64, 66]
     rationale: >-
       Edits outside the change surface are expansion or unrelated
-      modification.
-    status: planned
+      modification. The surface is structural: the files the task's prompt
+      names (by path, module or distinctive symbol), the files they import
+      or are imported by, and the tests of both (docs/ter4/l3-grounded.md).
+      Verified on synthetic sessions and repositories; the points it serves
+      stay partial until it is checked on real sessions with their
+      repositories at the start commit (D4).
+    status: verified
 
   - id: TER-EVD-007
     pattern: event-driven
     text: >-
-      When an edit adds an import that breaks a declared architecture
-      contract, TER shall report an architectural boundary violation.
+      When an edit to a Python module adds an import that breaks a declared
+      import-linter forbidden, layers or independence contract, TER shall
+      report an architectural boundary violation.
     level: L3
+    port: RepositoryEvidence
     source_points: [65]
     rationale: >-
       Boundary violations are defects the agent introduces during
-      implementation.
-    status: planned
+      implementation. The edited file is replayed from the start commit and
+      its imports read from its syntax tree; only direct imports are judged.
+      Other languages and contract types are TER-EVD-015.
+    status: verified
 
   - id: TER-EVD-008
     pattern: ubiquitous
@@ -135,33 +147,179 @@ requirements:
     source_points: [67, 68, 69, 70]
     rationale: >-
       Reads with downstream use are value; reads without it are waste.
-    status: planned
+    status: verified
 
   - id: TER-EVD-012
     pattern: optional
     text: >-
-      Where a programming language is supported, the repository evidence
-      adapter shall return the symbols, imports and call edges of each
-      source file from its syntax tree.
+      Where the repository evidence adapter supports the language of a
+      source file, the repository evidence adapter shall return the symbols
+      and imports of that file read from its syntax, and the call edges of
+      a Python file.
     level: L3
     port: RepositoryEvidence
     source_points: [52, 56, 57, 58, 59]
     rationale: >-
       AST, symbol, import and call evidence tell TER which code relates to
-      the task.
-    status: planned
+      the task. The python-ast engine supports Python (a syntax tree from
+      ast); the syntax engine adds TypeScript, JavaScript, Svelte and Vue,
+      read by a tokenizer that skips comments, strings and regular
+      expressions, with each import resolved to the repository files it may
+      load (relative paths, tsconfig/jsconfig paths and baseUrl, SvelteKit
+      $lib, workspace packages). An engine returns no structure for a
+      language it does not support. Call edges of those languages are
+      TER-EVD-016.
+    status: verified
 
   - id: TER-EVD-013
     pattern: optional
     text: >-
-      Where the repository is a Git working tree, the repository evidence
-      adapter shall return the current diff and the history of each file.
+      Where the repository is a Git working tree, the Git repository
+      evidence adapter shall return the current diff and the history of each
+      file.
     level: L3
     port: RepositoryEvidence
     source_points: [61, 62]
     rationale: >-
-      Change awareness is optional evidence that grounds live analysis.
-    status: planned
+      Change awareness is optional evidence that grounds live analysis. The
+      Git engine refuses a directory that is not the top level of a work
+      tree; the other engines return no diff or history.
+    status: verified
+
+  - id: TER-EVD-014
+    pattern: event-driven
+    text: >-
+      When a detector requests repository evidence for a TypeScript,
+      JavaScript, Svelte or Vue source module, the repository evidence
+      adapter shall return every test module whose imports load that source
+      module.
+    level: L3
+    port: RepositoryEvidence
+    source_points: [60]
+    rationale: >-
+      Split from TER-EVD-003, which proves the test-to-source rule for
+      Python import statements only. The syntax engine reads these
+      languages: a test module is *.test.* or *.spec.*, or a file under
+      __tests__/ or tests/ (never under node_modules), and it imports a
+      source module when one of its imports (static, re-export, side
+      effect, require or a literal dynamic import) resolves to that file.
+      Links are direct: a test of an index file is not a test of what the
+      index re-exports. Engines that do not read a language refuse the
+      question.
+    status: verified
+
+  - id: TER-EVD-015
+    pattern: event-driven
+    text: >-
+      When an edit adds a direct import that breaks a declared
+      import-linter protected or acyclic_siblings contract, or a declared
+      dependency-cruiser forbidden path rule, TER shall report an
+      architectural boundary violation.
+    level: L3
+    port: RepositoryEvidence
+    source_points: [65]
+    rationale: >-
+      Split from TER-EVD-007, which proves the rule for Python modules and
+      import-linter forbidden, layers and independence contracts on direct
+      imports. This adds the remaining built-in import-linter types
+      (protected; acyclic_siblings, judged as the new import closing a cycle
+      among siblings over the start commit's import graph and the session's
+      earlier edits) and, for TypeScript, JavaScript, Svelte and Vue files,
+      dependency-cruiser's forbidden rules on from/to path and pathNot read
+      from .dependency-cruiser.json. Not evaluated: indirect import chains,
+      wildcard module expressions, custom import-linter types,
+      dependency-cruiser rules with other conditions, allowed rules and
+      configurations written as JavaScript.
+    status: verified
+
+  - id: TER-EVD-016
+    pattern: optional
+    text: >-
+      Where the repository evidence adapter supports TypeScript, JavaScript,
+      Svelte or Vue source files, the repository evidence adapter shall
+      return the call edges of each such file.
+    level: L3
+    port: RepositoryEvidence
+    source_points: [59]
+    rationale: >-
+      Split from TER-EVD-012, which proves symbols and imports for these
+      languages but call edges for Python only. Resolving a call needs the
+      bindings an import introduces and, for methods, the types a tokenizer
+      does not see: a call resolves to the file its import loads and the
+      exported name, a method call on a local receiver keeps no target, and
+      calls on a computed receiver are not read.
+    status: verified
+
+  - id: TER-EVD-017
+    pattern: ubiquitous
+    text: >-
+      TER shall map a session path to a repository path when the path lies
+      under any accepted root of the session, where the accepted roots are
+      the directory most session paths name the repository by, each Claude
+      Code worktree checkout under which a session path names a repository
+      file or directory, the directory such a worktree was made from when a
+      session path under it names a repository file or directory, and each
+      other directory under which at least two distinct session paths name
+      repository files with at least one of them in a subdirectory.
+    level: L3
+    source_points: [63, 64, 66]
+    rationale: >-
+      On the owner's 52 sessions, edits in Claude Code worktrees
+      (<repo>/.claude/worktrees/<name>) and in other checkouts of the same
+      repository were placed outside the repository and lost to the change
+      surface. Two files, one in a subdirectory, keep a stray README.md or
+      package.json elsewhere from making a root. The deepest root decides a
+      path that lies under two.
+    status: verified
+
+  - id: TER-EVD-018
+    pattern: event-driven
+    text: >-
+      When TER matches session paths against roots, TER shall compare
+      Windows drive letters without regard to case and with either path
+      separator, reading a Git-Bash path of the form /x/... as the drive
+      path X:/... only when the session also uses drive-letter paths.
+    level: L3
+    source_points: [63, 64, 66]
+    rationale: >-
+      Windows sessions name one file as D:/x, D:\x, d:/x and, from Git-Bash,
+      /d/x. A one-letter top-level directory is a drive only in a session
+      that shows it runs on Windows; a Git-Bash-only session matches its own
+      spelling anyway. Nothing else is case-folded.
+    status: verified
+
+  - id: TER-EVD-019
+    pattern: unwanted
+    text: >-
+      If an edited path lies outside every root of the session and under a
+      .claude directory that is not a worktree checkout, then TER shall place
+      the edit as harness state and report no change surface finding for it.
+    level: L3
+    source_points: [63, 64, 66]
+    rationale: >-
+      Plans, memory and settings of the agent harness (~/.claude) are not
+      repository edits; 39 such edits on the owner's corpus were counted as
+      outside the repository. A project's own CLAUDE.md or .claude/ files
+      inside the repository root stay repository paths.
+    status: verified
+
+  - id: TER-EVD-020
+    pattern: state-driven
+    text: >-
+      While no session path names a repository file or lies in a repository
+      directory, TER shall take as the session root the prefix most session
+      paths agree on whose remainder lies under a repository directory at
+      least two levels deep.
+    level: L3
+    source_points: [63, 64, 66]
+    rationale: >-
+      A session that only creates files in new directories (a new Java
+      package under src/main/java) found no root. Two levels (src/main,
+      src/lib) keep a top-level name such as src, which also names
+      directories above checkouts (/home/me/src/proj), from making a false
+      root. A deepest common directory of created files was rejected: it
+      names a directory inside the repository, not its root.
+    status: verified
 
   - id: TER-GRF-001
     pattern: ubiquitous
@@ -172,7 +330,7 @@ requirements:
     source_points: [71, 72, 77]
     rationale: >-
       The evidence graph reconstructs how a change emerged.
-    status: planned
+    status: verified
 
   - id: TER-GRF-002
     pattern: ubiquitous
@@ -197,6 +355,40 @@ requirements:
       datasets.
     status: verified
 
+  - id: TER-STK-001
+    pattern: ubiquitous
+    text: >-
+      TER shall record, for each session, the languages of the files the
+      session reads and edits, named from a documented table of file
+      extensions and file names, with each language's read and edit counts,
+      the request events they were counted from, and the session's dominant
+      language.
+    level: L3
+    source_points: [51, 181]
+    rationale: >-
+      Leigh asked for a correlation between token use and delivery
+      mechanism. Languages come from the file paths a session's tool
+      requests name, so they need no repository; unknown extensions are
+      counted apart and never decide the dominant language.
+    status: verified
+
+  - id: TER-STK-002
+    pattern: optional
+    text: >-
+      Where repository evidence is given for a session, TER shall record the
+      ecosystems, frameworks, build tools, package managers and workspaces
+      that the repository's manifests declare, each fact citing the manifest
+      paths that declare it.
+    level: L3
+    port: RepositoryEvidence
+    source_points: [51, 53]
+    rationale: >-
+      The stack (svelte, sveltekit, pnpm workspaces, pyproject, go.mod,
+      Cargo.toml, pom.xml, build.gradle) is a fact about the repository, read
+      through the RepositoryEvidence port; manifests under dependency and
+      build output directories are not the repository's own stack.
+    status: verified
+
   - id: TER-ITN-006
     pattern: unwanted
     text: >-
@@ -211,7 +403,7 @@ requirements:
       Exploration that looks unrelated in words is often needed; only
       repository evidence of what the change depends on separates it from
       drift. L2 judges edits and writes (TER-ITN-003).
-    status: planned
+    status: verified
 
   - id: TER-LEN-009
     pattern: ubiquitous
@@ -226,7 +418,7 @@ requirements:
       Whether a read or a check served the requested outcome depends on the
       repository, not on the event stream alone. L2 judges edits and writes
       (TER-LEN-003).
-    status: planned
+    status: verified
 
   - id: TER-DET-011
     pattern: event-driven
@@ -237,10 +429,12 @@ requirements:
     level: L3
     source_points: [30]
     rationale: >-
-      Split from TER-DET-008: telling whether an escalated answer added
-      evidence needs a route.escalated event (TER-RTE-002) and the text of
-      both answers, which no current source records.
-    status: planned
+      Split from TER-DET-008. Whether the escalated call adds evidence is
+      read from structure, not answer text: a file read, a check result or
+      a tool output that no step before the escalation held. A recorded
+      route.escalated event (TER-RTE-002) or a routing harness's re-attempt
+      served by another model marks the escalation.
+    status: verified
 
   - id: TER-RTE-001
     pattern: ubiquitous
@@ -253,7 +447,7 @@ requirements:
     rationale: >-
       Model ids change often; routing by role keeps policies and code stable
       when a model is replaced.
-    status: planned
+    status: verified
 
   - id: TER-RTE-002
     pattern: event-driven
@@ -267,7 +461,7 @@ requirements:
     rationale: >-
       Issue #39: escalation must prove its outcome gain against its recorded
       cost and latency.
-    status: planned
+    status: verified
 
   - id: TER-RTE-003
     pattern: unwanted
@@ -279,7 +473,7 @@ requirements:
     source_points: [138, 147, 148]
     rationale: >-
       Escalation is a cost; it needs evidence, and routine work stays local.
-    status: planned
+    status: verified
 
   - id: TER-RTE-005
     pattern: ubiquitous
@@ -292,7 +486,7 @@ requirements:
     source_points: [141, 142, 143]
     rationale: >-
       Explainable routing starts from an explained task classification.
-    status: planned
+    status: verified
 
   - id: TER-EXP-002
     pattern: ubiquitous
@@ -306,7 +500,11 @@ requirements:
       Split from TER-EXP-001: at L2 the TER 3 ratio is computed from the
       source session and the outcome verdict from outcome evidence beside
       the analysis, so neither can yet be recomputed from the event log.
-    status: planned
+      Recorded as metric.recorded and verdict.recorded events after the
+      session's last event; the fold reads the ratio and counts no record
+      as activity, and a recorded verdict is judged again from the contract
+      and evidence it holds.
+    status: verified
 
   - id: TER-ARC-007
     pattern: ubiquitous
@@ -319,4 +517,4 @@ requirements:
       The L3 part of TER-ARC-002: repository evidence engines are plugins
       like analysers, detectors and agent adapters, but no repository
       engine exists before L3.
-    status: planned
+    status: verified

@@ -20,6 +20,7 @@ from pathlib import PurePosixPath
 from typing import Protocol
 
 from ..events import EventId, EventKind, ToolKind
+from .grounding import RepositoryGrounding
 from .intent import IntentRelation, IntentTimeline, SubjectBasis
 from .model import (
     ActivityClass,
@@ -54,6 +55,7 @@ __all__ = [
     "ReworkCycle",
     "SessionView",
     "UnnecessaryHandoff",
+    "UnearnedEscalation",
     "UnusedContext",
     "UnusedTraversal",
     "UnvalidatedImplementation",
@@ -63,6 +65,7 @@ __all__ = [
 ]
 
 _EXPLORE_KINDS = frozenset({ToolKind.FS_READ, ToolKind.FS_SEARCH})
+_CHANGE_KINDS = frozenset({ToolKind.FS_EDIT, ToolKind.FS_WRITE})
 _DOC_SUFFIXES = frozenset({".md", ".rst", ".txt", ".adoc"})
 
 #: A reasoning span adds a decision when more than this share of its content
@@ -80,10 +83,15 @@ class SessionView:
     completion_of: dict[int, Step] = field(default_factory=dict)
     by_id: dict[EventId, Step] = field(default_factory=dict)
     intent: IntentTimeline = field(default_factory=IntentTimeline)
+    #: Repository evidence for the session (L3); ``None`` at L2.
+    repository: RepositoryGrounding | None = None
 
     @classmethod
     def of(
-        cls, steps: Sequence[Step], intent: IntentTimeline | None = None
+        cls,
+        steps: Sequence[Step],
+        intent: IntentTimeline | None = None,
+        repository: RepositoryGrounding | None = None,
     ) -> SessionView:
         completion_of = {
             s.request_index: s
@@ -95,6 +103,7 @@ class SessionView:
             completion_of,
             {s.event_id: s for s in steps},
             intent if intent is not None else IntentTimeline(),
+            repository,
         )
 
     def requests(self) -> Iterator[Step]:
@@ -1520,6 +1529,149 @@ class FailedRoute:
             )
 
 
+@dataclass(frozen=True)
+class UnearnedEscalation:
+    """Point 30: waiting on a model escalation that added no evidence (TER-DET-011).
+
+    An escalation is a ``route.escalated`` step, or a new attempt
+    (``attempt.started``) whose first response is served by another model
+    than the response before it. It counts only after a completed model call
+    in the same task: a response before it, since the task's prompt.
+
+    The escalated call *adds evidence* when, before the next prompt or the
+    next escalation, the session gains something no step before the
+    escalation held: a file read or searched that was not read before, a
+    check result (command, outcome and failure signature) not seen before,
+    or any other tool output with a fingerprint not seen before. Response
+    text is not compared: the escalated model restating an answer adds
+    nothing a later step can cite.
+    """
+
+    id: str = "unearned_escalation"
+    waste: LeanWaste = LeanWaste.WAITING
+    kind: FindingKind = FindingKind.WASTE
+    summary: str = (
+        "An escalation to another model after a completed call, where the "
+        "escalated call added no evidence: waiting that bought nothing new."
+    )
+    confidence_rule: str = (
+        "A route.escalated step (or a re-attempt whose first response another "
+        "model served) after a completed response of the same task, followed "
+        "before the next prompt or escalation by no new file read, no new "
+        "check result and no new tool output. 0.80 for a recorded "
+        "route.escalated with an escalated response; 0.60 (uncertain) for a "
+        "re-attempt on another model, since a routing harness's verification "
+        "results are not steps and the change may be lateral; 0.50 "
+        "(uncertain) when no escalated response was recorded. The escalation "
+        "marker and the escalated response are the waste."
+    )
+
+    def detect(self, view: SessionView) -> Iterable[Finding]:
+        steps = view.steps
+        marks = [s for s in steps if self._escalates(view, s)]
+        for n, mark in enumerate(marks):
+            prompt = max(
+                (s.index for s in steps[: mark.index] if s.kind is EventKind.PROMPT),
+                default=-1,
+            )
+            earlier = next(
+                (
+                    s
+                    for s in reversed(steps[prompt + 1 : mark.index])
+                    if s.kind is EventKind.RESPONSE
+                ),
+                None,
+            )
+            if earlier is None:
+                continue  # no completed model call before it
+            end = view.segment_end(mark.index)
+            if n + 1 < len(marks) and marks[n + 1].index <= end:
+                end = marks[n + 1].index - 1
+            window = steps[mark.index : end + 1]
+            if self._adds_evidence(steps[: mark.index], window):
+                continue
+            implicit = not mark.is_escalation
+            call = (
+                mark
+                if implicit
+                else next((s for s in window if s.kind is EventKind.RESPONSE), None)
+            )
+            confidence = 0.6 if implicit else 0.8 if call is not None else 0.5
+            served = (
+                f" ({call.usage.model})"
+                if call and call.usage and call.usage.model
+                else ""
+            )
+            yield _finding(
+                self,
+                view,
+                confidence=confidence,
+                title=f"Escalation added no evidence: {_short(mark.subject or 'new attempt')}",
+                explanation=(
+                    "After a completed model call the task moved to another model"
+                    f"{served}, and the escalated call read no new file, ran no new "
+                    "check and produced no new tool output before the next prompt."
+                    + (
+                        " The escalation was not followed by a recorded response."
+                        if call is None
+                        else ""
+                    )
+                ),
+                evidence=[earlier, mark, *([call] if call is not None else [])],
+                waste=[mark, *([call] if call is not None else [])],
+                subject=mark.subject,
+                anchor=mark,
+            )
+
+    @staticmethod
+    def _escalates(view: SessionView, step: Step) -> bool:
+        if step.is_escalation:
+            return True
+        if not (step.opens_attempt and step.kind is EventKind.RESPONSE):
+            return False
+        model = step.usage.model if step.usage else None
+        before = next(
+            (
+                s
+                for s in reversed(view.steps[: step.index])
+                if s.kind is EventKind.RESPONSE and s.usage and s.usage.model
+            ),
+            None,
+        )
+        return (
+            model is not None
+            and before is not None
+            and before.usage is not None
+            and before.usage.model != model
+        )
+
+    @staticmethod
+    def _adds_evidence(prior: Sequence[Step], window: Sequence[Step]) -> bool:
+        read = {
+            p
+            for s in prior
+            if s.is_request and s.tool_kind in _EXPLORE_KINDS
+            for p in s.paths
+        }
+        checks = {
+            (s.command, s.outcome, s.failure_signature)
+            for s in prior
+            if s.is_completion and s.outcome is not None
+        }
+        outputs = {s.output_hash for s in prior if s.is_completion and s.output_hash}
+        for s in window:
+            if s.is_request and s.tool_kind in _EXPLORE_KINDS and set(s.paths) - read:
+                return True
+            if not s.is_completion or s.tool_kind in _CHANGE_KINDS:
+                continue  # an edit's own result is not evidence
+            if s.outcome is not None:
+                if (s.command, s.outcome, s.failure_signature) not in checks:
+                    return True
+            elif s.output_hash and s.output_hash not in outputs:
+                return True
+        return False
+
+
 def exploration_labels(view: SessionView) -> tuple[ExplorationLabel, ...]:
     """Label every exploration request by what drove it (TER-DET-009, point 38).
 
@@ -1596,6 +1748,14 @@ class DetectorRegistry:
     def get(self, detector_id: str) -> WasteDetector:
         return self._detectors[detector_id]
 
+    def extended(self, detectors: Iterable[WasteDetector]) -> DetectorRegistry:
+        """This registry, then each of ``detectors`` whose id it lacks."""
+        out = DetectorRegistry(self)
+        for detector in detectors:
+            if detector.id not in out:
+                out.register(detector)
+        return out
+
     def run(self, view: SessionView) -> tuple[Finding, ...]:
         """Every detector's findings, largest cost first, then in session order."""
         order = {d.id: i for i, d in enumerate(self)}
@@ -1634,6 +1794,7 @@ DEFAULT_REGISTRY = DetectorRegistry(
         InsufficientContext(),
         UnusedTraversal(),
         FailedRoute(),
+        UnearnedEscalation(),
     )
 )
 

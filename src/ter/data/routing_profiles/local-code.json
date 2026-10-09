@@ -1,0 +1,15 @@
+{
+  "schema": "ter.routing_profile/1",
+  "name": "local-code",
+  "description": "Routine work stays on a local coding model; only a detector signal with evidence moves a task to a hosted one.",
+  "source": "TER L3 example profile (P145); the local model is the one GARE's first real recorded run used (tests/fixtures/gare/runs/c2ffdf8f1b09).",
+  "roles": {
+    "explore": {"provider": "ollama", "model": "qwen3-coder-next:latest"},
+    "implement": {"provider": "ollama", "model": "qwen3-coder-next:latest"},
+    "review": {"provider": "anthropic", "model": "claude-sonnet-4-6"},
+    "escalate": {"provider": "anthropic", "model": "claude-sonnet-4-6"}
+  },
+  "task_roles": {"read_only": "explore", "validate": "implement", "change": "implement"},
+  "escalation": {"explore": "implement", "implement": "escalate"},
+  "escalate_on": ["rework_cycle", "repeated_reasoning", "regeneration", "boundary_violation"]
+}

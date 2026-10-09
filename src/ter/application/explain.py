@@ -7,24 +7,30 @@ afterwards and one explained while it runs agree.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Sequence
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from ..domain.events import EventKind, SessionTrace
 from ..domain.lean import A3Report, LeanAnalysis, TerMeasure, build_a3
+from ..domain.lean.grounding import RepositoryGrounding
 from ..domain.outcome import (
     AcceptanceContract,
     OutcomeVerdict,
     judge,
 )
 from ..ports.driven import (
+    ArchitectureContracts,
     OutcomeSource,
     PriceBook,
+    RepositoryEvidence,
     SessionSource,
     TerScorer,
     Tokenizer,
 )
+from .ground import ground_session
 from .observe import IngestFactory, fresh_ingest, ingest_all
+from .stack import read_stack
 
 __all__ = ["ExplainSession", "ExplainedSession"]
 
@@ -35,6 +41,8 @@ class ExplainedSession:
     analysis: LeanAnalysis
     a3: A3Report
     outcome: OutcomeVerdict | None = None
+    #: The repository evidence the analysis was grounded on (L3), if any.
+    grounding: RepositoryGrounding | None = None
 
 
 class ExplainSession:
@@ -47,6 +55,14 @@ class ExplainSession:
 
     With a price book, the A3 also prices the session and its context
     inventory at the prices in force on the session date (TER-ANL-040).
+
+    With repository evidence (L3: the repository as it was when the session
+    started), the analysis is grounded on it: every task's expected change
+    surface, edits outside it, and, with a contracts reader, imports that
+    break the repository's declared architecture contracts, and the stack
+    its manifests declare (TER-STK-002). Without it the explanation is
+    exactly the L2 one; the session's languages come from file names either
+    way (TER-STK-001).
     """
 
     def __init__(
@@ -57,8 +73,14 @@ class ExplainSession:
         outcomes: OutcomeSource | None = None,
         prices: PriceBook | None = None,
         ingest: IngestFactory | None = None,
+        repository: RepositoryEvidence | None = None,
+        contracts: ArchitectureContracts
+        | Sequence[ArchitectureContracts]
+        | None = None,
     ) -> None:
         self._source = source
+        self._repository = repository
+        self._contracts = contracts
         self._ingest = fresh_ingest(tokenizer, ingest)
         self._scorer = scorer
         self._outcomes = outcomes
@@ -79,7 +101,23 @@ class ExplainSession:
         # The recording enters analysis through EventIngest, like a live
         # session (TER-OBS-001).
         ingest = ingest_all(self._ingest(), trace.events)
-        analysis = ingest.explain(trace.session_id, ter=ter)
+        grounding = (
+            ground_session(trace.events, self._repository, self._contracts)
+            if self._repository is not None
+            else None
+        )
+        analysis = (
+            ingest.explain(trace.session_id, ter=ter)
+            if grounding is None
+            else ingest.explain(trace.session_id, ter=ter, repository=grounding)
+        )
+        if self._repository is not None:
+            # The stack is a fact about the repository, not about events:
+            # joined to the folded profile once, after the analysis (L3).
+            analysis = replace(
+                analysis,
+                profile=replace(analysis.profile, stack=read_stack(self._repository)),
+            )
         verdict = self._judge(outcome_ref, contract)
         intents = tuple(e.text for e in trace.events if e.kind is EventKind.PROMPT)
         return ExplainedSession(
@@ -89,6 +127,7 @@ class ExplainSession:
                 analysis, intents, verdict, trace.usage_limits, prices=self._prices
             ),
             verdict,
+            grounding,
         )
 
     def _judge(

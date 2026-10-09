@@ -29,6 +29,7 @@ import importlib
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from functools import cache
+from pathlib import Path
 from types import CodeType
 from typing import Any, Generic, Protocol
 
@@ -41,7 +42,7 @@ from ..domain.capabilities import (
     parse_capability_key,
 )
 from ..domain.lean.detectors import DEFAULT_REGISTRY, DetectorRegistry
-from ..ports import CAPABILITY_KINDS, WasteDetectorPlugin
+from ..ports import CAPABILITY_KINDS, RepositoryEvidence, WasteDetectorPlugin
 
 __all__ = [
     "BUILTIN_CAPABILITIES",
@@ -52,16 +53,24 @@ __all__ = [
     "default_registry",
     "detector_registry",
     "installed_entry_points",
+    "repository_evidence",
 ]
 
 #: TER's own adapters, by capability key. ``pyproject.toml`` declares the same
 #: table as entry points; ``tests/unit/test_ter4_capabilities.py`` keeps the
 #: two equal. Built-ins also work from a source checkout that is not installed.
 BUILTIN_CAPABILITIES: dict[str, str] = {
+    "ArchitectureContracts.dependency-cruiser": "ter.adapters.driven.dependency_cruiser:DependencyCruiserContracts",
+    "ArchitectureContracts.import-linter": "ter.adapters.driven.import_linter:ImportLinterContracts",
     "Embedder.hashing": "ter.adapters.driven.embedders:HashingEmbedder",
     "EventLog.jsonl": "ter.adapters.driven.event_log:JsonlEventLog",
     "OutcomeSource.junit": "ter.adapters.driven.junit:JUnitOutcomeSource",
     "PriceBook.json": "ter.adapters.driven.pricing:JsonPriceBook",
+    "RepositoryEvidence.git": "ter.adapters.driven.repository:GitRepositoryEvidence",
+    "RepositoryEvidence.lexical": "ter.adapters.driven.repository:LexicalRepositoryEvidence",
+    "RepositoryEvidence.python-ast": "ter.adapters.driven.repository:PythonSyntaxEvidence",
+    "RepositoryEvidence.syntax": "ter.adapters.driven.repository:SourceSyntaxEvidence",
+    "RoutingProfiles.json": "ter.adapters.driven.routing_profiles:JsonRoutingProfiles",
     "SessionSource.claude-code": "ter.adapters.driven.claude_code:ClaudeCodeJsonlSource",
     "SessionSource.gare": "ter.adapters.driven.gare:GareRunSource",
     "TerScorer.ter3": "ter.adapters.driven.ter3:Ter3Scorer",
@@ -434,3 +443,28 @@ def detector_registry(
             continue
         detectors.register(detector)
     return detectors
+
+
+#: The repository engine used when a caller names none: the deterministic
+#: lexical baseline (TER-EVD-002).
+DEFAULT_REPOSITORY_ENGINE = "lexical"
+
+
+def repository_evidence(
+    root: str | Path,
+    engine: str = DEFAULT_REPOSITORY_ENGINE,
+    registry: CapabilityRegistry | None = None,
+) -> RepositoryEvidence:
+    """The repository engine ``RepositoryEvidence.<engine>`` for ``root``.
+
+    Repository engines are capabilities like any adapter (TER-ARC-007): TER's
+    own (``lexical``, ``git``, ``python-ast``, ``syntax``) are built in, and an installed
+    package adds one with a ``RepositoryEvidence.<name>`` entry point whose
+    class takes the repository root. Raises :class:`CapabilityError` for an
+    unknown or broken engine, and the engine's own error (such as
+    ``NotAWorkTreeError`` from ``git``) when it cannot serve ``root``.
+    """
+    registry = registry if registry is not None else default_registry()
+    built = registry.create("RepositoryEvidence", engine, Path(root))
+    assert isinstance(built, RepositoryEvidence)  # checked by create
+    return built

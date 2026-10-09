@@ -1,7 +1,8 @@
 """Ports: the Protocols between the TER core and the outside world.
 
 Driven ports (``ter.ports.driven``) are what TER needs from outside: session
-sources, tokenizers, embedders, clocks, price books. Every driven port has one contract
+sources, tokenizers, embedders, clocks, price books, repository evidence,
+architecture contracts, routing profiles. Every driven port has one contract
 suite under ``tests/contract``, and both the real adapter and its in-memory
 fake must pass it.
 
@@ -13,11 +14,14 @@ from __future__ import annotations
 
 from .driven import (
     AlignmentScorer,
+    ArchitectureContracts,
     Clock,
     Embedder,
     EventLog,
     OutcomeSource,
     PriceBook,
+    RepositoryEvidence,
+    RoutingProfiles,
     SessionSource,
     TerScorer,
     Tokenizer,
@@ -29,11 +33,14 @@ from .plugins import WasteDetectorPlugin
 #: by the name its key uses: ``<Port>.<adapter>`` (ADR 0005).
 DRIVEN_PORTS: dict[str, type[object]] = {
     "AlignmentScorer": AlignmentScorer,
+    "ArchitectureContracts": ArchitectureContracts,
     "Clock": Clock,
     "Embedder": Embedder,
     "EventLog": EventLog,
     "OutcomeSource": OutcomeSource,
     "PriceBook": PriceBook,
+    "RepositoryEvidence": RepositoryEvidence,
+    "RoutingProfiles": RoutingProfiles,
     "SessionSource": SessionSource,
     "TerScorer": TerScorer,
     "Tokenizer": Tokenizer,
@@ -50,12 +57,15 @@ __all__ = [
     "CAPABILITY_KINDS",
     "DRIVEN_PORTS",
     "AlignmentScorer",
+    "ArchitectureContracts",
     "Clock",
     "Embedder",
     "EventIngest",
     "EventLog",
     "OutcomeSource",
     "PriceBook",
+    "RepositoryEvidence",
+    "RoutingProfiles",
     "SessionSource",
     "TerScorer",
     "Tokenizer",

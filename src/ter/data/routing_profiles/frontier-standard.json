@@ -1,0 +1,15 @@
+{
+  "schema": "ter.routing_profile/1",
+  "name": "frontier-standard",
+  "description": "Hosted mid-tier model for all work, escalating to the large model on evidence.",
+  "source": "TER L3 example profile (P145); model ids are entries of ter/data/price_book.json.",
+  "roles": {
+    "explore": {"provider": "anthropic", "model": "claude-sonnet-4-6"},
+    "implement": {"provider": "anthropic", "model": "claude-sonnet-4-6"},
+    "review": {"provider": "anthropic", "model": "claude-sonnet-4-6"},
+    "escalate": {"provider": "anthropic", "model": "claude-opus-4-6"}
+  },
+  "task_roles": {"read_only": "explore", "validate": "review", "change": "implement"},
+  "escalation": {"explore": "escalate", "implement": "escalate", "review": "escalate"},
+  "escalate_on": ["rework_cycle", "repeated_reasoning", "regeneration", "boundary_violation"]
+}

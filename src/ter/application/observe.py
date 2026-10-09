@@ -17,6 +17,7 @@ from pathlib import Path
 from ..domain.events import Event, EventId
 from ..domain.lean.analysis import LeanAnalysis, TerMeasure
 from ..domain.lean.detectors import DEFAULT_REGISTRY, DetectorRegistry
+from ..domain.lean.grounding import RepositoryGrounding
 from ..domain.stream import (
     AnalysisEngine,
     Signal,
@@ -82,9 +83,15 @@ class ObserveEvent:
         return self._engine(session_id).snapshot()
 
     def explain(
-        self, session_id: str, *, ter: TerMeasure | None = None
+        self,
+        session_id: str,
+        *,
+        ter: TerMeasure | None = None,
+        repository: RepositoryGrounding | None = None,
     ) -> LeanAnalysis:
-        return self._engine(session_id).explain(ter=ter, registry=self._detectors)
+        return self._engine(session_id).explain(
+            ter=ter, registry=self._detectors, repository=repository
+        )
 
     def _engine(self, session_id: str) -> AnalysisEngine:
         engine = self._engines.get(session_id)
@@ -133,9 +140,15 @@ class RecordEvent:
         return self._replay(session_id).report(session_id)
 
     def explain(
-        self, session_id: str, *, ter: TerMeasure | None = None
+        self,
+        session_id: str,
+        *,
+        ter: TerMeasure | None = None,
+        repository: RepositoryGrounding | None = None,
     ) -> LeanAnalysis:
-        return self._replay(session_id).explain(session_id, ter=ter)
+        return self._replay(session_id).explain(
+            session_id, ter=ter, repository=repository
+        )
 
     def _replay(self, session_id: str) -> ObserveEvent:
         replay = ObserveEvent(self._tokenizer, detectors=self._detectors)

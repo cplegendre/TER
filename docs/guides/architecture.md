@@ -76,8 +76,12 @@ domain**. Concretely:
 - No behaviour measure imports `ter.domain.outcome`: the outcome verdict is
   shown beside the measures, never read by them
   ([outcome.md](../ter4/outcome.md)).
+- Repository evidence (`ter.domain.repository` and the engines in
+  `ter.adapters.driven.repository`) imports no model SDK, tokenizer or
+  embedder: what a repository says never depends on which model reads it
+  ([l3-grounded.md](../ter4/l3-grounded.md)).
 
-These are seven import-linter contracts in `[tool.importlinter]` in
+These are eight import-linter contracts in `[tool.importlinter]` in
 `pyproject.toml`. `lint-imports` in CI and
 `tests/architecture/test_import_contracts.py` both enforce them:
 
@@ -102,6 +106,7 @@ add an exemption.
 | `EventLog` | driven | `JsonlEventLog` | `InMemoryEventLog` | `tests/contract/test_event_log.py` |
 | `TerScorer` | driven | `Ter3Scorer` (wraps TER 3) | `FixedTerScorer` | `tests/contract/test_ter_scorer.py` |
 | `OutcomeSource` | driven | `JUnitOutcomeSource` (JUnit XML test results, [outcome.md](../ter4/outcome.md)) | `InMemoryOutcomeSource` | `tests/contract/test_outcome_source.py` |
+| `RepositoryEvidence` | driven | `LexicalRepositoryEvidence`, `GitRepositoryEvidence`, `PythonSyntaxEvidence` ([l3-grounded.md](../ter4/l3-grounded.md)) | `InMemoryRepositoryEvidence` | `tests/contract/test_repository_evidence.py` |
 | `EventIngest` | driving | `ObserveEvent` (long-lived process), `RecordEvent` (append-only, one hook process) | n/a | `tests/contract/test_event_ingest.py` |
 
 Ports are `typing.Protocol` classes in `src/ter/ports/driven.py` and
@@ -169,15 +174,16 @@ Two rules follow from the strangler approach:
 ## The event contract
 
 Every harness adapter translates its native records into one neutral stream,
-`ter.event/0.4`: `intent.stated`, `reasoning`, `response`, `tool.requested`
+`ter.event/0.5`: `intent.stated`, `reasoning`, `response`, `tool.requested`
 and `tool.completed`, plus lifecycle kinds that are never scored
 (`task.completed` and `subagent.completed` from hooks, and the routing kinds
 `route.selected`, `route.failover`, `attempt.started`,
-`verification.completed` and `outcome.recorded` from GARE), each with a stable id, provenance and a tool *kind*
+`verification.completed` and `outcome.recorded` from GARE, and
+`context.supplied` when TER hands the agent a context bundle, `route.escalated` from a model router), each with a stable id, provenance and a tool *kind*
 (`fs.read`, `fs.edit`, `exec.shell`, …) rather than a native tool name.
 Detectors reason about kinds, so a second harness needs a new
 `SessionSource` adapter and nothing else. See
-[the event contract](../ter4/architecture.md#the-event-contract-terevent04).
+[the event contract](../ter4/architecture.md#the-event-contract-terevent05).
 
 ## Adding an adapter
 

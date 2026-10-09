@@ -365,7 +365,7 @@ def test_detectors_are_plugins() -> None:
     a = analysis_of(s, registry=registry)
     assert [f.detector for f in a.findings] == ["every_prompt", "every_prompt"]
     assert a.detectors == (("every_prompt", "waiting", "risk", "always 0.5"),)
-    assert len(DEFAULT_REGISTRY) == 16
+    assert len(DEFAULT_REGISTRY) == 17
     assert all(d.confidence_rule and d.summary for d in DEFAULT_REGISTRY)
 
 
@@ -425,9 +425,14 @@ def test_no_findings_means_no_countermeasures() -> None:
 @pytest.mark.req("TER-RPT-005")
 def test_every_detector_has_a_countermeasure_and_a_follow_up() -> None:
     from ter.domain.lean import countermeasures as cm
+    from ter.domain.lean.drift import EVIDENCE_DETECTORS
+    from ter.domain.lean.surface import GROUNDED_DETECTORS
 
-    assert set(cm._CATALOGUE) == {d.id for d in DEFAULT_REGISTRY}
-    assert set(cm._MEASURES) == {d.id for d in DEFAULT_REGISTRY}
+    every = {
+        d.id for d in (*DEFAULT_REGISTRY, *GROUNDED_DETECTORS, *EVIDENCE_DETECTORS)
+    }
+    assert set(cm._CATALOGUE) == every
+    assert set(cm._MEASURES) == every
 
 
 @pytest.mark.req("TER-RPT-003")

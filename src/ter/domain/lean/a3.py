@@ -109,6 +109,20 @@ class A3Report:
                 "intents": list(self.intents),
                 "events": a.events,
                 "intent": a.intent.as_dict([f.id for f in a.drift_findings]),
+                # Languages and stack (TER-STK-001, TER-STK-002).
+                "profile": a.profile.as_dict(),
+                # Only a grounded (L3) A3: the repository engine and every
+                # directory the session named it by (TER-EVD-017).
+                **(
+                    {
+                        "repository": {
+                            "engine": a.repository.engine,
+                            "roots": list(a.repository.roots),
+                        }
+                    }
+                    if a.repository is not None
+                    else {}
+                ),
             },
             "problem": self.problem,
             "current_state": {"value_stream": [s.as_dict() for s in a.value_stream]},
@@ -118,6 +132,18 @@ class A3Report:
                 "wip": a.wip.as_dict(),
                 "pareto": [p.as_dict() for p in self.pareto],
                 "cycles": [c.as_dict() for c in a.cycles],
+                # Only a grounded (L3) A3: evidence usage, outcome value and
+                # the role-typed evidence graph (TER-EVD-008, TER-LEN-009,
+                # TER-GRF-001).
+                **(
+                    {"evidence_usage": a.usage.as_dict()} if a.usage is not None else {}
+                ),
+                **({"outcome_value": a.value.as_dict()} if a.value is not None else {}),
+                **(
+                    {"evidence_graph": a.grounded_graph.as_dict()}
+                    if a.grounded_graph is not None
+                    else {}
+                ),
             },
             "root_causes": [f.as_dict() for f in self.root_causes],
             "findings": [f.as_dict() for f in a.findings],

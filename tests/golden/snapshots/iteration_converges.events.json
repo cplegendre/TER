@@ -221,7 +221,7 @@
   "metadata": {
     "summary": 1
   },
-  "schema": "ter.event/0.4",
+  "schema": "ter.event/0.5",
   "session_id": "golden-iterate",
   "source_format": "claude-code-jsonl",
   "unrecognised": {}

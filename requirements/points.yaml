@@ -124,7 +124,7 @@ points:
       outcome.
     level: L2
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Value classification takes the current intent's requested outcome as
@@ -135,7 +135,7 @@ points:
     rules: [TER-LEN-003, TER-LEN-009]
     verification:
       - 'test: tests/unit/test_ter4_lean_intent.py::test_the_same_edit_is_valued_against_the_current_intent'
-      - 'planned: judge exploration, reasoning and validation against the outcome with repository evidence (TER-LEN-009, L3)'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestOutcomeValue::test_the_same_read_is_valued_against_the_current_intent'
 
   - id: P007
     text: >-
@@ -143,7 +143,7 @@ points:
       advancing that outcome.
     level: L2
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         The waste definition (resource use without proportionate progress
@@ -155,7 +155,7 @@ points:
     verification:
       - 'test: tests/unit/test_ter4_lean_properties.py::test_findings_are_traceable_and_bounded'
       - 'test: tests/unit/test_ter4_lean_intent.py::test_the_same_edit_is_valued_against_the_current_intent'
-      - 'planned: judge exploration, reasoning and validation against the outcome with repository evidence (TER-LEN-009, L3)'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestOutcomeValue'
 
   - id: P008
     text: >-
@@ -499,7 +499,7 @@ points:
       Detect waiting caused by avoidable external-model escalation.
     level: L2
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         A detector flags external-model escalations whose waiting time
@@ -507,7 +507,8 @@ points:
     rules: [TER-DET-008, TER-DET-011]
     verification:
       - 'test: tests/unit/test_ter4_lean_context_motion_waiting.py::TestFailedRoute'
-      - 'planned: escalation after a successful call needs route.escalated events and answer text (TER-DET-011, L3)'
+      - 'test: tests/unit/test_ter4_unearned_escalation.py::TestRecordedEscalation'
+      - 'test: tests/unit/test_ter4_unearned_escalation.py::TestReattemptOnAnotherModel'
 
   - id: P031
     text: >-
@@ -780,7 +781,8 @@ points:
     rules: [TER-ITN-003, TER-ITN-006]
     verification:
       - 'test: tests/unit/test_ter4_lean_intent.py::TestIntentDrift'
-      - 'planned: drift in exploration and reasoning with repository evidence (TER-ITN-006, L3)'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestExplorationDrift'
+      - 'planned: calibrate exploration_drift on judged real sessions with their repository at the start commit (D4), as unrelated_modification was'
 
   - id: P049
     text: >-
@@ -815,14 +817,18 @@ points:
       Extend intent analysis with software-repository evidence.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Intent analysis takes repository evidence as an input through the
         RepositoryEvidence port.
-    rules: [TER-EVD-001]
+    rules: [TER-EVD-001, TER-STK-001, TER-STK-002]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-001'
+      - 'test: tests/contract/test_repository_evidence.py'
+      - 'test: tests/architecture/test_repository_evidence_boundary.py'
+      - 'test: tests/unit/test_ter4_stack.py::TestLanguages'
+      - 'test: tests/unit/test_ter4_stack.py::TestManifests'
+      - 'planned: intent analysis takes repository evidence through the port (TER-ITN-006, TER-LEN-009, L3)'
 
   - id: P052
     text: >-
@@ -830,14 +836,19 @@ points:
       components relate to the requested task.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         For a task, TER lists the related files, symbols, tests, modules and
         components with the evidence for each.
     rules: [TER-EVD-012]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-012'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestTestsImporting'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestEcmaScriptTests'
+      - 'test: tests/unit/test_ter4_change_surface.py::TestChangeSurface'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestEcmaScriptChangeSurface'
+      - 'planned: per-task listing of related symbols and architectural components with their evidence (the change surface lists files and tests, TER-EVD-006)'
 
   - id: P053
     text: >-
@@ -845,14 +856,17 @@ points:
       model.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         TGV-style repository intelligence is available as a
         RepositoryEvidence adapter.
-    rules: [TER-EVD-001]
+    rules: [TER-EVD-001, TER-STK-002]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-001'
+      - 'test: tests/contract/test_repository_evidence.py'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestRepositoryEnginesArePlugins'
+      - 'test: tests/unit/test_ter4_stack.py::TestManifests'
+      - 'planned: a TGV-style repository intelligence engine behind the RepositoryEvidence port (lexical, Git and Python syntax engines exist)'
 
   - id: P054
     text: >-
@@ -860,118 +874,138 @@ points:
       providers.
     level: L3
     kind: principle
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         The repository evidence layer imports no model-provider SDK,
         enforced by an import-linter contract.
     rules: [TER-EVD-001]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-001'
+      - 'test: tests/architecture/test_repository_evidence_boundary.py'
+      - 'test: tests/architecture/test_import_contracts.py::test_every_import_contract_is_kept'
+      - 'ci: Architecture import contracts'
 
   - id: P055
     text: >-
       Support lexical repository analysis as a deterministic baseline.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         A lexical adapter returns deterministic results, frozen by a golden
         test.
     rules: [TER-EVD-002]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-002'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestLexicalDeterminism'
+      - 'test: tests/golden/test_repository_evidence_snapshot.py::test_lexical_evidence_matches_golden_snapshot'
 
   - id: P056
     text: >-
       Add AST-aware analysis for supported programming languages.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - At least Python is supported with AST-derived evidence.
     rules: [TER-EVD-012]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-012'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
+      - 'test: tests/golden/test_repository_evidence_snapshot.py::test_python_syntax_evidence_matches_golden_snapshot'
+      - 'test: tests/golden/test_repository_evidence_snapshot.py::test_multi_language_syntax_evidence_matches_golden_snapshot'
 
   - id: P057
     text: >-
       Add symbol-aware repository navigation.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Symbol definitions and references can be navigated from evidence
         queries.
     rules: [TER-EVD-012]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-012'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestDefinitions'
+      - 'planned: navigate symbol references (beyond call edges) from evidence queries'
 
   - id: P058
     text: >-
       Add import and dependency relationship analysis.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - The adapter returns import and dependency edges between modules.
     rules: [TER-EVD-012]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-012'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestLexicalImports'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestImportForms'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestResolution'
+      - 'test: tests/contract/test_repository_evidence.py::test_an_engine_that_reads_a_language_resolves_its_imports_to_files'
 
   - id: P059
     text: >-
       Add call-graph evidence where practical.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - The adapter returns call edges for supported languages.
-    rules: [TER-EVD-012]
+    rules: [TER-EVD-012, TER-EVD-016]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-012'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestCallEdges'
+      - 'test: tests/contract/test_repository_evidence.py::test_an_engine_that_reads_a_language_returns_its_call_edges'
+      - 'test: tests/golden/test_repository_evidence_snapshot.py::test_multi_language_syntax_evidence_matches_golden_snapshot'
 
   - id: P060
     text: >-
       Add test-to-source relationships.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         For any source module, the adapter returns every test module that
         imports it.
-    rules: [TER-EVD-003]
+    rules: [TER-EVD-003, TER-EVD-014]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-003'
+      - 'test: tests/contract/test_repository_evidence.py::test_returns_every_test_module_that_imports_a_source_module'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestTestsImporting'
+      - 'test: tests/contract/test_repository_evidence.py::test_tests_of_another_language_are_linked_or_refused'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestEcmaScriptTests'
 
   - id: P061
     text: >-
       Add Git history and change-awareness as optional evidence.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Git history per file is available when the repository is a Git
         working tree, and absent otherwise without error.
     rules: [TER-EVD-013]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-013'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestGitHistory'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestGitWorkTree'
+      - 'test: tests/contract/test_repository_evidence.py::test_diff_and_history_are_version_control_evidence_or_none'
 
   - id: P062
     text: >-
       Understand the current Git diff during live analysis.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - Live analysis reads the current diff on each relevant event.
     rules: [TER-EVD-013]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-013'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestGitDiff'
+      - 'planned: live analysis reads the current diff on each relevant event (L3, with the change surface)'
 
   - id: P063
     text: >-
@@ -979,26 +1013,33 @@ points:
       surface.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Each task has a computed expected change surface, and edits are
         marked inside or outside it.
-    rules: [TER-EVD-006]
+    rules: [TER-EVD-006, TER-EVD-017, TER-EVD-018, TER-EVD-019, TER-EVD-020]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-006'
+      - 'test: tests/unit/test_ter4_change_surface.py::TestChangeSurface'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestEcmaScriptChangeSurface'
+      - 'test: tests/unit/test_ter4_session_roots.py'
+      - 'test: tests/unit/test_ter4_grounded_cli.py'
+      - 'planned: real-data check on sessions with their repository and start commit (D4)'
 
   - id: P064
     text: >-
       Detect unnecessary expansion of the change surface.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - Growth of the change surface beyond the expected one is reported.
-    rules: [TER-EVD-006]
+    rules: [TER-EVD-006, TER-EVD-017, TER-EVD-018, TER-EVD-019, TER-EVD-020]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-006'
+      - 'test: tests/unit/test_ter4_change_surface.py::TestSurfaceExpansion'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestEcmaScriptChangeSurface'
+      - 'test: tests/unit/test_ter4_session_roots.py'
+      - 'planned: real-data check on sessions with their repository and start commit (D4)'
 
   - id: P065
     text: >-
@@ -1006,66 +1047,77 @@ points:
       implementation.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         An edit that breaks a declared architecture contract is reported as
         a boundary violation.
-    rules: [TER-EVD-007]
+    rules: [TER-EVD-007, TER-EVD-015]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-007'
+      - 'test: tests/unit/test_ter4_change_surface.py::TestBoundaryViolation'
+      - 'test: tests/contract/test_architecture_contracts.py'
+      - 'test: tests/unit/test_ter4_grounded_cli.py'
+      - 'test: tests/unit/test_ter4_contract_kinds.py'
+      - 'planned: real-data check on sessions with their repository and start commit (D4)'
 
   - id: P066
     text: >-
       Detect unrelated modifications made during a focused task.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - Edits unrelated to the task are reported as unrelated modifications.
-    rules: [TER-EVD-006]
+    rules: [TER-EVD-006, TER-EVD-017, TER-EVD-018, TER-EVD-019, TER-EVD-020]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-006'
+      - 'test: tests/unit/test_ter4_change_surface.py::TestUnrelatedModification'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestEcmaScriptChangeSurface'
+      - 'test: tests/unit/test_ter4_session_roots.py'
+      - 'test: tests/unit/test_ter4_grounded_cli.py'
+      - 'planned: real-data check on sessions with their repository and start commit (D4)'
 
   - id: P067
     text: >-
       Measure repository exploration against the eventual files changed.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - Reports compare files explored with files eventually changed.
     rules: [TER-EVD-008]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-008'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestEvidenceUsage'
+      - 'planned: usage rates on real sessions with their repository at the start commit (D4)'
 
   - id: P068
     text: >-
       Measure how much retrieved evidence contributes to subsequent actions.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Reports give the share of retrieved evidence that later actions
         used.
     rules: [TER-EVD-008]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-008'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestEvidenceUsage'
+      - 'planned: usage rates on real sessions with their repository at the start commit (D4)'
 
   - id: P069
     text: >-
       Identify repository reads that materially influence implementation.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Reads that later decisions, edits or tests used are marked
         influential.
     rules: [TER-EVD-008]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-008'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestEvidenceUsage'
+      - 'planned: usage rates on real sessions with their repository at the start commit (D4)'
 
   - id: P070
     text: >-
@@ -1073,12 +1125,13 @@ points:
       value.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - Reads with no downstream use are marked and costed.
     rules: [TER-EVD-008]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-008'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestEvidenceUsage'
+      - 'planned: usage rates on real sessions with their repository at the start commit (D4)'
 
   - id: P071
     text: >-
@@ -1086,7 +1139,7 @@ points:
       actions, changes, and validation.
     level: L3
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         An evidence graph type links intent, observations, decisions,
@@ -1094,7 +1147,7 @@ points:
     rules: [TER-GRF-001]
     verification:
       - 'test: tests/unit/test_ter4_lean_analysis.py::test_evidence_graph_edges_and_export'
-      - 'planned: decision and repository nodes (TER-GRF-001, L3)'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestEvidenceGraph'
 
   - id: P072
     text: >-
@@ -1102,7 +1155,7 @@ points:
       observable.
     level: L3
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Every observable decision node in the graph has at least one
@@ -1110,7 +1163,7 @@ points:
     rules: [TER-GRF-001]
     verification:
       - 'test: tests/unit/test_ter4_lean_analysis.py::test_evidence_graph_edges_and_export'
-      - 'planned: decisions as graph nodes (TER-GRF-001, L3)'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestEvidenceGraph::test_every_decision_rests_on_evidence'
 
   - id: P073
     text: >-
@@ -1175,6 +1228,7 @@ points:
     verification:
       - 'test: tests/unit/test_ter4_lean_analysis.py::test_evidence_graph_edges_and_export'
       - 'planned: a command that prints the reconstruction of a change (TER-GRF-001)'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestEvidenceGraph::test_following_edges_back_reconstructs_the_change'
 
   - id: P078
     text: >-
@@ -2106,14 +2160,15 @@ points:
       current execution strategy.
     level: L4
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         TER recommends escalation only with evidence that complexity exceeds
         the current strategy.
     rules: [TER-INT-005, TER-RTE-003]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-005, TER-RTE-003'
+      - 'test: tests/unit/test_ter4_routing.py::TestKeepTheProfile'
+      - 'planned: recommendations delivered as interventions at L4 (TER-INT-005)'
 
   - id: P139
     text: >-
@@ -2149,14 +2204,15 @@ points:
       plane.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Routing decisions carry an explanation of the task classification
         behind them.
     rules: [TER-RTE-005]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-005'
+      - 'test: tests/unit/test_ter4_routing.py::TestClassification'
+      - 'test: tests/unit/test_ter4_routing.py::test_cli_route_prints_classes_and_decisions'
 
   - id: P142
     text: >-
@@ -2164,14 +2220,15 @@ points:
       scope, and validation requirements.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Tasks are classified by complexity, ambiguity, risk, repository
         scope and validation needs.
     rules: [TER-RTE-005]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-005'
+      - 'test: tests/unit/test_ter4_routing.py::TestClassification'
+      - 'test: tests/unit/test_ter4_routing.py::TestGroundedClassification'
 
   - id: P143
     text: >-
@@ -2179,12 +2236,13 @@ points:
       observed task.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - TER reports whether the current strategy fits the classified task.
     rules: [TER-RTE-005]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-005'
+      - 'test: tests/unit/test_ter4_routing.py::TestKeepTheProfile'
+      - 'test: tests/unit/test_ter4_routing.py::TestEscalation'
 
   - id: P144
     text: >-
@@ -2192,12 +2250,14 @@ points:
       names.
     level: L3
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - Code and policies reference execution profiles, never model names.
     rules: [TER-RTE-001]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-001'
+      - 'test: tests/architecture/test_model_roles.py::test_no_source_module_hard_codes_a_model_id'
+      - 'test: tests/contract/test_routing_profiles.py'
+      - 'test: tests/unit/test_ter4_routing.py::TestProfiles'
 
   - id: P145
     text: >-
@@ -2205,14 +2265,14 @@ points:
       frontier-deep.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         local-fast, local-code, frontier-standard and frontier-deep profiles
         ship as defaults.
     rules: [TER-RTE-001]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-001'
+      - 'test: tests/contract/test_routing_profiles.py::test_the_shipped_profiles_include_the_four_execution_profiles'
 
   - id: P146
     text: >-
@@ -2220,21 +2280,22 @@ points:
       TER's central purpose.
     level: L3
     kind: principle
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Model selection is one optimisation among others in the Lean model,
         not a separate product surface.
     rules: [TER-RTE-001]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-001'
+      - 'test: tests/unit/test_ter4_unearned_escalation.py::test_registered_with_a_countermeasure_a_follow_up_and_a_rule'
+      - 'planned: routing decisions shown in the A3 beside the other countermeasures, not only in `ter route`'
 
   - id: P147
     text: >-
       Investigate whether routine analysis and retrieval can remain local.
     level: L3
     kind: research
-    status: not-started
+    status: partial
     issue: 39
     real_data: true
     definition_of_done:
@@ -2243,7 +2304,8 @@ points:
         quality on local models.
     rules: [TER-RTE-003, TER-RTE-002]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-003, TER-RTE-002'
+      - 'test: tests/unit/test_ter4_routing.py::TestKeepTheProfile'
+      - 'test: tests/unit/test_ter4_routing.py::TestEscalation'
       - 'planned: real-data verification in issue #39'
 
   - id: P148
@@ -2251,41 +2313,42 @@ points:
       Escalate difficult reasoning only when evidence supports escalation.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - Escalation happens only with a supporting detector signal.
     rules: [TER-RTE-003]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-003'
+      - 'test: tests/unit/test_ter4_routing.py::TestKeepTheProfile'
+      - 'test: tests/unit/test_ter4_routing.py::TestEscalation::test_an_evidenced_signal_escalates_with_one_event'
 
   - id: P149
     text: >-
       Measure whether escalation actually improves software outcomes.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     issue: 39
     real_data: true
     definition_of_done:
       - Every escalation records the outcome change it produced.
     rules: [TER-RTE-002]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-002'
-      - 'planned: real-data verification in issue #39'
+      - 'test: tests/unit/test_ter4_routing.py::TestEscalation'
+      - 'planned: the outcome change of each escalation, and real-data verification in issue #39'
 
   - id: P150
     text: >-
       Measure the cost and latency introduced by escalation.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     issue: 39
     real_data: true
     definition_of_done:
       - Every escalation records its cost and latency.
     rules: [TER-RTE-002]
     verification:
-      - 'planned: passing tests tagged req for TER-RTE-002'
+      - 'test: tests/unit/test_ter4_routing.py::TestEscalation::test_the_event_records_the_token_usage_spent_before_the_signal'
       - 'planned: real-data verification in issue #39'
 
   - id: P151
@@ -2293,12 +2356,13 @@ points:
       Adopt TGV-style deterministic context bundles.
     level: L3
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - The same inputs produce the same context bundle, byte for byte.
     rules: [TER-CTX-001]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-001'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestDeterminism'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestCli::test_bundle_prints_the_bundle_and_records_its_supply'
 
   - id: P152
     text: >-
@@ -2306,19 +2370,20 @@ points:
       relevant to the next decision.
     level: L3
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - Bundles hold only evidence selected for the next decision.
     rules: [TER-CTX-001]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-001'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestSelection'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestBudget'
 
   - id: P153
     text: >-
       Compare full-context approaches with evidence-selected context.
     level: L3
     kind: research
-    status: not-started
+    status: partial
     issue: 42
     real_data: true
     definition_of_done:
@@ -2327,7 +2392,8 @@ points:
         the same tasks.
     rules: [TER-CTX-003, TER-ANL-031]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-003, TER-ANL-031'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestPrecisionRecall'
+      - 'planned: passing tests tagged req for TER-ANL-031'
       - 'planned: real-data verification in issue #42'
 
   - id: P154
@@ -2336,12 +2402,13 @@ points:
       subsequently used.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - Context precision is reported per bundle.
     rules: [TER-CTX-003]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-003'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestPrecisionRecall'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestCli::test_report_prints_the_measures'
 
   - id: P155
     text: >-
@@ -2349,14 +2416,16 @@ points:
       available when needed.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     issue: 42
     real_data: true
     definition_of_done:
       - Context recall is reported per bundle.
     rules: [TER-CTX-003, TER-EVD-005]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-003, TER-EVD-005'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestPrecisionRecall'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestCriticalRecall'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestCriticalFile'
       - 'planned: real-data verification in issue #42'
 
   - id: P156
@@ -2364,7 +2433,7 @@ points:
       Investigate context selection as a Lean inventory problem.
     level: L3
     kind: research
-    status: not-started
+    status: partial
     issue: 42
     real_data: true
     definition_of_done:
@@ -2373,7 +2442,7 @@ points:
         with measures.
     rules: [TER-CTX-004]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-004'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestInventoryAndRisk'
       - 'planned: real-data verification in issue #42'
 
   - id: P157
@@ -2381,50 +2450,52 @@ points:
       Treat excessive context as inventory carrying cost.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - Unused context is costed as inventory carrying cost.
     rules: [TER-CTX-004]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-004'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestInventoryAndRisk'
 
   - id: P158
     text: >-
       Treat missing context as a potential defect source.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - Missing context is reported as defect risk.
     rules: [TER-CTX-004]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-004'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestInventoryAndRisk::test_missing_context_names_the_edits_that_depended_on_it'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestPrecisionRecall::test_recall_falls_when_the_session_edits_a_file_the_bundle_lacked'
 
   - id: P159
     text: >-
       Optimise context for sufficient evidence rather than minimum size.
     level: L3
     kind: principle
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Context selection targets sufficient evidence, and tests show a
         bundle is not shrunk below the evidence needed.
     rules: [TER-CTX-001]
     verification:
-      - 'planned: passing tests tagged req for TER-CTX-001'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestBudget::test_a_seed_is_never_dropped_for_lower_ranked_evidence'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestSelection::test_a_prompt_naming_nothing_selects_nothing_and_says_so'
 
   - id: P160
     text: >-
       Record why each context fragment was selected.
     level: L3
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - Every context fragment records why it was selected.
     rules: [TER-EVD-004]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-004'
+      - 'test: tests/unit/test_ter4_context_bundle.py::TestSupplied'
 
   - id: P161
     text: >-
@@ -2711,9 +2782,10 @@ points:
     real_data: true
     definition_of_done:
       - A versioned value stream dataset with a data card is published.
-    rules: [TER-RSH-001, TER-GRF-003, TER-SRC-023]
+    rules: [TER-RSH-001, TER-GRF-003, TER-SRC-023, TER-STK-001]
     verification:
       - 'test: tests/unit/test_ter4_corpus.py::test_labels_are_joined_by_session_id'
+      - 'test: tests/unit/test_ter4_stack.py::TestLanguages'
       - 'planned: a published data card (template: docs/ter4/dataset-card.md)'
       - 'planned: passing tests tagged req for TER-RSH-001, TER-GRF-003'
       - 'planned: real-data verification in issue #34'
@@ -2724,15 +2796,20 @@ points:
       inefficiency in agentic development.
     level: L6
     kind: research
-    status: not-started
+    status: partial
     issue: 44
     real_data: true
     definition_of_done:
       - >-
         A study reports whether each classical Lean waste predicts
         inefficiency.
-    rules: [TER-RSH-002, TER-EXP-010]
+    rules: [TER-RSH-002, TER-EXP-010, TER-STK-010, TER-STK-011, TER-STK-012, TER-STK-013]
     verification:
+      - 'test: tests/unit/test_ter4_stack_comparison.py::TestStratification'
+      - 'test: tests/unit/test_ter4_stack_comparison.py::TestInsufficientStrata'
+      - 'test: tests/unit/test_ter4_stack_comparison.py::TestSpread'
+      - 'test: tests/unit/test_ter4_stack_comparison.py::TestNoFiles'
+      - 'planned: scripts/corpus_by_stack.py over a corpus with five or more sessions per stack, task category and outcome'
       - 'planned: passing tests tagged req for TER-RSH-002, TER-EXP-010'
       - 'planned: real-data verification in issue #44'
 
@@ -2778,13 +2855,18 @@ points:
       outcome quality.
     level: L6
     kind: research
-    status: not-started
+    status: partial
     issue: 44
     real_data: true
     definition_of_done:
       - A study reports the relationship between TER and outcome quality.
-    rules: [TER-RSH-001, TER-EXP-010]
+    rules: [TER-RSH-001, TER-EXP-010, TER-STK-010, TER-STK-011, TER-STK-012, TER-STK-013]
     verification:
+      - 'test: tests/unit/test_ter4_stack_comparison.py::TestStratification'
+      - 'test: tests/unit/test_ter4_stack_comparison.py::TestInsufficientStrata'
+      - 'test: tests/unit/test_ter4_stack_comparison.py::TestSpread'
+      - 'test: tests/unit/test_ter4_stack_comparison.py::TestNoFiles'
+      - 'planned: token use by language and stack, stratified by outcome, on a corpus beyond one owner''s 52 sessions'
       - 'planned: passing tests tagged req for TER-RSH-001, TER-EXP-010'
       - 'planned: real-data verification in issue #44'
 
@@ -2952,7 +3034,7 @@ points:
       evidence data.
     level: L2
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Every reported metric can be recomputed from recorded events and
@@ -2962,7 +3044,8 @@ points:
       - 'test: tests/golden/test_ter3_characterisation.py'
       - 'test: tests/unit/test_ter4_lean_properties.py::test_explanation_is_deterministic'
       - 'test: tests/equivalence/test_recompute_from_events.py'
-      - 'planned: TER 3 ratio and outcome verdict recorded as events (TER-EXP-002, L3)'
+      - 'test: tests/equivalence/test_recompute_from_events.py::test_the_ter3_ratio_and_verdict_recompute_from_recorded_events'
+      - 'test: tests/unit/test_ter4_records.py'
 
   - id: P196
     text: >-
@@ -2970,7 +3053,7 @@ points:
       opaque agent supervisor.
     level: L6
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Code, requirements, points index and reports are open and
@@ -2987,7 +3070,8 @@ points:
       - 'test: tests/docs/test_docs.py::test_shell_examples_name_real_commands_and_options'
       - 'test: tests/requirements/test_point_origin.py'
       - 'test: tests/equivalence/test_recompute_from_events.py'
-      - 'planned: TER 3 ratio and outcome verdict recorded as events (TER-EXP-002, L3)'
+      - 'test: tests/equivalence/test_recompute_from_events.py::test_the_ter3_ratio_and_verdict_recompute_from_recorded_events'
+      - 'test: tests/unit/test_ter4_records.py'
 
   - id: P197
     text: >-
@@ -3010,7 +3094,8 @@ points:
       - 'test: tests/unit/test_ter4_plugins.py'
       - 'test: tests/contract/test_outcome_source.py'
       - 'test: tests/unit/test_ter4_lean_analysis.py::test_detectors_are_plugins'
-      - 'planned: repository engines load as plugins at L3 (TER-ARC-007)'
+      - 'test: tests/unit/test_ter4_repository_evidence.py::TestRepositoryEnginesArePlugins'
+      - 'test: tests/contract/test_repository_evidence.py'
       - 'planned: intervention policies load as plugins at L4 (TER-ARC-008)'
       - 'test: tests/architecture/test_import_contracts.py::test_core_never_imports_external_capability_packages'
 

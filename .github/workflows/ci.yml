@@ -66,6 +66,9 @@ jobs:
       - name: Requirements traceability gate (L2)
         if: matrix.python-version == '3.11'
         run: ter-req trace --results req-trace.json --gate L2
+      - name: Requirements traceability gate (L3)
+        if: matrix.python-version == '3.11'
+        run: ter-req trace --results req-trace.json --gate L3
       - name: Upload coverage XML
         if: matrix.python-version == '3.11'
         uses: actions/upload-artifact@v4
@@ -101,5 +104,5 @@ jobs:
           /tmp/ter-wheel-test/bin/ter --version
           /tmp/ter-wheel-test/bin/ter --help
           /tmp/ter-wheel-test/bin/python -c "import ter_calculator; assert ter_calculator.__version__ == '3.0.0'"
-          /tmp/ter-wheel-test/bin/python -c "import ter, ter.domain, ter.ports; assert ter.EVENT_SCHEMA_VERSION == 'ter.event/0.4'"
+          /tmp/ter-wheel-test/bin/python -c "import ter, ter.domain, ter.ports; assert ter.EVENT_SCHEMA_VERSION == 'ter.event/0.5'"
           /tmp/ter-wheel-test/bin/python -c "import importlib.resources as r; assert r.files('ter').joinpath('py.typed').is_file()"

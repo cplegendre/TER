@@ -43,10 +43,17 @@ ter-req = "ter.adapters.driving.req_cli:main"
 # this table equals ter.bootstrap.capabilities.BUILTIN_CAPABILITIES (a unit
 # test keeps them equal). Other packages add capabilities in the same group.
 [project.entry-points."ter.capabilities"]
+"ArchitectureContracts.dependency-cruiser" = "ter.adapters.driven.dependency_cruiser:DependencyCruiserContracts"
+"ArchitectureContracts.import-linter" = "ter.adapters.driven.import_linter:ImportLinterContracts"
 "Embedder.hashing" = "ter.adapters.driven.embedders:HashingEmbedder"
 "EventLog.jsonl" = "ter.adapters.driven.event_log:JsonlEventLog"
 "OutcomeSource.junit" = "ter.adapters.driven.junit:JUnitOutcomeSource"
 "PriceBook.json" = "ter.adapters.driven.pricing:JsonPriceBook"
+"RepositoryEvidence.git" = "ter.adapters.driven.repository:GitRepositoryEvidence"
+"RepositoryEvidence.lexical" = "ter.adapters.driven.repository:LexicalRepositoryEvidence"
+"RepositoryEvidence.python-ast" = "ter.adapters.driven.repository:PythonSyntaxEvidence"
+"RepositoryEvidence.syntax" = "ter.adapters.driven.repository:SourceSyntaxEvidence"
+"RoutingProfiles.json" = "ter.adapters.driven.routing_profiles:JsonRoutingProfiles"
 "SessionSource.claude-code" = "ter.adapters.driven.claude_code:ClaudeCodeJsonlSource"
 "SessionSource.gare" = "ter.adapters.driven.gare:GareRunSource"
 "TerScorer.ter3" = "ter.adapters.driven.ter3:Ter3Scorer"
@@ -57,7 +64,7 @@ ter-req = "ter.adapters.driving.req_cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-ter = ["py.typed", "data/*.json"]
+ter = ["py.typed", "data/*.json", "data/routing_profiles/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -221,20 +228,45 @@ name = "Driven adapters do not import each other"
 type = "independence"
 modules = [
     "ter.adapters.driven.claude_code",
+    "ter.adapters.driven.critical_evidence",
     "ter.adapters.driven.embedders",
     "ter.adapters.driven.gare",
     "ter.adapters.driven.event_log",
     "ter.adapters.driven.tokenizers",
+    "ter.adapters.driven.dependency_cruiser",
+    "ter.adapters.driven.import_linter",
     "ter.adapters.driven.in_memory",
     "ter.adapters.driven.junit",
     "ter.adapters.driven.pricing",
+    "ter.adapters.driven.repository",
     "ter.adapters.driven.requirements_yaml",
+    "ter.adapters.driven.routing_profiles",
     "ter.adapters.driven.ter3",
 ]
 # TER 3 sits outside the hexagon and reads its prices through the pricing
 # adapter. A chain that passes through TER 3 is not one adapter depending on
 # another, so those edges are exempt here (and only here).
 ignore_imports = ["ter_calculator.** -> ter.adapters.driven.pricing"]
+
+[[tool.importlinter.contracts]]
+id = "provider-neutral-evidence"
+name = "Repository evidence depends on no model provider (P054, TER-EVD-001)"
+type = "forbidden"
+# The evidence values and every repository engine import no model SDK,
+# tokenizer, embedder, TER 3 internals or external capability stack: what a
+# repository says never depends on which model reads it.
+source_modules = ["ter.domain.repository", "ter.adapters.driven.repository"]
+forbidden_modules = [
+    "ter_calculator",
+    "tiktoken",
+    "sentence_transformers",
+    "anthropic",
+    "gare",
+    "pydantic",
+    "httpx",
+    "ter.adapters.driven.embedders",
+    "ter.adapters.driven.tokenizers",
+]
 
 [[tool.importlinter.contracts]]
 id = "ter3-uses-hexagon-edges"

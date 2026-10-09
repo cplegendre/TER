@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 from typing import Protocol
 
 from ..events import Event, EventId, EventKind, ToolKind
+from ..stack import FileTouch, SessionProfile, languages_of
 from .detectors import (
     DEFAULT_REGISTRY,
     DetectorRegistry,
@@ -30,7 +31,10 @@ from .detectors import (
     exploration_labels,
     validation_cycles,
 )
+from .drift import EVIDENCE_DETECTORS
+from .evidence_graph import GroundedEvidenceGraph, build_grounded_graph
 from .graph import EvidenceGraph, build_graph
+from .grounding import RepositoryGrounding
 from .intent import (
     DEFAULT_INTENT_CONFIG,
     LEXICAL_ALIGNMENT,
@@ -55,6 +59,9 @@ from .model import (
     ValidationCycle,
 )
 from .steps import StepLog
+from .surface import GROUNDED_DETECTORS, ChangeSurface, change_surfaces
+from .usage import EvidenceUsage, FileNames, evidence_usage
+from .value import OutcomeValue, outcome_value
 from .wip import WipReport, WipTracker
 
 __all__ = [
@@ -67,6 +74,7 @@ __all__ = [
     "TerMeasure",
     "analyse_steps",
     "explain",
+    "session_profile",
 ]
 
 #: Key for tokens a finding below the confidence threshold may claim.
@@ -242,6 +250,21 @@ class LeanAnalysis:
 
     #: Why each exploration request happened (TER-DET-009, point 38).
     exploration: tuple[ExplorationLabel, ...] = ()
+    #: The repository evidence the analysis was grounded on (L3), if any.
+    repository: RepositoryGrounding | None = None
+    #: The expected change surface of each task that edits (TER-EVD-006).
+    surfaces: tuple[ChangeSurface, ...] = ()
+    #: The languages the session read and edited and, with repository
+    #: evidence, its repository's stack (TER-STK-001, TER-STK-002).
+    profile: SessionProfile = field(default_factory=SessionProfile)
+    #: Whether a later event used each repository read (TER-EVD-008, L3).
+    usage: EvidenceUsage | None = None
+    #: Exploration, reasoning and validation judged against the outcome
+    #: (TER-LEN-009, L3).
+    value: OutcomeValue | None = None
+    #: The role-typed evidence graph with repository usage edges
+    #: (TER-GRF-001, L3).
+    grounded_graph: GroundedEvidenceGraph | None = None
 
     @property
     def waste_findings(self) -> tuple[Finding, ...]:
@@ -297,7 +320,18 @@ class LeanAnalysis:
             ],
             "intent": self.intent.as_dict([f.id for f in self.drift_findings]),
             "exploration": [e.as_dict() for e in self.exploration],
+            "profile": self.profile.as_dict(),
         }
+        if self.repository is not None:
+            # Only a grounded (L3) analysis has these; an L2 one is unchanged.
+            out["repository"] = self.repository.as_dict()
+            out["change_surfaces"] = [s.as_dict() for s in self.surfaces]
+            if self.usage is not None:
+                out["evidence_usage"] = self.usage.as_dict()
+            if self.value is not None:
+                out["outcome_value"] = self.value.as_dict()
+            if graph and self.grounded_graph is not None:
+                out["grounded_evidence_graph"] = self.grounded_graph.as_dict()
         if graph:
             out["evidence_graph"] = self.graph.as_dict()
         return out
@@ -351,6 +385,11 @@ def _base_class(
         return (
             ActivityClass.NECESSARY_NON_VALUE_ADDING,
             "stage:respond failed model route returned nothing",
+        )
+    if step.is_escalation:
+        return (
+            ActivityClass.NECESSARY_NON_VALUE_ADDING,
+            "stage:respond route escalated to another model",
         )
     if step.stage is Stage.RESPOND:
         if step.index in finals:
@@ -574,22 +613,38 @@ def analyse_steps(
     registry: DetectorRegistry = DEFAULT_REGISTRY,
     intent: IntentTimeline | None = None,
     wip: WipReport | None = None,
+    repository: RepositoryGrounding | None = None,
 ) -> LeanAnalysis:
     """Run every detector over ``steps`` and build the analysis.
 
     ``intent`` is the session's intent timeline (:func:`.intent.build_intent`);
     without one, the intent detectors have nothing to judge against. ``wip`` is
     the WIP the incremental fold counted; without it, WIP is recounted from the
-    steps alone (:meth:`WipTracker.of_steps`).
+    steps alone (:meth:`WipTracker.of_steps`). With ``repository`` (L3), the
+    grounded detectors (:data:`.surface.GROUNDED_DETECTORS`) join the
+    registry and every task's change surface is reported.
     """
     timeline = intent if intent is not None else IntentTimeline()
-    view = SessionView.of(steps, timeline)
+    if repository is not None:
+        registry = registry.extended((*GROUNDED_DETECTORS, *EVIDENCE_DETECTORS))
+    view = SessionView.of(steps, timeline, repository)
     findings = registry.run(view)
     cycles = validation_cycles(view)
     classes = _classify(steps, findings, cycles)
     graph = build_graph(
         session_id, steps, findings, {c.event_id: c.activity_class for c in classes}
     )
+    surfaces = change_surfaces(view)
+    usage: EvidenceUsage | None = None
+    value: OutcomeValue | None = None
+    grounded: GroundedEvidenceGraph | None = None
+    if repository is not None:
+        names = FileNames(repository)
+        usage = evidence_usage(steps, repository, view.completion_of, names)
+        value = outcome_value(
+            steps, repository, surfaces, usage, view.completion_of, names
+        )
+        grounded = build_grounded_graph(session_id, steps, usage)
     return LeanAnalysis(
         session_id=session_id,
         events=len(steps),
@@ -606,6 +661,26 @@ def analyse_steps(
         intent=timeline,
         wip=WipTracker.of_steps(steps) if wip is None else wip,
         exploration=exploration_labels(view),
+        repository=repository,
+        surfaces=surfaces,
+        profile=session_profile(steps),
+        usage=usage,
+        value=value,
+        grounded_graph=grounded,
+    )
+
+
+_FILE_TOOLS = frozenset({ToolKind.FS_READ, ToolKind.FS_EDIT, ToolKind.FS_WRITE})
+
+
+def session_profile(steps: Iterable[Step]) -> SessionProfile:
+    """The languages of the files a session's file tool requests name
+    (TER-STK-001): a summary of the folded steps, so live and batch agree."""
+    return languages_of(
+        FileTouch(step.event_id, step.tool_kind is not ToolKind.FS_READ, path)
+        for step in steps
+        if step.kind is EventKind.TOOL_REQUESTED and step.tool_kind in _FILE_TOOLS
+        for path in step.paths
     )
 
 
@@ -640,6 +715,7 @@ class LeanAnalyser:
         registry: DetectorRegistry = DEFAULT_REGISTRY,
         alignment: AlignmentScorer = LEXICAL_ALIGNMENT,
         intent_config: IntentConfig = DEFAULT_INTENT_CONFIG,
+        repository: RepositoryGrounding | None = None,
     ) -> LeanAnalysis:
         steps = self._log.steps()
         timeline = build_intent(
@@ -652,6 +728,7 @@ class LeanAnalyser:
             registry=registry,
             intent=timeline,
             wip=self._wip.report(),
+            repository=repository,
         )
 
 
@@ -663,11 +740,16 @@ def explain(
     registry: DetectorRegistry = DEFAULT_REGISTRY,
     alignment: AlignmentScorer = LEXICAL_ALIGNMENT,
     intent_config: IntentConfig = DEFAULT_INTENT_CONFIG,
+    repository: RepositoryGrounding | None = None,
 ) -> LeanAnalysis:
     """Batch L2 analysis of a whole stream: the fold of :meth:`LeanAnalyser.add`."""
     analyser = LeanAnalyser()
     for event in events:
         analyser.add(event, tokenizer.count(event.text))
     return analyser.analysis(
-        ter=ter, registry=registry, alignment=alignment, intent_config=intent_config
+        ter=ter,
+        registry=registry,
+        alignment=alignment,
+        intent_config=intent_config,
+        repository=repository,
     )

@@ -14,6 +14,14 @@ from ..domain.events import Event, SessionTrace
 from ..domain.lean.intent import AlignmentScorer as AlignmentScorer
 from ..domain.outcome import OutcomeEvidence
 from ..domain.pricing import Rates
+from ..domain.routing import RoutingProfile
+from ..domain.repository import (
+    ArchitectureContract,
+    FileCommit,
+    RepositoryDiff,
+    SourceStructure,
+    TextMatch,
+)
 
 if TYPE_CHECKING:
     # Annotation-only, so short-lived entry points (hooks) do not pay for
@@ -153,3 +161,121 @@ class OutcomeSource(Protocol):
     name: str
 
     def outcome(self, ref: str | Path) -> OutcomeEvidence | None: ...
+
+
+@runtime_checkable
+class RepositoryEvidence(Protocol):
+    """Evidence about one repository, independent of any model provider.
+
+    TER obtains repository evidence only through this port (TER-EVD-001).
+    An adapter is built for one repository root; engines differ in depth
+    (lexical text, Git history, syntax trees) and say what they cannot do by
+    returning ``None``, never by guessing. Engines load as capabilities,
+    ``RepositoryEvidence.<engine>`` (TER-ARC-007).
+
+    Obligations, verified by ``tests/contract/test_repository_evidence.py``:
+
+    * paths are relative to the root, use ``/`` and come sorted; nothing in
+      a version control directory is listed; every answer is a pure
+      function of the repository content, so equal content yields equal
+      evidence wherever the repository lives (TER-EVD-002);
+    * ``text(path)`` returns a listed file's text; a path the repository
+      does not list raises ``UnknownPathError`` (every method that takes a
+      path does);
+    * ``search(needle)`` returns every line containing ``needle`` (a regular
+      expression when ``regex`` is true), sorted by path then line, from
+      every UTF-8 text file;
+    * ``tests_importing(path)`` returns every test module (``test_*.py`` or
+      ``*_test.py``) whose import statements load the Python module at
+      ``path``, sorted (TER-EVD-003); an engine that reads another language
+      (``syntax``: TypeScript, JavaScript, Svelte, Vue) does the same for it
+      with that language's test conventions (``*.test.*``, ``*.spec.*``,
+      ``__tests__/``, ``tests/``) and import resolution (TER-EVD-014); a
+      path in a language the engine has no import rule for raises
+      ``UnsupportedLanguageError``;
+    * ``structure(path)`` returns the file's symbols, imports and call edges
+      from its syntax tree, or ``None`` when the engine does not support the
+      file's language (TER-EVD-012). An import of a language that imports
+      files by path carries the repository paths it may load
+      (``ImportEdge.candidates``);
+    * ``structure_of(path, text)`` returns what ``structure(path)`` would
+      return if the file at ``path`` held ``text``: equal to
+      ``structure(path)`` for a listed file's own text, and also served for a
+      path the repository does not list (a file a session creates), whose
+      module name is read as if it were added. It reads nothing from the
+      repository but the file list (and, for import resolution, the
+      project configuration such as ``tsconfig.json`` and ``package.json``
+      files), so an edit can be judged on its result (TER-EVD-007);
+    * ``diff()`` and ``history(path)`` return the working tree's changes and
+      a file's commits (newest first), or ``None`` when the engine has no
+      version control evidence (TER-EVD-013).
+    """
+
+    name: str
+
+    def files(self) -> tuple[str, ...]: ...
+
+    def text(self, path: str) -> str: ...
+
+    def search(self, needle: str, *, regex: bool = False) -> tuple[TextMatch, ...]: ...
+
+    def tests_importing(self, path: str) -> tuple[str, ...]: ...
+
+    def structure(self, path: str) -> SourceStructure | None: ...
+
+    def structure_of(self, path: str, text: str) -> SourceStructure | None: ...
+
+    def diff(self) -> RepositoryDiff | None: ...
+
+    def history(self, path: str) -> tuple[FileCommit, ...] | None: ...
+
+
+@runtime_checkable
+class ArchitectureContracts(Protocol):
+    """Reads the architecture contracts a repository declares (import-linter
+    style: forbidden imports, layers, independence).
+
+    The reader does no IO: it names the repository files it reads, in order
+    of precedence, and parses the text the caller obtained through
+    :class:`RepositoryEvidence` (TER-EVD-001), so contracts are read at the
+    same commit as the rest of the evidence.
+
+    Obligations, verified by ``tests/contract/test_architecture_contracts.py``:
+
+    * ``sources()`` names the files that may declare contracts, most
+      specific first;
+    * ``read(path, text)`` returns every contract the text declares, in
+      declaration order, with absolute module names; a file that declares
+      none returns ``()``;
+    * a declaration that cannot be read raises
+      ``ter.domain.repository.ContractFormatError`` naming the file;
+    * the same text yields equal contracts on every call.
+    """
+
+    name: str
+
+    def sources(self) -> tuple[str, ...]: ...
+
+    def read(self, path: str, text: str) -> tuple[ArchitectureContract, ...]: ...
+
+
+@runtime_checkable
+class RoutingProfiles(Protocol):
+    """Supplies routing profiles: role names and the models they mean
+    (TER-RTE-001).
+
+    Obligations, verified by ``tests/contract/test_routing_profiles.py``:
+
+    * ``names()`` lists every profile, sorted, and includes ``default()``;
+    * ``profile(name)`` returns an equal profile on every call, whose task
+      kinds and escalations name only roles it defines;
+    * an unknown profile name raises ``ter.domain.routing.RoutingProfileError``.
+    """
+
+    name: str
+
+    def names(self) -> tuple[str, ...]: ...
+
+    def default(self) -> str: ...
+
+    def profile(self, name: str) -> RoutingProfile: ...
