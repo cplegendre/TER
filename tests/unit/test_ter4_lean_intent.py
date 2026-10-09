@@ -244,6 +244,22 @@ class TestIntentDrift:
         [f] = drift(s)
         assert f.confidence == 0.85 and "dropped" in f.explanation
 
+    def test_abandonment_only_prompt_drops_the_goal(self) -> None:
+        # Too short to state a new goal, but it still abandons "median".
+        s = Script()
+        s.prompt(MEDIAN)
+        s.prompt("Forget the median.")
+        s.edit("src/stats.py", "", "def median_sorted(xs): ...")
+        a = run(s)
+        current = a.intent.record.current
+        assert current is not None
+        assert current.relation is IntentRelation.ACKNOWLEDGED
+        assert "median" not in current.terms and "median" in current.abandoned
+        [edit] = a.intent.alignments
+        assert edit.band is AlignmentBand.LOW
+        [f] = drift(s)
+        assert f.confidence == 0.85 and "dropped" in f.explanation
+
     def test_departure_after_a_recorded_change_is_not_drift(self) -> None:
         s = _shift(
             redirect="Actually, forget the median. Add mean and variance functions, "

@@ -141,6 +141,25 @@ def test_a_broken_or_clashing_detector_plugin_is_left_out_and_reported() -> None
     assert "already registered by built-in" in reasons["WasteDetector.rework_cycle"]
 
 
+def _raise_on_construct() -> CountingDetector:
+    raise RuntimeError("cannot build")
+
+
+@pytest.mark.req("TER-ARC-002")
+def test_a_detector_plugin_whose_factory_raises_is_left_out(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    reg = _registry(
+        FakeEntry("WasteDetector.raising", "plugin:Raising", _raise_on_construct)
+    )
+    detectors = detector_registry(reg)
+    assert [d.id for d in detectors] == [d.id for d in DEFAULT_REGISTRY]
+    reasons = {p.key: p.reason for p in reg.problems}
+    assert "RuntimeError: cannot build" in reasons["WasteDetector.raising"]
+    monkeypatch.setattr(bootstrap, "detector_registry", lambda: detector_registry(reg))
+    assert bootstrap.make_ingest() is not None
+
+
 @pytest.mark.req("TER-ARC-002")
 def test_the_composition_root_explains_with_the_installed_detectors(
     monkeypatch: pytest.MonkeyPatch,
@@ -234,6 +253,33 @@ def test_an_installed_agent_adapter_reads_the_files_it_accepts(
     # Anything no adapter claims is a Claude Code transcript.
     claude = bootstrap.session_source_for(CORPUS["lean_mix"])
     assert isinstance(claude, ClaudeCodeJsonlSource)
+
+
+class RaisingSource(OtherAgentSource):
+    """Claims ``*.otheragent`` files but cannot be constructed."""
+
+    def __init__(self) -> None:
+        raise RuntimeError("cannot build")
+
+
+@pytest.mark.req("TER-ARC-002")
+def test_an_agent_adapter_whose_factory_raises_falls_back(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    other = tmp_path / "run.otheragent"
+    other.write_text("{}")
+    alone = _registry(
+        FakeEntry("SessionSource.a-raising", "plugin:Raising", RaisingSource)
+    )
+    monkeypatch.setattr(bootstrap, "default_registry", lambda: alone)
+    assert isinstance(bootstrap.session_source_for(other), ClaudeCodeJsonlSource)
+    # The next source that accepts the path reads it instead.
+    both = _registry(
+        FakeEntry("SessionSource.a-raising", "plugin:Raising", RaisingSource),
+        FakeEntry("SessionSource.other-agent", "plugin:Other", OtherAgentSource),
+    )
+    monkeypatch.setattr(bootstrap, "default_registry", lambda: both)
+    assert isinstance(bootstrap.session_source_for(other), OtherAgentSource)
 
 
 @pytest.mark.req("TER-ARC-002")
