@@ -30,6 +30,7 @@ from ..ports.driving import EventIngest
 
 if TYPE_CHECKING:
     from ..adapters.driven.claude_code.corpus import CorpusImport
+    from ..adapters.driving.claude_hooks.check import HookCheck
 
 __all__ = [
     "CapabilityRegistry",
@@ -243,7 +244,14 @@ def cli_services() -> CliServices:
             labels=read_labels(labels) if labels is not None else None,
         )
 
+    def hooks_check(recordings: Path, transcripts: Path) -> "HookCheck":
+        from ..adapters.driven.claude_code import ClaudeCodeJsonlSource
+        from ..adapters.driving.claude_hooks.check import check_recordings
+
+        return check_recordings(recordings, transcripts, ClaudeCodeJsonlSource().read)
+
     return CliServices(
+        hooks_check=hooks_check,
         capabilities=capabilities,
         import_corpus=import_corpus,
         tokenizers=tokenizers,

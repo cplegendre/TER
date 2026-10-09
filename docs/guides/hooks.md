@@ -109,7 +109,7 @@ ter a3 ~/.claude/projects/my-project/SESSION_ID.jsonl --html a3.html
 | `UserPromptSubmit` | `intent.stated` (the prompt) |
 | `PreToolUse` | `tool.requested`, with the tool kind and input |
 | `PostToolUse` | `tool.requested` (same id as PreToolUse) and `tool.completed` with the tool response |
-| `Stop` | `task.completed`: the agent finished a turn |
+| `Stop` | `task.completed`: the agent finished a turn, keyed by the turn it closes |
 | `SubagentStop` | `subagent.completed`, in the parent session |
 | `SessionStart`, `SessionEnd`, `SubagentStart`, `PreCompact`, `Notification` | recognised as lifecycle; no event |
 | anything else, or a malformed payload | ignored, with a reason |
@@ -117,7 +117,8 @@ ter a3 ~/.claude/projects/my-project/SESSION_ID.jsonl --html a3.html
 Lifecycle events are counted (class `lifecycle`) but never scored, and they
 add no step to the Lean analysis. The Stop and SubagentStop mappings follow
 Claude Code's documented payloads; checking them against real ones, and
-correlating them with the transcript, waits on recorded hook data (issue #35).
+correlating them with the transcript, waits on recorded hook data (issue #35):
+see [Checking recordings against transcripts](#checking-recordings-against-transcripts).
 
 ### Recording real payloads
 
@@ -136,6 +137,70 @@ your user (mode 0600), stay outside the repository, and go through redaction
 before any of them becomes a test fixture. A recording that cannot be written
 is reported on stderr as `ter hook: payload not recorded: <reason>`; the
 event is still handled and the hook still prints `{}`.
+
+### Checking recordings against transcripts
+
+Once you have recorded a few sessions, check how the events the hook derives
+line up with the events TER reads from the same sessions' transcripts:
+
+```bash
+python -m ter hooks check "$HOME/ter-data/hooks" ~/.claude/projects --json hooks-check.json
+```
+
+The first argument is the `--record` directory; the second is the Claude Code
+projects folder (or any folder of `.jsonl` transcripts, or one transcript).
+Each recorded session's transcript is the payloads' `transcript_path` when
+that file exists, else the `<session_id>.jsonl` found under the second
+argument. For each session the check:
+
+1. counts the payloads by hook and lists the payload **field names** seen per
+   hook;
+2. replays every recording through the path the live hook takes (same
+   translation, same receive time, the Stop's turn looked up in the
+   transcript), giving the hook-derived events;
+3. reads the transcript through the session source, giving the
+   transcript-derived events;
+4. reports, per event kind, how many hook events have an event with the same
+   id in the transcript stream (TER-OBS-007), their ids, and for each one
+   that does not, why: no transcript, same `tool_use_id` (or same prompt
+   text) but a different id rule, the session source derives no events of
+   that kind, or no counterpart at all;
+5. reports, for each Stop payload, whether its `task.completed` id equals the
+   id the session source derives for the same stop (TER-OBS-005).
+
+```text
+TER hooks check · 1 session(s)
+  hook events matching a transcript event id  1/4 (25.0%)   (TER-OBS-007)
+  Stop payloads matching the transcript stop  1/1 (100.0%)   (TER-OBS-005)
+
+session 3f0c9a1e-hook-demo
+  transcript     transcripts-dir
+  payloads       PostToolUse 1 · PreToolUse 1 · SessionStart 1 · Stop 1 · UserPromptSubmit 1
+  ...
+    tool.requested      0/1 matched · 1 transcript-only
+      1 × same tool_use_id in the transcript, different id rule
+```
+
+The report is content-free: counts, event ids (hashes), hook names, field
+names and fixed reason strings. It never prints a prompt, a tool input or a
+tool output, so you can share it (or its JSON) in issue #35 when the
+recordings themselves must stay private. It exits 0 whatever it finds, and 2
+only when the recordings or the transcripts folder cannot be read.
+
+How a stop is matched: Claude Code writes a `system` record with subtype
+`stop_hook_summary` after the Stop hooks ran. Both sides key the stop by the
+turn it closes, the last main-chain `assistant` record before it: the Stop
+hook reads the tail of `transcript_path` for the last such record written by
+the time the payload arrived, and the session source takes the last one
+before each `stop_hook_summary`. Both then use
+`make_event_id(session_id, turn_uuid, "stop", "task.completed")`
+(`ter/adapters/claude_code_turns.py`). If the hook cannot read the
+transcript, the stop is keyed by the second it arrived, as before, and the
+check reports it as unkeyed. Today prompts and tool calls still have
+different id rules on the two sides (hook: session + `tool_use_id` or prompt
+hash; transcript: record uuid + block index), so expect those to show as
+"same record, different id rule" until that is unified; the session source
+also derives no `subagent.completed` events, and the check says so.
 
 ### Guarantees
 
@@ -160,7 +225,8 @@ Known limits: a prompt's id includes the second it was received (hooks carry
 no prompt id), so the same text submitted twice counts twice, while one
 submission seen twice within a second (the hook registered in two settings
 files) counts once. Tool calls without a `tool_use_id` are keyed by content,
-and hook event ids differ from transcript event ids for the same session.
+and prompt and tool event ids differ from transcript event ids for the same
+session (stops share one id; `python -m ter hooks check` shows which match).
 
 ## The live waste monitor (TER 3)
 
