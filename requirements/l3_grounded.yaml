@@ -110,23 +110,33 @@ requirements:
       TER shall compute the expected change surface of each task and report
       every edit outside it.
     level: L3
+    port: RepositoryEvidence
     source_points: [63, 64, 66]
     rationale: >-
       Edits outside the change surface are expansion or unrelated
-      modification.
-    status: planned
+      modification. The surface is structural: the files the task's prompt
+      names (by path, module or distinctive symbol), the files they import
+      or are imported by, and the tests of both (docs/ter4/l3-grounded.md).
+      Verified on synthetic sessions and repositories; the points it serves
+      stay partial until it is checked on real sessions with their
+      repositories at the start commit (D4).
+    status: verified
 
   - id: TER-EVD-007
     pattern: event-driven
     text: >-
-      When an edit adds an import that breaks a declared architecture
-      contract, TER shall report an architectural boundary violation.
+      When an edit to a Python module adds an import that breaks a declared
+      import-linter forbidden, layers or independence contract, TER shall
+      report an architectural boundary violation.
     level: L3
+    port: RepositoryEvidence
     source_points: [65]
     rationale: >-
       Boundary violations are defects the agent introduces during
-      implementation.
-    status: planned
+      implementation. The edited file is replayed from the start commit and
+      its imports read from its syntax tree; only direct imports are judged.
+      Other languages and contract types are TER-EVD-015.
+    status: verified
 
   - id: TER-EVD-008
     pattern: ubiquitous
@@ -182,6 +192,22 @@ requirements:
       Split from TER-EVD-003, which proves the test-to-source rule for
       Python import statements only. Each further language needs its own
       import and test-module rules.
+    status: planned
+
+  - id: TER-EVD-015
+    pattern: event-driven
+    text: >-
+      When an edit adds an import that breaks a declared architecture
+      contract that TER-EVD-007 does not evaluate, TER shall report an
+      architectural boundary violation.
+    level: L3
+    port: RepositoryEvidence
+    source_points: [65]
+    rationale: >-
+      Split from TER-EVD-007, which proves the rule for Python modules and
+      import-linter forbidden, layers and independence contracts on direct
+      imports. Other languages, other contract types (acyclic siblings,
+      protected modules) and indirect import chains need their own rules.
     status: planned
 
   - id: TER-GRF-001

@@ -8,9 +8,11 @@ All of it comes through one provider-neutral driven port,
 capabilities.
 
 This page covers what is built so far: the port and three engines (steps 1
-to 3 of the L3 plan). The detectors that use the evidence (change surface,
-evidence usage, context bundles) and model routing come in later steps, and
-the requirements for them stay `planned` in `requirements/l3_grounded.yaml`.
+to 3 of the L3 plan), and the first detectors grounded on them: each task's
+expected change surface with the edits outside it, and imports that break
+the repository's architecture contracts (step 4). Evidence usage, context
+bundles and model routing come in later steps, and the requirements for them
+stay `planned` in `requirements/l3_grounded.yaml`.
 
 ## Requirements
 
@@ -22,12 +24,25 @@ the requirements for them stay `planned` in `requirements/l3_grounded.yaml`.
 | TER-EVD-012 | Where the repository evidence adapter supports the language of a source file, the repository evidence adapter shall return the symbols, imports and call edges of that file from its syntax tree. | `TestPythonSyntax`, golden `repository/python-ast.json` |
 | TER-EVD-013 | Where the repository is a Git working tree, the Git repository evidence adapter shall return the current diff and the history of each file. | `TestGitWorkTree`, `TestGitDiff`, `TestGitHistory` |
 | TER-ARC-007 | TER shall load repository engines through the ter.capabilities plugin registry. | `TestRepositoryEnginesArePlugins` |
+| TER-EVD-006 | TER shall compute the expected change surface of each task and report every edit outside it. | `tests/unit/test_ter4_change_surface.py` (`TestChangeSurface`, `TestUnrelatedModification`, `TestSurfaceExpansion`, `TestGroundedFold`), `tests/unit/test_ter4_grounded_cli.py` |
+| TER-EVD-007 | When an edit to a Python module adds an import that breaks a declared import-linter forbidden, layers or independence contract, TER shall report an architectural boundary violation. | `TestBoundaryViolation`, `TestContractRules`, `TestImportLinterReader`, `tests/contract/test_architecture_contracts.py`, the `structure_of` contract tests, `tests/unit/test_ter4_grounded_cli.py` |
 | TER-EVD-014 (planned) | Test-to-source links for languages other than Python. | split from TER-EVD-003 |
+| TER-EVD-015 (planned) | Boundary violations for contracts TER-EVD-007 does not evaluate: other languages, other contract types, indirect import chains. | split from TER-EVD-007 |
 
 Unless named otherwise, the test classes are in
-`tests/unit/test_ter4_repository_evidence.py`. The evidence is not yet wired
-into any detector or into intent analysis, so the points those uses serve
-(P051, P052, P062) stay partial.
+`tests/unit/test_ter4_repository_evidence.py` (engines) or
+`tests/unit/test_ter4_change_surface.py` (grounded detectors). Intent
+analysis does not take repository evidence yet (TER-ITN-006, TER-LEN-009),
+and live analysis does not read the diff (P062), so P051 and P062 stay
+partial.
+
+**Real data still needed.** TER-EVD-006 and TER-EVD-007 are verified on
+synthetic sessions and synthetic repositories committed with Git. The points
+they serve (P063 change surface, P064 expansion, P065 boundary violations,
+P066 unrelated modifications) stay `partial` until the detectors are run on
+real sessions together with the repository each session worked in, checked
+out at the commit it started from (D4 in the maturity plan), and their
+finding rates and false positives are recorded.
 
 ## The port
 
@@ -50,6 +65,7 @@ An engine is built for one repository root. Every method returns values from
 | `search(needle, regex=False)` | `TextMatch(path, line, text)` for every line containing `needle`, by path then line; binary and non-UTF-8 files are skipped | all have it |
 | `tests_importing(path)` | the test modules whose import statements import the Python module at `path` | all have it (Python only) |
 | `structure(path)` | `SourceStructure`: symbols, imports, call edges, or a parse `error` | `None` |
+| `structure_of(path, text)` | what `structure(path)` would return if the file held `text`; also for a path the repository does not list (a file a session creates) | `None` |
 | `diff()` | `RepositoryDiff`: the working tree against `HEAD` | `None` |
 | `history(path)` | `FileCommit`s, newest first | `None` |
 
@@ -135,6 +151,121 @@ the top level of a Git working tree (a plain directory, a subdirectory, a
 bare repository), so "no Git" is never mistaken for "no changes". The other
 engines return no diff or history without error.
 
+## Grounded analysis: change surface and boundaries
+
+`python -m ter explain` and `python -m ter a3` take the repository a
+session worked in:
+
+```bash
+git worktree add ../shop-at-start <start-commit>   # the commit the session started from
+python -m ter explain session.jsonl --repo ../shop-at-start
+python -m ter a3 session.jsonl --repo ../shop-at-start --html a3.html
+```
+
+`--repo-engine` picks the engine (default `python-ast`, which the import
+graph needs; `lexical` gives the surface without import links). The
+repository must be the one at the session's start commit: TER replays the
+session's edits on it, so a checkout that already holds them reads as edits
+that cannot be replayed. Without `--repo`, `explain` and `a3` are exactly
+the L2 commands, and their output is unchanged.
+
+### Computed once, then a fold
+
+`ter.application.ground.ground_session` reads the repository once through
+the port and returns a `RepositoryGrounding` (`ter.domain.lean.grounding`),
+values only:
+
+- the files, the Python module names and the **import graph** at the start
+  commit (which repository files each file imports, and the reverse), from
+  syntax trees;
+- the **distinctive symbols** each file defines: names a prompt can only
+  mean one way, with an inner underscore or an inner capital
+  (`tests_importing`, `ExplainSession`; never `run` or `main`);
+- the mapping from the session's paths to repository paths. A session's
+  tools use absolute paths (`/home/me/shop/src/a.py`); the root is the
+  prefix most paths agree on when the rest names a repository file (or,
+  for a session that only creates files, a repository directory). A path
+  outside that root is outside the repository;
+- for each edit and write, the file **after** it, replayed on the start
+  commit's text (`replay_edit`: `content` replaces; `old_string` must be
+  found, else the file's text is unknown from there on), parsed with
+  `structure_of`, and the imports the edit **added**;
+- the architecture contracts the repository declares, read through the
+  `ArchitectureContracts` port.
+
+The analysis is then given the grounding beside the events
+(`explain(..., repository=g)`, `AnalysisEngine.explain(repository=g)`); the
+grounded detectors read it like any other index, nothing in the domain does
+IO, and batch still equals incremental (`TestGroundedFold`). The grounding
+of the TER repository itself (1,000 files) takes under two seconds.
+
+### The expected change surface (TER-EVD-006)
+
+Per task (a prompt and the work up to the next one), built from structure
+only, never from token counts or word scores:
+
+1. **Seeds**: the repository files the prompt names, by file name or path
+   (`pricing.py`, `src/app/domain/pricing.py`), dotted module name
+   (`app.domain.pricing`) or a distinctive symbol the file defines
+   (`price_with_tax`). A prompt that names none *inherits* the seeds of the
+   last prompt that did when the intent record reads it as a refinement or
+   an acknowledgement ("go ahead"); after a changed intent, or before any
+   file was named, the seed is the task's **first edited** repository file.
+2. **Neighbours**: every repository file a seed imports or is imported by,
+   at the start commit or after the task's own edits (a new module a seed
+   now imports is a neighbour).
+3. **Tests**: every test module that imports a seed or a neighbour.
+
+Every edit of the task is then placed, and every placement is in the
+analysis (`change_surfaces` in `explain --json`, one line in the text
+output):
+
+| Placement | Meaning | Finding |
+|---|---|---|
+| `inside` | the file is a seed, a neighbour or a test of the surface | none |
+| `expansion` | outside, but it imports or is imported by a file inside (P064) | `surface_expansion` |
+| `unrelated` | outside, with no import link to any file inside (P066) | `unrelated_modification` |
+| `outside_repository` | not a path under the repository root (`/tmp/x.py`) | none: not judged |
+
+### Boundary violations (TER-EVD-007)
+
+`ImportLinterContracts` (`ter.adapters.driven.import_linter`, capability
+`ArchitectureContracts.import-linter`) reads the contracts a repository
+declares for import-linter, from `.importlinter`, `setup.cfg` or
+`pyproject.toml` (this repository's own `[tool.importlinter]` is a real
+example and a test fixture). It evaluates `forbidden`, `layers` (with
+`containers`, independent `a | b` and non-independent `a : b` siblings) and
+`independence` contracts, honouring `ignore_imports` with `*` and `**`
+wildcards; other contract types are skipped, never guessed. The reader does
+no IO: TER reads the file through `RepositoryEvidence`, at the start commit.
+A file that cannot be read is reported (`contract_problem`, and a warning on
+stderr) and no contract is checked.
+
+An edit **adds** an import when the replayed file imports a module after the
+edit that it did not import before it (`from p import m` imports the
+submodule `p.m` when it is a module of the repository, otherwise `p`). Each
+added import is checked against every contract for the file's module. Only
+direct imports are judged; an import already there at the start commit is
+never reported.
+
+### Grounded detectors
+
+They are plugins like the L2 detectors (`ter.domain.lean.surface`,
+`GROUNDED_DETECTORS`), each with a countermeasure and a follow-up measure in
+the A3, but they join the registry only when the analysis is given
+repository evidence, so an L2 analysis lists exactly the L2 detectors.
+
+| Detector | Waste | Kind | Confidence rule |
+|---|---|---|---|
+| `unrelated_modification` | overproduction | waste | Per task and file outside the surface and not one import link beyond it: **0.80** when the prompt named the seeds and the file's imports were read from a syntax tree; 0.65 (uncertain) when the seeds were inherited; 0.55 (uncertain) when the file has no import evidence (not Python, did not parse, or a `lexical` engine) or the seed is the task's first edit. |
+| `surface_expansion` | overproduction | waste | Per task and file one import link beyond the surface: 0.60 (uncertain) when the prompt named the seeds, 0.50 otherwise. Always uncertain: callers often have to change with what they call. |
+| `boundary_violation` | defects | risk | Per added import and broken contract: **0.90** when the import is still there after the session's last edit of the file; 0.70 when a later edit could not be replayed; 0.55 (uncertain) when a later edit removed it. |
+
+Countermeasures: keep each task's edits inside its surface (a CLAUDE.md rule
+and the list of files to revert or split off); make ripple edits a stated
+decision; run `lint-imports` in a PostToolUse hook on `Edit|Write` and name
+the broken contracts in CLAUDE.md.
+
 ## Shared rules
 
 The pure rules every engine and the fake share live in
@@ -170,9 +301,12 @@ The pure rules every engine and the fake share live in
 | Layer | Module |
 |---|---|
 | domain | `ter/domain/repository.py`: `TextMatch`, `Symbol`, `ImportEdge`, `CallEdge`, `SourceStructure`, `FileChange`, `RepositoryDiff`, `FileCommit`, errors, shared rules |
-| ports | `ter/ports/driven.py`: `RepositoryEvidence` |
-| driven adapters | `ter/adapters/driven/repository/`: `lexical.py`, `python_ast.py`, `git.py`; fake `InMemoryRepositoryEvidence` in `ter/adapters/driven/in_memory.py` |
-| composition | `ter/bootstrap/capabilities.py`: `repository_evidence(root, engine)` |
+| domain | `ter/domain/repository.py` also: `ArchitectureContract`, `Layer`, `ContractViolation`, `contract_violations`, `imported_modules`, `session_root`, `repository_path` |
+| domain | `ter/domain/lean/grounding.py`: `RepositoryGrounding`, `EditGrounding`, `replay_edit`; `ter/domain/lean/surface.py`: `ChangeSurface`, `change_surfaces`, the grounded detectors |
+| ports | `ter/ports/driven.py`: `RepositoryEvidence`, `ArchitectureContracts` |
+| driven adapters | `ter/adapters/driven/repository/`: `lexical.py`, `python_ast.py`, `git.py`; `ter/adapters/driven/import_linter.py`; fakes `InMemoryRepositoryEvidence`, `InMemoryArchitectureContracts` in `ter/adapters/driven/in_memory.py` |
+| application | `ter/application/ground.py`: `ground_session`; `ExplainSession(repository=, contracts=)` |
+| composition | `ter/bootstrap/capabilities.py`: `repository_evidence(root, engine)`; `ter/bootstrap`: `make_contracts()`, `--repo` wiring |
 
 ## Known limits
 
@@ -182,4 +316,9 @@ The pure rules every engine and the fake share live in
   another file, and method calls through `self` stay unresolved.
 - Symbol references other than calls are not yet navigable (P057).
 - The engines read the repository on every call; nothing is cached, which
-  keeps answers current but costs a full walk on large repositories.
+  keeps answers current. Checking that a path is listed costs no walk in the
+  lexical and syntax-tree engines (each path component is checked
+  directly), but `files()`, `search()` and `tests_importing()` walk the
+  tree, and the Git engine asks `git` each time.
+- The change surface reads only Python imports; a non-Python file is inside
+  it only when the prompt names it, so its findings are uncertain.

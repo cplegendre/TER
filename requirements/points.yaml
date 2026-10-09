@@ -841,7 +841,8 @@ points:
     verification:
       - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
       - 'test: tests/unit/test_ter4_repository_evidence.py::TestTestsImporting'
-      - 'planned: per-task listing of related files, symbols and tests (change surface, TER-EVD-006, L3 step 4)'
+      - 'test: tests/unit/test_ter4_change_surface.py::TestChangeSurface'
+      - 'planned: per-task listing of related symbols and architectural components with their evidence (the change surface lists files and tests, TER-EVD-006)'
 
   - id: P053
     text: >-
@@ -996,26 +997,29 @@ points:
       surface.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Each task has a computed expected change surface, and edits are
         marked inside or outside it.
     rules: [TER-EVD-006]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-006'
+      - 'test: tests/unit/test_ter4_change_surface.py::TestChangeSurface'
+      - 'test: tests/unit/test_ter4_grounded_cli.py'
+      - 'planned: real-data check on sessions with their repository and start commit (D4)'
 
   - id: P064
     text: >-
       Detect unnecessary expansion of the change surface.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - Growth of the change surface beyond the expected one is reported.
     rules: [TER-EVD-006]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-006'
+      - 'test: tests/unit/test_ter4_change_surface.py::TestSurfaceExpansion'
+      - 'planned: real-data check on sessions with their repository and start commit (D4)'
 
   - id: P065
     text: >-
@@ -1023,26 +1027,31 @@ points:
       implementation.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         An edit that breaks a declared architecture contract is reported as
         a boundary violation.
-    rules: [TER-EVD-007]
+    rules: [TER-EVD-007, TER-EVD-015]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-007'
+      - 'test: tests/unit/test_ter4_change_surface.py::TestBoundaryViolation'
+      - 'test: tests/contract/test_architecture_contracts.py'
+      - 'test: tests/unit/test_ter4_grounded_cli.py'
+      - 'planned: other languages and contract types (TER-EVD-015); real-data check (D4)'
 
   - id: P066
     text: >-
       Detect unrelated modifications made during a focused task.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - Edits unrelated to the task are reported as unrelated modifications.
     rules: [TER-EVD-006]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-006'
+      - 'test: tests/unit/test_ter4_change_surface.py::TestUnrelatedModification'
+      - 'test: tests/unit/test_ter4_grounded_cli.py'
+      - 'planned: real-data check on sessions with their repository and start commit (D4)'
 
   - id: P067
     text: >-

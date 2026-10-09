@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import ast
 import warnings
+from collections.abc import Collection
 
 from ....domain.repository import (
     MODULE_LEVEL,
@@ -129,7 +130,7 @@ class _Walker(ast.NodeVisitor):
         self.generic_visit(node)
 
 
-def python_structure(path: str, text: str, files: frozenset[str]) -> SourceStructure:
+def python_structure(path: str, text: str, files: Collection[str]) -> SourceStructure:
     """The syntax-tree evidence of one Python file (pure: no IO)."""
     module = module_name(path, files)
     try:
@@ -178,7 +179,12 @@ class PythonSyntaxEvidence(LexicalRepositoryEvidence):
         self._known(path)
         if not is_python_source(path):
             return None
-        return python_structure(path, self.text(path), frozenset(self.files()))
+        return python_structure(path, self.text(path), self.listing())
+
+    def structure_of(self, path: str, text: str) -> SourceStructure | None:
+        if not is_python_source(path):
+            return None
+        return python_structure(path, text, self.listing(extra=path))
 
     def _imports(
         self, path: str, text: str, files: frozenset[str]

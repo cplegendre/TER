@@ -19,6 +19,7 @@ read.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Collection, Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -26,7 +27,12 @@ from pathlib import PurePosixPath
 
 __all__ = [
     "MODULE_LEVEL",
+    "ArchitectureContract",
     "CallEdge",
+    "ContractFormatError",
+    "ContractKind",
+    "ContractViolation",
+    "Layer",
     "ChangeStatus",
     "FileChange",
     "FileCommit",
@@ -40,14 +46,19 @@ __all__ = [
     "TextMatch",
     "UnknownPathError",
     "UnsupportedLanguageError",
+    "contract_violations",
     "import_candidates",
+    "imported_modules",
     "imports_module",
     "is_python_source",
     "is_test_module",
     "module_name",
     "package_of",
+    "repository_path",
     "resolve_relative",
+    "session_root",
     "tests_importing",
+    "within",
 ]
 
 MODULE_LEVEL = "<module>"
@@ -293,3 +304,251 @@ def tests_importing(
             if is_test_module(path) and any(imports_module(i, module) for i in imported)
         )
     )
+
+
+def within(module: str, package: str) -> bool:
+    """Whether ``module`` is ``package`` or a module under it."""
+    return module == package or module.startswith(package + ".")
+
+
+def imported_modules(edge: ImportEdge, modules: Collection[str]) -> tuple[str, ...]:
+    """The modules an import statement depends on, as import-linter reads it.
+
+    ``from p import n`` imports the submodule ``p.n`` when ``modules`` (the
+    repository's module names) holds it, and otherwise the names of ``p``,
+    which is a dependency on ``p``. An import that climbs above the
+    top-level package names no module.
+    """
+    if not edge.module or edge.module.startswith("."):
+        return ()
+    subs = tuple(
+        f"{edge.module}.{n}"
+        for n in edge.names
+        if n != "*" and f"{edge.module}.{n}" in modules
+    )
+    whole = not edge.names or len(subs) < len([n for n in edge.names if n != "*"])
+    whole = whole or "*" in edge.names
+    return ((edge.module,) if whole else ()) + subs
+
+
+# -- session paths -------------------------------------------------------------
+
+
+def _parts(path: str) -> list[str]:
+    return [p for p in path.replace("\\", "/").split("/") if p not in ("", ".")]
+
+
+def _absolute(path: str) -> bool:
+    return path.startswith("/") or (len(path) > 1 and path[1] == ":")
+
+
+def session_root(paths: Iterable[str], files: Collection[str]) -> str | None:
+    """The directory a session's absolute paths name the repository by.
+
+    A session records the paths its tools used (``/home/me/proj/src/a.py``);
+    the repository lists them relative to its root (``src/a.py``). For each
+    absolute path, the shortest prefix whose remainder is a listed file is a
+    candidate root; the root is the candidate most paths agree on (ties: the
+    shorter, then the first in sort order). When no path names a listed
+    file (a session that only creates files), the same vote runs on paths
+    whose directory is a directory of the repository. ``None`` when neither
+    finds a candidate.
+    """
+    absolute = [p.replace("\\", "/") for p in paths]
+    absolute = [p for p in absolute if _absolute(p)]
+    directories = {str(PurePosixPath(f).parent) for f in files} - {"."}
+    for known, of in ((files, lambda r: r), (directories, _parent)):
+        votes: dict[str, int] = {}
+        for normal in absolute:
+            parts = _parts(normal)
+            lead = "/" if normal.startswith("/") else ""
+            for cut in range(1, len(parts)):
+                if of("/".join(parts[cut:])) in known:
+                    root = lead + "/".join(parts[:cut])
+                    votes[root] = votes.get(root, 0) + 1
+                    break
+        if votes:
+            return min(votes, key=lambda r: (-votes[r], len(r), r))
+    return None
+
+
+def _parent(path: str) -> str:
+    return str(PurePosixPath(path).parent)
+
+
+def repository_path(path: str, root: str | None) -> str | None:
+    """``path`` relative to the repository, or ``None`` when it lies outside.
+
+    A relative path is taken as relative to the repository root (the
+    session's working directory). An absolute one must lie under ``root``
+    (from :func:`session_root`); with no root, it lies outside.
+    """
+    normal = path.replace("\\", "/")
+    absolute = _absolute(normal)
+    parts = _parts(normal)
+    if not absolute:
+        return None if not parts or ".." in parts else "/".join(parts)
+    if root is None:
+        return None
+    base = _parts(root)
+    if len(parts) <= len(base) or parts[: len(base)] != base:
+        return None
+    rest = parts[len(base) :]
+    return None if ".." in rest else "/".join(rest)
+
+
+# -- architecture contracts ------------------------------------------------------
+
+
+class ContractFormatError(RepositoryEvidenceError):
+    """A declared architecture contract cannot be read."""
+
+
+class ContractKind(StrEnum):
+    """The import-linter contract types TER evaluates."""
+
+    FORBIDDEN = "forbidden"
+    LAYERS = "layers"
+    INDEPENDENCE = "independence"
+
+
+@dataclass(frozen=True)
+class Layer:
+    """One layer of a ``layers`` contract: one module, or sibling modules.
+
+    Siblings written ``a | b`` are *independent*: neither may import the
+    other. Siblings written ``a : b`` may import each other.
+    """
+
+    modules: tuple[str, ...]
+    independent: bool = False
+
+
+@dataclass(frozen=True)
+class ArchitectureContract:
+    """A declared rule about which modules may import which (import-linter
+    style). Every module name is absolute; a contract about ``p`` covers
+    every module under ``p``.
+
+    * ``forbidden``: no module under ``source_modules`` imports a module
+      under ``forbidden_modules``;
+    * ``layers``: ``layers`` run from highest to lowest; a lower layer never
+      imports a higher one. With ``containers``, the layers are the
+      containers' children (``<container>.<layer>``);
+    * ``independence``: no module under one of ``modules`` imports a module
+      under another.
+
+    ``ignore_imports`` are ``importer -> imported`` patterns exempt from the
+    contract; ``*`` stands for one module name part, ``**`` for any number.
+    """
+
+    id: str
+    name: str
+    kind: ContractKind
+    source_modules: tuple[str, ...] = ()
+    forbidden_modules: tuple[str, ...] = ()
+    layers: tuple[Layer, ...] = ()
+    containers: tuple[str, ...] = ()
+    modules: tuple[str, ...] = ()
+    ignore_imports: tuple[str, ...] = ()
+    #: Where the contract was declared (a repository path).
+    source: str = ""
+
+
+@dataclass(frozen=True)
+class ContractViolation:
+    """One import that breaks one contract, and the rule it breaks."""
+
+    contract: str
+    contract_name: str
+    importer: str
+    imported: str
+    rule: str
+
+
+def _pattern(text: str) -> re.Pattern[str]:
+    parts = []
+    for part in text.strip().split("."):
+        if part == "**":
+            parts.append(r"[^.]+(?:\.[^.]+)*")
+        elif part == "*":
+            parts.append(r"[^.]+")
+        else:
+            parts.append(re.escape(part))
+    return re.compile(r"\.".join(parts) + r"\Z")
+
+
+def _ignored(importer: str, imported: str, patterns: Iterable[str]) -> bool:
+    for written in patterns:
+        left, arrow, right = written.partition("->")
+        if not arrow:
+            continue
+        if _pattern(left).match(importer) and _pattern(right).match(imported):
+            return True
+    return False
+
+
+def _owner(module: str, candidates: Iterable[str]) -> str | None:
+    """The most specific candidate ``module`` lies within."""
+    owners = [c for c in candidates if within(module, c)]
+    return max(owners, key=len) if owners else None
+
+
+def _layer_violations(
+    contract: ArchitectureContract, importer: str, imported: str
+) -> Iterable[str]:
+    containers = contract.containers or ("",)
+    for container in containers:
+        prefix = f"{container}." if container else ""
+        layers = [
+            Layer(tuple(prefix + m for m in layer.modules), layer.independent)
+            for layer in contract.layers
+        ]
+        rank = {m: i for i, layer in enumerate(layers) for m in layer.modules}
+        source = _owner(importer, rank)
+        target = _owner(imported, rank)
+        if source is None or target is None or source == target:
+            continue
+        if rank[target] < rank[source]:
+            yield (
+                f"{source} is a lower layer than {target}, and a lower layer "
+                "must not import a higher one"
+            )
+        elif rank[target] == rank[source] and layers[rank[source]].independent:
+            yield (
+                f"{source} and {target} are independent siblings in one layer "
+                "and must not import each other"
+            )
+
+
+def contract_violations(
+    importer: str, imported: str, contracts: Iterable[ArchitectureContract]
+) -> tuple[ContractViolation, ...]:
+    """Every contract the import of ``imported`` by ``importer`` breaks.
+
+    Only this one direct import is judged: indirect chains, which
+    import-linter also forbids by default, need the whole import graph after
+    the session and are not evaluated here.
+    """
+    out: list[ContractViolation] = []
+    for contract in contracts:
+        if _ignored(importer, imported, contract.ignore_imports):
+            continue
+        rules: list[str] = []
+        if contract.kind is ContractKind.FORBIDDEN:
+            source = _owner(importer, contract.source_modules)
+            target = _owner(imported, contract.forbidden_modules)
+            if source is not None and target is not None:
+                rules.append(f"{source} must not import {target}")
+        elif contract.kind is ContractKind.INDEPENDENCE:
+            source = _owner(importer, contract.modules)
+            target = _owner(imported, contract.modules)
+            if source is not None and target is not None and source != target:
+                rules.append(f"{source} and {target} must be independent")
+        else:
+            rules.extend(_layer_violations(contract, importer, imported))
+        out.extend(
+            ContractViolation(contract.id, contract.name, importer, imported, r)
+            for r in rules
+        )
+    return tuple(out)

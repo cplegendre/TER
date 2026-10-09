@@ -20,6 +20,7 @@ from pathlib import PurePosixPath
 from typing import Protocol
 
 from ..events import EventId, EventKind, ToolKind
+from .grounding import RepositoryGrounding
 from .intent import IntentRelation, IntentTimeline, SubjectBasis
 from .model import (
     ActivityClass,
@@ -80,10 +81,15 @@ class SessionView:
     completion_of: dict[int, Step] = field(default_factory=dict)
     by_id: dict[EventId, Step] = field(default_factory=dict)
     intent: IntentTimeline = field(default_factory=IntentTimeline)
+    #: Repository evidence for the session (L3); ``None`` at L2.
+    repository: RepositoryGrounding | None = None
 
     @classmethod
     def of(
-        cls, steps: Sequence[Step], intent: IntentTimeline | None = None
+        cls,
+        steps: Sequence[Step],
+        intent: IntentTimeline | None = None,
+        repository: RepositoryGrounding | None = None,
     ) -> SessionView:
         completion_of = {
             s.request_index: s
@@ -95,6 +101,7 @@ class SessionView:
             completion_of,
             {s.event_id: s for s in steps},
             intent if intent is not None else IntentTimeline(),
+            repository,
         )
 
     def requests(self) -> Iterator[Step]:
@@ -1595,6 +1602,14 @@ class DetectorRegistry:
 
     def get(self, detector_id: str) -> WasteDetector:
         return self._detectors[detector_id]
+
+    def extended(self, detectors: Iterable[WasteDetector]) -> DetectorRegistry:
+        """This registry, then each of ``detectors`` whose id it lacks."""
+        out = DetectorRegistry(self)
+        for detector in detectors:
+            if detector.id not in out:
+                out.register(detector)
+        return out
 
     def run(self, view: SessionView) -> tuple[Finding, ...]:
         """Every detector's findings, largest cost first, then in session order."""

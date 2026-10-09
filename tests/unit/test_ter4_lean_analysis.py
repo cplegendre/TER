@@ -425,9 +425,11 @@ def test_no_findings_means_no_countermeasures() -> None:
 @pytest.mark.req("TER-RPT-005")
 def test_every_detector_has_a_countermeasure_and_a_follow_up() -> None:
     from ter.domain.lean import countermeasures as cm
+    from ter.domain.lean.surface import GROUNDED_DETECTORS
 
-    assert set(cm._CATALOGUE) == {d.id for d in DEFAULT_REGISTRY}
-    assert set(cm._MEASURES) == {d.id for d in DEFAULT_REGISTRY}
+    every = {d.id for d in (*DEFAULT_REGISTRY, *GROUNDED_DETECTORS)}
+    assert set(cm._CATALOGUE) == every
+    assert set(cm._MEASURES) == every
 
 
 @pytest.mark.req("TER-RPT-003")

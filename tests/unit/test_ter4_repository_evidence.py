@@ -39,6 +39,7 @@ from ter.domain.repository import (
     RepositoryEvidenceError,
     Symbol,
     SymbolKind,
+    UnknownPathError,
     UnsupportedLanguageError,
     import_candidates,
     imports_module,
@@ -149,6 +150,35 @@ class TestLexicalDeterminism:
         engine = LexicalRepositoryEvidence(root)
         assert engine.files() == tuple(sorted(REPO))
         assert all(not m.path.startswith(".") for m in engine.search("add"))
+
+    @pytest.mark.req("TER-EVD-002")
+    def test_membership_without_a_walk_agrees_with_the_listing(
+        self, tmp_path: Path
+    ) -> None:
+        root = write_repo(tmp_path / "r")
+        write_repo(root, {".git/config": "x", "src/.git/x.py": "y"})
+        (root / "link.py").symlink_to(root / "src/pkg/core.py")
+        (root / "linked").symlink_to(root / "src")
+        engine = LexicalRepositoryEvidence(root)
+        listing = engine.listing()
+        probes = [
+            *REPO,
+            ".git/config",
+            "src/.git/x.py",
+            "link.py",
+            "linked/pkg/core.py",
+            "src",
+            "/src/pkg/core.py",
+            "src//pkg/core.py",
+            "src/pkg/../pkg/core.py",
+            "missing.py",
+        ]
+        for path in probes:
+            assert (path in listing) is (path in engine.files()), path
+        assert sorted(listing) == list(engine.files()) and len(listing) == len(REPO)
+        assert "new.py" in engine.listing(extra="new.py")
+        with pytest.raises(UnknownPathError):
+            engine.text("linked/pkg/core.py")
 
     def test_binary_files_are_listed_but_never_searched(self, tmp_path: Path) -> None:
         root = write_repo(tmp_path / "r")
@@ -577,6 +607,9 @@ class _SingleFile:
         return ()
 
     def structure(self, path: str) -> None:
+        return None
+
+    def structure_of(self, path: str, text: str) -> None:
         return None
 
     def diff(self) -> None:

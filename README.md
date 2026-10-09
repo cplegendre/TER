@@ -134,6 +134,7 @@ ter explain session.jsonl --json --graph evidence.json
 ter a3 session.jsonl --html a3.html --json a3.json # the A3: root causes and countermeasures
 ter a3 session.jsonl --outcome junit.xml --html a3.html  # add the test verdict beside the measures
 python -m ter explain session.jsonl --outcome junit.xml  # findings plus accepted / rejected / incomplete
+python -m ter explain session.jsonl --repo ../repo-at-start  # L3: change surface, edits outside it, boundary violations
 python -m ter capabilities                         # adapters registered for each port, and any broken
 python -m ter observe session.jsonl --timeline     # L1 observables, event by event
 ```

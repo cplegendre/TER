@@ -31,6 +31,7 @@ from .detectors import (
     validation_cycles,
 )
 from .graph import EvidenceGraph, build_graph
+from .grounding import RepositoryGrounding
 from .intent import (
     DEFAULT_INTENT_CONFIG,
     LEXICAL_ALIGNMENT,
@@ -55,6 +56,7 @@ from .model import (
     ValidationCycle,
 )
 from .steps import StepLog
+from .surface import GROUNDED_DETECTORS, ChangeSurface, change_surfaces
 from .wip import WipReport, WipTracker
 
 __all__ = [
@@ -242,6 +244,10 @@ class LeanAnalysis:
 
     #: Why each exploration request happened (TER-DET-009, point 38).
     exploration: tuple[ExplorationLabel, ...] = ()
+    #: The repository evidence the analysis was grounded on (L3), if any.
+    repository: RepositoryGrounding | None = None
+    #: The expected change surface of each task that edits (TER-EVD-006).
+    surfaces: tuple[ChangeSurface, ...] = ()
 
     @property
     def waste_findings(self) -> tuple[Finding, ...]:
@@ -298,6 +304,10 @@ class LeanAnalysis:
             "intent": self.intent.as_dict([f.id for f in self.drift_findings]),
             "exploration": [e.as_dict() for e in self.exploration],
         }
+        if self.repository is not None:
+            # Only a grounded (L3) analysis has these; an L2 one is unchanged.
+            out["repository"] = self.repository.as_dict()
+            out["change_surfaces"] = [s.as_dict() for s in self.surfaces]
         if graph:
             out["evidence_graph"] = self.graph.as_dict()
         return out
@@ -574,16 +584,21 @@ def analyse_steps(
     registry: DetectorRegistry = DEFAULT_REGISTRY,
     intent: IntentTimeline | None = None,
     wip: WipReport | None = None,
+    repository: RepositoryGrounding | None = None,
 ) -> LeanAnalysis:
     """Run every detector over ``steps`` and build the analysis.
 
     ``intent`` is the session's intent timeline (:func:`.intent.build_intent`);
     without one, the intent detectors have nothing to judge against. ``wip`` is
     the WIP the incremental fold counted; without it, WIP is recounted from the
-    steps alone (:meth:`WipTracker.of_steps`).
+    steps alone (:meth:`WipTracker.of_steps`). With ``repository`` (L3), the
+    grounded detectors (:data:`.surface.GROUNDED_DETECTORS`) join the
+    registry and every task's change surface is reported.
     """
     timeline = intent if intent is not None else IntentTimeline()
-    view = SessionView.of(steps, timeline)
+    if repository is not None:
+        registry = registry.extended(GROUNDED_DETECTORS)
+    view = SessionView.of(steps, timeline, repository)
     findings = registry.run(view)
     cycles = validation_cycles(view)
     classes = _classify(steps, findings, cycles)
@@ -606,6 +621,8 @@ def analyse_steps(
         intent=timeline,
         wip=WipTracker.of_steps(steps) if wip is None else wip,
         exploration=exploration_labels(view),
+        repository=repository,
+        surfaces=change_surfaces(view),
     )
 
 
@@ -640,6 +657,7 @@ class LeanAnalyser:
         registry: DetectorRegistry = DEFAULT_REGISTRY,
         alignment: AlignmentScorer = LEXICAL_ALIGNMENT,
         intent_config: IntentConfig = DEFAULT_INTENT_CONFIG,
+        repository: RepositoryGrounding | None = None,
     ) -> LeanAnalysis:
         steps = self._log.steps()
         timeline = build_intent(
@@ -652,6 +670,7 @@ class LeanAnalyser:
             registry=registry,
             intent=timeline,
             wip=self._wip.report(),
+            repository=repository,
         )
 
 
@@ -663,11 +682,16 @@ def explain(
     registry: DetectorRegistry = DEFAULT_REGISTRY,
     alignment: AlignmentScorer = LEXICAL_ALIGNMENT,
     intent_config: IntentConfig = DEFAULT_INTENT_CONFIG,
+    repository: RepositoryGrounding | None = None,
 ) -> LeanAnalysis:
     """Batch L2 analysis of a whole stream: the fold of :meth:`LeanAnalyser.add`."""
     analyser = LeanAnalyser()
     for event in events:
         analyser.add(event, tokenizer.count(event.text))
     return analyser.analysis(
-        ter=ter, registry=registry, alignment=alignment, intent_config=intent_config
+        ter=ter,
+        registry=registry,
+        alignment=alignment,
+        intent_config=intent_config,
+        repository=repository,
     )

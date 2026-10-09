@@ -43,6 +43,7 @@ ter-req = "ter.adapters.driving.req_cli:main"
 # this table equals ter.bootstrap.capabilities.BUILTIN_CAPABILITIES (a unit
 # test keeps them equal). Other packages add capabilities in the same group.
 [project.entry-points."ter.capabilities"]
+"ArchitectureContracts.import-linter" = "ter.adapters.driven.import_linter:ImportLinterContracts"
 "Embedder.hashing" = "ter.adapters.driven.embedders:HashingEmbedder"
 "EventLog.jsonl" = "ter.adapters.driven.event_log:JsonlEventLog"
 "OutcomeSource.junit" = "ter.adapters.driven.junit:JUnitOutcomeSource"
@@ -228,6 +229,7 @@ modules = [
     "ter.adapters.driven.gare",
     "ter.adapters.driven.event_log",
     "ter.adapters.driven.tokenizers",
+    "ter.adapters.driven.import_linter",
     "ter.adapters.driven.in_memory",
     "ter.adapters.driven.junit",
     "ter.adapters.driven.pricing",

@@ -7,7 +7,7 @@ A fake that drifts from the real adapter's obligations fails
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import replace
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -16,6 +16,8 @@ from ...domain.events import Event, SessionTrace
 from ...domain.outcome import OutcomeEvidence, OutcomeFormatError
 from ...domain.pricing import PriceEntry, PriceSchedule, Rates
 from ...domain.repository import (
+    ArchitectureContract,
+    ContractFormatError,
     FileCommit,
     RepositoryDiff,
     RepositoryEvidenceError,
@@ -144,6 +146,8 @@ class InMemoryRepositoryEvidence:
     test-to-source rule itself is the domain's, shared with the real engines.
     ``structures``, ``diff`` and ``histories`` are served as given; an engine
     built without them answers ``None``, as one without that evidence must.
+    ``parse`` stands in for a syntax tree of text that is not a listed
+    file's own (``structure_of``).
     """
 
     def __init__(
@@ -154,9 +158,11 @@ class InMemoryRepositoryEvidence:
         structures: Mapping[str, SourceStructure] | None = None,
         diff: RepositoryDiff | None = None,
         histories: Mapping[str, Iterable[FileCommit]] | None = None,
+        parse: Callable[[str, str], SourceStructure | None] | None = None,
         name: str = "in-memory",
     ) -> None:
         self.name = name
+        self._parse = parse
         self._files = dict(files)
         self._imports = {p: tuple(m) for p, m in (imports or {}).items()}
         self._structures = dict(structures) if structures is not None else None
@@ -197,9 +203,48 @@ class InMemoryRepositoryEvidence:
         self.text(path)
         return None if self._structures is None else self._structures.get(path)
 
+    def structure_of(self, path: str, text: str) -> SourceStructure | None:
+        """A listed file's structure for its own text; ``parse`` (when given)
+        for any other text."""
+        if path in self._files and text == self._files[path]:
+            return self.structure(path)
+        return None if self._parse is None else self._parse(path, text)
+
     def diff(self) -> RepositoryDiff | None:
         return self._diff
 
     def history(self, path: str) -> tuple[FileCommit, ...] | None:
         self.text(path)
         return None if self._histories is None else self._histories.get(path, ())
+
+
+class InMemoryArchitectureContracts:
+    """A :class:`~ter.ports.driven.ArchitectureContracts` serving contracts
+    held in code, by the text they were declared in.
+
+    ``declared`` maps a repository path to ``{text: contracts}``; any other
+    text of a source file declares nothing, and a text listed in ``broken``
+    raises :class:`ContractFormatError`, as a real reader does.
+    """
+
+    name = "in-memory"
+
+    def __init__(
+        self,
+        declared: Mapping[str, Mapping[str, Iterable[ArchitectureContract]]],
+        *,
+        broken: Iterable[str] = (),
+    ) -> None:
+        self._declared = {
+            path: {text: tuple(c) for text, c in by_text.items()}
+            for path, by_text in declared.items()
+        }
+        self._broken = frozenset(broken)
+
+    def sources(self) -> tuple[str, ...]:
+        return tuple(self._declared)
+
+    def read(self, path: str, text: str) -> tuple[ArchitectureContract, ...]:
+        if text in self._broken:
+            raise ContractFormatError(f"{path}: cannot read its contracts")
+        return self._declared.get(path, {}).get(text, ())

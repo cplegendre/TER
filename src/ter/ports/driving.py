@@ -10,6 +10,7 @@ from typing import Protocol, runtime_checkable
 
 from ..domain.events import Event
 from ..domain.lean.analysis import LeanAnalysis, TerMeasure
+from ..domain.lean.grounding import RepositoryGrounding
 from ..domain.stream import Signals, StreamReport
 
 
@@ -30,7 +31,9 @@ class EventIngest(Protocol):
       batch analysis of the same stream (TER-ANL-010);
     * events of different sessions are analysed separately;
     * the explanation after applying a stream equals the batch explanation
-      of the same stream (TER-ANL-010).
+      of the same stream (TER-ANL-010);
+    * ``explain`` given repository evidence (``repository``, L3) grounds
+      the explanation on it, and without it explains exactly as L2.
     """
 
     def apply(self, event: Event) -> Signals: ...
@@ -38,5 +41,9 @@ class EventIngest(Protocol):
     def report(self, session_id: str) -> StreamReport: ...
 
     def explain(
-        self, session_id: str, *, ter: TerMeasure | None = None
+        self,
+        session_id: str,
+        *,
+        ter: TerMeasure | None = None,
+        repository: RepositoryGrounding | None = None,
     ) -> LeanAnalysis: ...

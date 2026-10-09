@@ -15,6 +15,7 @@ from ..domain.lean.intent import AlignmentScorer as AlignmentScorer
 from ..domain.outcome import OutcomeEvidence
 from ..domain.pricing import Rates
 from ..domain.repository import (
+    ArchitectureContract,
     FileCommit,
     RepositoryDiff,
     SourceStructure,
@@ -190,6 +191,13 @@ class RepositoryEvidence(Protocol):
     * ``structure(path)`` returns the file's symbols, imports and call edges
       from its syntax tree, or ``None`` when the engine does not support the
       file's language (TER-EVD-012);
+    * ``structure_of(path, text)`` returns what ``structure(path)`` would
+      return if the file at ``path`` held ``text``: equal to
+      ``structure(path)`` for a listed file's own text, and also served for a
+      path the repository does not list (a file a session creates), whose
+      module name is read as if it were added. It reads nothing from the
+      repository but the file list, so an edit can be judged on its result
+      (TER-EVD-007);
     * ``diff()`` and ``history(path)`` return the working tree's changes and
       a file's commits (newest first), or ``None`` when the engine has no
       version control evidence (TER-EVD-013).
@@ -207,6 +215,37 @@ class RepositoryEvidence(Protocol):
 
     def structure(self, path: str) -> SourceStructure | None: ...
 
+    def structure_of(self, path: str, text: str) -> SourceStructure | None: ...
+
     def diff(self) -> RepositoryDiff | None: ...
 
     def history(self, path: str) -> tuple[FileCommit, ...] | None: ...
+
+
+@runtime_checkable
+class ArchitectureContracts(Protocol):
+    """Reads the architecture contracts a repository declares (import-linter
+    style: forbidden imports, layers, independence).
+
+    The reader does no IO: it names the repository files it reads, in order
+    of precedence, and parses the text the caller obtained through
+    :class:`RepositoryEvidence` (TER-EVD-001), so contracts are read at the
+    same commit as the rest of the evidence.
+
+    Obligations, verified by ``tests/contract/test_architecture_contracts.py``:
+
+    * ``sources()`` names the files that may declare contracts, most
+      specific first;
+    * ``read(path, text)`` returns every contract the text declares, in
+      declaration order, with absolute module names; a file that declares
+      none returns ``()``;
+    * a declaration that cannot be read raises
+      ``ter.domain.repository.ContractFormatError`` naming the file;
+    * the same text yields equal contracts on every call.
+    """
+
+    name: str
+
+    def sources(self) -> tuple[str, ...]: ...
+
+    def read(self, path: str, text: str) -> tuple[ArchitectureContract, ...]: ...

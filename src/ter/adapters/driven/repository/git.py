@@ -130,6 +130,10 @@ class GitRepositoryEvidence(LexicalRepositoryEvidence):
                 paths.add(path)
         return tuple(sorted(paths))
 
+    def _listed(self, path: str) -> bool:
+        # Git decides what is listed (ignored files are not), so ask it.
+        return path in self.files()
+
     # -- diff --------------------------------------------------------------
 
     def _base(self) -> tuple[str | None, str]:

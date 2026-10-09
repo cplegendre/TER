@@ -181,6 +181,32 @@ def test_structure_is_a_syntax_tree_or_none(engine: RepositoryEvidence) -> None:
     assert engine.structure("README.md") is None
 
 
+@pytest.mark.req("TER-EVD-012")
+@pytest.mark.req("TER-EVD-007")
+def test_structure_of_a_files_own_text_is_its_structure(
+    engine: RepositoryEvidence,
+) -> None:
+    for path in REPO:
+        assert engine.structure_of(path, engine.text(path)) == engine.structure(path)
+
+
+@pytest.mark.req("TER-EVD-012")
+@pytest.mark.req("TER-EVD-007")
+def test_structure_of_serves_a_path_the_repository_does_not_list(
+    engine: RepositoryEvidence,
+) -> None:
+    # A file a session creates: answered without UnknownPathError, and a
+    # syntax tree exactly when the engine has them for the language.
+    text = "from pkg.core import add\n"
+    has_trees = engine.structure("src/pkg/core.py") is not None
+    created = engine.structure_of("src/pkg/new.py", text)
+    assert (created is not None) is has_trees
+    if created is not None:
+        assert created.path == "src/pkg/new.py" and created.module == "pkg.new"
+        assert [e.module for e in created.imports] == ["pkg.core"]
+    assert engine.structure_of("docs/new.md", "# x\n") is None
+
+
 @pytest.mark.req("TER-EVD-013")
 def test_diff_and_history_are_version_control_evidence_or_none(
     engine: RepositoryEvidence,

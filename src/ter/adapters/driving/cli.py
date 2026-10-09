@@ -10,8 +10,10 @@ Commands::
     python -m ter observe --event-log DIR [--session ID] [--timeline] [--json]
     python -m ter hook [--event-log DIR] [--record DIR]  # one payload on stdin
     python -m ter explain SESSION.jsonl [--json] [--graph FILE] [--outcome FILE]
+                                        [--repo DIR [--repo-engine NAME]]
     python -m ter a3 SESSION.jsonl [--html FILE] [--json [FILE]] [--graph FILE]
                                    [--ter offline|model|off] [--outcome FILE]
+                                   [--repo DIR [--repo-engine NAME]]
     python -m ter hooks check RECORDINGS TRANSCRIPTS [--json FILE]
     python -m ter capabilities                # adapters per port, and problems
     python -m ter corpus import SRC... --out DIR [--labels CSV]
@@ -27,13 +29,15 @@ import sys
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import IO, TYPE_CHECKING
+from typing import IO, TYPE_CHECKING, Protocol
 
 from ...application.explain import ExplainedSession
-from ...domain.capabilities import Capability, CapabilityProblem
+from ...domain.capabilities import Capability, CapabilityError, CapabilityProblem
 from ...domain.events import TEXT_LIMITS, describe_limit
 from ...domain.lean import LeanAnalysis, SoftwareValueEfficiency
+from ...domain.lean.surface import EditPlacement
 from ...domain.outcome import OutcomeFormatError, OutcomeVerdict
+from ...domain.repository import RepositoryEvidenceError
 from ...domain.stream import StreamReport
 from ...ports.driven import Clock
 from ...ports.driving import EventIngest
@@ -48,6 +52,7 @@ __all__ = [
     "format_capabilities",
     "format_corpus_import",
     "format_findings",
+    "format_surfaces",
     "format_outcome",
     "format_report",
     "format_timeline",
@@ -68,10 +73,34 @@ TER_MODES = ("offline", "model", "off")
 OUTCOME_ROWS = 12
 #: Share of records the session source should map (TER-SRC-005).
 CORPUS_COVERAGE_TARGET = 0.99
+REPO_HELP = (
+    "L3: the repository the session worked in, checked out at the commit the "
+    "session started from: report each task's change surface, edits outside "
+    "it and imports that break the repository's import-linter contracts"
+)
+REPO_ENGINE_HELP = (
+    "RepositoryEvidence engine for --repo: python-ast (default; needed for "
+    "the import graph), lexical, git or any installed one"
+)
 OUTCOME_HELP = (
     "test results of the run (JUnit XML, e.g. from pytest --junitxml): judge "
     "the outcome and show the verdict beside the measures"
 )
+
+
+class ExplainTranscript(Protocol):
+    """``explain_transcript(path, tokenizer, ter, outcome, repo, repo_engine)``;
+    ``repo`` (L3) grounds the analysis on the repository at that path."""
+
+    def __call__(
+        self,
+        path: Path,
+        tokenizer: str,
+        ter: str,
+        outcome: Path | None = None,
+        repo: Path | None = None,
+        repo_engine: str = "python-ast",
+    ) -> ExplainedSession: ...
 
 
 @dataclass(frozen=True)
@@ -84,9 +113,7 @@ class CliServices:
     hook_ingest: Callable[[Path], EventIngest]
     default_log_dir: Path
     hook_clock: Clock | None = None
-    explain_transcript: (
-        Callable[[Path, str, str, Path | None], ExplainedSession] | None
-    ) = None
+    explain_transcript: ExplainTranscript | None = None
     capabilities: (
         Callable[[], tuple[tuple[Capability, ...], tuple[CapabilityProblem, ...]]]
         | None
@@ -179,13 +206,33 @@ def _explain(
     if outcome_path is not None and not outcome_path.is_file():
         err.write(f"No such outcome file: {outcome_path}\n")
         return 2
+    repo: Path | None = args.repo
+    if repo is not None and not repo.is_dir():
+        err.write(f"No such repository directory: {repo}\n")
+        return 2
     try:
-        explained = services.explain_transcript(
-            args.path, args.tokenizer, ter_mode, outcome_path
-        )
+        if repo is None:
+            explained = services.explain_transcript(
+                args.path, args.tokenizer, ter_mode, outcome_path
+            )
+        else:
+            explained = services.explain_transcript(
+                args.path,
+                args.tokenizer,
+                ter_mode,
+                outcome_path,
+                repo,
+                args.repo_engine,
+            )
     except OutcomeFormatError as exc:
         err.write(f"Cannot read outcome: {exc}\n")
         return 2
+    except (RepositoryEvidenceError, CapabilityError) as exc:
+        err.write(f"Cannot read repository {repo}: {exc}\n")
+        return 2
+    grounding = explained.grounding
+    if grounding is not None and grounding.contract_problem is not None:
+        err.write(f"Architecture contracts not checked: {grounding.contract_problem}\n")
     if ter_mode != "off" and explained.analysis.scorecard.ter is None:
         # TER 3 reads Claude Code transcripts only (TER-SRC-017).
         err.write(
@@ -443,6 +490,8 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
     )
     explain.add_argument("--tokenizer", default="regex", help=TOKENIZER_HELP)
     explain.add_argument("--outcome", type=Path, metavar="FILE", help=OUTCOME_HELP)
+    explain.add_argument("--repo", type=Path, metavar="DIR", help=REPO_HELP)
+    explain.add_argument("--repo-engine", default="python-ast", help=REPO_ENGINE_HELP)
 
     a3 = commands.add_parser("a3", help="L2: a one-page Lean A3 report of a session")
     a3.add_argument("path", type=Path, help="Claude Code session .jsonl")
@@ -467,6 +516,8 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
     )
     a3.add_argument("--tokenizer", default="regex", help=TOKENIZER_HELP)
     a3.add_argument("--outcome", type=Path, metavar="FILE", help=OUTCOME_HELP)
+    a3.add_argument("--repo", type=Path, metavar="DIR", help=REPO_HELP)
+    a3.add_argument("--repo-engine", default="python-ast", help=REPO_ENGINE_HELP)
 
     commands.add_parser(
         "capabilities",
@@ -676,6 +727,25 @@ def format_outcome(verdict: OutcomeVerdict | None, path: Path | None) -> str:
     return "\n".join(lines) + "\n"
 
 
+def format_surfaces(analysis: LeanAnalysis) -> str:
+    """One line on the change surfaces of a grounded (L3) analysis."""
+    g = analysis.repository
+    placed = [e.placement for s in analysis.surfaces for e in s.edits]
+    counts = ", ".join(
+        f"{sum(p is kind for p in placed)} {kind.value.replace('_', ' ')}"
+        for kind in EditPlacement
+    )
+    contracts = (
+        "no contracts"
+        if g is None or not g.contracts
+        else f"{len(g.contracts)} contract(s) from {g.contract_source}"
+    )
+    return (
+        f"  change surface   {len(analysis.surfaces)} task(s); edits: {counts}; "
+        f"{contracts}"
+    )
+
+
 def format_findings(
     analysis: LeanAnalysis, sve: SoftwareValueEfficiency | None = None
 ) -> str:
@@ -718,6 +788,8 @@ def format_findings(
             + ", ".join(f"{k.value} {n}" for k, n in wip.peak_by_kind)
             + f"), {0 if final is None else final.total} open at the end"
         )
+    if analysis.repository is not None:
+        lines.append(format_surfaces(analysis))
     lines.append(
         f"  findings         {sc.findings} confident, {sc.uncertain_findings} uncertain, "
         f"{sc.risks} risk(s)"

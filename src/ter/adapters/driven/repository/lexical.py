@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import Collection, Iterator
 from pathlib import Path, PurePosixPath
 
 from ....domain.repository import (
@@ -114,9 +115,32 @@ class LexicalRepositoryEvidence:
                 found.append(full.relative_to(self.root).as_posix())
         return tuple(sorted(found))
 
+    def _listed(self, path: str) -> bool:
+        """Whether :meth:`files` lists ``path``, decided without walking the
+        tree: a relative ``/``-separated path to a regular file, through no
+        symbolic link and no version control directory."""
+        parts = path.split("/")
+        if not path or path.startswith("/") or "\\" in path:
+            return False
+        if any(part in ("", ".", "..") for part in parts):
+            return False
+        if any(part in VCS_DIRS for part in parts[:-1]):
+            return False
+        full = self.root
+        for part in parts:
+            full = full / part
+            if full.is_symlink():
+                return False
+        return full.is_file()
+
+    def listing(self, extra: str | None = None) -> Collection[str]:
+        """:meth:`files` as a collection whose membership test costs no walk
+        (``extra`` counts as listed too: a file a session creates)."""
+        return _Listing(self, extra)
+
     def _known(self, path: str) -> Path:
         """The file ``path`` names, or :class:`UnknownPathError`."""
-        if path not in self.files():
+        if not self._listed(path):
             raise UnknownPathError(f"{path!r} is not a file of the repository")
         return self.root / PurePosixPath(path)
 
@@ -190,12 +214,41 @@ class LexicalRepositoryEvidence:
         self._known(path)
         return None
 
+    def structure_of(self, path: str, text: str) -> SourceStructure | None:
+        return None
+
     def diff(self) -> RepositoryDiff | None:
         return None
 
     def history(self, path: str) -> tuple[FileCommit, ...] | None:
         self._known(path)
         return None
+
+
+class _Listing(Collection[str]):
+    """An engine's file list: membership by a direct check, iteration by
+    the full listing."""
+
+    def __init__(self, engine: LexicalRepositoryEvidence, extra: str | None) -> None:
+        self._engine = engine
+        self._extra = extra
+
+    def __contains__(self, path: object) -> bool:
+        if not isinstance(path, str):
+            return False
+        return path == self._extra or self._engine._listed(path)
+
+    def _all(self) -> list[str]:
+        files = list(self._engine.files())
+        if self._extra is not None and self._extra not in files:
+            files.append(self._extra)
+        return files
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._all())
+
+    def __len__(self) -> int:
+        return len(self._all())
 
 
 def _lines(text: str) -> list[str]:

@@ -60,6 +60,7 @@ __all__ = [
 #: table as entry points; ``tests/unit/test_ter4_capabilities.py`` keeps the
 #: two equal. Built-ins also work from a source checkout that is not installed.
 BUILTIN_CAPABILITIES: dict[str, str] = {
+    "ArchitectureContracts.import-linter": "ter.adapters.driven.import_linter:ImportLinterContracts",
     "Embedder.hashing": "ter.adapters.driven.embedders:HashingEmbedder",
     "EventLog.jsonl": "ter.adapters.driven.event_log:JsonlEventLog",
     "OutcomeSource.junit": "ter.adapters.driven.junit:JUnitOutcomeSource",

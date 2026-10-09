@@ -16,7 +16,12 @@ from ..adapters.driving.cli import CliServices
 from ..adapters.driving.cli import main as cli_main
 from ..adapters.driven.in_memory import SystemClock
 from ..application.explain import ExplainedSession, ExplainSession
-from .capabilities import CapabilityRegistry, default_registry, detector_registry
+from .capabilities import (
+    CapabilityRegistry,
+    default_registry,
+    detector_registry,
+    repository_evidence,
+)
 from ..application.observe import (
     AnalyseEventLog,
     AnalyseTrace,
@@ -25,7 +30,13 @@ from ..application.observe import (
 )
 from ..domain.capabilities import Capability, CapabilityProblem, UnknownCapabilityError
 from ..domain.stream import StreamReport
-from ..ports.driven import OutcomeSource, SessionSource, TerScorer, Tokenizer
+from ..ports.driven import (
+    ArchitectureContracts,
+    OutcomeSource,
+    SessionSource,
+    TerScorer,
+    Tokenizer,
+)
 from ..ports.driving import EventIngest
 
 if TYPE_CHECKING:
@@ -39,6 +50,7 @@ __all__ = [
     "default_event_log_dir",
     "detector_registry",
     "main",
+    "make_contracts",
     "make_ingest",
     "make_outcome_source",
     "make_recorder",
@@ -85,6 +97,14 @@ def make_outcome_source(name: str = "junit") -> OutcomeSource:
     source = default_registry().create("OutcomeSource", name)
     assert isinstance(source, OutcomeSource)  # checked by the registry
     return source
+
+
+def make_contracts(name: str = "import-linter") -> ArchitectureContracts:
+    """An ``ArchitectureContracts.<name>`` capability; ``import-linter`` reads
+    import-linter configuration (TER-EVD-007)."""
+    reader = default_registry().create("ArchitectureContracts", name)
+    assert isinstance(reader, ArchitectureContracts)  # checked by the registry
+    return reader
 
 
 def make_ter_scorer(mode: str) -> TerScorer | None:
@@ -183,7 +203,12 @@ def cli_services() -> CliServices:
         return make_recorder(directory)
 
     def explain_transcript(
-        path: Path, tokenizer: str, ter: str, outcome: Path | None = None
+        path: Path,
+        tokenizer: str,
+        ter: str,
+        outcome: Path | None = None,
+        repo: Path | None = None,
+        repo_engine: str = "python-ast",
     ) -> ExplainedSession:
         from ..adapters.driven.claude_code import ClaudeCodeJsonlSource
         from ..adapters.driven.pricing import default_price_book
@@ -199,6 +224,9 @@ def cli_services() -> CliServices:
             make_outcome_source() if outcome is not None else None,
             default_price_book(),
             lambda: make_ingest(tokenizer),
+            # L3: the repository as it was when the session started.
+            repository_evidence(repo, repo_engine) if repo is not None else None,
+            make_contracts() if repo is not None else None,
         )
         return use_case(path, outcome)
 

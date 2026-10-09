@@ -56,7 +56,7 @@ flowchart LR
 | Package | Holds | May import |
 |---|---|---|
 | `ter.domain` | Event model, maturity levels, TER scoring (`scoring`: phase scores, weighted aggregate, raw ratio, aligned/waste accounting), pricing (`pricing`: `Rates`, dated `PriceSchedule`, cost arithmetic), the incremental `AnalysisEngine` (L1), the `SessionReport` view-model (`report`), the Lean model, detectors, evidence graph, scorecard and A3 view-model (`ter.domain.lean`, L2), outcome and acceptance verdicts (`outcome`, see [outcome.md](outcome.md)), capability value types (`capabilities`) | stdlib, numpy |
-| `ter.ports` | Driven: `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `PriceBook`, `EventLog`, `TerScorer`, `OutcomeSource`, `RepositoryEvidence`. Driving: `EventIngest` | `ter.domain` |
+| `ter.ports` | Driven: `SessionSource`, `Tokenizer`, `Embedder`, `Clock`, `PriceBook`, `EventLog`, `TerScorer`, `OutcomeSource`, `RepositoryEvidence`, `ArchitectureContracts`. Driving: `EventIngest` | `ter.domain` |
 | `ter.application` | Use cases: `ObserveEvent`, `RecordEvent`, `AnalyseTrace`, `AnalyseEventLog` (L1), `ExplainSession` (L2) | ports, domain |
 | `ter.adapters` | Everything that knows a vendor, format or IO | anything inward, plus `ter_calculator` |
 | `ter.bootstrap` | Wiring, the capability registry (`ter.capabilities` entry points, ADR 0005) and the maturity ceiling | everything |

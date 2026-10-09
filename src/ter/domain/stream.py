@@ -30,6 +30,7 @@ from typing import Protocol, TypeVar
 from .events import Actor, Event, EventId, EventKind, TokenUsage, ToolKind
 from .lean.analysis import LeanAnalyser, LeanAnalysis, TerMeasure
 from .lean.detectors import DEFAULT_REGISTRY, DetectorRegistry
+from .lean.grounding import RepositoryGrounding
 from .lean.intent import (
     DEFAULT_INTENT_CONFIG,
     LEXICAL_ALIGNMENT,
@@ -437,19 +438,22 @@ class AnalysisEngine:
         registry: DetectorRegistry = DEFAULT_REGISTRY,
         alignment: AlignmentScorer = LEXICAL_ALIGNMENT,
         intent_config: IntentConfig = DEFAULT_INTENT_CONFIG,
+        repository: RepositoryGrounding | None = None,
     ) -> LeanAnalysis:
         """The L2 explanation so far: findings, value stream, scorecard, graph,
         intent timeline.
 
         Steps and intent facts are folded in :meth:`apply` in O(1) amortised
         time; detectors and alignment run here, over the session so far, in
-        time linear in its length.
+        time linear in its length. ``repository`` grounds the analysis on
+        repository evidence computed beforehand (L3).
         """
         return self._lean.analysis(
             ter=ter,
             registry=registry,
             alignment=alignment,
             intent_config=intent_config,
+            repository=repository,
         )
 
 
@@ -468,10 +472,15 @@ def explain_batch(
     registry: DetectorRegistry = DEFAULT_REGISTRY,
     alignment: AlignmentScorer = LEXICAL_ALIGNMENT,
     intent_config: IntentConfig = DEFAULT_INTENT_CONFIG,
+    repository: RepositoryGrounding | None = None,
 ) -> LeanAnalysis:
     """Explain a whole stream at once: the L2 view of the same fold as :func:`analyse_batch`."""
     engine = AnalysisEngine(tokenizer)
     engine.apply_all(events)
     return engine.explain(
-        ter=ter, registry=registry, alignment=alignment, intent_config=intent_config
+        ter=ter,
+        registry=registry,
+        alignment=alignment,
+        intent_config=intent_config,
+        repository=repository,
     )
