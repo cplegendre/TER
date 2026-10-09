@@ -90,6 +90,17 @@
       "Add a retry decorator to src/net.py with exponential backoff, and use it in fetch_json. Keep tests green."
     ]
   },
+  "context_inventory": {
+    "model_turns": 16,
+    "reread": [],
+    "reread_carried_tokens": 0,
+    "reread_tokens": 0,
+    "retrieved_tokens": 40,
+    "unchanged_reread_tokens": 0,
+    "unused": [],
+    "unused_carried_tokens": 0,
+    "unused_tokens": 0
+  },
   "countermeasures": [
     {
       "actions": [

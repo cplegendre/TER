@@ -85,6 +85,17 @@
       "Upgrade the requests dependency in pyproject.toml to the latest 2.x release and check the changelog for breaking changes."
     ]
   },
+  "context_inventory": {
+    "model_turns": 6,
+    "reread": [],
+    "reread_carried_tokens": 0,
+    "reread_tokens": 0,
+    "retrieved_tokens": 18,
+    "unchanged_reread_tokens": 0,
+    "unused": [],
+    "unused_carried_tokens": 0,
+    "unused_tokens": 0
+  },
   "countermeasures": [
     {
       "actions": [

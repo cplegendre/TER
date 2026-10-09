@@ -112,6 +112,17 @@
       "The duration parser in src/parser.py fails for hours like '2h'. Fix parse_duration so hours work and keep the existing tests passing."
     ]
   },
+  "context_inventory": {
+    "model_turns": 8,
+    "reread": [],
+    "reread_carried_tokens": 0,
+    "reread_tokens": 0,
+    "retrieved_tokens": 57,
+    "unchanged_reread_tokens": 0,
+    "unused": [],
+    "unused_carried_tokens": 0,
+    "unused_tokens": 0
+  },
   "countermeasures": [
     {
       "actions": [

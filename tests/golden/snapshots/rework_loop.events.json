@@ -242,7 +242,7 @@
       46
     ]
   ],
-  "schema": "ter.event/0.3",
+  "schema": "ter.event/0.4",
   "session_id": "golden-rework",
   "source_format": "claude-code-jsonl",
   "unrecognised": {

@@ -85,6 +85,26 @@
       "Add a small login form to the demo application. Validate that the email contains '@', require a password of at least 8 characters, and return clear error messages."
     ]
   },
+  "context_inventory": {
+    "model_turns": 6,
+    "reread": [
+      {
+        "carried_turns": 3,
+        "changed": false,
+        "event_id": "c418879109656e20",
+        "path": "src/app.py",
+        "request_id": "53fa055cfc1d65bf",
+        "tokens": 28
+      }
+    ],
+    "reread_carried_tokens": 84,
+    "reread_tokens": 28,
+    "retrieved_tokens": 56,
+    "unchanged_reread_tokens": 28,
+    "unused": [],
+    "unused_carried_tokens": 0,
+    "unused_tokens": 0
+  },
   "countermeasures": [
     {
       "actions": [

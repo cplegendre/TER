@@ -79,6 +79,17 @@
       "Add a login page with email and password validation"
     ]
   },
+  "context_inventory": {
+    "model_turns": 6,
+    "reread": [],
+    "reread_carried_tokens": 0,
+    "reread_tokens": 0,
+    "retrieved_tokens": 0,
+    "unchanged_reread_tokens": 0,
+    "unused": [],
+    "unused_carried_tokens": 0,
+    "unused_tokens": 0
+  },
   "countermeasures": [
     {
       "actions": [

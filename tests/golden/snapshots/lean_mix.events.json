@@ -350,7 +350,7 @@
       40
     ]
   ],
-  "schema": "ter.event/0.3",
+  "schema": "ter.event/0.4",
   "session_id": "golden-lean-mix",
   "source_format": "claude-code-jsonl",
   "unrecognised": {

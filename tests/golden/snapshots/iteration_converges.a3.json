@@ -106,6 +106,17 @@
       "slugify in src/text.py should collapse repeated dashes and strip leading/trailing ones. Make tests/test_text.py pass."
     ]
   },
+  "context_inventory": {
+    "model_turns": 7,
+    "reread": [],
+    "reread_carried_tokens": 0,
+    "reread_tokens": 0,
+    "retrieved_tokens": 41,
+    "unchanged_reread_tokens": 0,
+    "unused": [],
+    "unused_carried_tokens": 0,
+    "unused_tokens": 0
+  },
   "countermeasures": [],
   "current_state": {
     "value_stream": [

@@ -90,6 +90,45 @@
       "Add a --verbose flag to the CLI in src/cli.py that prints each processed file name."
     ]
   },
+  "context_inventory": {
+    "model_turns": 10,
+    "reread": [
+      {
+        "carried_turns": 4,
+        "changed": false,
+        "event_id": "551fb453dac2dc0c",
+        "path": "src/cli.py",
+        "request_id": "8b7fad85cf80c1b4",
+        "tokens": 54
+      }
+    ],
+    "reread_carried_tokens": 216,
+    "reread_tokens": 54,
+    "retrieved_tokens": 139,
+    "unchanged_reread_tokens": 54,
+    "unused": [
+      {
+        "carried_turns": 7,
+        "event_id": "a2a3ce288e90f730",
+        "finding": "unused_context:98e08d2104e03291",
+        "path": "src/utils.py",
+        "request_id": "98e08d2104e03291",
+        "tokens": 22,
+        "uncertain": true
+      },
+      {
+        "carried_turns": 6,
+        "event_id": "c878858709305d4e",
+        "finding": "unused_context:a33373b4cca658c1",
+        "path": "src/config.py",
+        "request_id": "a33373b4cca658c1",
+        "tokens": 9,
+        "uncertain": true
+      }
+    ],
+    "unused_carried_tokens": 208,
+    "unused_tokens": 31
+  },
   "countermeasures": [
     {
       "actions": [
