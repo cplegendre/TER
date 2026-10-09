@@ -23,6 +23,7 @@ __all__ = [
     "output_fingerprint",
     "normalise_command",
     "overlap",
+    "question_words",
     "shell_intent",
     "source_lines",
     "tool_paths",
@@ -321,3 +322,25 @@ def overlap(a: frozenset[str], b: frozenset[str]) -> float:
     if not a or not b:
         return 0.0
     return len(a & b) / min(len(a), len(b))
+
+
+# A sentence ends at ``.``, ``!`` or ``?`` followed by space, or at a line end;
+# ``cli.py`` and ``v1.2`` stay whole.
+_SENTENCE = re.compile(r"[^.!?\n]*(?:[.!?](?=\s|$)|\n|$)")
+_DOTTED = re.compile(r"(?<=\w)\.(?=\w)")
+
+
+def question_words(text: str) -> frozenset[str]:
+    """Content words of the questions a text asks: sentences ending in ``?``.
+
+    These are the open questions a prompt, reasoning block or response
+    records; exploration that names one of their words addresses them.
+    """
+    words: set[str] = set()
+    for line in text.splitlines():
+        guarded = _DOTTED.sub("\0", line)
+        for match in _SENTENCE.finditer(guarded):
+            sentence = match.group(0).strip()
+            if sentence.endswith("?"):
+                words |= content_words(sentence.replace("\0", "."))
+    return frozenset(words)

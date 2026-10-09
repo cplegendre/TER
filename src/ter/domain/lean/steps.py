@@ -22,6 +22,7 @@ from .facts import (
     failure_signature,
     normalise_command,
     output_fingerprint,
+    question_words,
     shell_intent,
     source_lines,
     tool_paths,
@@ -126,8 +127,10 @@ class StepLog:
         if event.id in self._seen:
             return False
         self._seen.add(event.id)
-        if event.kind.is_lifecycle:
-            # A task or subagent finishing is not a step of the value stream.
+        if event.kind.is_lifecycle and event.kind is not EventKind.ROUTE_FAILOVER:
+            # A task or subagent finishing, a route chosen or an attempt
+            # started is not a step of the value stream. A failed model route
+            # is: the session waited on it (TER-DET-008).
             return True
         self._steps.append(self._read(event, tokens))
         return True
@@ -162,6 +165,10 @@ class StepLog:
             stage = Stage.INTENT
         elif event.kind is EventKind.RESPONSE:
             stage = Stage.RESPOND
+        elif event.kind is EventKind.ROUTE_FAILOVER:
+            # A model call that failed on its way to a response.
+            stage = Stage.RESPOND
+            subject = event.text
         elif event.kind is EventKind.REASONING:
             stage = Stage.PLAN
         elif event.kind is EventKind.TOOL_REQUESTED and tool is not None:
@@ -239,6 +246,12 @@ class StepLog:
             timestamp=event.timestamp,
             seconds=0.0,
             subject=subject or (event.text[:80] if event.actor is Actor.USER else ""),
+            questions=(
+                question_words(event.text)
+                if event.kind
+                in (EventKind.PROMPT, EventKind.REASONING, EventKind.RESPONSE)
+                else frozenset()
+            ),
         )
 
     def _unkeyed_request(self) -> _Open | None:

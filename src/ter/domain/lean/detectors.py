@@ -13,6 +13,7 @@ To add a detector, implement :class:`WasteDetector` and register it in a
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass, field
 from pathlib import PurePosixPath
@@ -23,6 +24,8 @@ from .facts import overlap
 from .model import (
     ActivityClass,
     CycleVerdict,
+    ExplorationDriver,
+    ExplorationLabel,
     Finding,
     FindingKind,
     LeanWaste,
@@ -33,10 +36,15 @@ from .model import (
 )
 
 __all__ = [
+    "DECISION_NOVELTY",
     "DEFAULT_REGISTRY",
+    "ContextBand",
     "DetectorRegistry",
+    "ExcessiveContext",
     "ExcessivePlanning",
+    "FailedRoute",
     "FragmentedEdits",
+    "InsufficientContext",
     "PrematureImplementation",
     "Regeneration",
     "RepeatedExploration",
@@ -46,13 +54,21 @@ __all__ = [
     "SessionView",
     "UnnecessaryHandoff",
     "UnusedContext",
+    "UnusedTraversal",
     "UnvalidatedImplementation",
     "WasteDetector",
+    "exploration_labels",
     "validation_cycles",
 ]
 
 _EXPLORE_KINDS = frozenset({ToolKind.FS_READ, ToolKind.FS_SEARCH})
 _DOC_SUFFIXES = frozenset({".md", ".rst", ".txt", ".adoc"})
+
+#: A reasoning span adds a decision when more than this share of its content
+#: words are new: in neither the prompt nor the earlier reasoning it is
+#: compared with (TER-LEN-004). The same bound separates restated reasoning
+#: from reasoning that moves on.
+DECISION_NOVELTY = 0.25
 
 
 @dataclass(frozen=True)
@@ -545,7 +561,7 @@ class PrematureImplementation:
 
 @dataclass(frozen=True)
 class ExcessivePlanning:
-    """Point 24: planning that does not transition into action."""
+    """Point 24 (and 8): planning that does not transition into action."""
 
     id: str = "excessive_planning"
     waste: LeanWaste = LeanWaste.OVER_PROCESSING
@@ -555,12 +571,17 @@ class ExcessivePlanning:
         "A run of at least 4 consecutive planning steps (reasoning blocks and "
         "plan/to-do updates) with no exploration, edit, check or response in "
         "between. Confidence 0.55 + 0.05 per step, capped at 0.90. The first two "
-        "steps of the run are counted as necessary; the rest as waste."
+        "steps of the run are counted as necessary. A later step is waste only "
+        "when it adds no decision: a reasoning block with at most 25% content "
+        "words new to the prompt and the run so far, or a to-do update identical "
+        "to an earlier one in the run. A step that adds a decision is never "
+        "waste, and a run with no such restating step is not a finding."
     )
     minimum: int = 4
 
     def detect(self, view: SessionView) -> Iterable[Finding]:
         run: list[Step] = []
+        prompt: frozenset[str] = frozenset()
         for step in (*view.steps, None):
             if step is not None and (
                 step.is_completion and step.tool_kind is ToolKind.PLAN
@@ -570,29 +591,58 @@ class ExcessivePlanning:
                 run.append(step)
                 continue
             if len(run) >= self.minimum:
-                extra = run[2:]
-                yield _finding(
-                    self,
-                    view,
-                    confidence=min(0.9, 0.55 + 0.05 * len(run)),
-                    title=f"{len(run)} planning steps without acting",
-                    explanation=(
-                        f"{len(run)} reasoning or to-do steps in a row before the agent "
-                        "explored, edited, checked or answered anything."
-                    ),
-                    evidence=[s for e in run for s in view.pair(e)],
-                    waste=[s for e in extra for s in view.pair(e)],
-                    subject=f"{len(run)} planning steps",
-                )
+                extra = _restating_steps(run, prompt)
+                if extra:
+                    yield _finding(
+                        self,
+                        view,
+                        confidence=min(0.9, 0.55 + 0.05 * len(run)),
+                        title=f"{len(run)} planning steps without acting",
+                        explanation=(
+                            f"{len(run)} reasoning or to-do steps in a row before the agent "
+                            f"explored, edited, checked or answered anything; {len(extra)} "
+                            "of them restated the plan without a new decision."
+                        ),
+                        evidence=[s for e in run for s in view.pair(e)],
+                        waste=[s for e in extra for s in view.pair(e)],
+                        subject=f"{len(run)} planning steps",
+                    )
             run = []
+            if step is not None and step.kind is EventKind.PROMPT:
+                prompt = step.words
+
+
+def _novelty(step: Step, known: frozenset[str]) -> float:
+    """Share of a step's content words that are not in ``known``."""
+    if not step.words:
+        return 0.0
+    return len(step.words - known) / len(step.words)
+
+
+def _restating_steps(run: Sequence[Step], prompt: frozenset[str]) -> list[Step]:
+    """Planning steps after the second that add no decision (TER-LEN-004)."""
+    known = set(prompt)
+    keys: set[str] = set()
+    out: list[Step] = []
+    for position, step in enumerate(run):
+        if step.kind is EventKind.REASONING:
+            restated = _novelty(step, frozenset(known)) <= DECISION_NOVELTY
+        else:
+            restated = step.call_key is not None and step.call_key in keys
+        if position >= 2 and restated:
+            out.append(step)
+        known |= step.words
+        if step.call_key is not None:
+            keys.add(step.call_key)
+    return out
 
 
 @dataclass(frozen=True)
 class FragmentedEdits:
-    """Point 27: one coherent change split into many round trips."""
+    """Points 27, 28: one coherent change split into many round trips (motion)."""
 
     id: str = "fragmented_edits"
-    waste: LeanWaste = LeanWaste.OVER_PROCESSING
+    waste: LeanWaste = LeanWaste.MOTION
     kind: FindingKind = FindingKind.WASTE
     summary: str = (
         "Three or more edits in a row to the same file, each its own round trip."
@@ -793,8 +843,10 @@ class RepeatedReasoning:
     summary: str = "A reasoning block that restates an earlier one for the same prompt."
     confidence_rule: str = (
         "Same prompt and no edit in between. The later block shares at least 3 "
-        "content words with the earlier one, and at most 25% of its content words "
-        "are new (in neither the earlier block nor the prompt). Confidence 0.85 − "
+        "content words with the earlier one, at most 25% of its content words "
+        "are new (in neither the earlier block nor the prompt), and none of its "
+        "new words comes from a tool result observed since the earlier block "
+        "(that would be new evidence). Confidence 0.85 − "
         "novelty, minus 0.10 when the later block has fewer than 6 content words. "
         "The restated share (1 − novelty) of the later block is waste."
     )
@@ -802,12 +854,17 @@ class RepeatedReasoning:
     def detect(self, view: SessionView) -> Iterable[Finding]:
         segment: list[Step] = []
         prompt: frozenset[str] = frozenset()
+        # Words each tool result showed, by step index: new evidence.
+        observed: list[tuple[int, frozenset[str]]] = []
         for step in view.steps:
             if step.kind is EventKind.PROMPT:
-                segment, prompt = [], step.words
+                segment, prompt, observed = [], step.words, []
                 continue
             if step.is_edit:
                 segment = []
+                continue
+            if step.is_completion and step.tool_kind is not ToolKind.PLAN:
+                observed.append((step.index, step.words))
                 continue
             if step.kind is not EventKind.REASONING or len(step.words) < 4:
                 continue
@@ -815,8 +872,14 @@ class RepeatedReasoning:
             for earlier in segment:
                 if len(earlier.words & step.words) < 3:
                     continue
-                novelty = len(step.words - earlier.words - prompt) / len(step.words)
-                if novelty <= 0.25 and (best is None or novelty < best[0]):
+                new = step.words - earlier.words - prompt
+                novelty = len(new) / len(step.words)
+                if novelty > DECISION_NOVELTY:
+                    continue
+                if any(new & words for i, words in observed if i > earlier.index):
+                    # It names something a tool showed since: new evidence.
+                    continue
+                if best is None or novelty < best[0]:
                     best = (novelty, earlier)
             segment.append(step)
             if best is None:
@@ -914,6 +977,417 @@ class Regeneration:
 
 
 # ---------------------------------------------------------------------------
+# Context band (TER-DET-003), traversal motion (TER-DET-007), failed routes
+# (TER-DET-008) and exploration drivers (TER-DET-009)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ContextBand:
+    """The configured band of context to acquire before a change (points 21, 22).
+
+    Context is counted structurally, never in tokens: one *item* per distinct
+    file read, search, fetch, handoff or exploring shell command in the task
+    (from the prompt in force). A change is the set of files the task edits
+    or writes. The band runs from ``min_per_file`` items per file edited in
+    place to ``per_file`` items per file changed plus ``slack``.
+    """
+
+    min_per_file: int = 1
+    per_file: int = 3
+    slack: int = 3
+
+    def upper(self, changed: int) -> int:
+        return self.per_file * changed + self.slack
+
+    def describe(self) -> str:
+        return (
+            f"at least {self.min_per_file} item(s) per file edited in place, at most "
+            f"{self.per_file} per file changed plus {self.slack}"
+        )
+
+
+@dataclass(frozen=True)
+class _Change:
+    """One task's change: its prompt, context items and edits, in order."""
+
+    prompt: Step | None
+    #: Context items (the first request of each distinct target), in order.
+    items: tuple[Step, ...]
+    #: Edit and write requests, in order.
+    edits: tuple[Step, ...]
+
+    @property
+    def changed(self) -> tuple[str, ...]:
+        return tuple(dict.fromkeys(p for e in self.edits for p in e.paths))
+
+    def items_before(self, index: int) -> list[Step]:
+        return [i for i in self.items if i.index < index]
+
+
+def _item_key(step: Step) -> str | None:
+    """What makes a context item distinct, or None when the step is not one."""
+    if not step.is_request or step.stage is not Stage.EXPLORE:
+        return None
+    if step.tool_kind is ToolKind.FS_READ and step.paths:
+        return "read\0" + step.paths[0]
+    return step.call_key
+
+
+def _changes(view: SessionView) -> Iterator[_Change]:
+    """Every task (prompt segment) that edits or writes at least one file."""
+    prompt: Step | None = None
+    items: dict[str, Step] = {}
+    edits: list[Step] = []
+    for step in (*view.steps, None):
+        if step is None or step.kind is EventKind.PROMPT:
+            if edits:
+                yield _Change(prompt, tuple(items.values()), tuple(edits))
+            prompt, items, edits = step, {}, []
+            continue
+        if step.is_edit:
+            edits.append(step)
+            continue
+        key = _item_key(step)
+        if key is not None and key not in items:
+            items[key] = step
+
+
+@dataclass(frozen=True)
+class ExcessiveContext:
+    """Point 21: more context acquired before a change than its band allows."""
+
+    id: str = "excessive_context"
+    waste: LeanWaste = LeanWaste.INVENTORY
+    kind: FindingKind = FindingKind.WASTE
+    summary: str = "More files, searches and fetches before the first edit than the change's band allows."
+    band: ContextBand = ContextBand()
+    confidence_rule: str = (
+        "Per task (prompt), counting distinct context items (file reads, "
+        "searches, fetches, handoffs, exploring shell commands) before the first "
+        "edit: a finding when they exceed per_file (3) × files the task changes "
+        "+ slack (3). Items past the band that are not reads of a changed file "
+        "are the waste. Confidence 0.55 + 0.02 per item over the band, capped "
+        "at 0.65: always uncertain at L2, since only repository scope (L3) can "
+        "tell whether the extra context was needed."
+    )
+
+    def detect(self, view: SessionView) -> Iterable[Finding]:
+        for change in _changes(view):
+            first = change.edits[0]
+            before = change.items_before(first.index)
+            changed = change.changed
+            upper = self.band.upper(len(changed))
+            if len(before) <= upper:
+                continue
+            excess = [
+                s
+                for s in before[upper:]
+                if not (s.tool_kind is ToolKind.FS_READ and set(s.paths) & set(changed))
+            ]
+            over = len(before) - upper
+            cited = [] if change.prompt is None else [change.prompt]
+            yield _finding(
+                self,
+                view,
+                confidence=min(0.65, 0.55 + 0.02 * over),
+                title=f"{len(before)} context items before changing {len(changed)} file(s)",
+                explanation=(
+                    f"The task acquired {len(before)} distinct context items before its "
+                    f"first edit, for a change to {_files(change.edits)}; the band allows "
+                    f"{upper} ({self.band.describe()}). The {over} item(s) past the band "
+                    "were carried as inventory. Reading widely can be justified; "
+                    "repository evidence (L3) decides."
+                ),
+                evidence=(
+                    *cited,
+                    *(s for i in before for s in view.pair(i)),
+                    *view.pair(first),
+                ),
+                waste=[s for i in excess for s in view.pair(i)],
+                subject=_files(change.edits),
+                anchor=first,
+            )
+
+
+@dataclass(frozen=True)
+class InsufficientContext:
+    """Point 22: a change made with less context than its band requires."""
+
+    id: str = "insufficient_context"
+    waste: LeanWaste = LeanWaste.DEFECTS
+    kind: FindingKind = FindingKind.RISK
+    summary: str = (
+        "Files edited in place with fewer context items in the task than files edited."
+    )
+    band: ContextBand = ContextBand()
+    confidence_rule: str = (
+        "Per task (prompt): when the task first edits its n-th distinct file in "
+        "place (Edit, not a new-file Write), it must have acquired at least "
+        "min_per_file (1) × n distinct context items (reads, searches, fetches, "
+        "handoffs, exploring shell). The first edit below that bound is the "
+        "finding: 0.70 when that file was never read or written earlier in the "
+        "session; 0.55 (uncertain) when it was, since context carried from an "
+        "earlier task may suffice. A risk: it claims no cost."
+    )
+
+    def detect(self, view: SessionView) -> Iterable[Finding]:
+        changes = {c.edits[0].index: c for c in _changes(view)}
+        known: set[str] = set()
+        current: _Change | None = None
+        in_place: list[str] = []
+        flagged = False
+        for step in view.steps:
+            if step.kind is EventKind.PROMPT:
+                current, in_place, flagged = None, [], False
+            if step.is_edit and current is None:
+                current = changes.get(step.index)
+            if (
+                current is not None
+                and not flagged
+                and step.is_request
+                and step.tool_kind is ToolKind.FS_EDIT
+            ):
+                new = [p for p in step.paths if p not in in_place]
+                in_place.extend(new)
+                acquired = current.items_before(step.index)
+                need = self.band.min_per_file * len(in_place)
+                if new and len(acquired) < need:
+                    flagged = True
+                    yield self._found(
+                        view, current, step, new[0], acquired, need, known
+                    )
+            if step.is_request and step.tool_kind in (
+                ToolKind.FS_READ,
+                ToolKind.FS_EDIT,
+                ToolKind.FS_WRITE,
+            ):
+                known.update(step.paths)
+
+    def _found(
+        self,
+        view: SessionView,
+        change: _Change,
+        edit: Step,
+        path: str,
+        acquired: Sequence[Step],
+        need: int,
+        known: set[str],
+    ) -> Finding:
+        carried = path in known
+        cited = [] if change.prompt is None else [change.prompt]
+        return _finding(
+            self,
+            view,
+            confidence=0.55 if carried else 0.7,
+            title=f"Changed {_short(path)} with too little context",
+            explanation=(
+                f"The task had acquired {len(acquired)} context item(s) when it edited "
+                f"{path} in place; the band asks for {need} ({self.band.describe()})."
+                + (
+                    " The file was read or written in an earlier task, so carried "
+                    "context may be enough."
+                    if carried
+                    else ""
+                )
+            ),
+            evidence=(
+                *cited,
+                *(s for i in acquired for s in view.pair(i)),
+                *view.pair(edit),
+            ),
+            subject=path,
+            anchor=edit,
+        )
+
+
+#: Shell commands that walk the file tree (a subset of exploring shell).
+_TRAVERSAL = re.compile(
+    r"(?:ls|find|tree|fd|rg|grep|ag|git\s+(?:ls-files|grep))(?:\s|$)"
+)
+
+
+def _file_names(words: frozenset[str]) -> frozenset[str]:
+    """Words that look like file names (``a.py``, ``readme.md``)."""
+    return frozenset(w for w in words if "." in w.strip("."))
+
+
+def _path_words(step: Step) -> frozenset[str]:
+    """A step's words plus the base names and stems of the paths it names."""
+    names = {_basename(p).lower() for p in step.paths}
+    stems = {n.rsplit(".", 1)[0] for n in names}
+    return step.words | names | {s for s in stems if len(s) > 2}
+
+
+@dataclass(frozen=True)
+class UnusedTraversal:
+    """Point 28: walking the file tree for names nothing later uses (motion)."""
+
+    id: str = "unused_traversal"
+    waste: LeanWaste = LeanWaste.MOTION
+    kind: FindingKind = FindingKind.WASTE
+    summary: str = "A search or directory walk whose listed files nothing later reads, edits or names."
+    confidence_rule: str = (
+        "Judged only once the agent has responded after it. A search (Grep, "
+        "Glob) or traversing shell command (ls, find, tree, rg, grep) whose "
+        "output lists file names, none of which a later event reads, edits or "
+        "names: 0.60. Always uncertain at L2: a traversal can rule a place out, "
+        "and only repository evidence (L3) can tell. Empty or unobserved output "
+        "and repeats of an earlier traversal (left to repeated_exploration) are "
+        "not findings."
+    )
+
+    def detect(self, view: SessionView) -> Iterable[Finding]:
+        last_response = max(
+            (s.index for s in view.steps if s.kind is EventKind.RESPONSE), default=-1
+        )
+        seen: set[str] = set()
+        for step in view.requests():
+            if not self._traverses(step) or step.call_key is None:
+                continue
+            if step.call_key in seen:
+                continue
+            seen.add(step.call_key)
+            result = view.completion_of.get(step.index)
+            if result is None or result.index > last_response:
+                continue
+            listed = _file_names(result.words) - step.words
+            if not listed or self._used(view, result, listed):
+                continue
+            shown = ", ".join(sorted(listed)[:3]) + ("…" if len(listed) > 3 else "")
+            yield _finding(
+                self,
+                view,
+                confidence=0.6,
+                title=f"Traversal {_short(step.subject)} led nowhere",
+                explanation=(
+                    f"{step.native_name} listed {len(listed)} file name(s) ({shown}) "
+                    "and nothing the agent did afterwards read, edited or named any of "
+                    "them. The walk was motion without downstream use."
+                ),
+                evidence=view.pair(step),
+                waste=view.pair(step),
+                subject=step.subject,
+            )
+
+    @staticmethod
+    def _traverses(step: Step) -> bool:
+        if step.tool_kind is ToolKind.FS_SEARCH:
+            return True
+        return (
+            step.tool_kind is ToolKind.EXEC_SHELL
+            and step.command is not None
+            and _TRAVERSAL.match(step.command) is not None
+        )
+
+    @staticmethod
+    def _used(view: SessionView, result: Step, listed: frozenset[str]) -> bool:
+        stems = {n.rsplit(".", 1)[0] for n in listed}
+        stems = {s for s in stems if len(s) >= 4}
+        for later in view.steps[result.index + 1 :]:
+            if later.is_completion:
+                continue
+            words = _path_words(later)
+            if listed & words or stems & words:
+                return True
+        return False
+
+
+@dataclass(frozen=True)
+class FailedRoute:
+    """Points 29, 30: waiting on a model route that failed and returned nothing."""
+
+    id: str = "failed_route"
+    waste: LeanWaste = LeanWaste.WAITING
+    kind: FindingKind = FindingKind.WASTE
+    summary: str = "A model call that failed over to another route: waiting time that bought no evidence."
+    confidence_rule: str = (
+        "A route.failover event (a model call that returned no tokens and did "
+        "not succeed). 0.80 when a later response completed the work on "
+        "another route, so the failed call added only waiting; 0.55 "
+        "(uncertain) when no later response followed. The failover's wall time "
+        "is the waste; it generated no tokens."
+    )
+
+    def detect(self, view: SessionView) -> Iterable[Finding]:
+        for step in view.steps:
+            if not step.is_failover:
+                continue
+            later = [
+                s for s in view.steps[step.index + 1 :] if s.kind is EventKind.RESPONSE
+            ]
+            # Prefer the response for the same task (it shares the task's words).
+            rerouted = next((s for s in later if s.words & step.words), None)
+            if rerouted is None and later:
+                rerouted = later[0]
+            yield _finding(
+                self,
+                view,
+                confidence=0.8 if rerouted is not None else 0.55,
+                title=f"Waited on a failed route: {_short(step.subject)}",
+                explanation=(
+                    f"The model call '{_short(step.subject)}' failed and returned "
+                    f"nothing after {step.seconds:.1f}s"
+                    + (
+                        ", and the work was then done on another route. The wait "
+                        "added no evidence."
+                        if rerouted is not None
+                        else "; no later response completed the work."
+                    )
+                ),
+                evidence=[step] if rerouted is None else [step, rerouted],
+                waste=(step,),
+                subject=step.subject,
+            )
+
+
+def exploration_labels(view: SessionView) -> tuple[ExplorationLabel, ...]:
+    """Label every exploration request by what drove it (TER-DET-009, point 38).
+
+    Questions (sentences ending in ``?``) in the prompt, reasoning or
+    responses of a task are its open questions until the next prompt. An
+    exploration request is *uncertainty-driven* only when it names a word of
+    an open question recorded before it; otherwise *intent-directed* when it
+    names a word or file of the prompt in force; otherwise *aimless*.
+    """
+    out: list[ExplorationLabel] = []
+    prompt: Step | None = None
+    questions: list[Step] = []
+    for step in view.steps:
+        if step.kind is EventKind.PROMPT:
+            prompt, questions = step, []
+        if step.questions:
+            questions.append(step)
+            continue
+        if not step.is_request or step.stage is not Stage.EXPLORE:
+            continue
+        words = _path_words(step)
+        label: ExplorationLabel | None = None
+        for question in reversed(questions):
+            shared = words & question.questions
+            if shared:
+                label = ExplorationLabel(
+                    step.event_id,
+                    ExplorationDriver.UNCERTAINTY_DRIVEN,
+                    question.event_id,
+                    tuple(sorted(shared)),
+                )
+                break
+        if label is None and prompt is not None and words & prompt.words:
+            label = ExplorationLabel(
+                step.event_id,
+                ExplorationDriver.INTENT_DIRECTED,
+                prompt.event_id,
+                tuple(sorted(words & prompt.words)),
+            )
+        out.append(
+            label
+            or ExplorationLabel(step.event_id, ExplorationDriver.AIMLESS, None, ())
+        )
+    return tuple(out)
+
+
+# ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
 
@@ -976,6 +1450,10 @@ DEFAULT_REGISTRY = DetectorRegistry(
         UnnecessaryHandoff(),
         RepeatedReasoning(),
         Regeneration(),
+        ExcessiveContext(),
+        InsufficientContext(),
+        UnusedTraversal(),
+        FailedRoute(),
     )
 )
 

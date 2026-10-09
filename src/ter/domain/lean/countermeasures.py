@@ -519,6 +519,100 @@ def _regeneration(ctx: _Context) -> tuple[str, list[Action]]:
     )
 
 
+def _excessive_context(ctx: _Context) -> tuple[str, list[Action]]:
+    return (
+        "Bound exploration by the size of the change",
+        [
+            Action(
+                ActionKind.CLAUDE_MD,
+                "Ask for a stated plan of what to read before reading widely.",
+                "- Before exploring, list the few files the change will touch and read "
+                "those first; widen the search only when they leave a named question open.",
+                "markdown",
+            ),
+            Action(
+                ActionKind.PRACTICE,
+                f"Verify first: the context before changing {_list(ctx.subjects)} "
+                "exceeded the band, but wide reading can be justified. If it was not, "
+                "add a 'Where things live' map to CLAUDE.md so the agent finds the "
+                "right files directly.",
+            ),
+        ],
+    )
+
+
+def _insufficient_context(ctx: _Context) -> tuple[str, list[Action]]:
+    return (
+        "Acquire context in proportion to the change",
+        [
+            Action(
+                ActionKind.CLAUDE_MD,
+                "Require evidence for every file changed.",
+                "- For each file you change in place, first read it or search for what "
+                "you are changing in it within the current task; do not rely on memory "
+                "of an earlier task.",
+                "markdown",
+            ),
+            Action(
+                ActionKind.SETTING,
+                "Start tasks that change existing code in plan mode, so context comes "
+                f"first (changed with too little context: {_list(ctx.subjects)}).",
+                json.dumps({"permissions": {"defaultMode": "plan"}}, indent=2),
+                "json",
+            ),
+        ],
+    )
+
+
+def _unused_traversal(ctx: _Context) -> tuple[str, list[Action]]:
+    return (
+        "Search for a target, not a tour",
+        [
+            Action(
+                ActionKind.CLAUDE_MD,
+                "Point the agent at the layout so it does not walk the tree.",
+                "## Where things live\n"
+                "- <directory>: <what it holds>\n"
+                "- Search for a symbol or a file name you expect, not whole directories.",
+                "markdown",
+            ),
+            Action(
+                ActionKind.PRACTICE,
+                f"Verify first: {_list(ctx.subjects)} listed files nothing later used, "
+                "which may have ruled a place out. If they recur across sessions, name "
+                "the right places in CLAUDE.md.",
+            ),
+        ],
+    )
+
+
+def _failed_route(ctx: _Context) -> tuple[str, list[Action]]:
+    routes = list(
+        dict.fromkeys(
+            s.split(": ", 1)[1].split(" failed", 1)[0]
+            for s in ctx.subjects
+            if ": " in s and " failed" in s
+        )
+    )
+    named = _list(routes) if routes else _list(ctx.subjects)
+    return (
+        "Stop routing to routes that fail",
+        [
+            Action(
+                ActionKind.SETTING,
+                f"Demote or health-check the failing route(s) in the routing profile "
+                f"({named} failed and the work was done elsewhere), so the first "
+                "choice is a route that answers.",
+            ),
+            Action(
+                ActionKind.PRACTICE,
+                "Put a short timeout and a circuit breaker on routes that fail repeatedly, "
+                "so a failover costs one fast failure rather than a wait per task.",
+            ),
+        ],
+    )
+
+
 _CATALOGUE: dict[str, Callable[[_Context], tuple[str, list[Action]]]] = {
     "repeated_tool_call": _repeated_tool_call,
     "repeated_exploration": _repeated_exploration,
@@ -531,6 +625,10 @@ _CATALOGUE: dict[str, Callable[[_Context], tuple[str, list[Action]]]] = {
     "unnecessary_handoff": _handoff,
     "repeated_reasoning": _reasoning,
     "regeneration": _regeneration,
+    "excessive_context": _excessive_context,
+    "insufficient_context": _insufficient_context,
+    "unused_traversal": _unused_traversal,
+    "failed_route": _failed_route,
 }
 
 
@@ -607,6 +705,10 @@ _MEASURES: dict[str, tuple[str, str]] = {
     "unnecessary_handoff": ("Handoffs redone by the agent", "0"),
     "repeated_reasoning": ("Restated reasoning blocks", "fewer"),
     "regeneration": ("Whole-file rewrites of existing content", "0"),
+    "excessive_context": ("Tasks with context above the band (uncertain)", "fewer"),
+    "insufficient_context": ("Tasks with context below the band", "0"),
+    "unused_traversal": ("Traversals whose files were never used (uncertain)", "fewer"),
+    "failed_route": ("Failed model routes waited on", "0"),
 }
 
 

@@ -49,8 +49,10 @@ count against coverage as `other-run:<id>`.
 | final state (`succeeded`, `partial`, `failed`, `needs_review`, `blocked`) with a score | `outcome.recorded` (`blocked: score 5/100`) | system |
 | final state | `task.completed` | system |
 
-The routing kinds are lifecycle kinds: they are counted, never scored, and add
-no Lean step. Only `response` events are generated work.
+The routing kinds are lifecycle kinds: they are counted and never scored.
+Only `route.failover` is a Lean step (a failed model call the run waited on,
+classified by the `failed_route` detector as *waiting*, TER-DET-008); the
+others add none. Only `response` events are generated work.
 
 - Run event states TER knows but does not model (`planned`,
   `execution_mode`, `worktree_ready`, `diagnosis`, `repair_stopped` and

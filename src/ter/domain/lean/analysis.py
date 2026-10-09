@@ -27,6 +27,7 @@ from .detectors import (
     DEFAULT_REGISTRY,
     DetectorRegistry,
     SessionView,
+    exploration_labels,
     validation_cycles,
 )
 from .graph import EvidenceGraph, build_graph
@@ -34,6 +35,7 @@ from .model import (
     STAGE_ORDER,
     ActivityClass,
     CycleVerdict,
+    ExplorationLabel,
     Finding,
     FindingKind,
     FlowState,
@@ -210,6 +212,8 @@ class LeanAnalysis:
     scorecard: Scorecard
     graph: EvidenceGraph
     detectors: tuple[tuple[str, str, str, str], ...]
+    #: Why each exploration request happened (TER-DET-009, point 38).
+    exploration: tuple[ExplorationLabel, ...] = ()
 
     @property
     def waste_findings(self) -> tuple[Finding, ...]:
@@ -262,6 +266,7 @@ class LeanAnalysis:
                 {"id": i, "waste": w, "kind": k, "confidence_rule": r}
                 for i, w, k, r in self.detectors
             ],
+            "exploration": [e.as_dict() for e in self.exploration],
         }
         if graph:
             out["evidence_graph"] = self.graph.as_dict()
@@ -311,6 +316,11 @@ def _base_class(
         return (
             ActivityClass.NECESSARY_NON_VALUE_ADDING,
             "stage:implement set-up command",
+        )
+    if step.is_failover:
+        return (
+            ActivityClass.NECESSARY_NON_VALUE_ADDING,
+            "stage:respond failed model route returned nothing",
         )
     if step.stage is Stage.RESPOND:
         if step.index in finals:
@@ -550,6 +560,7 @@ def analyse_steps(
         detectors=tuple(
             (d.id, d.waste.value, d.kind.value, d.confidence_rule) for d in registry
         ),
+        exploration=exploration_labels(view),
     )
 
 
