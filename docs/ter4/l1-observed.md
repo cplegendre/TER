@@ -211,7 +211,7 @@ events: every `intent.stated` (11), `tool.requested` (34), `tool.completed`
 (32) and `task.completed` (10 of 10 Stop payloads). TER-OBS-005 is
 therefore verified. The 7 misses were all `subagent.completed`, which the
 session source did not derive then; it now does (above), so TER-OBS-007
-stays `planned`.
+stayed `planned` after this run (the third run below verified it).
 
 A second run the same day, after that change, matched every
 `intent.stated` (12), `tool.requested` (37), `tool.completed` (35) and
