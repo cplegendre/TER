@@ -125,13 +125,13 @@ def session_source_for(path: Path) -> SessionSource:
             continue
         try:
             accepts = getattr(registry.factory(cap.port, cap.name), "accepts", None)
-            claimed = callable(accepts) and bool(accepts(path))
+            if not (callable(accepts) and bool(accepts(path))):
+                continue
+            source = registry.create(cap.port, cap.name)
         except Exception:  # a broken plugin must not stop Claude Code transcripts
             continue
-        if claimed:
-            source = registry.create(cap.port, cap.name)
-            assert isinstance(source, SessionSource)  # checked by the registry
-            return source
+        assert isinstance(source, SessionSource)  # checked by the registry
+        return source
     source = registry.create("SessionSource", "claude-code")
     assert isinstance(source, SessionSource)
     return source

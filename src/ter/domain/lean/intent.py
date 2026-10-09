@@ -535,7 +535,10 @@ def _update(
     if not current.terms:
         return make(IntentRelation.REFINED, goal, similarity), None
     if len(goal) < MIN_GOAL_TERMS:
-        return make(IntentRelation.ACKNOWLEDGED, current.terms, similarity), None
+        # A short prompt states no new goal, but what it explicitly abandons
+        # ("Forget the median.") still leaves the intent in force.
+        kept = current.terms - read.abandoned
+        return make(IntentRelation.ACKNOWLEDGED, kept, similarity), None
     if read.redirect is not None and (
         similarity is None or similarity < REDIRECT_KEEPS_ABOVE or read.abandoned
     ):

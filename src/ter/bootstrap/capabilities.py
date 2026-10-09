@@ -417,6 +417,13 @@ def detector_registry(
             detector = registry.create(cap.port, cap.name)
         except CapabilityError:
             continue  # recorded as a problem
+        except Exception as exc:  # the plugin's own factory raised
+            registry._problem(
+                cap.key,
+                cap.target,
+                f"failed to construct: {type(exc).__name__}: {exc}",
+            )
+            continue
         assert isinstance(detector, WasteDetectorPlugin)  # checked by create
         if detector.id in detectors:
             registry._problem(

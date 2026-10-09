@@ -466,8 +466,8 @@ class UnvalidatedImplementation:
                 pending.append(step)
             elif step.checks:
                 # A check chained after a change (``sed -i … && pytest``)
-                # validates the edits too, but its outcome is not read: it
-                # also ends the run whose failure would be reported.
+                # validates the edits too; StepLog reads its outcome, so a
+                # failing chained check is reported below.
                 pending = []
                 last_run = step
         responses = [s for s in steps if s.kind is EventKind.RESPONSE]
@@ -1097,7 +1097,7 @@ class IntentDrift:
             dropped = frozenset(
                 t
                 for r in record.revisions[: a.revision]
-                if r.relation is IntentRelation.CHANGED
+                if r.relation in (IntentRelation.CHANGED, IntentRelation.ACKNOWLEDGED)
                 for t in r.abandoned
             )
             announced = [
