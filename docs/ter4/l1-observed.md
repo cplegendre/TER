@@ -9,6 +9,8 @@ the batch report of the same events are the same value.
 
 | Id | Requirement | Verified by |
 |---|---|---|
+| TER-OBS-001 | TER shall accept every live and recorded observation through the EventIngest port as ter.event events. | `tests/contract/test_ingest_wiring.py`, `tests/contract/test_event_ingest.py` |
+| TER-ANL-011 | When TER applies one new event to a live session, TER shall update the session state without reprocessing earlier events. | `tests/unit/test_ter4_stream_incremental.py` |
 | TER-OBS-003 | When a PostToolUse hook event is received, the hook adapter shall append a normalised `tool.completed` event within 50 ms at the 95th percentile. | `tests/unit/test_ter4_claude_hooks.py::test_post_tool_use_is_appended_within_50ms_at_p95` |
 | TER-OBS-004 | If an event arrives with an identity already recorded, then TER shall discard it without changing analysis state. | `tests/unit/test_ter4_stream*.py`, `tests/contract/test_event_ingest.py`, `tests/contract/test_hook_payloads.py` |
 | TER-ANL-010 | TER shall produce identical reports for a session analysed incrementally and analysed in batch. | `tests/equivalence/test_live_static.py`, property tests, `tests/golden/test_stream_report_snapshot.py` |
@@ -32,9 +34,23 @@ sequenceDiagram
     O->>L: append(event) unless this process already did
     H-->>CC: {} (always, exit 0: fail open)
     R->>L: events(session_id)
-    R->>E: analyse_batch(events)
+    R->>E: apply(event) for each event, via a fresh EventIngest
     E-->>R: StreamReport
 ```
+
+Every observation enters analysis through the `EventIngest` port
+(TER-OBS-001): live hooks apply each event as it fires, and every recorded
+path (a Claude Code transcript, a GARE run, a replayed event log, and the L2
+`explain`/`a3` commands) applies its events, in order, to a fresh
+`EventIngest` built by the composition root (`ter.bootstrap.make_ingest`)
+before reading the report or explanation. `tests/contract/test_ingest_wiring.py`
+spies on that factory for each path, and checks statically that nothing
+outside the domain folds events around the port.
+
+Applying one event reads only that event and tokenizes its text once, however
+long the session is; a repeated id reads only the id (TER-ANL-011,
+`tests/unit/test_ter4_stream_incremental.py`, which counts field reads on
+instrumented events).
 
 A hook is a new process per event, so the hook path (`RecordEvent`) only
 appends: its cost does not grow with the session (the cold-process benchmark
@@ -122,8 +138,8 @@ and an existing one that others can read is tightened. The TER 3 `ter hook monit
 | Layer | Module |
 |---|---|
 | domain | `ter/domain/stream.py`: `AnalysisEngine`, `StreamReport`, `Signals`, `analyse_batch` |
-| ports | `ter/ports/driving.py`: `EventIngest`; `ter/ports/driven.py`: `EventLog` |
-| application | `ter/application/observe.py`: `ObserveEvent`, `RecordEvent`, `AnalyseTrace`, `AnalyseEventLog` |
+| ports | `ter/ports/driving.py`: `EventIngest` (`apply`, `report`, `explain`); `ter/ports/driven.py`: `EventLog` |
+| application | `ter/application/observe.py`: `ObserveEvent`, `RecordEvent`, `AnalyseTrace`, `AnalyseEventLog`, `ingest_all` |
 | driving adapters | `ter/adapters/driving/claude_hooks/`, `ter/adapters/driving/cli.py` |
 | driven adapters | `ter/adapters/driven/event_log/` (JSONL), `InMemoryEventLog` |
 | shared data | `ter/adapters/claude_code_tools.py`: the Claude Code tool map, used by the JSONL source and the hooks adapter |

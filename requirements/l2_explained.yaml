@@ -42,18 +42,6 @@ requirements:
       as fact.
     status: verified
 
-  - id: TER-ANL-025
-    pattern: ubiquitous
-    text: >-
-      The calibration reporter shall report precision and recall with 95
-      percent confidence intervals for every waste category.
-    level: L2
-    source_points: [90, 100]
-    rationale: >-
-      Issue #41: each detector is judged on its own error profile against
-      gold labels.
-    status: planned
-
   - id: TER-ANL-040
     pattern: event-driven
     text: >-
@@ -81,13 +69,18 @@ requirements:
   - id: TER-ARC-002
     pattern: ubiquitous
     text: >-
-      TER shall load analysers, waste detectors, repository engines,
-      policies and agent adapters through a plugin registry.
+      TER shall load analysers, waste detectors and agent adapters through
+      the ter.capabilities plugin registry.
     level: L2
     source_points: [197]
     rationale: >-
-      Plugins let the platform grow without changing the core.
-    status: planned
+      Plugins let the platform grow without changing the core. Analysers
+      are session scorers (TerScorer), waste detectors are WasteDetector
+      capabilities run beside the built-in catalogue, and agent adapters are
+      SessionSource capabilities that claim the files they read. Repository
+      engines (TER-ARC-007, L3) and policies (TER-ARC-008, L4) join the same
+      registry when their levels exist.
+    status: verified
 
   - id: TER-ARC-004
     pattern: event-driven

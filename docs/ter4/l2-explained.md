@@ -53,6 +53,23 @@ Detectors live in `ter/domain/lean/detectors.py`, behind the `WasteDetector`
 protocol, registered in `DEFAULT_REGISTRY`. Findings below confidence 0.70
 are **uncertain**: shown, never suppressed, never counted as waste.
 
+Detectors are plugins (TER-ARC-002). Each built-in detector is also the
+capability `WasteDetector.<id>` in the registry of ADR 0005, and an installed
+package adds one with an entry point:
+
+```toml
+[project.entry-points."ter.capabilities"]
+"WasteDetector.my_detector" = "my_pack.detectors:MyDetector"
+```
+
+`ter.bootstrap.detector_registry()` runs the catalogue in its order, then
+each installed detector by key; one that fails to load, lacks a member of the
+protocol, or reuses a running detector id is left out and listed by
+`python -m ter capabilities`. Analysers (`TerScorer.<name>`) and agent
+adapters (`SessionSource.<name>`, chosen by a static `accepts(ref)`) load the
+same way. Repository engines (TER-ARC-007) and policies (TER-ARC-008) follow
+at L3 and L4.
+
 | Detector | Lean waste | Evidence it cites | Confidence rule | Countermeasure |
 |---|---|---|---|---|
 | `repeated_tool_call` (pts 19, 39) | over-processing | both calls and results | 0.90 same input and output, nothing edited between; 0.85 validation re-run without edits; 0.75 edits between but identical output; 0.50 an output not observed. Different output: none | CLAUDE.md "reuse results"; PreToolUse(Bash) hook blocking identical commands on an unchanged tree |
@@ -138,7 +155,7 @@ existed map as follows.
 | TER-LEAN-030 | TER-GRF-002, TER-GRF-003 (TER-GRF-001 planned: decision nodes) | verified | `test_ter4_lean_analysis.py`, properties, `test_ter4_a3.py` |
 | TER-LEAN-040 | TER-SCR-002, TER-FLW-001 (TER-SCR-001 planned: quality, risk, outcome) | verified | `test_ter4_lean_analysis.py`, properties |
 | TER-LEAN-050 | TER-ANL-010 | verified | `tests/equivalence/test_live_static.py`, properties |
-| TER-LEAN-060 | TER-ARC-002 | planned: only detectors are plugins so far | `test_ter4_lean_analysis.py` |
+| TER-LEAN-060 | TER-ARC-002 (TER-ARC-007, 008 planned: repository engines at L3, policies at L4) | verified | `tests/unit/test_ter4_plugins.py`, `test_ter4_lean_analysis.py` |
 | TER-A3-001, 005 | TER-RPT-003 | verified | `test_ter4_lean_analysis.py`, `test_ter4_a3.py`, golden A3 JSON |
 | TER-A3-002 | TER-RPT-004 | verified | `tests/unit/test_ter4_a3.py`, golden A3 HTML |
 | TER-A3-003 | TER-RPT-005 | verified | `test_ter4_lean_analysis.py` |
@@ -146,7 +163,7 @@ existed map as follows.
 | TER-A3-006 | TER-ANL-012 | verified | `tests/contract/test_ter_scorer.py`, golden TER check |
 
 Tests that only partly prove a planned requirement (TER-DET-004, 007, 008,
-TER-LEN-004, TER-ARC-002, TER-SCR-001, TER-GRF-001) do not cite it, so the
+TER-LEN-004, TER-SCR-001, TER-GRF-001) do not cite it, so the
 trace gate never suggests promoting it early; `requirements/points.yaml`
 names those tests as the points' verification instead.
 

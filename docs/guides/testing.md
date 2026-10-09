@@ -191,6 +191,7 @@ def test_unknown_model_raises(book: PriceBook) -> None:
 | `test_event_log.py` | `EventLog` | `JsonlEventLog`, `InMemoryEventLog` |
 | `test_ter_scorer.py` | `TerScorer` | `Ter3Scorer` (offline), `FixedTerScorer` |
 | `test_event_ingest.py` | `EventIngest` | `ObserveEvent` (no log, in-memory, JSONL), `RecordEvent` (the hook's append-only ingest) |
+| `test_ingest_wiring.py` | `EventIngest` wiring | every CLI path (transcript, GARE run, event log, explain, hook) applies its events through the composition root's `EventIngest` |
 | `test_hook_payloads.py` | hook payload shapes | fixtures in `tests/fixtures/hooks/` |
 
 When you add an adapter, add its factory to the fixture's `params`. When you

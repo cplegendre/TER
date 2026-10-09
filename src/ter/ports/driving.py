@@ -9,12 +9,18 @@ from __future__ import annotations
 from typing import Protocol, runtime_checkable
 
 from ..domain.events import Event
+from ..domain.lean.analysis import LeanAnalysis, TerMeasure
 from ..domain.stream import Signals, StreamReport
 
 
 @runtime_checkable
 class EventIngest(Protocol):
-    """Accepts normalised events one at a time, as they happen.
+    """Accepts normalised events one at a time, as they happen or as recorded.
+
+    It is the only way events enter analysis (TER-OBS-001): live hooks apply
+    each event as it fires, and the recorded paths (a Claude Code transcript,
+    a GARE run, a replayed event log) apply each event of the recording in
+    order, then ask for the report or the explanation.
 
     Obligations, verified by ``tests/contract/test_event_ingest.py``:
 
@@ -22,9 +28,15 @@ class EventIngest(Protocol):
       returns ``Signals.accepted == False`` (TER-OBS-004);
     * the report after applying a stream one event at a time equals the
       batch analysis of the same stream (TER-ANL-010);
-    * events of different sessions are analysed separately.
+    * events of different sessions are analysed separately;
+    * the explanation after applying a stream equals the batch explanation
+      of the same stream (TER-ANL-010).
     """
 
     def apply(self, event: Event) -> Signals: ...
 
     def report(self, session_id: str) -> StreamReport: ...
+
+    def explain(
+        self, session_id: str, *, ter: TerMeasure | None = None
+    ) -> LeanAnalysis: ...
