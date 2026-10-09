@@ -257,7 +257,7 @@ Current state (from `ter-req report` and [points.md](../ter4/points.md)):
 | L0 Measured | 25 of 25 (met) | 10 / 1 / 0 | `ter-req trace --gate L0` |
 | L1 Observed | 22 of 22 (met) | 15 / 1 / 0 | `ter-req trace --gate L1` |
 | L2 Explained | 54 of 54 (met) | 49 / 5 / 0 | `ter-req trace --gate L2` |
-| L3 Grounded | 34 of 34 (met) | 25 / 23 / 0 | passes locally; CI step next |
+| L3 Grounded | 34 of 34 (met) | 25 / 23 / 0 | gated in CI |
 | L4 Advisory | 0 of 16 | 0 / 5 / 34 | none yet |
 | L5 Corrective | 0 of 10 | 1 / 4 / 8 | none yet |
 | L6 Learning | 11 of 19 | 1 / 4 / 14 | none yet |

@@ -259,8 +259,8 @@ in [l3-grounded.md](l3-grounded.md).
 | Routing by role only; classes; escalation only on evidence | `tests/architecture/test_model_roles.py`, `tests/contract/test_routing_profiles.py`, `tests/unit/test_ter4_routing.py` | TER-RTE-001, TER-RTE-002, TER-RTE-003, TER-RTE-005, TER-DET-011 |
 | TER ratio and outcome recorded as events; metrics recomputed from events | `tests/equivalence/test_recompute_from_events.py` | TER-EXP-002 |
 
-`ter-req trace --gate L3` passes; CI runs the gates up to L2 and adding the
-L3 step is the first step of the [roadmap](strategy.md#l4-advisory). The
+CI runs `ter-req trace --gate L3`; the next level is on the
+[roadmap](strategy.md#l4-advisory). The
 calibration of the grounded detectors on real sessions (9 October 2026) is
 in [l3-grounded.md](l3-grounded.md#checking-the-grounded-detectors-on-real-sessions).
 

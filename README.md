@@ -70,7 +70,7 @@ on real sessions, what is still unproven, and how L4 to L6 will be built.
 | L0 | Measured | TER 3 parity inside the hexagon: event contract, scoring, dated prices, no intervention below L4 | Met; CI gate | 25 of 25 | 10 / 1 / 0 |
 | L1 | Observed | Event stream as the core boundary, Claude Code hooks (Stop and SubagentStop included), hook recorder, live = batch | Met; CI gate; hook ids checked on real recordings | 22 of 22 | 15 / 1 / 0 |
 | L2 | Explained | Lean model, waste detectors, evidence graph, scorecard, A3, outcome verdict, redacted corpus import | Met; CI gate; detectors calibrated on real sessions | 54 of 54 | 49 / 5 / 0 |
-| L3 | Grounded | Repository evidence (symbols, imports, tests, call edges, Git), change surface, architecture contracts, context bundles, advisory routing | Met; `--gate L3` passes, CI step next | 34 of 34 | 25 / 23 / 0 |
+| L3 | Grounded | Repository evidence (symbols, imports, tests, call edges, Git), change surface, architecture contracts, context bundles, advisory routing | Met; gated in CI | 34 of 34 | 25 / 23 / 0 |
 | L4 | Advisory | Intervention engine, declarative policies, ledger | Next | 0 of 16 | 0 / 5 / 34 |
 | L5 | Corrective | Calibration, benchmarks, opt-in corrective actions | Not started | 0 of 10 | 1 / 4 / 8 |
 | L6 | Learning | Closed loop, second harness, research datasets | Second harness (GARE) and stack comparison built | 11 of 19 | 1 / 4 / 14 |

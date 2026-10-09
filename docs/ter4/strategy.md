@@ -62,9 +62,8 @@ the stack comparison (TER-STK-010 to TER-STK-013).
 **CI gates.** CI runs the L0 gate (golden, contract and architecture
 suites), the full suite with 90% branch coverage, `lint-imports` (eight
 import contracts), `mypy` on strict `ter` code, `ter-req lint --strict` and
-`ter-req points --check`, and `ter-req trace` at `--gate L0`, `L1` and `L2`.
-`ter-req trace --results req-trace.json --gate L3` passes on this commit; the
-first step of the roadmap below adds it to CI so main cannot slip back.
+`ter-req points --check`, and `ter-req trace` at `--gate L0`, `L1`, `L2` and `L3`, so main cannot slip
+back below L3.
 
 ```bash
 python -m pytest --req-trace=req-trace.json
@@ -159,7 +158,7 @@ that decision, build them last and only behind a ceiling of L5.
 
 ### Entry criteria
 
-- L3 gate in CI (`--gate L3`).
+- L3 gate in CI (`--gate L3`): done.
 - An **eligibility list** for TER-INT-010: only waste categories whose
   confident findings were judged on real sessions with no known false
   positives. Today that means judging the open `fragmented_edits`,
@@ -208,21 +207,20 @@ suppressed by cooldown and suppressed for ineligible categories.
 
 ### Build order (small PRs)
 
-1. CI: add `ter-req trace --gate L3` (claim L3 on main).
-2. Domain: signal, policy and ledger-record values; pure policy matching
+1. Domain: signal, policy and ledger-record values; pure policy matching
    with the evidence, eligibility and cooldown guards (TER-INT-006,
    TER-INT-007, TER-INT-010, TER-INT-016). Incremental equals batch.
-3. Policy files: a JSON policy reader as a capability, with an approval
+2. Policy files: a JSON policy reader as a capability, with an approval
    record (TER-INT-008, TER-ARC-008, TER-INT-015).
-4. `InterventionLedger` port, JSONL adapter, fake and contract suite
+3. `InterventionLedger` port, JSONL adapter, fake and contract suite
    (TER-INT-009).
-5. Shadow mode: replay recorded sessions and write what TER *would* have
+4. Shadow mode: replay recorded sessions and write what TER *would* have
    advised, with no channel. Run it on the corpus and judge it before any
    live advice.
-6. `InterventionChannel` port and the advisory adapter; ceiling-aware
+5. `InterventionChannel` port and the advisory adapter; ceiling-aware
    `test_no_intervention.py` (TER-INT-002, TER-INT-003, TER-INT-014).
-7. Ledger follow-up and policy effectiveness (TER-INT-011, TER-INT-012).
-8. The control loop wired in bootstrap (TER-INT-013); raise CI to
+6. Ledger follow-up and policy effectiveness (TER-INT-011, TER-INT-012).
+7. The control loop wired in bootstrap (TER-INT-013); raise CI to
    `--gate L4`.
 
 ## L5 Corrective
