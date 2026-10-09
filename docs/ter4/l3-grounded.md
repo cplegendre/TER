@@ -338,3 +338,94 @@ files, kept on the owner's machine) with an empty `verdict` column to mark
 python scripts/corpus_grounded.py labels-d4.csv ~/.claude/projects \
     --work ~/ter-data/grounded --out grounded.json --review review.csv
 ```
+
+## Session languages and stack
+
+Leigh asked for "a correlation between token usage and delivery mechanism":
+does a TypeScript/Svelte session spend tokens differently from a Python one?
+Every analysis now records the session's *profile* (no flag needed), and
+`scripts/corpus_by_stack.py` compares sessions by it
+([l6-stack-comparison.md](l6-stack-comparison.md)).
+
+| Id | Requirement | Verified by |
+|---|---|---|
+| TER-STK-001 | TER shall record, for each session, the languages of the files the session reads and edits, named from a documented table of file extensions and file names, with each language's read and edit counts, the request events they were counted from, and the session's dominant language. | `tests/unit/test_ter4_stack.py::TestLanguages`, `test_explain_and_a3_carry_the_profile_with_and_without_a_repository`, `test_the_cli_prints_languages_and_the_json_lists_them` |
+| TER-STK-002 | Where repository evidence is given for a session, TER shall record the ecosystems, frameworks, build tools, package managers and workspaces that the repository's manifests declare, each fact citing the manifest paths that declare it. | `tests/unit/test_ter4_stack.py::TestManifests`, `test_explain_and_a3_carry_the_profile_with_and_without_a_repository` |
+
+### Languages (no repository needed)
+
+Every `fs.read`, `fs.edit` and `fs.write` request names a path; its language
+comes from `ter.domain.stack.LANGUAGE_BY_EXTENSION` (lower-cased extension)
+or `LANGUAGE_BY_FILENAME` (`Dockerfile`, `Makefile`, `Gemfile`, ...). The
+table, abridged:
+
+| Language | Extensions |
+|---|---|
+| TypeScript | `.ts` `.tsx` `.mts` `.cts` |
+| JavaScript | `.js` `.jsx` `.mjs` `.cjs` |
+| Svelte, Vue, Astro | `.svelte`, `.vue`, `.astro` |
+| Python | `.py` `.pyi` `.pyx` (`.ipynb` is Jupyter Notebook) |
+| Go, Rust, Java, Kotlin | `.go`, `.rs`, `.java`, `.kt` `.kts` |
+| C, C++, C#, Swift, Ruby, PHP, ... | `.c` `.h`, `.cpp` `.cc` `.hpp` ..., `.cs`, `.swift`, `.rb`, `.php` |
+| Shell, SQL, HCL | `.sh` `.bash` `.zsh`, `.sql`, `.tf` |
+| Markup, styling, data, prose | `.html`, `.css` `.scss` `.less`, `.json` `.yaml` `.toml` `.xml`, `.md` `.mdx` `.rst` `.txt` |
+
+Per language the profile keeps edit and read requests, distinct files
+edited and read, and the request event ids it counted (results are never
+counted twice). Extensions the table does not know are counted apart
+(`unrecognised_extensions`) and never pick the dominant language.
+
+The **dominant language** is decided in tiers: the programming language with
+the most edits; else the markup/data/prose language with the most edits
+(a docs-only session is a Markdown session); else, for a session that edits
+nothing, the programming language read most; else the non-code language
+read most. Ties go to more reads (or edits), then to the name. The profile is
+a summary of the folded steps, so live and batch analysis agree.
+
+### Stack (with `--repo`)
+
+With repository evidence, `ter.application.stack.read_stack` lists the
+repository's manifests through the `RepositoryEvidence` port (at most 200,
+shallowest first; more are flagged `truncated`), reads each one's text, and
+the pure parsers in `ter.domain.stack` turn it into facts:
+
+| Manifest | Facts |
+|---|---|
+| `package.json` | ecosystem `node`; frameworks from dependencies (`svelte`, `@sveltejs/kit` → `sveltekit`, `react`, `next`, `vue`, `nuxt`, `@angular/core`, `solid-js`, `astro`, `express`, `fastify`, `@nestjs/core`, `electron`, ...); build tools (`vite`, `webpack`, `turbo`, `nx`); `typescript`; `packageManager`; `workspaces` (`npm`/`yarn`/`bun workspaces`, or `package.json workspaces` when no manager is declared) |
+| `pnpm-workspace.yaml` | `pnpm`, `pnpm workspaces` when it lists packages |
+| lock files | `pnpm-lock.yaml`, `yarn.lock`, `package-lock.json`, `bun.lock(b)`, `poetry.lock`, `uv.lock`, `Pipfile`, `Cargo.lock`, `go.sum` → package manager |
+| `pyproject.toml` | ecosystem `python`; build backend (`hatch`, `poetry`, `setuptools`, `flit`, `pdm`, `maturin`, `uv`); `[tool.poetry]`, `[tool.uv]`, `uv workspace`; frameworks from dependencies (`django`, `flask`, `fastapi`, `starlette`, `streamlit`, `torch` → `pytorch`, `numpy`, `pandas`, ...) |
+| `requirements*.txt` | ecosystem `python`; frameworks as above |
+| `go.mod`, `go.work` | ecosystem `go`; `gin`, `echo`, `fiber`, `chi`, `gorilla-mux`, `grpc`, `cobra`; `go workspace` |
+| `Cargo.toml` | ecosystem `rust`; `cargo workspace`; `tokio`, `axum`, `actix-web`, `rocket`, `warp`, `bevy`, `tauri`, `leptos` |
+| `pom.xml`, `build.gradle(.kts)`, `settings.gradle(.kts)` | ecosystem `jvm`; `maven` / `gradle`; `spring-boot`, `quarkus`, `micronaut`, `android`, `kotlin`; `maven multi-module`, `gradle multi-project` |
+| `turbo.json`, `nx.json`, `lerna.json`, `tsconfig.json`, `setup.py`, `setup.cfg` | the tool they name |
+
+Manifests under `node_modules`, `vendor`, `.venv`, `dist`, `build`, `target`,
+`.svelte-kit`, `.next` and similar directories describe dependencies or build
+output, not the repository, and are skipped. A manifest that does not parse
+still declares its ecosystem. Facts from several manifests (a monorepo with
+many `package.json`) merge into one fact per kind and name that cites every
+manifest declaring it. The stack *label* used to group sessions is the
+frameworks joined by `+` (`svelte+sveltekit`), else the ecosystems, `none`
+when the manifests declare neither, and `unknown` without repository
+evidence.
+
+### Where it shows
+
+- `explain --json` and the lean JSON: `profile` (languages with evidence,
+  `dominant_language`, `dominant_basis`, `unrecognised_extensions`, `stack`
+  with facts, manifests and label, or `null` without `--repo`);
+- the A3 JSON: `background.profile`;
+- `explain` and `a3` text: a `languages` line and, with `--repo`, a `stack`
+  line.
+
+Code: `ter/domain/stack.py` (tables, `languages_of`, manifest parsers,
+`merge_facts`, `stack_label`), `ter/domain/lean/analysis.py`
+(`session_profile`, `LeanAnalysis.profile`), `ter/application/stack.py`
+(`read_stack`), joined in `ExplainSession` after the fold.
+
+**Limits.** Languages follow file names, not content: a `.h` file is C even
+in a C++ project, and generated files count like hand-written ones. Stack
+facts are what the manifests *declare*, not what the session touched; in a
+monorepo the label covers every package, not the one the session edited.

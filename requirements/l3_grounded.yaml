@@ -244,6 +244,40 @@ requirements:
       datasets.
     status: verified
 
+  - id: TER-STK-001
+    pattern: ubiquitous
+    text: >-
+      TER shall record, for each session, the languages of the files the
+      session reads and edits, named from a documented table of file
+      extensions and file names, with each language's read and edit counts,
+      the request events they were counted from, and the session's dominant
+      language.
+    level: L3
+    source_points: [51, 181]
+    rationale: >-
+      Leigh asked for a correlation between token use and delivery
+      mechanism. Languages come from the file paths a session's tool
+      requests name, so they need no repository; unknown extensions are
+      counted apart and never decide the dominant language.
+    status: verified
+
+  - id: TER-STK-002
+    pattern: optional
+    text: >-
+      Where repository evidence is given for a session, TER shall record the
+      ecosystems, frameworks, build tools, package managers and workspaces
+      that the repository's manifests declare, each fact citing the manifest
+      paths that declare it.
+    level: L3
+    port: RepositoryEvidence
+    source_points: [51, 53]
+    rationale: >-
+      The stack (svelte, sveltekit, pnpm workspaces, pyproject, go.mod,
+      Cargo.toml, pom.xml, build.gradle) is a fact about the repository, read
+      through the RepositoryEvidence port; manifests under dependency and
+      build output directories are not the repository's own stack.
+    status: verified
+
   - id: TER-ITN-006
     pattern: unwanted
     text: >-

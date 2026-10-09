@@ -38,6 +38,7 @@ from ...domain.lean import LeanAnalysis, SoftwareValueEfficiency
 from ...domain.lean.surface import EditPlacement
 from ...domain.outcome import OutcomeFormatError, OutcomeVerdict
 from ...domain.repository import RepositoryEvidenceError
+from ...domain.stack import StackKind, stack_label
 from ...domain.stream import StreamReport
 from ...ports.driven import Clock
 from ...ports.driving import EventIngest
@@ -52,6 +53,7 @@ __all__ = [
     "format_capabilities",
     "format_corpus_import",
     "format_findings",
+    "format_profile",
     "format_surfaces",
     "format_outcome",
     "format_report",
@@ -746,6 +748,39 @@ def format_surfaces(analysis: LeanAnalysis) -> str:
     )
 
 
+def format_profile(analysis: LeanAnalysis) -> str:
+    """The session's languages and, when grounded, its stack (TER-STK-001,
+    TER-STK-002); empty when it named no file and has no stack."""
+    p = analysis.profile
+    parts = [
+        f"{u.language} {u.edits} edit(s)/{u.reads} read(s)" for u in p.languages[:4]
+    ]
+    if len(p.languages) > 4:
+        parts.append(f"{len(p.languages) - 4} more")
+    if p.unrecognised:
+        parts.append(f"{sum(n for _, n in p.unrecognised)} unrecognised")
+    lines: list[str] = []
+    if parts:
+        lines.append(
+            f"  languages        {', '.join(parts)}"
+            + (
+                ""
+                if p.dominant is None
+                else f" · dominant {p.dominant} (by {p.dominant_basis})"
+            )
+        )
+    if p.stack is not None:
+        facts = ", ".join(
+            f.name for f in p.stack.facts if f.kind is not StackKind.ECOSYSTEM
+        )
+        lines.append(
+            f"  stack            {stack_label(p.stack)}"
+            + (f" · {facts}" if facts else "")
+            + f" · {len(p.stack.manifests)} manifest(s)"
+        )
+    return "\n".join(lines)
+
+
 def format_findings(
     analysis: LeanAnalysis, sve: SoftwareValueEfficiency | None = None
 ) -> str:
@@ -788,6 +823,9 @@ def format_findings(
             + ", ".join(f"{k.value} {n}" for k, n in wip.peak_by_kind)
             + f"), {0 if final is None else final.total} open at the end"
         )
+    profile = format_profile(analysis)
+    if profile:
+        lines.append(profile)
     if analysis.repository is not None:
         lines.append(format_surfaces(analysis))
     lines.append(

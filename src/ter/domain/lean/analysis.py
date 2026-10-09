@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 from typing import Protocol
 
 from ..events import Event, EventId, EventKind, ToolKind
+from ..stack import FileTouch, SessionProfile, languages_of
 from .detectors import (
     DEFAULT_REGISTRY,
     DetectorRegistry,
@@ -69,6 +70,7 @@ __all__ = [
     "TerMeasure",
     "analyse_steps",
     "explain",
+    "session_profile",
 ]
 
 #: Key for tokens a finding below the confidence threshold may claim.
@@ -248,6 +250,9 @@ class LeanAnalysis:
     repository: RepositoryGrounding | None = None
     #: The expected change surface of each task that edits (TER-EVD-006).
     surfaces: tuple[ChangeSurface, ...] = ()
+    #: The languages the session read and edited and, with repository
+    #: evidence, its repository's stack (TER-STK-001, TER-STK-002).
+    profile: SessionProfile = field(default_factory=SessionProfile)
 
     @property
     def waste_findings(self) -> tuple[Finding, ...]:
@@ -303,6 +308,7 @@ class LeanAnalysis:
             ],
             "intent": self.intent.as_dict([f.id for f in self.drift_findings]),
             "exploration": [e.as_dict() for e in self.exploration],
+            "profile": self.profile.as_dict(),
         }
         if self.repository is not None:
             # Only a grounded (L3) analysis has these; an L2 one is unchanged.
@@ -623,6 +629,21 @@ def analyse_steps(
         exploration=exploration_labels(view),
         repository=repository,
         surfaces=change_surfaces(view),
+        profile=session_profile(steps),
+    )
+
+
+_FILE_TOOLS = frozenset({ToolKind.FS_READ, ToolKind.FS_EDIT, ToolKind.FS_WRITE})
+
+
+def session_profile(steps: Iterable[Step]) -> SessionProfile:
+    """The languages of the files a session's file tool requests name
+    (TER-STK-001): a summary of the folded steps, so live and batch agree."""
+    return languages_of(
+        FileTouch(step.event_id, step.tool_kind is not ToolKind.FS_READ, path)
+        for step in steps
+        if step.kind is EventKind.TOOL_REQUESTED and step.tool_kind in _FILE_TOOLS
+        for path in step.paths
     )
 
 

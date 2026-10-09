@@ -109,6 +109,8 @@ class A3Report:
                 "intents": list(self.intents),
                 "events": a.events,
                 "intent": a.intent.as_dict([f.id for f in a.drift_findings]),
+                # Languages and stack (TER-STK-001, TER-STK-002).
+                "profile": a.profile.as_dict(),
             },
             "problem": self.problem,
             "current_state": {"value_stream": [s.as_dict() for s in a.value_stream]},

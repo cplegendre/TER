@@ -820,10 +820,12 @@ points:
       - >-
         Intent analysis takes repository evidence as an input through the
         RepositoryEvidence port.
-    rules: [TER-EVD-001]
+    rules: [TER-EVD-001, TER-STK-001, TER-STK-002]
     verification:
       - 'test: tests/contract/test_repository_evidence.py'
       - 'test: tests/architecture/test_repository_evidence_boundary.py'
+      - 'test: tests/unit/test_ter4_stack.py::TestLanguages'
+      - 'test: tests/unit/test_ter4_stack.py::TestManifests'
       - 'planned: intent analysis takes repository evidence through the port (TER-ITN-006, TER-LEN-009, L3)'
 
   - id: P052
@@ -855,10 +857,11 @@ points:
       - >-
         TGV-style repository intelligence is available as a
         RepositoryEvidence adapter.
-    rules: [TER-EVD-001]
+    rules: [TER-EVD-001, TER-STK-002]
     verification:
       - 'test: tests/contract/test_repository_evidence.py'
       - 'test: tests/unit/test_ter4_repository_evidence.py::TestRepositoryEnginesArePlugins'
+      - 'test: tests/unit/test_ter4_stack.py::TestManifests'
       - 'planned: a TGV-style repository intelligence engine behind the RepositoryEvidence port (lexical, Git and Python syntax engines exist)'
 
   - id: P054
@@ -2737,9 +2740,10 @@ points:
     real_data: true
     definition_of_done:
       - A versioned value stream dataset with a data card is published.
-    rules: [TER-RSH-001, TER-GRF-003, TER-SRC-023]
+    rules: [TER-RSH-001, TER-GRF-003, TER-SRC-023, TER-STK-001]
     verification:
       - 'test: tests/unit/test_ter4_corpus.py::test_labels_are_joined_by_session_id'
+      - 'test: tests/unit/test_ter4_stack.py::TestLanguages'
       - 'planned: a published data card (template: docs/ter4/dataset-card.md)'
       - 'planned: passing tests tagged req for TER-RSH-001, TER-GRF-003'
       - 'planned: real-data verification in issue #34'
@@ -2750,15 +2754,18 @@ points:
       inefficiency in agentic development.
     level: L6
     kind: research
-    status: not-started
+    status: partial
     issue: 44
     real_data: true
     definition_of_done:
       - >-
         A study reports whether each classical Lean waste predicts
         inefficiency.
-    rules: [TER-RSH-002, TER-EXP-010]
+    rules: [TER-RSH-002, TER-EXP-010, TER-STK-010, TER-STK-011]
     verification:
+      - 'test: tests/unit/test_ter4_stack_comparison.py::TestStratification'
+      - 'test: tests/unit/test_ter4_stack_comparison.py::TestInsufficientStrata'
+      - 'planned: scripts/corpus_by_stack.py over a corpus with five or more sessions per stack, task category and outcome'
       - 'planned: passing tests tagged req for TER-RSH-002, TER-EXP-010'
       - 'planned: real-data verification in issue #44'
 
@@ -2804,13 +2811,16 @@ points:
       outcome quality.
     level: L6
     kind: research
-    status: not-started
+    status: partial
     issue: 44
     real_data: true
     definition_of_done:
       - A study reports the relationship between TER and outcome quality.
-    rules: [TER-RSH-001, TER-EXP-010]
+    rules: [TER-RSH-001, TER-EXP-010, TER-STK-010, TER-STK-011]
     verification:
+      - 'test: tests/unit/test_ter4_stack_comparison.py::TestStratification'
+      - 'test: tests/unit/test_ter4_stack_comparison.py::TestInsufficientStrata'
+      - 'planned: token use by language and stack, stratified by outcome, on a corpus beyond one owner''s 52 sessions'
       - 'planned: passing tests tagged req for TER-RSH-001, TER-EXP-010'
       - 'planned: real-data verification in issue #44'
 

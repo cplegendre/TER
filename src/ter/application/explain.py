@@ -7,7 +7,7 @@ afterwards and one explained while it runs agree.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from ..domain.events import EventKind, SessionTrace
@@ -29,6 +29,7 @@ from ..ports.driven import (
 )
 from .ground import ground_session
 from .observe import IngestFactory, fresh_ingest, ingest_all
+from .stack import read_stack
 
 __all__ = ["ExplainSession", "ExplainedSession"]
 
@@ -57,8 +58,10 @@ class ExplainSession:
     With repository evidence (L3: the repository as it was when the session
     started), the analysis is grounded on it: every task's expected change
     surface, edits outside it, and, with a contracts reader, imports that
-    break the repository's declared architecture contracts. Without it the
-    explanation is exactly the L2 one.
+    break the repository's declared architecture contracts, and the stack
+    its manifests declare (TER-STK-002). Without it the explanation is
+    exactly the L2 one; the session's languages come from file names either
+    way (TER-STK-001).
     """
 
     def __init__(
@@ -105,6 +108,13 @@ class ExplainSession:
             if grounding is None
             else ingest.explain(trace.session_id, ter=ter, repository=grounding)
         )
+        if self._repository is not None:
+            # The stack is a fact about the repository, not about events:
+            # joined to the folded profile once, after the analysis (L3).
+            analysis = replace(
+                analysis,
+                profile=replace(analysis.profile, stack=read_stack(self._repository)),
+            )
         verdict = self._judge(outcome_ref, contract)
         intents = tuple(e.text for e in trace.events if e.kind is EventKind.PROMPT)
         return ExplainedSession(
