@@ -93,8 +93,11 @@ requirements:
     source_points: [115, 117]
     rationale: >-
       Issue #35: task completion must be observable live and correlate with
-      the recorded session.
-    status: planned
+      the recorded session. Verified on real data: on 9 October 2026 the
+      hooks check over two real Claude Code sessions on Windows matched 10
+      of 10 real Stop payloads to the session source's task.completed id
+      (tests/fixtures/hooks/real-check-2026-10-09.md).
+    status: verified
 
   - id: TER-OBS-006
     pattern: event-driven
@@ -120,7 +123,13 @@ requirements:
     source_points: [117, 118]
     rationale: >-
       Stable identities across live and recorded observation let the two be
-      correlated and deduplicated.
+      correlated and deduplicated. The real hooks check of 9 October 2026
+      matched every prompt, tool request, tool completion and stop (87 of 94
+      events); the 7 misses were SubagentStop events, which the session
+      source did not derive then. It now derives subagent.completed from
+      each finished subagent's transcript with the hook's id, so this waits
+      on one re-run of the hooks check on sessions with subagents
+      (tests/fixtures/hooks/real-check-2026-10-09.md).
     status: planned
 
   - id: TER-OBS-008
@@ -145,7 +154,7 @@ requirements:
     source_points: [115]
     rationale: >-
       Issue #35: the end of a task is observable live. Correlating it with
-      the recorded session (TER-OBS-005) waits on real payloads.
+      the recorded session is TER-OBS-005.
     status: verified
 
   - id: TER-OBS-010

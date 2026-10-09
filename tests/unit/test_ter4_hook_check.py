@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -19,6 +20,7 @@ import pytest
 from ter.adapters.claude_code_ids import (
     prompt_event_id,
     record_event_id,
+    subagent_event_id,
     tool_event_id,
 )
 from ter.adapters.claude_code_turns import (
@@ -32,6 +34,7 @@ from ter.adapters.claude_code_turns import (
     transcript_turn,
 )
 from ter.adapters.driven.claude_code import ClaudeCodeJsonlSource
+from ter.adapters.driven.claude_code.redaction import RedactionPolicy, Redactor
 from ter.adapters.driven.in_memory import FixedClock, InMemoryEventLog
 from ter.adapters.driven.tokenizers import RegexTokenizer
 from ter.adapters.driving.claude_hooks import (
@@ -508,9 +511,11 @@ class TestHookCheck:
         [session] = run_check(tmp_path).sessions
         by_kind = {c.kind: dict(c.reasons) for c in session.correlation}
         assert by_kind["task.completed"] == {Reason.STOP_NOT_RECORDED: 1}
-        assert by_kind["subagent.completed"] == {Reason.KIND_NOT_DERIVED: 1}
+        # The fixture SubagentStop names no agent: it cannot correlate.
+        assert by_kind["subagent.completed"] == {Reason.SUBAGENT_UNKEYED: 1}
         notes = " ".join(session.notes)
         assert "no task.completed" in notes and "no subagent.completed" in notes
+        assert "no <session>/subagents folder" in notes
 
     def test_empty_recordings_check_nothing(self, tmp_path: Path) -> None:
         (tmp_path / "rec").mkdir()
@@ -920,3 +925,304 @@ class TestSharedIdRules:
         assert prompt.provenance.record_id.startswith("prompt:")
         [stop] = derive(fixture("stop"), T0, turns=broken).events
         assert not stop.provenance.record_id.startswith("stop:turn:")
+
+
+# --- subagents: SubagentStop against the subagent's transcript (TER-OBS-007) ---
+
+AGENT = "a1b2c3d4e5f6a7b8c"
+
+
+def subagent_file(tmp_path: Path, agent: str = AGENT) -> Path:
+    """Where Claude Code writes a subagent's transcript."""
+    folder = transcript_file(tmp_path).with_suffix("") / "subagents"
+    return folder / f"agent-{agent}.jsonl"
+
+
+def subagent_run(
+    tmp_path: Path,
+    agent: str = AGENT,
+    *,
+    finished: bool = True,
+    agent_type: str | None = "general-purpose",
+) -> Path:
+    """A subagent's own transcript: an instruction, a Read, and (when
+    ``finished``) an answer that ends its turn. Unfinished, it stops after
+    the tool result, as a subagent still running when copied does."""
+    run = Transcript()
+    run.prompt(10, "SECRET-INSTRUCTION read the parser")
+    run.tool_use(11, call_id="toolu_sub_read")
+    run.tool_result(12, call_id="toolu_sub_read")
+    if finished:
+        run.answer(14)
+    for record in run.records:
+        record["agentId"] = agent
+        record["isSidechain"] = True
+    path = run.write(subagent_file(tmp_path, agent))
+    if agent_type is not None:
+        path.with_name(f"agent-{agent}.meta.json").write_text(
+            json.dumps({"agentType": agent_type, "description": "SECRET-DESC"}),
+            encoding="utf-8",
+        )
+    return path
+
+
+def notification(agent: str, status: str = "completed") -> dict[str, Any]:
+    """A background agent's notification, as Claude Code 2.1 queues it."""
+    return {
+        "type": "queued_command",
+        "commandMode": "task-notification",
+        "prompt": (
+            "<task-notification>\n"
+            f"<task-id>{agent}</task-id>\n<tool-use-id>toolu_agent</tool-use-id>\n"
+            f"<status>{status}</status>\n<summary>SECRET-SUMMARY</summary>\n"
+            "</task-notification>"
+        ),
+        "origin": {"kind": "task-notification"},
+    }
+
+
+def parent_with_agent(
+    transcript: Transcript,
+    *,
+    notify: tuple[float, ...] = (),
+    status: str = "completed",
+) -> None:
+    """A parent turn that starts a subagent (an Agent call) and answers after it.
+
+    ``notify`` adds a background agent's notification at each time.
+    """
+    transcript.prompt(0)
+    transcript.tool_use(2, call_id="toolu_agent")
+    transcript.tool_result(3, call_id="toolu_agent")
+    for seconds in notify:
+        transcript._add(
+            {
+                "type": "attachment",
+                "timestamp": stamp(seconds),
+                "attachment": notification(AGENT, status),
+            }
+        )
+    transcript.answer(20)
+
+
+def subagents_of(trace: SessionTrace) -> list[Any]:
+    return [e for e in trace.events if e.kind is EventKind.SUBAGENT_COMPLETED]
+
+
+def subagent_stop_id(agent: str, seconds: float = 15) -> str:
+    payload = fixture("subagent_stop") | {
+        "agent_id": agent,
+        "agent_type": "general-purpose",
+    }
+    [event] = translate(payload, received_at=at(seconds)).events
+    return event.id
+
+
+@pytest.mark.req("TER-OBS-007")
+class TestSubagentRule:
+    def test_a_finished_subagent_gets_the_subagent_stop_hooks_id(
+        self, tmp_path: Path
+    ) -> None:
+        transcript = Transcript()
+        parent_with_agent(transcript)
+        path = transcript.write(transcript_file(tmp_path))
+        bare = read_source(transcript.write(tmp_path / "bare.jsonl"))
+        subagent_run(tmp_path)
+
+        trace = read_source(path)
+        [sub] = subagents_of(trace)
+        assert sub.id == subagent_event_id(SESSION, AGENT) == subagent_stop_id(AGENT)
+        assert sub.text == "general-purpose"  # as SubagentStop's agent_type
+        # The final-turn marker: the subagent's answer, cited in its own file.
+        assert sub.timestamp == at(14)
+        assert sub.provenance.source == f"subagents/agent-{AGENT}.jsonl"
+        assert sub.provenance.lines == (4,)
+        # Placed by time: after the parent's tool result, before its answer;
+        # every other event is as without the subagent.
+        assert trace.events[-2] is sub
+        others = [e.id for e in trace.events if e is not sub]
+        assert others == [e.id for e in bare.events]
+        assert [e.sequence for e in trace.events] == list(range(len(trace.events)))
+        assert trace.events[-1].parent_id == sub.id
+        assert sub.parent_id == trace.events[-3].id
+
+    def test_a_session_without_a_subagents_folder_is_unchanged(
+        self, tmp_path: Path
+    ) -> None:
+        transcript = Transcript()
+        parent_with_agent(transcript, notify=(15,))
+        path = transcript.write(transcript_file(tmp_path))
+        before = read_source(path)
+        assert subagents_of(before) == []
+        # An empty folder, or another session's subagents, change nothing.
+        subagent_file(tmp_path).parent.mkdir(parents=True)
+        other = transcript_file(tmp_path, "other-session").with_suffix("")
+        (other / "subagents").mkdir(parents=True)
+        run = subagent_run(tmp_path)
+        run.rename(other / "subagents" / run.name)
+        assert read_source(path).events == before.events
+
+    def test_a_subagent_without_a_finish_marker_derives_nothing(
+        self, tmp_path: Path
+    ) -> None:
+        transcript = Transcript()
+        parent_with_agent(transcript)
+        path = transcript.write(transcript_file(tmp_path))
+        subagent_run(tmp_path, finished=False)
+        assert subagents_of(read_source(path)) == []
+
+        # A turn that ended, then was resumed with a new instruction.
+        resumed = subagent_run(tmp_path)
+        with resumed.open("a", encoding="utf-8") as handle:
+            record = {
+                "type": "user",
+                "uuid": "resume-1",
+                "agentId": AGENT,
+                "timestamp": stamp(16),
+                "message": {"role": "user", "content": "keep going"},
+            }
+            handle.write(json.dumps(record) + "\n")
+        assert subagents_of(read_source(path)) == []
+
+    def test_a_background_subagent_is_finished_by_its_notification(
+        self, tmp_path: Path
+    ) -> None:
+        transcript = Transcript()
+        # Resumed once: notified twice; one event, at the last notification.
+        parent_with_agent(transcript, notify=(15, 18))
+        path = transcript.write(transcript_file(tmp_path))
+        subagent_run(tmp_path, finished=False, agent_type=None)
+
+        [sub] = subagents_of(read_source(path))
+        assert sub.id == subagent_stop_id(AGENT)
+        assert sub.timestamp == at(18)
+        assert sub.provenance.source == path.name and sub.text == ""
+
+        # Another status is no finish.
+        transcript = Transcript()
+        parent_with_agent(transcript, notify=(15,), status="running")
+        assert subagents_of(read_source(transcript.write(path))) == []
+
+    def test_a_foreground_agent_result_finishes_its_subagent(
+        self, tmp_path: Path
+    ) -> None:
+        transcript = Transcript()
+        parent_with_agent(transcript)
+        transcript.records[2]["toolUseResult"] = {
+            "status": "completed",
+            "agentId": AGENT,
+            "content": [{"type": "text", "text": "SECRET-OUTPUT"}],
+        }
+        path = transcript.write(transcript_file(tmp_path))
+        subagent_run(tmp_path, finished=False)
+
+        [sub] = subagents_of(read_source(path))
+        assert sub.id == subagent_stop_id(AGENT)
+        assert sub.timestamp == at(3) and sub.provenance.lines == (3,)
+
+    def test_a_parent_marker_without_a_subagent_file_derives_nothing(
+        self, tmp_path: Path
+    ) -> None:
+        # Claude Code releases that write no subagent files read as before.
+        transcript = Transcript()
+        parent_with_agent(transcript, notify=(15,))
+        transcript.records[2]["toolUseResult"] = {
+            "status": "completed",
+            "agentId": AGENT,
+        }
+        path = transcript.write(transcript_file(tmp_path))
+        assert subagents_of(read_source(path)) == []
+
+    def test_a_redacted_session_derives_the_same_subagent_ids(
+        self, tmp_path: Path
+    ) -> None:
+        transcript = Transcript()
+        parent_with_agent(transcript, notify=(15,))
+        path = transcript.write(transcript_file(tmp_path))
+        files = [
+            path,
+            subagent_run(tmp_path, finished=False),  # the notification marks it
+            subagent_run(tmp_path, "f00dfeedf00dfeed1"),  # its final turn does
+        ]
+        raw = [e.id for e in subagents_of(read_source(path))]
+        assert len(raw) == 2
+
+        redacted = tmp_path / "redacted"
+        for source in files:
+            records = [json.loads(line) for line in source.read_text().splitlines()]
+            clean = Redactor(RedactionPolicy(salt="s")).redact_session(records)
+            Transcript(records=clean).write(redacted / source.relative_to(path.parent))
+        assert [e.id for e in subagents_of(read_source(redacted / path.name))] == raw
+
+    def test_the_hooks_check_matches_a_subagent_stop(self, tmp_path: Path) -> None:
+        transcript = Transcript()
+        parent_with_agent(transcript)
+        transcript.write(transcript_file(tmp_path))
+        subagent_run(tmp_path)
+        subagent_run(tmp_path, "0123456789abcdef0", finished=False)
+        recorder = Recorder(tmp_path / "rec")
+        recorder.record("subagent_stop", 14.1, agent_id=AGENT)
+        recorder.record("subagent_stop", 14.2, agent_id=AGENT)  # resumed: one id
+        recorder.record("subagent_stop", 15, agent_id="0123456789abcdef0")
+        recorder.record("subagent_stop", 16, agent_id="feedfeedfeedfeed0")
+        recorder.record("subagent_stop", 17)  # no agent_id: the fallback key
+
+        [session] = run_check(tmp_path).sessions
+        [sub] = session.correlation
+        assert sub.kind == "subagent.completed"
+        assert sub.matched == (subagent_event_id(SESSION, AGENT),)
+        assert dict(sub.reasons) == {
+            Reason.SUBAGENT_NOT_FINISHED: 1,
+            Reason.SUBAGENT_NO_TRANSCRIPT: 1,
+            Reason.SUBAGENT_UNKEYED: 1,
+        }
+        assert sub.source_only == 0
+        assert not any("subagent.completed" in note for note in session.notes)
+
+    def test_the_hooks_check_notes_subagents_without_a_finish(
+        self, tmp_path: Path
+    ) -> None:
+        transcript = Transcript()
+        parent_with_agent(transcript)
+        transcript.write(transcript_file(tmp_path))
+        subagent_run(tmp_path, finished=False)
+        Recorder(tmp_path / "rec").record("subagent_stop", 15, agent_id=AGENT)
+
+        [session] = run_check(tmp_path).sessions
+        [sub] = session.correlation
+        assert dict(sub.reasons) == {Reason.SUBAGENT_NOT_FINISHED: 1}
+        notes = " ".join(session.notes)
+        assert "no subagent transcript holds a finish marker" in notes
+
+
+# --- the owner's real run (issue #35) --------------------------------------------
+
+REAL_CHECK = FIXTURES / "real-check-2026-10-09.md"
+
+
+@pytest.mark.req("TER-OBS-005", "TER-OBS-012")
+def test_the_real_hooks_check_summary_records_every_stop_matched() -> None:
+    """The real evidence for TER-OBS-005: 10 of 10 real Stop payloads matched.
+
+    The summary is hand-copied from the owner's report; this test keeps its
+    arithmetic honest and its content free of anything the report omits.
+    """
+    text = REAL_CHECK.read_text(encoding="utf-8")
+    rows = {
+        match[0]: (int(match[1]), int(match[2]))
+        for match in re.findall(r"^\| `([a-z.]+)` \| (\d+) \| (\d+) \|", text, re.M)
+    }
+    assert rows == {
+        "intent.stated": (11, 0),
+        "tool.requested": (34, 0),
+        "tool.completed": (32, 0),
+        "task.completed": (10, 0),
+        "subagent.completed": (0, 7),
+    }
+    matched = sum(m for m, _ in rows.values())
+    total = sum(m + u for m, u in rows.values())
+    assert (matched, total) == (87, 94)
+    assert f"{matched} of {total} hook events ({matched / total:.1%})" in text
+    assert "10 of 10 real Stop payloads" in text
+    # Content-free: no event id (16+ hex digits), path or session id.
+    assert not re.search(r"[0-9a-f]{16}|[A-Za-z]:\\|/home/|/Users/", text)

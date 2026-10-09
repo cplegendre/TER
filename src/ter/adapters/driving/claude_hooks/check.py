@@ -10,7 +10,11 @@ source, and reports how the two event streams correlate:
   or a hook that fell back to its own key (no ``tool_use_id``; a prompt whose
   record was not written yet; a stop with no turn);
 * for every Stop payload, whether its ``task.completed`` id equals the id the
-  session source derives for the same stop (TER-OBS-005).
+  session source derives for the same stop (TER-OBS-005);
+* for every SubagentStop, whether the session source derived the same
+  ``subagent.completed`` from the subagent's transcript
+  (``<session>/subagents/agent-<agent_id>.jsonl``), and if not, whether the
+  payload had no ``agent_id``, the file is missing or it shows no finish.
 
 The report is content-free: counts, event ids (hashes), hook names, payload
 field names and fixed reason strings. It never holds a prompt, a tool input
@@ -28,6 +32,8 @@ from pathlib import Path
 from typing import Any
 
 from ....domain.events import Event, EventKind, SessionTrace
+from ...claude_code_ids import subagent_event_id
+from ...claude_code_subagents import subagent_transcripts
 from ...claude_code_turns import (
     PromptRecord,
     last_turn,
@@ -85,6 +91,14 @@ class Reason:
         "hook stop keyed by receive time: no transcript turn was found at the stop"
     )
     STOP_NOT_RECORDED = "the transcript records no stop for the turn the hook saw"
+    SUBAGENT_UNKEYED = "hook subagent stop has no agent_id: keyed by receive time"
+    SUBAGENT_NO_TRANSCRIPT = (
+        "no subagent transcript for the hook's agent_id under <session>/subagents"
+    )
+    SUBAGENT_NOT_FINISHED = (
+        "the subagent's transcript holds no finish marker (still running when"
+        " copied, or a finish the session source does not recognise)"
+    )
 
 
 @dataclass(frozen=True)
@@ -229,6 +243,8 @@ class _Transcript:
     trace: SessionTrace | None = None
     records: list[Mapping[str, Any]] = field(default_factory=list)
     stop_turns: set[str] = field(default_factory=set)
+    #: Agent ids with a transcript under ``<session>/subagents``.
+    agents: set[str] = field(default_factory=set)
 
 
 def _check_session(
@@ -293,14 +309,15 @@ def _check_session(
     if transcript.trace is not None:
         for kind in (EventKind.TASK_COMPLETED, EventKind.SUBAGENT_COMPLETED):
             if not any(e.kind is kind for e in source):
+                if kind is EventKind.TASK_COMPLETED:
+                    why = "it has no stop_hook_summary records"
+                elif transcript.agents:
+                    why = "no subagent transcript holds a finish marker"
+                else:
+                    why = "it has no <session>/subagents folder beside it"
                 notes.append(
                     f"the session source derived no {kind.value} events from this "
-                    "transcript"
-                    + (
-                        " (it has no stop_hook_summary records)"
-                        if kind is EventKind.TASK_COMPLETED
-                        else " (it does not derive them from transcripts)"
-                    )
+                    f"transcript ({why})"
                 )
     return SessionCheck(
         session_id=session_id,
@@ -342,7 +359,13 @@ def _load(
         # The type only: a parser's message can quote the record.
         return _Transcript(how, f"{Reason.UNREADABLE}: {type(error).__name__}")
     stop_turns = {turn for _, _, turn in stop_records(enumerate(records, 1))}
-    return _Transcript(how, trace=trace, records=records, stop_turns=stop_turns)
+    return _Transcript(
+        how,
+        trace=trace,
+        records=records,
+        stop_turns=stop_turns,
+        agents=set(subagent_transcripts(path)),
+    )
 
 
 def _correlate(
@@ -390,6 +413,13 @@ def _reason(
             return Reason.STOP_UNKEYED
         if turn not in transcript.stop_turns:
             return Reason.STOP_NOT_RECORDED
+    if event.kind is EventKind.SUBAGENT_COMPLETED:
+        agent = _hook_agent(event)
+        if agent is None:
+            return Reason.SUBAGENT_UNKEYED
+        if agent not in transcript.agents:
+            return Reason.SUBAGENT_NO_TRANSCRIPT
+        return Reason.SUBAGENT_NOT_FINISHED
     if not theirs:
         return Reason.KIND_NOT_DERIVED
     if event.tool is not None and event.tool.call_id in calls:
@@ -440,6 +470,17 @@ def _hook_turn(event: Event) -> str | None:
     prefix = "stop:turn:"
     record = event.provenance.record_id
     return record[len(prefix) :] if record.startswith(prefix) else None
+
+
+def _hook_agent(event: Event) -> str | None:
+    """The agent id a SubagentStop event is keyed by, or ``None`` when the
+    payload named no agent (the receive-time fallback)."""
+    prefix = "subagent:"
+    record = event.provenance.record_id
+    if not record.startswith(prefix) or record.startswith(prefix + "received"):
+        return None
+    agent = record[len(prefix) :]
+    return agent if event.id == subagent_event_id(event.session_id, agent) else None
 
 
 def _counts(events: Iterable[Event]) -> tuple[tuple[str, int], ...]:

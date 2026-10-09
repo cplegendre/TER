@@ -10,8 +10,10 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, replace
-from datetime import datetime
+from collections.abc import Mapping
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 from ter_calculator.loader import load_session
 from ter_calculator.models import ContentBlock, Message
@@ -35,7 +37,15 @@ from ...claude_code_ids import (
     queued_prompt_text,
     record_event_id,
     stop_event_id,
+    subagent_event_id,
     tool_event_id,
+)
+from ...claude_code_subagents import (
+    SUBAGENTS_DIR,
+    FinishMarker,
+    final_turn,
+    parent_finishes,
+    subagent_transcripts,
 )
 from ...claude_code_tools import tool_kind
 from ...claude_code_turns import read_records, record_time, stop_records
@@ -90,7 +100,7 @@ class ClaudeCodeJsonlSource:
     Event ids follow the shared rules in :mod:`ter.adapters.claude_code_ids`,
     so the hook adapter derives the same id for the same record (TER-OBS-007):
     tool requests and completions by ``tool_use_id``, everything else by
-    record uuid and block index.
+    record uuid and block index; a finished subagent by its agent id.
     """
 
     format_name = "claude-code-jsonl"
@@ -184,7 +194,12 @@ class ClaudeCodeJsonlSource:
         return SessionTrace(
             session_id=session.session_id,
             source_format=self.format_name,
-            events=_with_stops(path, session.session_id, source, events),
+            events=_with_subagents(
+                path,
+                session.session_id,
+                source,
+                _with_stops(path, session.session_id, source, events),
+            ),
             unrecognised=scan.unrecognised,
             metadata=scan.metadata,
         )
@@ -422,9 +437,108 @@ def _with_stops(
     while stop is not None:
         merged.append(stop)
         stop = next(pending, None)
+    return _chained(merged)
+
+
+def _chained(events: list[Event]) -> tuple[Event, ...]:
+    """``events`` renumbered in order, each pointing at the one before."""
     chained: list[Event] = []
     previous: EventId | None = None
-    for sequence, event in enumerate(merged):
+    for sequence, event in enumerate(events):
         chained.append(replace(event, sequence=sequence, parent_id=previous))
         previous = event.id
     return tuple(chained)
+
+
+def _numbered(path: Path) -> list[tuple[int, Mapping[str, Any]]]:
+    with open(path, encoding="utf-8") as handle:
+        return [
+            (line_number, record)
+            for line_number, line in enumerate(handle, 1)
+            for record in read_records((line,))
+        ]
+
+
+def _with_subagents(
+    path: Path, session_id: str, source: str, events: tuple[Event, ...]
+) -> tuple[Event, ...]:
+    """``events`` with a ``subagent.completed`` for each finished subagent.
+
+    A subagent is one ``<session>/subagents/agent-<id>.jsonl`` file; it is
+    finished when the parent or its own transcript holds a finish marker
+    (:mod:`ter.adapters.claude_code_subagents`). Its id is the one the
+    SubagentStop hook gives the same agent (TER-OBS-007), one per agent
+    however often it was resumed. The event takes the latest marker's time
+    and goes after every event stamped no later than that; it cites the
+    marker's record. A transcript without a subagents folder is unchanged.
+    """
+    agents = subagent_transcripts(path)
+    if not agents:
+        return events
+    in_parent = parent_finishes(_numbered(path))
+    found: list[tuple[datetime | None, str, Event]] = []
+    for agent_id, agent_path in agents.items():
+        markers: list[tuple[FinishMarker, str]] = [
+            (m, source) for m in in_parent.get(agent_id, [])
+        ]
+        own = final_turn(_numbered(agent_path))
+        if own is not None:
+            markers.append((own, f"{SUBAGENTS_DIR}/{agent_path.name}"))
+        if not markers:
+            continue  # still running, or stopped without a trace: no event
+        marker, cited = max(markers, key=lambda pair: _sort_time(pair[0].timestamp))
+        found.append(
+            (
+                marker.timestamp,
+                agent_id,
+                Event(
+                    id=subagent_event_id(session_id, agent_id),
+                    session_id=session_id,
+                    sequence=0,
+                    kind=EventKind.SUBAGENT_COMPLETED,
+                    actor=Actor.SYSTEM,
+                    text=_agent_type(agent_path),
+                    provenance=Provenance(
+                        source=cited,
+                        record_id=marker.record_id or f"subagent:{agent_id}",
+                        lines=(marker.line,),
+                    ),
+                    timestamp=marker.timestamp,
+                ),
+            )
+        )
+    if not found:
+        return events
+    found.sort(key=lambda item: (_sort_time(item[0]), item[1]))
+    merged: list[Event] = []
+    pending = [event for _, _, event in found]
+    for event in events:
+        # An event without a time keeps its place; untimed subagents go last.
+        while (
+            pending
+            and pending[0].timestamp is not None
+            and event.timestamp is not None
+            and _sort_time(pending[0].timestamp) < _sort_time(event.timestamp)
+        ):
+            merged.append(pending.pop(0))
+        merged.append(event)
+    merged.extend(pending)
+    return _chained(merged)
+
+
+def _sort_time(moment: datetime | None) -> tuple[int, datetime]:
+    # Untimed sorts after timed; datetime.max keeps the tuple comparable.
+    if moment is None:
+        return (1, datetime.max.replace(tzinfo=UTC))
+    return (0, moment if moment.tzinfo is not None else moment.replace(tzinfo=UTC))
+
+
+def _agent_type(agent_path: Path) -> str:
+    """The subagent's type from its ``.meta.json`` (as SubagentStop's
+    ``agent_type``), or ``""``. The corpus importer copies no meta files."""
+    meta = agent_path.with_name(agent_path.stem + ".meta.json")
+    try:
+        value = json.loads(meta.read_text(encoding="utf-8")).get("agentType")
+    except (OSError, ValueError, AttributeError):
+        return ""
+    return value if isinstance(value, str) else ""

@@ -12,7 +12,8 @@ Hook                      Events
 ``PreToolUse``            ``tool.requested`` (assistant), keyed by tool_use_id
 ``PostToolUse``           ``tool.requested`` and ``tool.completed`` (tool)
 ``Stop``                  ``task.completed`` (system), keyed by the turn it closes
-``SubagentStop``          ``subagent.completed`` (system), in the parent session
+``SubagentStop``          ``subagent.completed`` (system), in the parent session,
+                          keyed by ``agent_id``
 ``SessionStart`` etc.     none: lifecycle only, reported as ``lifecycle``
 anything else             none: reported as ``ignored`` with a reason
 ========================  ==================================================
@@ -24,7 +25,8 @@ where both hooks run the second copy is discarded as a duplicate.
 Ids follow the rules the session source uses for the same records
 (:mod:`ter.adapters.claude_code_ids`, TER-OBS-007): tool events by session,
 ``tool_use_id`` and kind; a prompt by the uuid of its transcript record, when
-the caller found it (``prompt_at``); a stop by the turn it closes (``turn``).
+the caller found it (``prompt_at``); a stop by the turn it closes (``turn``);
+a subagent stop by the payload's ``agent_id``.
 Without those keys each falls back to a hook-only key that cannot correlate.
 """
 
@@ -48,7 +50,12 @@ from ....domain.events import (
     ToolCall,
     make_event_id,
 )
-from ...claude_code_ids import prompt_event_id, stop_event_id, tool_event_id
+from ...claude_code_ids import (
+    prompt_event_id,
+    stop_event_id,
+    subagent_event_id,
+    tool_event_id,
+)
 from ...claude_code_tools import tool_kind
 from ...claude_code_turns import PromptRecord
 
@@ -259,23 +266,27 @@ def _subagent_stop(
     # no clock to be told apart from another subagent's. Without it, parallel
     # subagents can finish within one second, so the full receive time keys
     # the stop: a lost subagent costs more than a rare double delivery.
+    # The named form is the shared rule (TER-OBS-007): the session source
+    # derives the same id from the subagent's transcript file.
     agent_id = payload.get("agent_id")
     agent_type = payload.get("agent_type")
-    parts: tuple[str, ...]
     if isinstance(agent_id, str) and agent_id:
-        parts = (agent_id,)
-    elif received_at is not None:
-        parts = (received_at.isoformat(),)
+        event_id = subagent_event_id(session_id, agent_id)
+        record = f"subagent:{agent_id}"
     else:
-        parts = ()
+        # The receive-time key; the record id says so, as the hooks check
+        # reports these as unkeyed.
+        when = (received_at.isoformat(),) if received_at is not None else ()
+        event_id = make_event_id(_SOURCE, session_id, "SubagentStop", *when)
+        record = ":".join(("subagent", "received", *when))
     return Event(
-        id=make_event_id(_SOURCE, session_id, "SubagentStop", *parts),
+        id=event_id,
         session_id=session_id,
         sequence=0,
         kind=EventKind.SUBAGENT_COMPLETED,
         actor=Actor.SYSTEM,
         text=agent_type if isinstance(agent_type, str) else "",
-        provenance=Provenance(source, ":".join(("subagent", *parts))),
+        provenance=Provenance(source, record),
         timestamp=received_at,
     )
 

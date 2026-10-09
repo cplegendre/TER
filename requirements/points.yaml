@@ -1763,9 +1763,12 @@ points:
       Capture task completion events.
     level: L1
     kind: capability
-    status: partial
+    status: done
+    # Real hooks check of 9 Oct 2026 (Claude Code, Windows, 2 sessions):
+    # 10 of 10 Stop payloads matched (tests/fixtures/hooks/real-check-2026-10-09.md).
     issue: 35
     real_data: true
+    real_data_verified: true
     definition_of_done:
       - Stop hooks emit a task completion event.
     rules: [TER-OBS-002, TER-OBS-005, TER-OBS-009, TER-OBS-010, TER-OBS-012]
@@ -1775,7 +1778,7 @@ points:
       - 'test: tests/unit/test_ter4_hook_check.py::TestStopRule::test_the_live_stop_hook_uses_the_same_id'
       - 'test: tests/unit/test_ter4_hook_check.py::TestHookCheck'
       - 'test: tests/unit/test_ter4_hook_check.py::TestSharedIdRules::test_a_live_turn_matches_its_transcript_by_id_in_full'
-      - 'planned: real-data verification of TER-OBS-005 with `python -m ter hooks check` in issue #35'
+      - 'test: tests/unit/test_ter4_hook_check.py::test_the_real_hooks_check_summary_records_every_stop_matched'
 
   - id: P116
     text: >-
@@ -1792,6 +1795,7 @@ points:
     rules: [TER-OBS-002, TER-OBS-006, TER-OBS-010]
     verification:
       - 'test: tests/unit/test_ter4_hook_lifecycle.py::test_subagent_stop_joins_the_parent_session'
+      - 'test: tests/unit/test_ter4_hook_check.py::TestSubagentRule'
       - 'planned: subagent tool hooks attributed to the subagent'
       - 'planned: real-data verification in issue #35'
 
@@ -1812,7 +1816,9 @@ points:
       - 'test: tests/unit/test_ter4_hook_lifecycle.py::test_recordings_replay_to_the_same_events'
       - 'test: tests/unit/test_ter4_hook_check.py::TestHookCheck'
       - 'test: tests/unit/test_ter4_hook_check.py::TestSharedIdRules'
-      - 'planned: real-data verification in issue #35 (Claude Code 2.1 appears to write a prompt record after UserPromptSubmit runs, leaving live prompts on the fallback key)'
+      - 'test: tests/unit/test_ter4_hook_check.py::TestSubagentRule'
+      - 'test: tests/unit/test_ter4_hook_check.py::test_the_real_hooks_check_summary_records_every_stop_matched'
+      - 'planned: one re-run of `python -m ter hooks check` on real sessions with subagents (TER-OBS-007, issue #35); the 9 Oct 2026 run matched prompts, tools and stops in full (87 of 94), missing only subagent.completed'
 
   - id: P118
     text: >-
@@ -1829,7 +1835,9 @@ points:
       - 'test: tests/golden/test_event_stream_snapshot.py::test_event_stream_matches_golden_snapshot'
       - 'test: tests/unit/test_ter4_hook_check.py::TestStopRule'
       - 'test: tests/unit/test_ter4_hook_check.py::TestSharedIdRules::test_a_live_turn_matches_its_transcript_by_id_in_full'
-      - 'planned: hook and transcript observation of one record share an event id on real recordings (TER-OBS-007, issue #35)'
+      - 'test: tests/unit/test_ter4_hook_check.py::TestSubagentRule::test_a_finished_subagent_gets_the_subagent_stop_hooks_id'
+      - 'test: tests/unit/test_ter4_hook_check.py::TestSubagentRule::test_a_redacted_session_derives_the_same_subagent_ids'
+      - 'planned: hook and transcript observation of one subagent share an event id on real recordings (TER-OBS-007, issue #35); every other kind matched on the 9 Oct 2026 run'
 
   - id: P119
     text: >-

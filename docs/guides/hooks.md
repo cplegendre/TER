@@ -110,15 +110,16 @@ ter a3 ~/.claude/projects/my-project/SESSION_ID.jsonl --html a3.html
 | `PreToolUse` | `tool.requested`, with the tool kind and input |
 | `PostToolUse` | `tool.requested` (same id as PreToolUse) and `tool.completed` with the tool response |
 | `Stop` | `task.completed`: the agent finished a turn, keyed by the turn it closes |
-| `SubagentStop` | `subagent.completed`, in the parent session |
+| `SubagentStop` | `subagent.completed`, in the parent session, keyed by the payload's `agent_id` |
 | `SessionStart`, `SessionEnd`, `SubagentStart`, `PreCompact`, `Notification` | recognised as lifecycle; no event |
 | anything else, or a malformed payload | ignored, with a reason |
 
 Lifecycle events are counted (class `lifecycle`) but never scored, and they
 add no step to the Lean analysis. The Stop and SubagentStop mappings follow
-Claude Code's documented payloads; checking them against real ones, and
-correlating them with the transcript, waits on recorded hook data (issue #35):
-see [Checking recordings against transcripts](#checking-recordings-against-transcripts).
+Claude Code's documented payloads. On real recordings (9 October 2026, two
+Claude Code sessions on Windows) every Stop matched the transcript's stop;
+SubagentStop is the one kind still to be checked: see
+[Checking recordings against transcripts](#checking-recordings-against-transcripts).
 
 ### Recording real payloads
 
@@ -164,9 +165,11 @@ argument. For each session the check:
    id in the transcript stream (TER-OBS-007), their ids, and for each one
    that does not, why: no transcript; the hook fell back to its own key (a
    prompt whose record was not in the transcript when the hook ran, a tool
-   call without `tool_use_id`, a stop with no turn); same `tool_use_id` (or
-   same prompt text) but a different id rule; the session source derives no
-   events of that kind; or no counterpart at all;
+   call without `tool_use_id`, a stop with no turn, a SubagentStop without
+   `agent_id`); same `tool_use_id` (or same prompt text) but a different id
+   rule; for a SubagentStop, no subagent transcript for its `agent_id` or one
+   that shows no finish; the session source derives no events of that kind;
+   or no counterpart at all;
 5. reports, for each Stop payload, whether its `task.completed` id equals the
    id the session source derives for the same stop (TER-OBS-005).
 
@@ -218,10 +221,24 @@ shared by both sides (`ter/adapters/claude_code_ids.py`; the full table is in
   sessions keep their ids. When no record holds the prompt yet, the prompt
   keeps its text-and-second key and the check reports it as unkeyed.
 
-Claude Code 2.1 transcripts suggest the prompt's record is written only
-after the `UserPromptSubmit` hooks return, in which case live prompts stay
-unkeyed; your recordings will tell (issue #35). The session source derives no
-`subagent.completed` events, and the check says so.
+- **Subagents** are keyed by session + `agent_id`. Claude Code writes each
+  subagent's transcript to `<session id>/subagents/agent-<agent_id>.jsonl`
+  beside the session's own; the session source derives one
+  `subagent.completed` for each such file that shows the subagent finished
+  (its own last turn ended with no tool call pending, the parent's Agent
+  result reports it completed, or the parent was notified that the
+  background agent completed), at the time of the latest such marker. A
+  subagent resumed and stopped again keeps its one id. A SubagentStop
+  without `agent_id` is keyed by when it arrived and cannot match.
+
+What real recordings showed (9 October 2026, Claude Code on Windows, two
+sessions; summary in `tests/fixtures/hooks/real-check-2026-10-09.md`): 87 of
+94 hook events matched a transcript event id. Every prompt (11), tool
+request (34), tool completion (32) and stop (10 of 10, TER-OBS-005) matched,
+so each prompt's transcript record was found written by the time its
+`UserPromptSubmit` payload arrived. The 7 misses were all SubagentStop events, from before the session
+source derived `subagent.completed`. TER-OBS-007 awaits one re-run of the
+hooks check on the same machine with sessions that use subagents.
 
 ### Guarantees
 
