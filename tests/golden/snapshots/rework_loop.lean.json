@@ -305,6 +305,12 @@
       "id": "failed_route",
       "kind": "waste",
       "waste": "waiting"
+    },
+    {
+      "confidence_rule": "A route.escalated step (or a re-attempt whose first response another model served) after a completed response of the same task, followed before the next prompt or escalation by no new file read, no new check result and no new tool output. 0.80 for a recorded route.escalated with an escalated response; 0.60 (uncertain) for a re-attempt on another model, since a routing harness's verification results are not steps and the change may be lateral; 0.50 (uncertain) when no escalated response was recorded. The escalation marker and the escalated response are the waste.",
+      "id": "unearned_escalation",
+      "kind": "waste",
+      "waste": "waiting"
     }
   ],
   "events": 20,

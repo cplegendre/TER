@@ -15,6 +15,7 @@ from pathlib import Path
 from ...domain.events import Event, SessionTrace
 from ...domain.outcome import OutcomeEvidence, OutcomeFormatError
 from ...domain.pricing import PriceEntry, PriceSchedule, Rates
+from ...domain.routing import RoutingProfile, RoutingProfileError
 from ...domain.repository import (
     ArchitectureContract,
     ContractFormatError,
@@ -248,3 +249,30 @@ class InMemoryArchitectureContracts:
         if text in self._broken:
             raise ContractFormatError(f"{path}: cannot read its contracts")
         return self._declared.get(path, {}).get(text, ())
+
+
+class InMemoryRoutingProfiles:
+    """A :class:`~ter.ports.driven.RoutingProfiles` serving profiles built in
+    code, with the real adapter's semantics (TER-RTE-001)."""
+
+    name = "in-memory"
+
+    def __init__(self, profiles: Iterable[RoutingProfile], default: str | None = None):
+        self._profiles = {p.name: p for p in profiles}
+        if not self._profiles:
+            raise RoutingProfileError("in-memory: no routing profiles")
+        self._default = default if default is not None else min(self._profiles)
+        if self._default not in self._profiles:
+            raise RoutingProfileError(f"in-memory: no profile {self._default!r}")
+
+    def names(self) -> tuple[str, ...]:
+        return tuple(sorted(self._profiles))
+
+    def default(self) -> str:
+        return self._default
+
+    def profile(self, name: str) -> RoutingProfile:
+        try:
+            return self._profiles[name]
+        except KeyError:
+            raise RoutingProfileError(f"Unknown routing profile {name!r}") from None

@@ -113,7 +113,11 @@ Lifecycle events are counted but never scored and add no Lean step:
 `task.completed` and `subagent.completed` from hooks (and a routing harness's
 final state), and the routing kinds `route.selected`, `route.failover`,
 `attempt.started`, `verification.completed` and `outcome.recorded` from a
-routing harness such as GARE ([gare.md](gare.md)).
+routing harness such as GARE ([gare.md](gare.md)), and `route.escalated`, a
+model escalation recorded by a router (TER-RTE-002,
+[l3-grounded.md](l3-grounded.md#model-routing-advisory)). Of the routing
+kinds, `route.failover` and `route.escalated` are Lean steps: the session
+waited on them.
 `context.supplied` is a lifecycle kind too: TER handed one fragment of a
 context bundle to the agent ([l3-grounded.md](l3-grounded.md#context-bundles)).
 

@@ -386,6 +386,11 @@ def _base_class(
             ActivityClass.NECESSARY_NON_VALUE_ADDING,
             "stage:respond failed model route returned nothing",
         )
+    if step.is_escalation:
+        return (
+            ActivityClass.NECESSARY_NON_VALUE_ADDING,
+            "stage:respond route escalated to another model",
+        )
     if step.stage is Stage.RESPOND:
         if step.index in finals:
             return (

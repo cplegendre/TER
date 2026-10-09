@@ -1,0 +1,15 @@
+{
+  "schema": "ter.routing_profile/1",
+  "name": "default",
+  "description": "Anthropic tiers: read-only work on the small model, changes and checks on the mid model, escalation to the large one.",
+  "source": "TER L3 reference profile (TER-RTE-001); model ids are entries of ter/data/price_book.json, so every role can be priced.",
+  "roles": {
+    "explore": {"provider": "anthropic", "model": "claude-haiku-4-5"},
+    "implement": {"provider": "anthropic", "model": "claude-sonnet-4-6"},
+    "review": {"provider": "anthropic", "model": "claude-sonnet-4-6"},
+    "escalate": {"provider": "anthropic", "model": "claude-opus-4-6"}
+  },
+  "task_roles": {"read_only": "explore", "validate": "review", "change": "implement"},
+  "escalation": {"explore": "implement", "implement": "escalate", "review": "escalate"},
+  "escalate_on": ["rework_cycle", "repeated_reasoning", "regeneration", "boundary_violation"]
+}

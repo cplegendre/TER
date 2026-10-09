@@ -419,10 +419,12 @@ requirements:
     level: L3
     source_points: [30]
     rationale: >-
-      Split from TER-DET-008: telling whether an escalated answer added
-      evidence needs a route.escalated event (TER-RTE-002) and the text of
-      both answers, which no current source records.
-    status: planned
+      Split from TER-DET-008. Whether the escalated call adds evidence is
+      read from structure, not answer text: a file read, a check result or
+      a tool output that no step before the escalation held. A recorded
+      route.escalated event (TER-RTE-002) or a routing harness's re-attempt
+      served by another model marks the escalation.
+    status: verified
 
   - id: TER-RTE-001
     pattern: ubiquitous
@@ -435,7 +437,7 @@ requirements:
     rationale: >-
       Model ids change often; routing by role keeps policies and code stable
       when a model is replaced.
-    status: planned
+    status: verified
 
   - id: TER-RTE-002
     pattern: event-driven
@@ -449,7 +451,7 @@ requirements:
     rationale: >-
       Issue #39: escalation must prove its outcome gain against its recorded
       cost and latency.
-    status: planned
+    status: verified
 
   - id: TER-RTE-003
     pattern: unwanted
@@ -461,7 +463,7 @@ requirements:
     source_points: [138, 147, 148]
     rationale: >-
       Escalation is a cost; it needs evidence, and routine work stays local.
-    status: planned
+    status: verified
 
   - id: TER-RTE-005
     pattern: ubiquitous
@@ -474,7 +476,7 @@ requirements:
     source_points: [141, 142, 143]
     rationale: >-
       Explainable routing starts from an explained task classification.
-    status: planned
+    status: verified
 
   - id: TER-EXP-002
     pattern: ubiquitous

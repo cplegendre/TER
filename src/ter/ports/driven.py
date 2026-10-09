@@ -14,6 +14,7 @@ from ..domain.events import Event, SessionTrace
 from ..domain.lean.intent import AlignmentScorer as AlignmentScorer
 from ..domain.outcome import OutcomeEvidence
 from ..domain.pricing import Rates
+from ..domain.routing import RoutingProfile
 from ..domain.repository import (
     ArchitectureContract,
     FileCommit,
@@ -256,3 +257,25 @@ class ArchitectureContracts(Protocol):
     def sources(self) -> tuple[str, ...]: ...
 
     def read(self, path: str, text: str) -> tuple[ArchitectureContract, ...]: ...
+
+
+@runtime_checkable
+class RoutingProfiles(Protocol):
+    """Supplies routing profiles: role names and the models they mean
+    (TER-RTE-001).
+
+    Obligations, verified by ``tests/contract/test_routing_profiles.py``:
+
+    * ``names()`` lists every profile, sorted, and includes ``default()``;
+    * ``profile(name)`` returns an equal profile on every call, whose task
+      kinds and escalations name only roles it defines;
+    * an unknown profile name raises ``ter.domain.routing.RoutingProfileError``.
+    """
+
+    name: str
+
+    def names(self) -> tuple[str, ...]: ...
+
+    def default(self) -> str: ...
+
+    def profile(self, name: str) -> RoutingProfile: ...

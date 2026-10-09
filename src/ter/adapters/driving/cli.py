@@ -14,6 +14,8 @@ Commands::
     python -m ter a3 SESSION.jsonl [--html FILE] [--json [FILE]] [--graph FILE]
                                    [--ter offline|model|off] [--outcome FILE]
                                    [--repo DIR [--repo-engine NAME]]
+    python -m ter route SESSION.jsonl [--profile NAME] [--profiles DIR] [--json]
+                                      [--repo DIR [--repo-engine NAME]]
     python -m ter hooks check RECORDINGS TRANSCRIPTS [--json FILE]
     python -m ter capabilities                # adapters per port, and problems
     python -m ter context bundle|report ...   # L3 context bundles (context_cli)
@@ -33,12 +35,14 @@ from pathlib import Path
 from typing import IO, TYPE_CHECKING, Protocol
 
 from ...application.explain import ExplainedSession
+from ...application.route import RoutedSession
 from ...domain.capabilities import Capability, CapabilityError, CapabilityProblem
 from ...domain.events import TEXT_LIMITS, describe_limit
 from ...domain.lean import LeanAnalysis, SoftwareValueEfficiency
 from ...domain.lean.surface import EditPlacement
 from ...domain.outcome import OutcomeFormatError, OutcomeVerdict
 from ...domain.repository import RepositoryEvidenceError
+from ...domain.routing import RoutingProfileError
 from ...domain.stack import StackKind, stack_label
 from ...domain.stream import StreamReport
 from ...ports.driven import Clock
@@ -108,6 +112,21 @@ class ExplainTranscript(Protocol):
     ) -> ExplainedSession: ...
 
 
+class RouteTranscript(Protocol):
+    """``route_transcript(path, tokenizer, profile, repo, repo_engine,
+    profiles_dir)`` (L3): classify and route a session's tasks by role."""
+
+    def __call__(
+        self,
+        path: Path,
+        tokenizer: str,
+        profile: str | None = None,
+        repo: Path | None = None,
+        repo_engine: str = "syntax",
+        profiles_dir: Path | None = None,
+    ) -> RoutedSession: ...
+
+
 @dataclass(frozen=True)
 class CliServices:
     """Use cases the composition root hands to the CLI."""
@@ -140,6 +159,8 @@ class CliServices:
     hooks_check: Callable[[Path, Path], "HookCheck"] | None = None
     #: L3 context bundles: ``python -m ter context`` (TER-CTX-001).
     context: ContextServices | None = None
+    #: L3 advisory routing (``python -m ter route``).
+    route_transcript: RouteTranscript | None = None
 
 
 def main(
@@ -169,7 +190,7 @@ def main(
         if result.status is HookStatus.IGNORED and result.reason:
             err.write(f"ter hook: event not recorded: {result.reason}\n")
         return 0
-    if args.command in ("observe", "explain", "a3", "context"):
+    if args.command in ("observe", "explain", "a3", "context", "route"):
         known = TOKENIZERS if services.tokenizers is None else services.tokenizers()
         if args.tokenizer not in known:
             err.write(
@@ -180,6 +201,8 @@ def main(
             return 2
     if args.command in ("explain", "a3"):
         return _explain(args, services, out, err)
+    if args.command == "route":
+        return _route(args, services, out, err)
     if args.command == "capabilities":
         return _capabilities(services, out, err)
     if args.command == "corpus":
@@ -285,6 +308,43 @@ def _explain(
         out.write(format_findings(explained.analysis, explained.a3.value_efficiency))
         out.write(format_limits(explained.a3.usage_limits))
         out.write(format_outcome(explained.a3.outcome, outcome_path))
+    return 0
+
+
+def _route(
+    args: argparse.Namespace, services: CliServices, out: IO[str], err: IO[str]
+) -> int:
+    from .route_report import format_routing
+
+    if services.route_transcript is None:
+        err.write("route is not available in this installation\n")
+        return 2
+    if not args.path.exists():
+        err.write(f"No such session file: {args.path}\n")
+        return 2
+    repo: Path | None = args.repo
+    if repo is not None and not repo.is_dir():
+        err.write(f"No such repository directory: {repo}\n")
+        return 2
+    try:
+        routed = services.route_transcript(
+            args.path,
+            args.tokenizer,
+            args.profile,
+            repo,
+            args.repo_engine,
+            args.profiles,
+        )
+    except RoutingProfileError as exc:
+        err.write(f"Cannot use routing profile: {exc}\n")
+        return 2
+    except (RepositoryEvidenceError, CapabilityError) as exc:
+        err.write(f"Cannot read repository {repo}: {exc}\n")
+        return 2
+    if args.json:
+        out.write(_json(routed.plan.as_dict()))
+    else:
+        out.write(format_routing(routed.plan, routed.analysis.repository is not None))
     return 0
 
 
@@ -529,6 +589,24 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
     a3.add_argument("--repo-engine", default="syntax", help=REPO_ENGINE_HELP)
 
     add_context_parser(commands, default_log_dir, TOKENIZER_HELP, REPO_ENGINE_HELP)
+    route = commands.add_parser(
+        "route",
+        help="L3: classify each task and choose a model role for it (advisory)",
+    )
+    route.add_argument("path", type=Path, help="session .jsonl or GARE run")
+    route.add_argument(
+        "--profile", help="routing profile name (default: the profiles' default)"
+    )
+    route.add_argument(
+        "--profiles",
+        type=Path,
+        metavar="DIR",
+        help="read routing profiles from DIR/*.json instead of the shipped ones",
+    )
+    route.add_argument("--json", action="store_true", help="print the plan as JSON")
+    route.add_argument("--tokenizer", default="regex", help=TOKENIZER_HELP)
+    route.add_argument("--repo", type=Path, metavar="DIR", help=REPO_HELP)
+    route.add_argument("--repo-engine", default="syntax", help=REPO_ENGINE_HELP)
 
     commands.add_parser(
         "capabilities",

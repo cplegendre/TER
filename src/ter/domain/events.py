@@ -74,6 +74,11 @@ class EventKind(StrEnum):
     # Context bundles (TER-EVD-004, TER-CTX-001): TER handed one fragment
     # of a context bundle to the agent.
     CONTEXT_SUPPLIED = "context.supplied"
+    # Model routing (L3, TER-RTE-002, TER-DET-011): a router moved a task to
+    # a higher role of its routing profile. The text holds the triggering
+    # signal, both roles, the latency and the token usage
+    # (``ter.domain.routing.RouteEscalation``).
+    ROUTE_ESCALATED = "route.escalated"
 
     @property
     def is_lifecycle(self) -> bool:
@@ -105,6 +110,7 @@ _LIFECYCLE = frozenset(
         EventKind.VERIFICATION_COMPLETED,
         EventKind.OUTCOME_RECORDED,
         EventKind.CONTEXT_SUPPLIED,
+        EventKind.ROUTE_ESCALATED,
     }
 )
 
