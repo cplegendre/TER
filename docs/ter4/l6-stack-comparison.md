@@ -106,6 +106,39 @@ corpus.
 | application | `ter/application/compare_stacks.py`: `session_measures`, `CompareByStack`, `StackCorpusReport` |
 | script | `scripts/corpus_by_stack.py` |
 
+## First real run (9 Oct 2026)
+
+Leigh's 61 labelled sessions, with outcomes derived from each session's
+commits and the matching pull request (by the PR URL in the transcript for
+30 sessions, by branch name for 6): 29 merged, 3 submitted, 4 closed
+unmerged, 1 committed, 24 with no commit. A commit made with `git commit -q`
+prints nothing, so a few sessions may be counted as `no_commit` wrongly.
+
+Groups with at least five sessions (all task category `feature`):
+
+| Dimension | Group | Outcome | Sessions | Median generated | Median context | Median unused context | Sessions with regeneration |
+|---|---|---|---|---|---|---|---|
+| language | TypeScript | merged | 10 | 64,316 | 85,387 | 0.214 | 20% |
+| language | Markdown | no_commit | 5 | 16,473 | 23,039 | 0.0 | |
+| stack | svelte+sveltekit | merged | 11 | 33,153 | 51,861 | 0.190 | 9% |
+| stack | svelte+sveltekit | no_commit | 9 | 6,835 | 9,731 | 0.0 | |
+| stack | vue | merged | 7 | 49,373 | 43,349 | 0.046 | 29% |
+
+The only comparable cell is merged feature work, svelte+sveltekit against
+vue. It cannot separate stack from repository: svelte+sveltekit is almost
+all one large monorepo and vue almost all one smaller repository, and
+seven sessions are too few for a difference in shares. What it does show:
+
+- **Outcome matters as predicted.** Unmerged `no_commit` sessions spend a
+  fraction of what merged ones do (median 6,835 against 33,153 generated
+  tokens in the same stack), so a comparison that mixes outcomes measures
+  the outcome mix.
+- **Unused context follows the repository.** The large monorepo's merged
+  sessions leave about a fifth of their context unused (0.19), the smaller
+  repository's about a twentieth (0.046). This fits repository size, not
+  language, as the driver, the follow-up named in the definition of done of
+  issue #64.
+
 ## Data still needed
 
 Leigh's 52 labelled sessions are mostly TypeScript/Svelte in two
