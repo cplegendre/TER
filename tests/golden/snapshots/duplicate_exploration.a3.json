@@ -86,6 +86,141 @@
   },
   "background": {
     "events": 23,
+    "intent": {
+      "alignment": [
+        {
+          "band": "partial",
+          "basis": "text",
+          "event_id": "e91df7fc4c6628ba",
+          "names": [],
+          "revision": 1,
+          "score": 0.25
+        },
+        {
+          "band": "low",
+          "basis": "text",
+          "event_id": "b7220effbe9d33b8",
+          "names": [],
+          "revision": 1,
+          "score": 0.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "69551b0f692010d4",
+          "names": [],
+          "revision": 1,
+          "score": 1.0
+        },
+        {
+          "band": "low",
+          "basis": "text",
+          "event_id": "98e08d2104e03291",
+          "names": [],
+          "revision": 1,
+          "score": 0.0
+        },
+        {
+          "band": "low",
+          "basis": "text",
+          "event_id": "a33373b4cca658c1",
+          "names": [],
+          "revision": 1,
+          "score": 0.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "546f400bea474093",
+          "names": [],
+          "revision": 1,
+          "score": 0.6
+        },
+        {
+          "band": "low",
+          "basis": "text",
+          "event_id": "1177e4320222fe66",
+          "names": [],
+          "revision": 1,
+          "score": 0.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "8b7fad85cf80c1b4",
+          "names": [],
+          "revision": 1,
+          "score": 1.0
+        },
+        {
+          "band": "partial",
+          "basis": "text",
+          "event_id": "978c4f7ab23a85c2",
+          "names": [],
+          "revision": 1,
+          "score": 0.4
+        },
+        {
+          "band": "partial",
+          "basis": "changed_words",
+          "event_id": "0f8094ebbe312229",
+          "names": [],
+          "revision": 1,
+          "score": 0.3333
+        },
+        {
+          "band": "aligned",
+          "basis": "changed_words",
+          "event_id": "ad332e5d05b44868",
+          "names": [],
+          "revision": 1,
+          "score": 0.5
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "77910e19bcf7fd61",
+          "names": [],
+          "revision": 1,
+          "score": 0.6667
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "1fe73e0664d87005",
+          "names": [],
+          "revision": 1,
+          "score": 1.0
+        }
+      ],
+      "changes": [],
+      "config": {
+        "drift_below": 0.25,
+        "low_below": 0.25,
+        "min_events": 3
+      },
+      "drift": [],
+      "low_alignment_periods": [],
+      "revisions": [
+        {
+          "abandoned": [],
+          "event_id": "3bd62fa0b8f7bf38",
+          "prompt": "Add a --verbose flag to the CLI in src/cli.py that prints each processed file na",
+          "relation": "opened",
+          "revision": 1,
+          "similarity": null,
+          "terms": [
+            "cli",
+            "flag",
+            "nam",
+            "process",
+            "verbos"
+          ]
+        }
+      ],
+      "rule": "Overlap coefficient |intent ∩ activity| / min(|intent|, |activity|) of key terms (content words, identifier parts and file-name parts, stemmed, without stopwords or generic programming words); 0 when either side has no terms.",
+      "scorer": "lexical"
+    },
     "intents": [
       "Add a --verbose flag to the CLI in src/cli.py that prints each processed file name."
     ]
@@ -301,6 +436,12 @@
     {
       "confidence_rule": "A whole-file write of a file the agent had itself written, keeping at least 80% of its lines: 0.80. A whole-file write of a file it had read (3+ lines), keeping at least 60% of them: 0.60 (uncertain; small files are often rewritten on purpose). The retained share of the write is waste.",
       "id": "regeneration",
+      "kind": "waste",
+      "waste": "overproduction"
+    },
+    {
+      "confidence_rule": "An edit or write whose alignment to the intent in force is below the drift band (default 0.25), against an intent of at least 3 key terms: 0.85 when the names it defines continue a goal the developer dropped, or the agent's own reasoning or narration since the prompt called it additional ('also', 'while I'm at it') and names it; 0.75 when it defines new names the intent does not mention; 0.55 (uncertain) when it defines no names and only its added words (at least 3) depart. Before any prompt, or against a shorter intent: no finding.",
+      "id": "intent_drift",
       "kind": "waste",
       "waste": "overproduction"
     }

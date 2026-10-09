@@ -102,6 +102,130 @@
   },
   "background": {
     "events": 18,
+    "intent": {
+      "alignment": [
+        {
+          "band": "partial",
+          "basis": "text",
+          "event_id": "e0ec6e71f978fd92",
+          "names": [],
+          "revision": 1,
+          "score": 0.3333
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "859848add6d59788",
+          "names": [],
+          "revision": 1,
+          "score": 1.0
+        },
+        {
+          "band": "low",
+          "basis": "text",
+          "event_id": "24e229083a25898b",
+          "names": [],
+          "revision": 1,
+          "score": 0.2
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "369f28daa4834090",
+          "names": [],
+          "revision": 1,
+          "score": 0.6667
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "301ea5d00770f42b",
+          "names": [],
+          "revision": 1,
+          "score": 0.6
+        },
+        {
+          "band": "low",
+          "basis": "text",
+          "event_id": "696b7e17e0df4dbd",
+          "names": [],
+          "revision": 1,
+          "score": 0.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "26e6810009a47440",
+          "names": [],
+          "revision": 1,
+          "score": 0.6667
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "33fd1243654ec8e9",
+          "names": [],
+          "revision": 1,
+          "score": 0.5
+        },
+        {
+          "band": "aligned",
+          "basis": "changed_words",
+          "event_id": "520a0393af0ce62e",
+          "names": [],
+          "revision": 1,
+          "score": 1.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "a0201b2048241360",
+          "names": [],
+          "revision": 1,
+          "score": 0.6667
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "057e3f9f09da3e5c",
+          "names": [],
+          "revision": 1,
+          "score": 0.8
+        }
+      ],
+      "changes": [],
+      "config": {
+        "drift_below": 0.25,
+        "low_below": 0.25,
+        "min_events": 3
+      },
+      "drift": [],
+      "low_alignment_periods": [],
+      "revisions": [
+        {
+          "abandoned": [],
+          "event_id": "22e15f3412d803b0",
+          "prompt": "slugify in src/text.py should collapse repeated dashes and strip leading/trailin",
+          "relation": "opened",
+          "revision": 1,
+          "similarity": null,
+          "terms": [
+            "collaps",
+            "dash",
+            "lead",
+            "one",
+            "repeat",
+            "slugify",
+            "strip",
+            "test",
+            "text",
+            "trail"
+          ]
+        }
+      ],
+      "rule": "Overlap coefficient |intent ∩ activity| / min(|intent|, |activity|) of key terms (content words, identifier parts and file-name parts, stemmed, without stopwords or generic programming words); 0 when either side has no terms.",
+      "scorer": "lexical"
+    },
     "intents": [
       "slugify in src/text.py should collapse repeated dashes and strip leading/trailing ones. Make tests/test_text.py pass."
     ]
@@ -235,6 +359,12 @@
     {
       "confidence_rule": "A whole-file write of a file the agent had itself written, keeping at least 80% of its lines: 0.80. A whole-file write of a file it had read (3+ lines), keeping at least 60% of them: 0.60 (uncertain; small files are often rewritten on purpose). The retained share of the write is waste.",
       "id": "regeneration",
+      "kind": "waste",
+      "waste": "overproduction"
+    },
+    {
+      "confidence_rule": "An edit or write whose alignment to the intent in force is below the drift band (default 0.25), against an intent of at least 3 key terms: 0.85 when the names it defines continue a goal the developer dropped, or the agent's own reasoning or narration since the prompt called it additional ('also', 'while I'm at it') and names it; 0.75 when it defines new names the intent does not mention; 0.55 (uncertain) when it defines no names and only its added words (at least 3) depart. Before any prompt, or against a shorter intent: no finding.",
+      "id": "intent_drift",
       "kind": "waste",
       "waste": "overproduction"
     }

@@ -86,6 +86,178 @@
   },
   "background": {
     "events": 29,
+    "intent": {
+      "alignment": [
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "11dd3be920e41229",
+          "names": [],
+          "revision": 1,
+          "score": 1.0
+        },
+        {
+          "band": "low",
+          "basis": "text",
+          "event_id": "62fcd90f604b8a22",
+          "names": [],
+          "revision": 1,
+          "score": 0.1429
+        },
+        {
+          "band": "unknown",
+          "basis": "text",
+          "event_id": "afa62c3fc87da043",
+          "names": [],
+          "revision": 1,
+          "score": null
+        },
+        {
+          "band": "unknown",
+          "basis": "text",
+          "event_id": "787b76f5878f0c56",
+          "names": [],
+          "revision": 1,
+          "score": null
+        },
+        {
+          "band": "partial",
+          "basis": "text",
+          "event_id": "f7059ba8a701f037",
+          "names": [],
+          "revision": 1,
+          "score": 0.4
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "dc771e57dc3ec0aa",
+          "names": [],
+          "revision": 1,
+          "score": 1.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "26d689fc6e48e582",
+          "names": [],
+          "revision": 1,
+          "score": 1.0
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "d3419f3fcdb0f607",
+          "names": [],
+          "revision": 1,
+          "score": 1.0
+        },
+        {
+          "band": "partial",
+          "basis": "names",
+          "event_id": "23e8557e97c5cf7b",
+          "names": [
+            "inner",
+            "retry",
+            "wrap"
+          ],
+          "revision": 1,
+          "score": 0.3333
+        },
+        {
+          "band": "partial",
+          "basis": "names",
+          "event_id": "bbef9c623af73c14",
+          "names": [
+            "inner",
+            "retry",
+            "wrap"
+          ],
+          "revision": 1,
+          "score": 0.3333
+        },
+        {
+          "band": "aligned",
+          "basis": "changed_words",
+          "event_id": "201a5b895ab673e9",
+          "names": [],
+          "revision": 1,
+          "score": 1.0
+        },
+        {
+          "band": "aligned",
+          "basis": "changed_words",
+          "event_id": "afd57e70643ee1c4",
+          "names": [],
+          "revision": 1,
+          "score": 1.0
+        },
+        {
+          "band": "aligned",
+          "basis": "changed_words",
+          "event_id": "12eb3429dc69e478",
+          "names": [],
+          "revision": 1,
+          "score": 0.5
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "3a6966ef0e054a01",
+          "names": [],
+          "revision": 1,
+          "score": 0.6667
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "c546d6039402b9c4",
+          "names": [],
+          "revision": 1,
+          "score": 0.6667
+        },
+        {
+          "band": "aligned",
+          "basis": "text",
+          "event_id": "4fa7eec5e701db40",
+          "names": [],
+          "revision": 1,
+          "score": 0.6
+        }
+      ],
+      "changes": [],
+      "config": {
+        "drift_below": 0.25,
+        "low_below": 0.25,
+        "min_events": 3
+      },
+      "drift": [],
+      "low_alignment_periods": [],
+      "revisions": [
+        {
+          "abandoned": [],
+          "event_id": "f6592a7c2b8b29cd",
+          "prompt": "Add a retry decorator to src/net.py with exponential backoff, and use it in fetc",
+          "relation": "opened",
+          "revision": 1,
+          "similarity": null,
+          "terms": [
+            "backoff",
+            "decorator",
+            "exponential",
+            "fetch",
+            "green",
+            "json",
+            "keep",
+            "net",
+            "retry",
+            "test"
+          ]
+        }
+      ],
+      "rule": "Overlap coefficient |intent ∩ activity| / min(|intent|, |activity|) of key terms (content words, identifier parts and file-name parts, stemmed, without stopwords or generic programming words); 0 when either side has no terms.",
+      "scorer": "lexical"
+    },
     "intents": [
       "Add a retry decorator to src/net.py with exponential backoff, and use it in fetch_json. Keep tests green."
     ]
@@ -353,6 +525,12 @@
     {
       "confidence_rule": "A whole-file write of a file the agent had itself written, keeping at least 80% of its lines: 0.80. A whole-file write of a file it had read (3+ lines), keeping at least 60% of them: 0.60 (uncertain; small files are often rewritten on purpose). The retained share of the write is waste.",
       "id": "regeneration",
+      "kind": "waste",
+      "waste": "overproduction"
+    },
+    {
+      "confidence_rule": "An edit or write whose alignment to the intent in force is below the drift band (default 0.25), against an intent of at least 3 key terms: 0.85 when the names it defines continue a goal the developer dropped, or the agent's own reasoning or narration since the prompt called it additional ('also', 'while I'm at it') and names it; 0.75 when it defines new names the intent does not mention; 0.55 (uncertain) when it defines no names and only its added words (at least 3) depart. Before any prompt, or against a shorter intent: no finding.",
+      "id": "intent_drift",
       "kind": "waste",
       "waste": "overproduction"
     }
