@@ -150,7 +150,7 @@ def test_explain_with_a_repository_reports_surfaces_and_violations(
     assert analysis["repository"]["engine"] == "syntax"
     assert analysis["repository"]["contracts"] == ["layers", "pure-domain"]
     by = {f["detector"]: f for f in analysis["findings"]}
-    assert by["unrelated_modification"]["confidence"] == 0.8
+    assert by["unrelated_modification"]["confidence"] == 0.6
     assert by["unrelated_modification"]["subject"] == "src/app/reports/summary.py"
     assert by["boundary_violation"]["subject"] == "layers"
     assert by["boundary_violation"]["kind"] == "risk"

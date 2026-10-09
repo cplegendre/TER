@@ -432,7 +432,7 @@ class TestUnrelatedModification:
         s.edit(at(PRICING), "* 1.2", "* 12 / 10")
         edit, result = s.edit(at(SUMMARY), "len(rows)", "len(list(rows))")
         [f] = found(analyse(s, shop), "unrelated_modification")
-        assert f.confidence == 0.8 and not f.uncertain
+        assert f.confidence == 0.6 and f.uncertain
         assert f.waste is LeanWaste.OVERPRODUCTION and f.kind is FindingKind.WASTE
         assert result is not None
         assert f.evidence == (prompt.id, edit.id, result.id)
@@ -468,7 +468,7 @@ class TestUnrelatedModification:
         assert f.subject == "tests/test_cli_smoke.py"
         assert f.confidence == 0.55 and f.uncertain
 
-    def test_an_existing_test_module_with_no_link_stays_confident(
+    def test_an_existing_test_module_with_no_link_scores_as_any_file(
         self, shop: Path
     ) -> None:
         s = Script()
@@ -478,7 +478,7 @@ class TestUnrelatedModification:
         found_ = {
             f.subject: f for f in found(analyse(s, shop), "unrelated_modification")
         }
-        assert found_[SUMMARY].confidence == 0.8
+        assert found_[SUMMARY].confidence == 0.6
 
     def test_a_file_without_import_evidence_is_uncertain(self, shop: Path) -> None:
         s = Script()

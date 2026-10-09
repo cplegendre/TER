@@ -394,7 +394,7 @@ repository evidence, so an L2 analysis lists exactly the L2 detectors.
 
 | Detector | Waste | Kind | Confidence rule |
 |---|---|---|---|
-| `unrelated_modification` | overproduction | waste | Per task and file outside the surface and not one import link beyond it: **0.80** when the prompt named the seeds and the file's imports were read from its syntax; 0.65 (uncertain) when the seeds were inherited; 0.55 (uncertain) when the file has no import evidence (a language the engine does not read, did not parse, or a `lexical` engine) or the seed is the task's first edit, or the file is a test module the task created (on a real session, a new test reached the code under test only through the CLI). |
+| `unrelated_modification` | overproduction | waste | Per task and file outside the surface and not one import link beyond it: 0.60 (uncertain) when the prompt named the seeds and the file's imports were read from its syntax (calibrated on real sessions, see below); 0.65 (uncertain) when the seeds were inherited; 0.55 (uncertain) when the file has no import evidence (a language the engine does not read, did not parse, or a `lexical` engine) or the seed is the task's first edit, or the file is a test module the task created (on a real session, a new test reached the code under test only through the CLI). |
 | `surface_expansion` | overproduction | waste | Per task and file one import link beyond the surface: 0.60 (uncertain) when the prompt named the seeds, 0.50 otherwise. Always uncertain: callers often have to change with what they call. |
 | `boundary_violation` | defects | risk | Per added import and broken contract: **0.90** when the import is still there after the session's last edit of the file; 0.70 when a later edit could not be replayed; 0.55 (uncertain) when a later edit removed it. |
 
@@ -505,6 +505,26 @@ On the owner's 52 sessions (before TER-EVD-017 to TER-EVD-020), 244 edits
 were outside the repository: 86 outside the working directory, 107 with no
 session root (26 of them under the working directory), 12 in worktree
 checkouts and 39 harness state.
+
+### Calibration: `unrelated_modification` (9 Oct 2026)
+
+With the `syntax` engine and the session-root rules, the owner's 52 sessions
+gave 9 confident `unrelated_modification` findings (all in one TypeScript
+repository) and 339 uncertain ones. The owner judged all 9 confident findings
+and 20 uncertain ones sampled with seed 7, from each session's prompts and
+the narration before the edit. **None of the 29 was truly unrelated.** The
+edits were tests and fixtures for the task (8), CI workflows and config the
+feature needed (6), docs for the change (5), source or scripts the task
+required but the prompt did not name, such as modules of the issues it
+referred to (7), a test helper needed to pass lint (2), a hook the user asked
+to unify (1) and a licence for a new project (1).
+
+The import graph cannot see those links, so the confident case dropped from
+0.80 to 0.60: every `unrelated_modification` finding is now uncertain, a
+pointer for review that is never counted as waste. Raising it again needs a
+judged corpus with true positives, and evidence beyond imports (the issue a
+prompt names, files the session read before editing, file roles such as
+test, doc, CI and config).
 
 ## Session languages and stack
 

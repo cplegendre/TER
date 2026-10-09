@@ -506,7 +506,7 @@ class TestEcmaScriptChangeSurface:
         grounded = {"unrelated_modification", "surface_expansion"}
         assert not [f for f in analyse(s, web).findings if f.detector in grounded]
 
-    def test_an_unlinked_typescript_edit_is_a_confident_finding(
+    def test_an_unlinked_typescript_edit_is_a_finding_for_review(
         self, web: Path
     ) -> None:
         s = Script()
@@ -514,7 +514,7 @@ class TestEcmaScriptChangeSurface:
         s.edit(at(THEME), "#000", "#111")
         a = analyse(s, web)
         [f] = [f for f in a.findings if f.detector == "unrelated_modification"]
-        assert f.subject == THEME and f.confidence == 0.8 and not f.uncertain
+        assert f.subject == THEME and f.confidence == 0.6 and f.uncertain
 
     def test_a_file_one_link_beyond_is_an_expansion(self, web: Path) -> None:
         s = Script()

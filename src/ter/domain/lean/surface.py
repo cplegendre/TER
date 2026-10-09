@@ -419,8 +419,10 @@ class UnrelatedModification:
         "expected change surface (seed files the prompt names, the files they "
         "import or are imported by at the start commit or after the task's "
         "edits, and the tests of both) and not one import link beyond it: "
-        "0.80 when the prompt itself "
-        "named the seeds and the file's imports were read from a syntax tree; "
+        "0.60 (uncertain) when the prompt itself "
+        "named the seeds and the file's imports were read from a syntax tree "
+        "(calibrated on real sessions: none of 29 judged findings, 9 of them "
+        "previously confident, was truly unrelated); "
         "0.65 (uncertain) when the seeds were inherited from an earlier prompt "
         "the intent continues; 0.55 (uncertain) when the file has no import "
         "evidence (a language the engine does not read, or it did not parse) "
@@ -461,7 +463,18 @@ class UnrelatedModification:
                     "The prompt names no file; the surface is the one an earlier "
                     "prompt named, which this prompt may have widened."
                 )
-            return 0.8, "Nothing in the import graph ties it to what was asked."
+            # Calibration on real sessions (9 Oct 2026): the owner's judging of
+            # 29 findings (all 9 confident ones and 20 sampled uncertain ones)
+            # found none truly unrelated. Tasks also need tests, fixtures,
+            # docs, CI and config, and modules an issue names but the prompt
+            # does not; the import graph cannot see those links. The finding
+            # stays a pointer for review and never counts as waste until a
+            # judged corpus shows true positives.
+            return 0.6, (
+                "Nothing in the import graph ties it to what was asked, but "
+                "on real sessions such edits were tests, docs, CI, config or "
+                "modules an issue named, so this is a pointer for review."
+            )
 
         yield from _outside(self, view, EditPlacement.UNRELATED, confidence)
 
