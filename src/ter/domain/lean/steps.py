@@ -132,6 +132,11 @@ class StepLog:
         self._steps.append(self._read(event, tokens))
         return True
 
+    @property
+    def last(self) -> Step | None:
+        """The most recent step (lifecycle events add none)."""
+        return self._steps[-1] if self._steps else None
+
     def _read(self, event: Event, tokens: int) -> Step:
         index = len(self._steps)
         tool = event.tool

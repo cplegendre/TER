@@ -99,7 +99,7 @@ flow state, used by the flow efficiency measure below.
 
 | Concept | Measure in TER today | Status |
 |---|---|---|
-| Value | Value-adding share of generated tokens and time (`activity_tokens`, `activity_seconds`) | measured |
+| Value | Value-adding share of generated tokens and time (`activity_tokens`, `activity_seconds`); Software Value Efficiency against a verified outcome | measured |
 | Flow | Agentic flow efficiency by tokens and by time; flow states | measured |
 | Rework | `rework_cycle` findings; `rework_cycles` in the scorecard | measured |
 | Defects | Risk findings (`unvalidated_implementation`, `premature_implementation`) | measured as risk, no cost claimed |
@@ -107,9 +107,9 @@ flow state, used by the flow efficiency measure below.
 | Over-processing | Four detectors listed above | measured |
 | Motion | `repeated_exploration`; unnecessary traversal needs repository evidence (L3) | partly measured |
 | Inventory | `unused_context`, always uncertain until L3 | uncertain only |
-| Pull | not yet measured | L3 and L4 |
-| WIP | `open_requests` and edits since validation in the L1 `StreamReport`; no Lean WIP measure yet | L3 and L4 |
-| Queues | not yet measured | L4 |
+| Pull | `unused_context` (context no later action pulled) and peak open hypotheses | measured as proxies at L2 |
+| WIP | Unresolved hypotheses, tasks, edits and failures after every event (`LeanAnalysis.wip`) | measured |
+| Queues | Peak edits awaiting validation and peak open tasks (`wip.peak_by_kind`) | measured as proxies; real queues need L4 |
 
 ## The detectors
 

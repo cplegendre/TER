@@ -210,6 +210,8 @@ source_modules = [
     "ter.domain.lean.graph",
     "ter.domain.lean.model",
     "ter.domain.lean.steps",
+    "ter.domain.lean.wip",
+    "ter.domain.lean.concepts",
 ]
 forbidden_modules = ["ter.domain.outcome"]
 

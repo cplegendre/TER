@@ -13,12 +13,17 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from ter.domain.lean import (
+    LEAN_MEASURES,
+    SVE_DEFINITION,
     A3Report,
     ActivityClass,
     Countermeasure,
     Finding,
     FlowState,
+    Measure,
     StageSummary,
+    ValueStatus,
+    WipKind,
 )
 from ter.domain.events import describe_limit
 from ter.domain.lean.model import UNCERTAIN_BELOW, Stage
@@ -28,6 +33,8 @@ from ter.domain.outcome import CheckResult
 from .palette import stylesheet
 from .svg import (
     _fill_stroke,
+    _heading,
+    _legend,
     _open,
     _paint,
     _text,
@@ -44,6 +51,7 @@ __all__ = [
     "fmt_seconds",
     "render_a3_html",
     "value_stream_map",
+    "wip_chart",
 ]
 
 _CSP = "default-src 'none'; style-src 'unsafe-inline'; img-src data:"
@@ -54,6 +62,14 @@ ACTIVITY_ROLES: dict[str, str] = {
     ActivityClass.NECESSARY_NON_VALUE_ADDING.value: "series-3",
     ActivityClass.AVOIDABLE.value: "waste",
     "uncertain": "series-4",
+}
+
+#: Colour role of each kind of work in progress.
+WIP_ROLES: dict[WipKind, str] = {
+    WipKind.HYPOTHESES: "series-2",
+    WipKind.TASKS: "series-7",
+    WipKind.EDITS: "series-1",
+    WipKind.FAILURES: "waste",
 }
 
 FLOW_ROLES: dict[FlowState, str] = {
@@ -298,6 +314,62 @@ def flow_bar(report: A3Report, *, time: bool = False, width: int = 520) -> str:
     )
 
 
+def wip_chart(report: A3Report, *, width: int = 520) -> str:
+    """Unresolved work after every event, stacked by kind, with the peak marked."""
+    wip = report.analysis.wip
+    peak = wip.peak
+    if peak is None or peak.total == 0:
+        return ""
+    side, top, plot_h = 16, 44, 110
+    plot_w = width - 2 * side
+    n = len(wip.samples)
+    step = plot_w / n
+    bar = max(step - (1 if step > 3 else 0), 0.5)
+    scale = plot_h / peak.total
+    base = top + plot_h
+    legend, bottom = _legend(
+        [(f"{k.label} (peak {wip.peak_of(k)})", WIP_ROLES[k]) for k in WipKind],
+        x0=side,
+        y0=base + 14,
+        max_x=width - side,
+    )
+    height = int(bottom + 14)
+    peaks = ", ".join(f"{k.value} {wip.peak_of(k)}" for k in WipKind)
+    desc = (
+        f"Work in progress after each of {n} events. Peak {peak.total} open items "
+        f"after event {peak.event_id}; peak by kind: {peaks}."
+    )
+    parts = _open("a3-wip", "Work in progress", desc, width, height)
+    parts.append(_heading(f"Work in progress (peak {peak.total})", side))
+    for i, sample in enumerate(wip.samples):
+        y = float(base)
+        for kind in WipKind:
+            count = sample.count(kind)
+            if not count:
+                continue
+            h = count * scale
+            y -= h
+            parts.append(
+                f'<rect x="{side + i * step:.1f}" y="{y:.1f}" width="{bar:.1f}"'
+                f' height="{h:.1f}" {_paint(WIP_ROLES[kind])}>'
+                f"<title>Event {esc(sample.event_id)}: {count} {kind.value}</title></rect>"
+            )
+    parts.append(
+        f'<line x1="{side}" y1="{top}" x2="{width - side}" y2="{top}"'
+        f' stroke-dasharray="4 3" {_paint("muted", "s")}/>'
+    )
+    parts.append(
+        _text(width - side, top - 4, f"peak {peak.total}", role="muted", anchor="end")
+    )
+    parts.append(
+        f'<line x1="{side}" y1="{base}" x2="{width - side}" y2="{base}"'
+        f" {_paint('baseline', 's')}/>"
+    )
+    parts.extend(legend)
+    parts.append("</svg>")
+    return "\n".join(parts)
+
+
 def pareto(report: A3Report, *, width: int = 520) -> str:
     entries = [WasteByType(p.waste.value, p.tokens, p.findings) for p in report.pareto]
     return waste_pareto(
@@ -352,7 +424,7 @@ table{border-collapse:collapse;width:100%;font-size:13px}
 th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--ter-grid);vertical-align:top}
 th{color:var(--ter-ink-2);font-weight:600;font-size:12px}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-td small{display:block;color:var(--ter-ink-2)}
+td small,th small{display:block;color:var(--ter-ink-2);font-weight:400}
 .tag{display:inline-block;border-radius:999px;padding:0 8px;font-size:11.5px;font-weight:600;
 border:1px solid var(--ter-grid);white-space:nowrap}
 .tag.warn{border-color:var(--ter-series-4);background:color-mix(in srgb,var(--ter-series-4) 18%,transparent)}
@@ -488,6 +560,31 @@ def _scorecard(report: A3Report) -> str:
         tiles.append(("TER", f"{sc.ter.value:.2f}", sc.ter.method))
     else:
         tiles.append(("TER", "not computed", "run with --ter offline or --ter model"))
+    sve = report.value_efficiency
+    if sve.status is ValueStatus.UNKNOWN or sve.tokens is None:
+        tiles.append(("Software Value Efficiency", "unknown", sve.reason))
+    else:
+        time = "" if sve.time is None else f", {fmt_pct(sve.time, 0)} of agent time"
+        verdict = "" if sve.verdict is None else sve.verdict.value
+        tiles.append(
+            (
+                "Software Value Efficiency",
+                fmt_pct(sve.tokens, 0),
+                f"value-adding work toward the {verdict} outcome, of generated tokens"
+                f"{time}",
+            )
+        )
+    wip = report.analysis.wip
+    if wip.peak is not None:
+        final = wip.final
+        tiles.append(
+            (
+                "Peak WIP",
+                str(wip.peak.total),
+                ", ".join(f"{wip.peak_of(k)} {k.value}" for k in WipKind)
+                + f" at most; {0 if final is None else final.total} open at the end",
+            )
+        )
     tiles.append(
         (
             "Findings",
@@ -513,7 +610,42 @@ def _scorecard(report: A3Report) -> str:
         f'<div class="kpis" role="list" aria-label="Scorecard">{cards}</div>'
         '<p class="fine" style="margin-top:8px">Each dimension stands alone: no single score '
         f"hides the others. Findings below confidence {UNCERTAIN_BELOW:.2f} are counted as "
-        "uncertain, never as waste.</p>"
+        "uncertain, never as waste. Token minimisation is not a goal: efficiency is value "
+        f"delivered per unit of resource. {esc(SVE_DEFINITION)}</p>"
+        + _dimensions(report)
+    )
+
+
+def _measure_value(m: Measure) -> str:
+    v = m.value
+    if v is None:
+        return "unknown"
+    if isinstance(v, str):
+        return v
+    if m.unit == "ratio":
+        return fmt_pct(float(v), 0)
+    if m.unit == "tokens":
+        return fmt_tokens(v)
+    if m.unit == "seconds":
+        return fmt_seconds(float(v))
+    return str(v)
+
+
+def _dimensions(report: A3Report) -> str:
+    """The six scorecard dimensions, each with its named measures."""
+    rows = "".join(
+        f'<tr><th scope="row">{esc(d.dimension.label)}'
+        f"<small>{esc(d.dimension.question)}</small></th><td>"
+        + " · ".join(
+            f"{esc(m.label)} <b>{esc(_measure_value(m))}</b>" for m in d.measures
+        )
+        + "</td></tr>"
+        for d in report.dimensions
+    )
+    return (
+        '<h3>Scorecard dimensions</h3><div class="chart"><table>'
+        '<thead><tr><th scope="col">Dimension</th><th scope="col">Measures</th></tr></thead>'
+        f"<tbody>{rows}</tbody></table></div>"
     )
 
 
@@ -611,6 +743,12 @@ def _analysis(report: A3Report) -> str:
             "Progressing versus repeating, reworking, recovering, waiting, inventory.",
         ),
     ]
+    charts.append(
+        _figure(
+            wip_chart(report),
+            "Unresolved hypotheses, tasks, edits and failures after every event.",
+        )
+    )
     if report.analysis.scorecard.agent_seconds > 0:
         charts.append(
             _figure(
@@ -735,6 +873,25 @@ def _method(report: A3Report) -> str:
         "stream; the JSON output (<code>--json</code>) carries the per-event basis and the "
         "evidence graph (<code>--graph</code>). Detectors and their confidence rules:</p>"
         f"<details><summary>Show the {len(report.analysis.detectors)} detector rules</summary><dl>{rows}</dl></details>"
+        + _lean_concepts()
+    )
+
+
+def _lean_concepts() -> str:
+    """Each Lean concept and the measures TER computes for it (TER-LEN-006)."""
+    rows = "".join(
+        f'<tr><th scope="row">{esc(c.label)}</th><td>'
+        + "<br>".join(
+            f"{esc(m.name)} <code>{esc(m.source)}</code><small>{esc(m.meaning)}</small>"
+            for m in measures
+        )
+        + "</td></tr>"
+        for c, measures in LEAN_MEASURES.items()
+    )
+    return (
+        "<details><summary>Show the Lean concepts and their measures</summary>"
+        '<div class="chart"><table><thead><tr><th scope="col">Concept</th>'
+        f'<th scope="col">Measures</th></tr></thead><tbody>{rows}</tbody></table></div></details>'
     )
 
 

@@ -37,11 +37,14 @@ from .model import (
     Finding,
     FindingKind,
     FlowState,
+    Outcome,
+    ShellIntent,
     Stage,
     Step,
     ValidationCycle,
 )
 from .steps import StepLog
+from .wip import WipReport, WipTracker
 
 __all__ = [
     "Classification",
@@ -159,6 +162,10 @@ class Scorecard:
     rework_cycles: int
     ter: TerMeasure | None
     composite: Composite | None
+    # Quality: validation runs by what their output said (TER-SCR-001).
+    validation_runs: int = 0
+    validations_passed: int = 0
+    validations_failed: int = 0
 
     def activity_share(self, key: ActivityClass | str) -> float:
         total = sum(n for _, n in self.activity_tokens)
@@ -193,6 +200,9 @@ class Scorecard:
             if self.ter is None
             else {"value": round(self.ter.value, 4), "method": self.ter.method},
             "composite": None if self.composite is None else self.composite.as_dict(),
+            "validation_runs": self.validation_runs,
+            "validations_passed": self.validations_passed,
+            "validations_failed": self.validations_failed,
         }
 
 
@@ -210,6 +220,8 @@ class LeanAnalysis:
     scorecard: Scorecard
     graph: EvidenceGraph
     detectors: tuple[tuple[str, str, str, str], ...]
+    #: Unresolved hypotheses, tasks, edits and failures after every event.
+    wip: WipReport
 
     @property
     def waste_findings(self) -> tuple[Finding, ...]:
@@ -246,6 +258,7 @@ class LeanAnalysis:
             "cycles": [c.as_dict() for c in self.cycles],
             "value_stream": [s.as_dict() for s in self.value_stream],
             "scorecard": self.scorecard.as_dict(),
+            "wip": self.wip.as_dict(),
             "classifications": [
                 [
                     c.event_id,
@@ -429,6 +442,7 @@ def _scorecard(
             act[base.value] += amount * (1 - c.avoidable_share - c.uncertain_share)
     pairs = list(zip(steps, classes, strict=True))
     context = sum(s.context_tokens for s in steps)
+    runs = [s for s in steps if s.is_completion and s.shell is ShellIntent.VALIDATE]
     flow_tokens = apportion(flow_tok, generated)
     activity_tokens = apportion(act_tok, generated)
     waste = [f for f in findings if f.kind is FindingKind.WASTE]
@@ -482,6 +496,9 @@ def _scorecard(
         rework_cycles=sum(c.verdict is CycleVerdict.REWORK for c in cycles),
         ter=ter,
         composite=composite,
+        validation_runs=len(runs),
+        validations_passed=sum(s.outcome is Outcome.PASSED for s in runs),
+        validations_failed=sum(s.outcome is Outcome.FAILED for s in runs),
     )
 
 
@@ -528,8 +545,13 @@ def analyse_steps(
     *,
     ter: TerMeasure | None = None,
     registry: DetectorRegistry = DEFAULT_REGISTRY,
+    wip: WipReport | None = None,
 ) -> LeanAnalysis:
-    """Run every detector over ``steps`` and build the analysis."""
+    """Run every detector over ``steps`` and build the analysis.
+
+    ``wip`` is the WIP the incremental fold counted; without it, WIP is
+    recounted from the steps alone (:meth:`WipTracker.of_steps`).
+    """
     view = SessionView.of(steps)
     findings = registry.run(view)
     cycles = validation_cycles(view)
@@ -550,6 +572,7 @@ def analyse_steps(
         detectors=tuple(
             (d.id, d.waste.value, d.kind.value, d.confidence_rule) for d in registry
         ),
+        wip=WipTracker.of_steps(steps) if wip is None else wip,
     )
 
 
@@ -558,6 +581,7 @@ class LeanAnalyser:
 
     def __init__(self) -> None:
         self._log = StepLog()
+        self._wip = WipTracker()
         self._session_id: str | None = None
 
     def __len__(self) -> int:
@@ -565,9 +589,12 @@ class LeanAnalyser:
 
     def add(self, event: Event, tokens: int) -> bool:
         accepted = self._log.add(event, tokens)
-        if accepted and self._session_id is None:
+        if not accepted:
+            return False
+        if self._session_id is None:
             self._session_id = event.session_id
-        return accepted
+        self._wip.add(event, None if event.kind.is_lifecycle else self._log.last)
+        return True
 
     def analysis(
         self,
@@ -576,7 +603,11 @@ class LeanAnalyser:
         registry: DetectorRegistry = DEFAULT_REGISTRY,
     ) -> LeanAnalysis:
         return analyse_steps(
-            self._session_id, self._log.steps(), ter=ter, registry=registry
+            self._session_id,
+            self._log.steps(),
+            ter=ter,
+            registry=registry,
+            wip=self._wip.report(),
         )
 
 

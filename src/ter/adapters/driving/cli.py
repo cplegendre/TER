@@ -31,7 +31,7 @@ from typing import IO, TYPE_CHECKING
 from ...application.explain import ExplainedSession
 from ...domain.capabilities import Capability, CapabilityProblem
 from ...domain.events import TEXT_LIMITS, describe_limit
-from ...domain.lean import LeanAnalysis
+from ...domain.lean import LeanAnalysis, SoftwareValueEfficiency
 from ...domain.outcome import OutcomeFormatError, OutcomeVerdict
 from ...domain.stream import StreamReport
 from ...ports.driven import Clock
@@ -191,11 +191,14 @@ def _explain(
     if args.command == "explain":
         if args.json:
             analysis = explained.analysis.as_dict()
+            analysis["scorecard"] = explained.a3.scorecard_dict()
             if explained.a3.outcome is not None:
                 analysis["outcome"] = explained.a3.as_dict()["outcome"]
             out.write(_json(analysis))
         else:
-            out.write(format_findings(explained.analysis))
+            out.write(
+                format_findings(explained.analysis, explained.a3.value_efficiency)
+            )
             out.write(format_limits(explained.a3.usage_limits))
             out.write(format_outcome(explained.a3.outcome, outcome_path))
         return 0
@@ -216,7 +219,7 @@ def _explain(
             err.write(f"Wrote {args.json}\n")
         wrote = True
     if not wrote:
-        out.write(format_findings(explained.analysis))
+        out.write(format_findings(explained.analysis, explained.a3.value_efficiency))
         out.write(format_limits(explained.a3.usage_limits))
         out.write(format_outcome(explained.a3.outcome, outcome_path))
     return 0
@@ -611,8 +614,13 @@ def format_outcome(verdict: OutcomeVerdict | None, path: Path | None) -> str:
     return "\n".join(lines) + "\n"
 
 
-def format_findings(analysis: LeanAnalysis) -> str:
-    """A readable plain-text summary of an L2 analysis."""
+def format_findings(
+    analysis: LeanAnalysis, sve: SoftwareValueEfficiency | None = None
+) -> str:
+    """A readable plain-text summary of an L2 analysis.
+
+    With ``sve``, Software Value Efficiency is printed next to TER.
+    """
     sc = analysis.scorecard
     lines = [f"TER explain · session {analysis.session_id or '-'}"]
     eff = sc.flow_efficiency_tokens
@@ -629,6 +637,25 @@ def format_findings(analysis: LeanAnalysis) -> str:
     )
     if sc.ter is not None:
         lines.append(f"  TER              {sc.ter.value:.3f} ({sc.ter.method})")
+    if sve is not None:
+        lines.append(
+            "  value efficiency "
+            + (
+                "unknown"
+                if sve.tokens is None
+                else f"{sve.tokens:.0%} of generated tokens"
+                + ("" if sve.time is None else f", {sve.time:.0%} of agent time")
+            )
+            + f" · {sve.reason}"
+        )
+    wip = analysis.wip
+    if wip.peak is not None:
+        final = wip.final
+        lines.append(
+            f"  WIP              peak {wip.peak.total} ("
+            + ", ".join(f"{k.value} {n}" for k, n in wip.peak_by_kind)
+            + f"), {0 if final is None else final.total} open at the end"
+        )
     lines.append(
         f"  findings         {sc.findings} confident, {sc.uncertain_findings} uncertain, "
         f"{sc.risks} risk(s)"
