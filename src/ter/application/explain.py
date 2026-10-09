@@ -7,6 +7,7 @@ afterwards and one explained while it runs agree.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -73,7 +74,9 @@ class ExplainSession:
         prices: PriceBook | None = None,
         ingest: IngestFactory | None = None,
         repository: RepositoryEvidence | None = None,
-        contracts: ArchitectureContracts | None = None,
+        contracts: ArchitectureContracts
+        | Sequence[ArchitectureContracts]
+        | None = None,
     ) -> None:
         self._source = source
         self._repository = repository

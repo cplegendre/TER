@@ -232,7 +232,170 @@ class TestDefinitions:
             ("short", "function", 14, 14),
             ("typed", "function", 15, 15),
         ]
-        assert s.calls == () and s.language == "ecmascript" and s.module == ME
+        assert s.language == "ecmascript" and s.module == ME
+
+
+# --- call edges (TER-EVD-016) ------------------------------------------------------
+
+
+def calls(
+    code: str, path: str = ME, files: tuple[str, ...] = ()
+) -> list[tuple[str, str, int, str | None]]:
+    def resolve(importer: str, spec: str) -> tuple[str, ...]:
+        if spec.startswith("."):
+            return ("src/" + spec.lstrip("./") + ".ts",)
+        return ()
+
+    s = ecmascript_structure(path, code, resolve, files)
+    return [(c.caller, c.callee, c.line, c.resolved) for c in s.calls]
+
+
+@pytest.mark.req("TER-EVD-016")
+class TestCallEdges:
+    def test_calls_name_their_caller_and_resolve_through_imports(self) -> None:
+        code = (
+            "import def, { a as b, c } from './util';\n"  # 1
+            "import * as ns from 'lib';\n"  # 2
+            "const req = require('./req');\n"  # 3
+            "const { x, y: z } = require('pkg');\n"  # 4
+            "export function top() {\n"  # 5
+            "  b(1); ns.deep.f(); def();\n"  # 6
+            "  req.run(); z(); x.go();\n"  # 7
+            "  helper();\n"  # 8
+            "}\n"  # 9
+            "function helper() { return local() }\n"  # 10
+            "c();\n"  # 11
+        )
+        files = ("src/util.ts",)
+        assert calls(code, files=files) == [
+            ("top", "b", 6, "src/util.ts#a"),
+            ("top", "ns.deep.f", 6, "lib#deep.f"),
+            ("top", "def", 6, "src/util.ts#default"),
+            ("top", "req.run", 7, "./req#run"),
+            ("top", "z", 7, "pkg#y"),
+            ("top", "x.go", 7, "pkg#x.go"),
+            ("top", "helper", 8, "src/m.ts#helper"),
+            ("helper", "local", 10, None),
+            ("<module>", "c", 11, "src/util.ts#c"),
+        ]
+
+    def test_methods_nested_functions_and_arrow_constants_are_callers(self) -> None:
+        code = (
+            "class Calc extends Base {\n"  # 1
+            "  constructor() { super(); this.reset(); }\n"  # 2
+            "  total(xs: number[]): number { return sum(xs) }\n"  # 3
+            "  static make() { return new Calc() }\n"  # 4
+            "  label = compute();\n"  # 5
+            "}\n"  # 6
+            "function outer() {\n"  # 7
+            "  function inner() { deep() }\n"  # 8
+            "  items.map((i) => wrap(i));\n"  # 9
+            "}\n"  # 10
+            "export const load = async () => fetchAll();\n"  # 11
+        )
+        assert calls(code) == [
+            ("Calc.constructor", "super", 2, None),
+            ("Calc.constructor", "this.reset", 2, None),
+            ("Calc.total", "sum", 3, None),
+            ("Calc.make", "Calc", 4, "src/m.ts#Calc"),
+            ("Calc", "compute", 5, None),
+            ("outer.inner", "deep", 8, None),
+            ("outer", "items.map", 9, None),
+            ("outer", "wrap", 9, None),
+            ("load", "fetchAll", 11, None),
+        ]
+
+    def test_generic_optional_and_nested_calls(self) -> None:
+        code = (
+            "const store = writable<Course[]>([]);\n"  # 1
+            "maybe?.(1); obj?.method(2);\n"  # 2
+            "outer(inner(3));\n"  # 4
+            "@Component({ selector: 'x' })\n"  # 4
+            "class C {}\n"
+        )
+        assert [(c, ln) for _, c, ln, _ in calls(code)] == [
+            ("writable", 1),
+            ("maybe", 2),
+            ("obj.method", 2),
+            ("outer", 3),
+            ("inner", 3),
+            ("Component", 4),
+        ]
+
+    def test_definitions_keywords_and_computed_receivers_are_not_calls(
+        self,
+    ) -> None:
+        code = (
+            "if (ready) { go() }\n"  # 1
+            "for (const x of xs) {}\n"  # 2
+            "while (wait(1)) {}\n"  # 3
+            "const f = function named(a) { return (a) };\n"  # 4
+            "const o = { save() { return 1 }, load(): void {} };\n"  # 5
+            "interface Api { fetch(id: string): Promise<void>; }\n"  # 6
+            "make().then(done);\n"  # 7
+            "list[0].push(1); value!.trim();\n"  # 8
+            "const t = typeof (x); import('./lazy'); require('./x');\n"  # 9
+            "a < b && c > (d);\n"  # 10
+            "// call(1)\n"  # 11
+            "const s = 'call(2)' + `${tpl(3)}`;\n"  # 12
+            "if (x) run();\n"  # 13
+            "!check();\n"  # 14
+        )
+        assert [(c, ln) for _, c, ln, _ in calls(code)] == [
+            ("go", 1),
+            ("wait", 3),
+            ("make", 7),
+            ("tpl", 12),
+            ("run", 13),
+            ("check", 14),
+        ]
+
+    def test_a_definition_shadows_an_import_and_the_first_import_wins(
+        self,
+    ) -> None:
+        code = (
+            "import { f } from 'one';\n"
+            "import { f as g, g as h } from 'two';\n"
+            "import { g } from 'three';\n"
+            "function h() {}\n"
+            "f(); g(); h();\n"
+        )
+        assert [r for _, _, _, r in calls(code)] == [
+            "one#f",
+            "two#f",
+            "src/m.ts#h",
+        ]
+
+    def test_an_unresolved_import_resolves_to_its_specifier(self) -> None:
+        # ``./gone`` loads no file of the repository: the call keeps the
+        # specifier as written, never a guessed file.
+        code = "import { x } from './gone';\nx();\n"
+        assert calls(code, files=("src/other.ts",)) == [
+            ("<module>", "x", 2, "./gone#x")
+        ]
+
+    def test_svelte_markup_calls_are_not_read(self) -> None:
+        code = (
+            "<script>\n"
+            "  import { save } from './api';\n"
+            "  function click() { save(1) }\n"
+            "</script>\n"
+            "<button on:click={() => save(2)}>{format(3)}</button>\n"
+        )
+        assert calls(code, "src/C.svelte", ("src/api.ts",)) == [
+            ("click", "save", 3, "src/api.ts#save")
+        ]
+
+    def test_the_monorepo_calls_resolve_to_the_files_their_imports_load(
+        self, mono: SourceSyntaxEvidence
+    ) -> None:
+        api = mono.structure("apps/web/src/lib/api.ts")
+        assert api is not None
+        assert [(c.caller, c.callee, c.resolved) for c in api.calls] == [
+            ("<module>", "writable", "svelte/store#writable"),
+            ("loadCourse", "Course", "packages/model/src/index.ts#Course"),
+            ("loadCourse", "formatTitle", "packages/shared/src/util.ts#formatTitle"),
+        ]
 
 
 # --- resolving specifiers -------------------------------------------------------

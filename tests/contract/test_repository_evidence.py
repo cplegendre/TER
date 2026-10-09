@@ -40,7 +40,7 @@ from ter.domain.repository import (
 )
 from ter.ports import RepositoryEvidence
 
-from .ecmascript_fixture import ES_LINKS, ES_REPO, ES_TESTS_OF
+from .ecmascript_fixture import ES_CALLS, ES_LINKS, ES_REPO, ES_TESTS_OF
 from .repository_fixture import IMPORTS, REPO, TESTS_OF, git_repo, write_repo
 
 Factory = Callable[[Path], RepositoryEvidence]
@@ -266,6 +266,22 @@ def test_an_engine_that_reads_a_language_resolves_its_imports_to_files(
         assert structure is not None and structure.error is None, path
         assert structure.path == path and structure.module == path
         assert tuple(resolve_import(e, files) for e in structure.imports) == links
+
+
+@pytest.mark.req("TER-EVD-016")
+def test_an_engine_that_reads_a_language_returns_its_call_edges(
+    es_engine: RepositoryEvidence,
+) -> None:
+    if not _reads_ecmascript(es_engine):
+        assert all(es_engine.structure(p) is None for p in ES_CALLS)
+        return
+    for path, expected in ES_CALLS.items():
+        structure = es_engine.structure(path)
+        assert structure is not None and structure.error is None, path
+        found = tuple((c.caller, c.callee, c.resolved) for c in structure.calls)
+        assert found == expected, path
+        lines = [c.line for c in structure.calls]
+        assert lines == sorted(lines) and all(n >= 1 for n in lines), path
 
 
 @pytest.mark.req("TER-EVD-014")

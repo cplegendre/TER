@@ -187,3 +187,34 @@ ES_TESTS_OF: dict[str, tuple[str, ...]] = {
     "apps/web/src/lib/Card.svelte": (),
     "apps/web/src/lib/theme.ts": (),
 }
+
+#: Expected call edges ``(caller, callee, resolved)`` per source file, in
+#: source order (TER-EVD-016). A call through an import resolves to
+#: ``<file it loads>#<exported name>`` (the specifier for an external
+#: package); a call on a local receiver (``title.trim``) resolves to nothing,
+#: and a call on a computed receiver (``new Course().count()``) is not read.
+ES_CALLS: dict[str, tuple[tuple[str, str, str | None], ...]] = {
+    "apps/web/src/lib/api.ts": (
+        ("<module>", "writable", "svelte/store#writable"),
+        ("loadCourse", "Course", "packages/model/src/index.ts#Course"),
+        ("loadCourse", "formatTitle", "packages/shared/src/util.ts#formatTitle"),
+    ),
+    "apps/web/src/lib/api.spec.ts": (
+        ("<module>", "api.loadCourse", "apps/web/src/lib/api.ts#loadCourse"),
+    ),
+    "apps/web/src/routes/+page.svelte": (
+        ("handleClick", "loadCourse", "apps/web/src/lib/api.ts#loadCourse"),
+    ),
+    "apps/web/src/routes/+page.ts": (
+        ("load", "loadCourse", "apps/web/src/lib/index.ts#loadCourse"),
+    ),
+    "packages/model/src/course.test.ts": (
+        ("<module>", "describe", "vitest#describe"),
+        ("<module>", "it", "vitest#it"),
+        ("<module>", "expect", "vitest#expect"),
+        ("<module>", "Course", "packages/model/src/course.ts#Course"),
+    ),
+    "packages/shared/src/util.ts": (("formatTitle", "title.trim", None),),
+    "packages/model/src/course.ts": (),
+    "apps/web/src/lib/Card.svelte": (),
+}

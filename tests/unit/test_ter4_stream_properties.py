@@ -182,7 +182,8 @@ def test_counts_are_non_negative_and_partition_the_total(events: list[Event]) ->
         == report.total_events
         == sum(n for _, n in report.by_kind)
         == len(report.timeline)
-        == len(events)
+        # A measure TER recorded about the session is no activity (TER-EXP-002).
+        == len([e for e in events if not e.kind.is_record])
     )
     assert report.edits_since_validation <= report.peak_edits_without_validation
     assert sum(n for _, n in report.by_tool) <= report.count(EventKind.TOOL_REQUESTED)

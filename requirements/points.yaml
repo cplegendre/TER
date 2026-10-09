@@ -951,13 +951,15 @@ points:
       Add call-graph evidence where practical.
     level: L3
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - The adapter returns call edges for supported languages.
     rules: [TER-EVD-012, TER-EVD-016]
     verification:
       - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
-      - 'planned: call edges of TypeScript, JavaScript, Svelte and Vue files (TER-EVD-016)'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestCallEdges'
+      - 'test: tests/contract/test_repository_evidence.py::test_an_engine_that_reads_a_language_returns_its_call_edges'
+      - 'test: tests/golden/test_repository_evidence_snapshot.py::test_multi_language_syntax_evidence_matches_golden_snapshot'
 
   - id: P060
     text: >-
@@ -1055,7 +1057,8 @@ points:
       - 'test: tests/unit/test_ter4_change_surface.py::TestBoundaryViolation'
       - 'test: tests/contract/test_architecture_contracts.py'
       - 'test: tests/unit/test_ter4_grounded_cli.py'
-      - 'planned: other languages and contract types (TER-EVD-015); real-data check (D4)'
+      - 'test: tests/unit/test_ter4_contract_kinds.py'
+      - 'planned: real-data check on sessions with their repository and start commit (D4)'
 
   - id: P066
     text: >-
@@ -3031,7 +3034,7 @@ points:
       evidence data.
     level: L2
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Every reported metric can be recomputed from recorded events and
@@ -3041,7 +3044,8 @@ points:
       - 'test: tests/golden/test_ter3_characterisation.py'
       - 'test: tests/unit/test_ter4_lean_properties.py::test_explanation_is_deterministic'
       - 'test: tests/equivalence/test_recompute_from_events.py'
-      - 'planned: TER 3 ratio and outcome verdict recorded as events (TER-EXP-002, L3)'
+      - 'test: tests/equivalence/test_recompute_from_events.py::test_the_ter3_ratio_and_verdict_recompute_from_recorded_events'
+      - 'test: tests/unit/test_ter4_records.py'
 
   - id: P196
     text: >-
@@ -3049,7 +3053,7 @@ points:
       opaque agent supervisor.
     level: L6
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Code, requirements, points index and reports are open and
@@ -3066,7 +3070,8 @@ points:
       - 'test: tests/docs/test_docs.py::test_shell_examples_name_real_commands_and_options'
       - 'test: tests/requirements/test_point_origin.py'
       - 'test: tests/equivalence/test_recompute_from_events.py'
-      - 'planned: TER 3 ratio and outcome verdict recorded as events (TER-EXP-002, L3)'
+      - 'test: tests/equivalence/test_recompute_from_events.py::test_the_ter3_ratio_and_verdict_recompute_from_recorded_events'
+      - 'test: tests/unit/test_ter4_records.py'
 
   - id: P197
     text: >-

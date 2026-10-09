@@ -25,8 +25,30 @@ prompt can name: ``function`` and ``class`` declarations (qualified within
 enclosing functions and classes), class methods, ``const f = (...) =>``
 arrow functions at module level and, for a component, the component itself
 (the file's stem, a class spanning the file, when the stem is a name:
-``CourseCard.svelte`` but not ``+page.svelte``). Call edges are not read
-(``calls`` is empty; TER-EVD-016).
+``CourseCard.svelte`` but not ``+page.svelte``).
+
+**Call edges** (TER-EVD-016), the same shape as Python's: each call whose
+callee is a name or a dotted chain of names (``f(x)``, ``api.load()``,
+``new Course()``, ``f?.()``, ``f<T>(x)``, a decorator ``@C({...})``), in
+source order, with its caller, the innermost named definition whose body
+holds it (callbacks and other anonymous functions belong to the definition
+they are written in), or ``<module>``. A call resolves when the head of its
+chain is a name the file binds by import (``import``, ``import * as``,
+``const x = require(...)``, ``const {a: b} = require(...)``) or defines at
+module level: to ``<module>#<exported name>[.<rest>]``, where ``<module>``
+is the repository file the import loads (the specifier as written when it
+loads none: an external package such as ``vitest#describe``), or to
+``<this file>#<name>`` for a local definition. Coverage limits: calls on a
+computed receiver (``f().g()``, ``a[0].b()``, ``a!.b()``) and dynamic calls
+(``obj[name]()``, ``fn.call(...)`` reads as a call of ``fn.call``) are not
+resolved or not read; a method call on a receiver TER cannot type
+(``this.save()``, ``course.count()`` on a local) is read with no
+``resolved`` target; a call through a re-export resolves to the file
+imported (``$lib`` -> ``lib/index.ts``), not to the file that defines the
+name; calls in Svelte and Vue markup (``on:click={...}``, ``{format(x)}``)
+are outside the script code read; the tokenizer does not know JSX, so a
+word before parentheses in JSX text (``<p>Hi (there)</p>``) reads as a
+call, and ``a < b > (c)`` reads as a generic call of ``a``.
 
 **Resolving.** :class:`EcmaScriptProject` holds what resolution needs from
 the repository, read once: the ``compilerOptions.paths`` and ``baseUrl`` of
@@ -61,6 +83,8 @@ from dataclasses import dataclass, field
 from pathlib import PurePosixPath
 
 from ....domain.repository import (
+    MODULE_LEVEL,
+    CallEdge,
     ImportEdge,
     SourceStructure,
     Symbol,
@@ -388,11 +412,91 @@ def _bound_names(tokens: Tokens, start: int, stop: int) -> tuple[str, ...]:
 
 
 _IMPORT_WORDS = frozenset({"import", "export", "require"})
+_DECLARING = frozenset({"const", "let", "var", "import"})
+
+#: A local name an import binds, and the name the imported module exports it
+#: by (``default``, ``*`` for the whole module, or the exported name).
+Binding = tuple[str, str]
+
+
+def _local_bindings(tokens: Tokens, start: int, stop: int) -> list[Binding]:
+    """``(local, exported)`` for each name an ``import`` clause binds:
+    ``x`` -> ``(x, default)``, ``* as ns`` -> ``(ns, *)``, ``{a as b}`` ->
+    ``(b, a)``. Type-only names are bound too (they are never called)."""
+    texts, kinds = tokens.texts, tokens.kinds
+    text = tokens.text
+    out: list[Binding] = []
+    i = start
+    if i < stop and texts[i] == "type" and text(i + 1) != "from":
+        i += 1
+    while i < stop:
+        if texts[i] == "*":
+            if text(i + 1) == "as" and i + 2 < stop and kinds[i + 2] == NAME:
+                out.append((texts[i + 2], "*"))
+            i += 3
+        elif texts[i] == "{":
+            i += 1
+            while i < stop and texts[i] != "}":
+                if texts[i] == "type" and text(i + 1) not in (",", "}", "as"):
+                    i += 1  # ``{ type T }``
+                if kinds[i] in (NAME, STRING):
+                    exported = tokens.literal(i) or texts[i]
+                    local = exported
+                    if text(i + 1) == "as" and i + 2 < stop and kinds[i + 2] == NAME:
+                        local = texts[i + 2]
+                        i += 2
+                    out.append((local, exported))
+                i += 1
+            i += 1
+        elif kinds[i] == NAME and texts[i] not in ("from", "type"):
+            out.append((texts[i], "default"))
+            i += 1
+        else:
+            i += 1
+    return out
+
+
+def _require_bindings(tokens: Tokens, i: int) -> list[Binding]:
+    """The names ``const x = require('m')`` or ``const {a, b: c} =
+    require('m')`` (or TypeScript's ``import x = require('m')``) binds, for
+    the ``require`` at ``i``."""
+    texts, kinds = tokens.texts, tokens.kinds
+    text = tokens.text
+    if text(i - 1) != "=":
+        return []
+    if i >= 3 and kinds[i - 2] == NAME and text(i - 3) in _DECLARING:
+        return [(texts[i - 2], "*")]
+    if text(i - 2) != "}":
+        return []
+    j = i - 3
+    while j >= 0 and texts[j] not in ("{", "}", ";"):
+        j -= 1
+    if j < 1 or texts[j] != "{" or text(j - 1) not in _DECLARING:
+        return []
+    out: list[Binding] = []
+    k = j + 1
+    while k < i - 2:
+        if kinds[k] == NAME:
+            if text(k + 1) == ":" and kinds[k + 2] == NAME:
+                out.append((texts[k + 2], texts[k]))
+                k += 3
+                continue
+            out.append((texts[k], texts[k]))
+        k += 1
+    return out
 
 
 def ecmascript_imports(tokens: Tokens) -> list[tuple[str, tuple[str, ...], int]]:
     """``(specifier, names, line)`` of every import in source order."""
-    found: list[tuple[str, tuple[str, ...], int]] = []
+    return [(spec, names, line) for spec, names, line, _ in _scan_imports(tokens)]
+
+
+def _scan_imports(
+    tokens: Tokens,
+) -> list[tuple[str, tuple[str, ...], int, list[Binding]]]:
+    """``(specifier, names, line, bindings)`` of every import in source
+    order; ``bindings`` are the local names the import introduces."""
+    found: list[tuple[str, tuple[str, ...], int, list[Binding]]] = []
     texts, kinds = tokens.texts, tokens.kinds
     text, literal = tokens.text, tokens.literal
     n = len(texts)
@@ -405,13 +509,14 @@ def ecmascript_imports(tokens: Tokens) -> list[tuple[str, tuple[str, ...], int]]
                 continue
             spec = literal(i + 2)
             if spec is not None and text(i + 3) in (")", ","):
-                found.append((spec, (), tokens.line(i)))
+                bound = _require_bindings(tokens, i) if word == "require" else []
+                found.append((spec, (), tokens.line(i), bound))
         elif word == "import":
             if i + 1 >= n:
                 continue
             spec = literal(i + 1)
             if spec is not None:  # ``import 'side-effect'``
-                found.append((spec, (), tokens.line(i)))
+                found.append((spec, (), tokens.line(i), []))
             elif kinds[i + 1] == NAME or texts[i + 1] in ("{", "*"):
                 j = i + 1
                 while j < n and j < i + 400:
@@ -422,7 +527,8 @@ def ecmascript_imports(tokens: Tokens) -> list[tuple[str, tuple[str, ...], int]]
                         spec = literal(j + 1)
                         if spec is not None:
                             names = _bound_names(tokens, i + 1, j)
-                            found.append((spec, names, tokens.line(i)))
+                            bound = _local_bindings(tokens, i + 1, j)
+                            found.append((spec, names, tokens.line(i), bound))
                             break
                     j += 1
         elif word == "export":
@@ -440,7 +546,7 @@ def ecmascript_imports(tokens: Tokens) -> list[tuple[str, tuple[str, ...], int]]
                 continue
             if text(close) == "from" and (spec := literal(close + 1)):
                 names = _bound_names(tokens, j, close)
-                found.append((spec, names, tokens.line(i)))
+                found.append((spec, names, tokens.line(i), []))
     return found
 
 
@@ -467,7 +573,16 @@ _MEMBER_START = frozenset(
 _DEFINING = frozenset({"function", "class", "const", "let", "var", "(", "{", "}"})
 
 
-def _definitions(tokens: Tokens, pairs: Mapping[int, int]) -> list[Symbol]:
+#: A definition's qualified name and the token indexes its body spans
+#: (inclusive): the calls it makes are the calls inside.
+Span = tuple[str, int, int]
+
+
+def _definitions(
+    tokens: Tokens, pairs: Mapping[int, int], spans: list[Span] | None = None
+) -> list[Symbol]:
+    """The definitions of the code, in token order; with ``spans``, also
+    each definition's body span, appended in the same order."""
     texts, kinds = tokens.texts, tokens.kinds
     n = len(texts)
     symbols: list[Symbol] = []
@@ -488,9 +603,11 @@ def _definitions(tokens: Tokens, pairs: Mapping[int, int]) -> list[Symbol]:
                 j = pairs.get(j, j) + 1 if texts[j] in ("(", "[") else j + 1
         return j if j < n and texts[j] == "{" else None
 
-    def add(name: str, kind: SymbolKind, start: int, close: int) -> None:
+    def add(name: str, kind: SymbolKind, start: int, body: int, close: int) -> None:
         qualified = ".".join([*(s for s, _, _ in scope), name])
         symbols.append(Symbol(qualified, kind, tokens.line(start), tokens.line(close)))
+        if spans is not None:
+            spans.append((qualified, body, close))
 
     for i, word in enumerate(texts):
         while scope and i > scope[-1][1]:
@@ -521,7 +638,7 @@ def _definitions(tokens: Tokens, pairs: Mapping[int, int]) -> list[Symbol]:
             if name is None or body is None or body not in pairs:
                 continue
             what = SymbolKind.CLASS if word == "class" else SymbolKind.FUNCTION
-            add(name, what, i, pairs[body])
+            add(name, what, i, body, pairs[body])
             scope.append((name, pairs[body], word == "class"))
         elif (
             in_class
@@ -533,7 +650,7 @@ def _definitions(tokens: Tokens, pairs: Mapping[int, int]) -> list[Symbol]:
             body = body_after(i + 1)
             if body is None or body not in pairs:
                 continue
-            add(word, SymbolKind.METHOD, i, pairs[body])
+            add(word, SymbolKind.METHOD, i, body, pairs[body])
             scope.append((word, pairs[body], False))
         elif word in ("const", "let", "var") and depth == 0 and not scope:
             _arrow_constant(tokens, pairs, i, body_after, add, scope)
@@ -545,7 +662,7 @@ def _arrow_constant(
     pairs: Mapping[int, int],
     i: int,
     body_after: Callable[[int], int | None],
-    add: Callable[[str, SymbolKind, int, int], None],
+    add: Callable[[str, SymbolKind, int, int, int], None],
     scope: list[tuple[str, int, bool]],
 ) -> None:
     """``const f = (...) => ...`` or ``const f = function ...`` at ``i``."""
@@ -582,9 +699,9 @@ def _arrow_constant(
         return
     close = pairs.get(body) if texts[body] == "{" else None
     if close is None:
-        add(name, SymbolKind.FUNCTION, i, _expression_end(tokens, pairs, body))
+        add(name, SymbolKind.FUNCTION, i, body, _expression_end(tokens, pairs, body))
     else:
-        add(name, SymbolKind.FUNCTION, i, close)
+        add(name, SymbolKind.FUNCTION, i, body, close)
         scope.append((name, close, False))
 
 
@@ -612,20 +729,205 @@ def _expression_end(tokens: Tokens, pairs: Mapping[int, int], start: int) -> int
     return last
 
 
+# -- call edges (TER-EVD-016) ------------------------------------------------------
+
+#: Words that are followed by ``(`` without calling anything.
+_NOT_CALLEES = frozenset(
+    {
+        "if",
+        "for",
+        "while",
+        "switch",
+        "catch",
+        "with",
+        "return",
+        "typeof",
+        "void",
+        "delete",
+        "await",
+        "yield",
+        "in",
+        "of",
+        "instanceof",
+        "function",
+        "class",
+        "import",
+        "export",
+        "require",
+        "new",
+        "else",
+        "do",
+        "case",
+        "throw",
+        "extends",
+        "implements",
+        "as",
+        "satisfies",
+        "keyof",
+        "async",
+    }
+)
+#: Before a name, these start a method definition (``{ save() {} }``,
+#: ``static async load(): Promise<T> {``), not a call, when the parameter
+#: list is followed by a body or a return type.
+_DEFINITION_LEAD = _MEMBER_START | {",", "abstract", "declare", "function"}
+#: Tokens a type argument list (``f<T[]>(x)``) may hold.
+_TYPE_ARGUMENT = frozenset(
+    {".", ",", "[", "]", "|", "&", "<", ">", "{", "}", ":", ";", "(", ")", "=>", "?"}
+)
+
+
+def _type_arguments_end(tokens: Tokens, start: int) -> int | None:
+    """The index of the ``>`` closing a type argument list opened at
+    ``start``, or ``None`` when ``<`` there is a comparison."""
+    texts, kinds = tokens.texts, tokens.kinds
+    depth = 0
+    for i in range(start, min(len(texts), start + 200)):
+        if kinds[i] == PUNCT:
+            if texts[i] not in _TYPE_ARGUMENT:
+                return None
+            if texts[i] in ("&", "|") and tokens.text(i + 1) == texts[i]:
+                return None  # ``&&`` or ``||``: a comparison, not a type
+            if texts[i] == "<":
+                depth += 1
+            elif texts[i] == ">":
+                depth -= 1
+                if depth == 0:
+                    return i
+        elif kinds[i] not in (NAME, STRING):
+            return None
+    return None
+
+
+def _call_open(tokens: Tokens, i: int) -> int | None:
+    """The ``(`` of a call whose callee ends with the name at ``i``:
+    ``f(``, ``f?.(``, ``f<T>(``; ``None`` when no call follows."""
+    text = tokens.text
+    nxt = text(i + 1)
+    if nxt == "(":
+        return i + 1
+    if nxt == "?." and text(i + 2) == "(":
+        return i + 2
+    if nxt == "<":
+        close = _type_arguments_end(tokens, i + 1)
+        if close is not None and text(close + 1) == "(":
+            return close + 1
+    return None
+
+
+def _calls(
+    tokens: Tokens,
+    pairs: Mapping[int, int],
+    spans: list[Span],
+    known: Mapping[str, str],
+) -> tuple[CallEdge, ...]:
+    """Every call whose callee is a name or a dotted chain of names, in
+    source order, with its caller (the innermost definition whose body holds
+    it, else :data:`MODULE_LEVEL`) and, when the head of the chain is a name
+    in ``known`` (imported or defined at module level), what it resolves to."""
+    texts, kinds = tokens.texts, tokens.kinds
+    text = tokens.text
+    n = len(texts)
+    calls: list[CallEdge] = []
+    ordered = sorted(spans, key=lambda s: (s[1], -s[2]))
+    open_spans: list[Span] = []
+    nxt = 0
+    for i in range(n):
+        if kinds[i] != NAME:
+            continue
+        while nxt < len(ordered) and ordered[nxt][1] <= i:
+            open_spans.append(ordered[nxt])
+            nxt += 1
+        while open_spans and open_spans[-1][2] < i:
+            open_spans.pop()
+        paren = _call_open(tokens, i)
+        if paren is None:
+            continue
+        head = i
+        while text(head - 1) in (".", "?.") and head >= 2 and kinds[head - 2] == NAME:
+            head -= 2
+        before = text(head - 1)
+        if texts[head] in _NOT_CALLEES or before in (".", "?."):
+            # A keyword, or a computed receiver: ``f().g()``, ``a[0].b()``,
+            # ``a!.b()``.
+            continue
+        if before in ("function", "class"):
+            continue  # a named function expression or declaration
+        after = text(pairs.get(paren, paren) + 1)
+        if head == i and before in _DEFINITION_LEAD and after in ("{", ":"):
+            continue  # a method definition or signature
+        callee = ".".join(texts[k] for k in range(head, i + 1, 2))
+        first, dot, rest = callee.partition(".")
+        target = known.get(first)
+        resolved = None
+        if target is not None:
+            if target.endswith("#*"):
+                base = target[:-2]
+                resolved = f"{base}#{rest}" if rest else base
+            else:
+                resolved = target + dot + rest
+        live = [s for s in open_spans if s[1] <= head <= s[2]]
+        caller = live[-1][0] if live else MODULE_LEVEL
+        calls.append(CallEdge(caller, callee, tokens.line(head), resolved))
+    return tuple(calls)
+
+
+def _known_names(
+    path: str,
+    found: Iterable[tuple[str, tuple[str, ...], tuple[Binding, ...]]],
+    symbols: Iterable[Symbol],
+    loads: Callable[[str, tuple[str, ...]], str],
+) -> dict[str, str]:
+    """Local name -> what a call through it resolves to: ``<module>#<name>``
+    for an imported name (``<module>#*`` for a namespace), where ``<module>``
+    is the repository file the import loads or else the specifier as
+    written; ``<path>#<name>`` for a function or class defined at module
+    level. A definition shadows an import; the first import of a name wins."""
+    known: dict[str, str] = {}
+    for spec, candidates, bindings in found:
+        module = loads(spec, candidates)
+        for local, exported in bindings:
+            known.setdefault(local, f"{module}#{exported}")
+    for symbol in symbols:
+        if "." not in symbol.name:
+            known[symbol.name] = f"{path}#{symbol.name}"
+    return known
+
+
 def ecmascript_structure(
     path: str,
     text: str,
     resolve: Callable[[str, str], tuple[str, ...]],
+    files: Collection[str] = (),
 ) -> SourceStructure:
-    """The import evidence of one TypeScript, JavaScript, Svelte or Vue file
-    (pure: no IO). ``resolve(path, specifier)`` gives an import's candidate
-    repository paths (:meth:`EcmaScriptProject.candidates`)."""
+    """The import, definition and call evidence of one TypeScript,
+    JavaScript, Svelte or Vue file (pure: no IO). ``resolve(path,
+    specifier)`` gives an import's candidate repository paths
+    (:meth:`EcmaScriptProject.candidates`); ``files`` are the repository's
+    files, which name the file a call through an import resolves to."""
     tokens = tokenize(script_code(path, text))
+    scanned = _scan_imports(tokens)
     imports = tuple(
         ImportEdge(spec, names, line, resolve(path, spec))
-        for spec, names, line in ecmascript_imports(tokens)
+        for spec, names, line, _ in scanned
     )
-    symbols = _definitions(tokens, _brackets(tokens))
+    pairs = _brackets(tokens)
+    spans: list[Span] = []
+    symbols = _definitions(tokens, pairs, spans)
+
+    def loads(spec: str, candidates: tuple[str, ...]) -> str:
+        return next((c for c in candidates if c in files), spec)
+
+    known = _known_names(
+        path,
+        (
+            (spec, edge.candidates, tuple(bound))
+            for (spec, _, _, bound), edge in zip(scanned, imports, strict=True)
+        ),
+        symbols,
+        loads,
+    )
+    calls = _calls(tokens, pairs, spans, known)
     p = PurePosixPath(path)
     component = p.name.split(".")[0]
     if p.suffix in _COMPONENTS and component.isidentifier():
@@ -637,6 +939,7 @@ def ecmascript_structure(
         path,
         symbols=tuple(sorted(symbols, key=lambda s: (s.line, s.name))),
         imports=imports,
+        calls=calls,
     )
 
 

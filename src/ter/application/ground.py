@@ -19,7 +19,7 @@ one text read per edited file; nothing per event that is not an edit.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 
 from ..domain.events import Event, EventId, EventKind, ToolKind
@@ -81,13 +81,13 @@ def _modules_of(
     return out
 
 
-def _contracts(
+def _contracts_of(
     evidence: RepositoryEvidence,
-    reader: ArchitectureContracts | None,
+    reader: ArchitectureContracts,
     files: frozenset[str],
 ) -> tuple[tuple[ArchitectureContract, ...], str | None, str | None]:
-    if reader is None:
-        return (), None, None
+    """One reader's contracts: those of the first of its sources that
+    declares any (as import-linter reads one configuration file)."""
     for source in reader.sources():
         if source not in files:
             continue
@@ -100,10 +100,36 @@ def _contracts(
     return (), None, None
 
 
+def _contracts(
+    evidence: RepositoryEvidence,
+    readers: ArchitectureContracts | Sequence[ArchitectureContracts] | None,
+    files: frozenset[str],
+) -> tuple[tuple[ArchitectureContract, ...], str | None, str | None]:
+    """Every reader's contracts, in reader order (TER-EVD-015: a Python
+    package's import-linter contracts and a TypeScript package's
+    dependency-cruiser rules in one repository), the files they came from,
+    and the first problem met. A reader that fails leaves the others'
+    contracts standing."""
+    if readers is None:
+        return (), None, None
+    if isinstance(readers, ArchitectureContracts):
+        readers = (readers,)
+    contracts: list[ArchitectureContract] = []
+    sources: list[str] = []
+    problem: str | None = None
+    for reader in readers:
+        found, source, trouble = _contracts_of(evidence, reader, files)
+        contracts.extend(found)
+        if source is not None:
+            sources.append(source)
+        problem = problem or trouble
+    return tuple(contracts), ", ".join(sources) or None, problem
+
+
 def ground_session(
     events: Iterable[Event],
     evidence: RepositoryEvidence,
-    contracts: ArchitectureContracts | None = None,
+    contracts: ArchitectureContracts | Sequence[ArchitectureContracts] | None = None,
 ) -> RepositoryGrounding:
     """Repository evidence for one session, computed once before analysis.
 

@@ -34,7 +34,9 @@ and settings; not judged); or *outside the repository* (not judged).
 **Boundary violations** (TER-EVD-007, point 65): an edit whose replayed
 result imports a module it did not import before, where that import breaks a
 contract the repository declares (import-linter's ``forbidden``, ``layers``
-and ``independence``).
+and ``independence``), and, TER-EVD-015, import-linter's ``protected`` and
+``acyclic_siblings`` and dependency-cruiser's ``forbidden`` path rules for
+TypeScript, JavaScript, Svelte and Vue files.
 """
 
 from __future__ import annotations
@@ -46,6 +48,8 @@ from pathlib import PurePosixPath
 
 from ..events import EventId, EventKind
 from ..repository import (
+    ArchitectureContract,
+    ContractKind,
     ContractViolation,
     contract_violations,
     is_harness_state,
@@ -538,7 +542,8 @@ class SurfaceExpansion:
 
 @dataclass(frozen=True)
 class BoundaryViolation:
-    """Point 65 (TER-EVD-007): an added import breaks a declared contract."""
+    """Point 65 (TER-EVD-007, TER-EVD-015): an added import breaks a declared
+    contract."""
 
     id: str = "boundary_violation"
     waste: LeanWaste = LeanWaste.DEFECTS
@@ -548,14 +553,19 @@ class BoundaryViolation:
         "repository declares."
     )
     confidence_rule: str = (
-        "Needs repository evidence (L3) and declared import-linter contracts "
-        "(forbidden, layers, independence). The edited file is replayed from "
-        "the start commit and parsed; an import it holds after the edit and "
-        "did not hold before, that a contract forbids for the file's module: "
-        "0.90 when the import is still there after the session's last edit of "
-        "the file; 0.70 when a later edit of the file could not be replayed, "
-        "so its final imports are unknown; 0.55 (uncertain) when a later edit "
-        "removed it. Only direct imports are judged. A risk: it claims no cost."
+        "Needs repository evidence (L3) and declared architecture contracts: "
+        "import-linter forbidden, layers, independence, protected and "
+        "acyclic_siblings contracts on Python modules, or dependency-cruiser "
+        "forbidden path rules on TypeScript, JavaScript, Svelte and Vue files. "
+        "The edited file is replayed from the start commit and parsed; an "
+        "import it holds after the edit and did not hold before, that a "
+        "contract forbids for the file: 0.90 when the import is still there "
+        "after the session's last edit of the file; 0.70 when a later edit of "
+        "the file could not be replayed, so its final imports are unknown; "
+        "0.55 (uncertain) when a later edit removed it. Only direct imports "
+        "are judged; an acyclic_siblings contract is broken by an import that "
+        "closes a cycle among siblings over the start commit's import graph "
+        "and the session's earlier edits. A risk: it claims no cost."
     )
 
     def detect(self, view: SessionView) -> Iterable[Finding]:
@@ -563,19 +573,29 @@ class BoundaryViolation:
         if g is None or not g.contracts:
             return
         order = [g.edits[s.event_id] for s in view.requests() if s.event_id in g.edits]
+        graph = _module_graph(g) if _needs_graph(g.contracts) else None
         for n, edit in enumerate(order):
-            if not edit.added or edit.module is None:
-                continue
-            later = [e for e in order[n + 1 :] if e.path == edit.path]
-            for added in edit.added:
-                violations = contract_violations(edit.module, added.module, g.contracts)
-                if not violations:
-                    continue
-                confidence, fate, closing = self._fate(added.module, later)
-                for violation in violations:
-                    yield self._found(
-                        view, edit, added.line, violation, confidence, fate, closing
+            by_path = edit.module is None
+            importer = edit.path if by_path else edit.module
+            if edit.added and importer is not None:
+                later = [e for e in order[n + 1 :] if e.path == edit.path]
+                for added in edit.added:
+                    violations = contract_violations(
+                        importer,
+                        added.module,
+                        g.contracts,
+                        by_path=by_path,
+                        graph=graph,
                     )
+                    if not violations:
+                        continue
+                    confidence, fate, closing = self._fate(added.module, later)
+                    for violation in violations:
+                        yield self._found(
+                            view, edit, added.line, violation, confidence, fate, closing
+                        )
+            if graph is not None and edit.module is not None and edit.parsed:
+                graph[edit.module] = frozenset(edit.imports)
 
     @staticmethod
     def _fate(
@@ -627,6 +647,20 @@ class BoundaryViolation:
             anchor=step,
             key=f"{violation.contract}:{violation.imported}",
         )
+
+
+def _needs_graph(contracts: Iterable[ArchitectureContract]) -> bool:
+    return any(c.kind is ContractKind.ACYCLIC_SIBLINGS for c in contracts)
+
+
+def _module_graph(g: RepositoryGrounding) -> dict[str, frozenset[str]]:
+    """Python module -> the repository modules it imports at the start
+    commit (what an ``acyclic_siblings`` contract is judged against)."""
+    return {
+        g.modules[path]: frozenset(g.modules[t] for t in targets if t in g.modules)
+        for path, targets in g.links.items()
+        if path in g.modules
+    }
 
 
 #: Detectors that need repository evidence; the analysis adds them to its

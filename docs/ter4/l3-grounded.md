@@ -7,17 +7,15 @@ All of it comes through one provider-neutral driven port,
 `RepositoryEvidence`, served by interchangeable engines that load as
 capabilities.
 
-This page covers what is built so far: the port and four engines (steps 1
-to 3 of the L3 plan, with TypeScript, JavaScript, Svelte and Vue imports
-beside Python's), and the first detectors grounded on them: each task's
-expected change surface with the edits outside it, and imports that break
-the repository's architecture contracts (step 4), then evidence usage,
-outcome value, exploration drift and the grounded evidence graph
-([below](#evidence-usage-outcome-value-drift-and-the-evidence-graph)), and
-[context bundles](#context-bundles) that select the evidence for the next
-decision and measure how much of it was used. Requirements for later steps
-stay `planned` in `requirements/l3_grounded.yaml`. Advisory model routing by role is
-described in [Model routing (advisory)](#model-routing-advisory).
+This page covers every L3 capability: the port and its engines (Python,
+TypeScript, JavaScript, Svelte and Vue imports and call edges), each task's
+expected change surface with the edits outside it, imports that break the
+repository's architecture contracts, [context bundles](#context-bundles),
+[evidence usage, outcome value, drift and the evidence graph](#evidence-usage-outcome-value-drift-and-the-evidence-graph),
+[advisory model routing](#model-routing-advisory), and
+[call edges, more contracts and recorded measures](#call-edges-more-contracts-and-recorded-measures).
+Every L3 requirement is verified by tests; the vision points that need real
+sessions stay `partial` until they are checked on a judged corpus.
 
 ## Requirements
 
@@ -32,8 +30,9 @@ described in [Model routing (advisory)](#model-routing-advisory).
 | TER-EVD-006 | TER shall compute the expected change surface of each task and report every edit outside it. | `tests/unit/test_ter4_change_surface.py` (`TestChangeSurface`, `TestUnrelatedModification`, `TestSurfaceExpansion`, `TestGroundedFold`), `tests/unit/test_ter4_grounded_cli.py` |
 | TER-EVD-007 | When an edit to a Python module adds an import that breaks a declared import-linter forbidden, layers or independence contract, TER shall report an architectural boundary violation. | `TestBoundaryViolation`, `TestContractRules`, `TestImportLinterReader`, `tests/contract/test_architecture_contracts.py`, the `structure_of` contract tests, `tests/unit/test_ter4_grounded_cli.py` |
 | TER-EVD-014 | When a detector requests repository evidence for a TypeScript, JavaScript, Svelte or Vue source module, the repository evidence adapter shall return every test module whose imports load that source module. | `TestEcmaScriptTests`, contract `test_tests_of_another_language_are_linked_or_refused`, golden `repository/syntax.json` |
-| TER-EVD-015 (planned) | Boundary violations for contracts TER-EVD-007 does not evaluate: other languages, other contract types, indirect import chains. | split from TER-EVD-007 |
-| TER-EVD-016 (planned) | Call edges of TypeScript, JavaScript, Svelte and Vue files. | split from TER-EVD-012 |
+| TER-EVD-015 | When an edit adds a direct import that breaks a declared import-linter protected or acyclic_siblings contract, or a declared dependency-cruiser forbidden path rule, TER shall report an architectural boundary violation. | `tests/unit/test_ter4_contract_kinds.py`, `tests/contract/test_architecture_contracts.py` |
+| TER-EVD-016 | Where the repository evidence adapter supports TypeScript, JavaScript, Svelte or Vue source files, the repository evidence adapter shall return the call edges of each such file. | `tests/unit/test_ter4_ecmascript_evidence.py::TestCallEdges`, contract `test_an_engine_that_reads_a_language_returns_its_call_edges`, golden `repository/syntax.json` |
+| TER-EXP-002 | TER shall record the TER 3 ratio and the outcome verdict of a session as events of that session, so that every reported metric is recomputed from the recorded events alone. | `tests/equivalence/test_recompute_from_events.py`, `tests/unit/test_ter4_records.py` |
 | TER-EVD-017 | TER shall map a session path to a repository path when the path lies under any accepted root of the session, where the accepted roots are the directory most session paths name the repository by, each Claude Code worktree checkout under which a session path names a repository file or directory, the directory such a worktree was made from when a session path under it names a repository file or directory, and each other directory under which at least two distinct session paths name repository files with at least one of them in a subdirectory. | `tests/unit/test_ter4_session_roots.py::TestMoreThanOneCheckout` |
 | TER-EVD-018 | When TER matches session paths against roots, TER shall compare Windows drive letters without regard to case and with either path separator, reading a Git-Bash path of the form /x/... as the drive path X:/... only when the session also uses drive-letter paths. | `TestPathSpelling` |
 | TER-EVD-019 | If an edited path lies outside every root of the session and under a .claude directory that is not a worktree checkout, then TER shall place the edit as harness state and report no change surface finding for it. | `TestHarnessState` |
@@ -165,7 +164,8 @@ cannot hide a script block, and markup is never read) give:
   enclosing definitions), class methods, module-level
   `const f = (...) =>` arrow functions and, for a component whose file stem
   is a name (`CourseCard.svelte`), the component itself;
-- no call edges (TER-EVD-016). The file's `module` is its own path.
+- **call edges** (TER-EVD-016): see [Call edges, more contracts and recorded measures](#call-edges-more-contracts-and-recorded-measures).
+  The file's `module` is its own path.
 
 The reader is a tokenizer, not a parser, and needs no third-party package:
 it skips comments, string literals, template literals (but reads the code
@@ -375,7 +375,9 @@ declares for import-linter, from `.importlinter`, `setup.cfg` or
 example and a test fixture). It evaluates `forbidden`, `layers` (with
 `containers`, independent `a | b` and non-independent `a : b` siblings) and
 `independence` contracts, honouring `ignore_imports` with `*` and `**`
-wildcards; other contract types are skipped, never guessed. The reader does
+wildcards, and (TER-EVD-015) `protected` and `acyclic_siblings` contracts
+and dependency-cruiser path rules; custom contract types are skipped, never
+guessed. The reader does
 no IO: TER reads the file through `RepositoryEvidence`, at the start commit.
 A file that cannot be read is reported (`contract_problem`, and a warning on
 stderr) and no contract is checked.
@@ -919,17 +921,105 @@ escalations are what *should* have happened, not what did; decisions are not
 yet shown in the A3 (P146 partial); and the recommendation is not delivered
 to a live session before L4 (P138, TER-INT-005).
 
+## Call edges, more contracts and recorded measures
+
+### ECMAScript call edges (TER-EVD-016)
+
+The `syntax` engine's ECMAScript reader returns `CallEdge(caller, callee,
+line, resolved)` in the shape Python's syntax tree gives, in source order:
+
+- a **call** is a name or a dotted chain of names followed by an argument
+  list: `f(x)`, `api.load()`, `new Course()`, `f?.()`, `writable<T[]>([])`
+  and a decorator `@Component({...})`. `callee` is the chain as written,
+  with `?.` read as `.`;
+- the **caller** is the innermost named definition whose body holds the
+  call (`Calc.total`, `outer.inner`, an arrow constant `load`), else
+  `<module>`. Callbacks and other anonymous functions belong to the
+  definition they are written in; a class field initialiser to the class;
+- a call **resolves** when the head of its chain is a name the file binds:
+  by `import` (default, named, `* as ns`), `const x = require(...)`,
+  `const {a: b} = require(...)` or TypeScript's `import x = require(...)`,
+  to `<module>#<exported name>[.<rest>]`, where `<module>` is the repository
+  file the import loads (`packages/shared/src/util.ts#formatTitle`) or,
+  when it loads none, the specifier as written (`vitest#describe`); or by a
+  module-level `function`, `class` or arrow constant, to `<file>#<name>`.
+  A definition shadows an import; the first import of a name wins.
+
+Coverage limits: a call on a computed receiver (`f().g()`, `a[0].b()`,
+`a!.b()`) is not read; a dynamic call (`obj[name]()`) is not read and
+`fn.call(...)` reads as a call of `fn.call`; a method call on a receiver a
+tokenizer cannot type (`this.save()`, `course.count()`) has no `resolved`
+target; a call through a re-export resolves to the file imported (`$lib` ->
+`src/lib/index.ts`), not to the file that defines the name; calls in Svelte
+and Vue markup are outside the script code read; and, with no JSX grammar,
+a word before parentheses in JSX text, or `a < b > (c)`, reads as a call.
+
+### More architecture contracts (TER-EVD-015)
+
+`boundary_violation` judges, besides import-linter's `forbidden`, `layers`
+and `independence` contracts:
+
+| Contract | Source | A new direct import breaks it when |
+|---|---|---|
+| `protected` | import-linter (`protected_modules`, `allowed_importers`, `as_packages`) | it imports a protected module from outside that module and outside every allowed importer |
+| `acyclic_siblings` | import-linter (`ancestors`, `depth`, `skip_descendants`) | it links two children of a covered package (the deepest package both sides share, within an ancestor, at most `depth` levels below it, not under a skipped descendant), the importing child did not depend on the imported one before, and the imported child already reaches the importing one through the children's imports: it closes a cycle. The graph is the start commit's, updated by the session's earlier edits |
+| `path_forbidden` | dependency-cruiser `forbidden` rules in `.dependency-cruiser.json` | the importing file's repository path matches the rule's `from.path` (and no `from.pathNot`) and the imported file's matches `to.path` (and no `to.pathNot`); `$1`..`$9` in `to` stand for `from`'s groups. A side with no condition matches every file |
+
+`forbidden` and `protected` read `as_packages` (false: the named modules
+alone). Path rules judge only TypeScript, JavaScript, Svelte and Vue imports
+(named by the repository file they load) and module contracts only Python
+imports, so neither kind judges the other's imports. A dependency-cruiser
+rule with any other condition (`circular`, `orphan`, `dependencyTypes`,
+`reachable`, ...) or `severity: "off"` is skipped, as are `allowed` rules
+and configurations written as JavaScript (`.dependency-cruiser.js`): they
+are programs, not data. A regular expression that does not compile makes
+the file unreadable. Grounding reads every contract reader
+(`ArchitectureContracts.import-linter` and
+`ArchitectureContracts.dependency-cruiser`, the first declaring source of
+each), so a repository with a Python package and a TypeScript app gets
+both; one unreadable source is reported and leaves the others' contracts
+standing. The countermeasure still names `lint-imports`; for path rules the
+hook command to run is `depcruise`.
+
+### Recorded measures (TER-EXP-002)
+
+The TER 3 ratio and the outcome verdict are the two report figures not
+folded from the agent's activity. `RecordMeasures(log)`
+(`ter.application.record`) appends an explained session to an `EventLog`:
+its own events the log lacks, then a `metric.recorded` event (the ratio,
+`{"name": "ter3", "value", "method"}`) and a `verdict.recorded` event (the
+run, its source, the acceptance contract and every piece of evidence, with
+the verdict as a cross-check), placed after the session's last event. A
+record's id is derived from its session, kind and content, so recording
+twice appends nothing new.
+
+`explain_recorded(events, tokenizer, prices)` rebuilds the explanation and
+the A3 from the log alone: the events enter through `EventIngest`, the fold
+reads the recorded ratio (`EventKind.is_record`: no step, count, token
+figure or timeline row includes a record), and the verdict is judged again
+from what its record holds (a record whose evidence no longer judges to its
+verdict is refused). On the golden corpus, with the offline TER 3 scorer
+and a JUnit outcome, every figure of the analysis and the A3, the ratio and
+the verdict included, equals the original report. Not recorded: the
+source's usage limits (they qualify figures) and repository grounding
+(evidence about the repository at its start commit, not events).
+
 ## Known limits
 
 - Test-to-source links and import graphs cover Python, TypeScript,
   JavaScript, Svelte and Vue; other languages have no structure.
-- Call edges are Python only (TER-EVD-016); they name what is called, are
-  not resolved to a definition in another file, and method calls through
-  `self` stay unresolved.
+- Call edges name what is called and resolve it only through the file's
+  imports and module-level definitions: a Python name to its dotted name,
+  an ECMAScript name to `<file>#<exported name>`. They do not follow
+  re-exports to the defining file, and method calls through `self`, `this`
+  or another local receiver stay unresolved.
 - TypeScript and JavaScript are read by a tokenizer: a `{` in a function's
   return type (`): { a: string } {`) ends the symbol early, and Vite or
   bundler aliases other than `$lib` and `tsconfig` paths are not read.
-- Architecture contracts are checked for Python modules only (TER-EVD-015).
+- Architecture contracts judge direct imports only; indirect chains,
+  wildcard module expressions, custom import-linter types, dependency-cruiser
+  rules with conditions other than `path`/`pathNot`, `allowed` rules and
+  `.dependency-cruiser.js` configurations are not evaluated.
 - Symbol references other than calls are not yet navigable (P057).
 - The engines read the repository on every call; nothing is cached, which
   keeps answers current. Checking that a path is listed costs no walk in the
