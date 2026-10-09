@@ -710,6 +710,9 @@
     },
     "uncertain_findings": 0,
     "uncertain_waste_tokens": 0,
+    "validation_runs": 3,
+    "validations_failed": 2,
+    "validations_passed": 1,
     "waste_context_tokens": 38,
     "waste_seconds": 9.0,
     "waste_tokens": 92
@@ -780,5 +783,185 @@
       "tokens": 39,
       "uncertain_tokens": 0
     }
-  ]
+  ],
+  "wip": {
+    "edits_opened": 3,
+    "edits_validated": 3,
+    "final": {
+      "edits": 0,
+      "event_id": "ee6a5952b4a08820",
+      "failures": 0,
+      "hypotheses": 0,
+      "tasks": 0,
+      "total": 0
+    },
+    "kinds": [
+      "hypotheses",
+      "tasks",
+      "edits",
+      "failures"
+    ],
+    "open_at_end": {
+      "edits": [],
+      "failures": [],
+      "hypotheses": [],
+      "tasks": []
+    },
+    "peak": {
+      "edits": 1,
+      "event_id": "d149692b66de4b4b",
+      "failures": 1,
+      "hypotheses": 0,
+      "tasks": 0,
+      "total": 2
+    },
+    "peak_by_kind": {
+      "edits": 1,
+      "failures": 1,
+      "hypotheses": 1,
+      "tasks": 0
+    },
+    "series": [
+      [
+        "e2450187ade21441",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "85ed37b31edb7b93",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "f2873718c65cddef",
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "031f35117637cfd7",
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "77dbe291b043466d",
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "b5dc801f9ba2fcf1",
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        "ee00dc2afae9406b",
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        "1c91989c08c0ed50",
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        "67f5fdb471aa600f",
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        "b79c917cdfc846b5",
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        "d149692b66de4b4b",
+        0,
+        0,
+        1,
+        1
+      ],
+      [
+        "7bb0cb9e49bf57ce",
+        0,
+        0,
+        1,
+        1
+      ],
+      [
+        "763dc8c817be8d49",
+        0,
+        0,
+        1,
+        1
+      ],
+      [
+        "672962215503debc",
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        "c502b1c166401b3c",
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        "f32c8aba5faf2655",
+        0,
+        0,
+        1,
+        1
+      ],
+      [
+        "72c60d4bd7b11dc4",
+        0,
+        0,
+        1,
+        1
+      ],
+      [
+        "1721cb31e33a6b9b",
+        0,
+        0,
+        1,
+        1
+      ],
+      [
+        "41eddab414314d4f",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "ee6a5952b4a08820",
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  }
 }

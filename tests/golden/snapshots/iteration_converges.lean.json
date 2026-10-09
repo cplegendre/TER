@@ -623,6 +623,9 @@
     },
     "uncertain_findings": 0,
     "uncertain_waste_tokens": 0,
+    "validation_runs": 3,
+    "validations_failed": 2,
+    "validations_passed": 1,
     "waste_context_tokens": 0,
     "waste_seconds": 0.0,
     "waste_tokens": 0
@@ -689,5 +692,171 @@
       "tokens": 28,
       "uncertain_tokens": 0
     }
-  ]
+  ],
+  "wip": {
+    "edits_opened": 2,
+    "edits_validated": 2,
+    "final": {
+      "edits": 0,
+      "event_id": "057e3f9f09da3e5c",
+      "failures": 0,
+      "hypotheses": 0,
+      "tasks": 0,
+      "total": 0
+    },
+    "kinds": [
+      "hypotheses",
+      "tasks",
+      "edits",
+      "failures"
+    ],
+    "open_at_end": {
+      "edits": [],
+      "failures": [],
+      "hypotheses": [],
+      "tasks": []
+    },
+    "peak": {
+      "edits": 0,
+      "event_id": "a5c243f6052afc48",
+      "failures": 1,
+      "hypotheses": 1,
+      "tasks": 0,
+      "total": 2
+    },
+    "peak_by_kind": {
+      "edits": 1,
+      "failures": 1,
+      "hypotheses": 1,
+      "tasks": 0
+    },
+    "series": [
+      [
+        "22e15f3412d803b0",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "e0ec6e71f978fd92",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "859848add6d59788",
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "9528667881123db0",
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "24e229083a25898b",
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "369f28daa4834090",
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        "a5c243f6052afc48",
+        1,
+        0,
+        0,
+        1
+      ],
+      [
+        "301ea5d00770f42b",
+        1,
+        0,
+        0,
+        1
+      ],
+      [
+        "696b7e17e0df4dbd",
+        0,
+        0,
+        1,
+        1
+      ],
+      [
+        "40c138342748a4ad",
+        0,
+        0,
+        1,
+        1
+      ],
+      [
+        "26e6810009a47440",
+        0,
+        0,
+        1,
+        1
+      ],
+      [
+        "fb1848c1455585d0",
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        "33fd1243654ec8e9",
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        "520a0393af0ce62e",
+        0,
+        0,
+        1,
+        1
+      ],
+      [
+        "3aa429cc01c64d36",
+        0,
+        0,
+        1,
+        1
+      ],
+      [
+        "a0201b2048241360",
+        0,
+        0,
+        1,
+        1
+      ],
+      [
+        "35e20b6ed4ec5fbc",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "057e3f9f09da3e5c",
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  }
 }

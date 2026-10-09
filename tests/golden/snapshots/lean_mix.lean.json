@@ -1042,6 +1042,9 @@
     },
     "uncertain_findings": 0,
     "uncertain_waste_tokens": 0,
+    "validation_runs": 2,
+    "validations_failed": 2,
+    "validations_passed": 0,
     "waste_context_tokens": 76,
     "waste_seconds": 32.5,
     "waste_tokens": 270
@@ -1120,5 +1123,254 @@
       "tokens": 47,
       "uncertain_tokens": 0
     }
-  ]
+  ],
+  "wip": {
+    "edits_opened": 5,
+    "edits_validated": 5,
+    "final": {
+      "edits": 0,
+      "event_id": "4fa7eec5e701db40",
+      "failures": 1,
+      "hypotheses": 1,
+      "tasks": 2,
+      "total": 4
+    },
+    "kinds": [
+      "hypotheses",
+      "tasks",
+      "edits",
+      "failures"
+    ],
+    "open_at_end": {
+      "edits": [],
+      "failures": [
+        "63a58bc98af34062"
+      ],
+      "hypotheses": [
+        "dc771e57dc3ec0aa"
+      ],
+      "tasks": [
+        "787b76f5878f0c56"
+      ]
+    },
+    "peak": {
+      "edits": 5,
+      "event_id": "12eb3429dc69e478",
+      "failures": 0,
+      "hypotheses": 1,
+      "tasks": 2,
+      "total": 8
+    },
+    "peak_by_kind": {
+      "edits": 5,
+      "failures": 1,
+      "hypotheses": 2,
+      "tasks": 2
+    },
+    "series": [
+      [
+        "f6592a7c2b8b29cd",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "11dd3be920e41229",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "62fcd90f604b8a22",
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        "afa62c3fc87da043",
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        "885640dbc628de1c",
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        "787b76f5878f0c56",
+        0,
+        2,
+        0,
+        0
+      ],
+      [
+        "4c20d65d717bf537",
+        0,
+        2,
+        0,
+        0
+      ],
+      [
+        "f7059ba8a701f037",
+        0,
+        2,
+        0,
+        0
+      ],
+      [
+        "dc771e57dc3ec0aa",
+        1,
+        2,
+        0,
+        0
+      ],
+      [
+        "caff931cda4b3075",
+        1,
+        2,
+        0,
+        0
+      ],
+      [
+        "26d689fc6e48e582",
+        2,
+        2,
+        0,
+        0
+      ],
+      [
+        "04fb1b1d585306b6",
+        2,
+        2,
+        0,
+        0
+      ],
+      [
+        "d3419f3fcdb0f607",
+        2,
+        2,
+        0,
+        0
+      ],
+      [
+        "e815b1e3c3bd3d9a",
+        2,
+        2,
+        0,
+        0
+      ],
+      [
+        "23e8557e97c5cf7b",
+        2,
+        2,
+        1,
+        0
+      ],
+      [
+        "3f1b4d7739855dfc",
+        2,
+        2,
+        1,
+        0
+      ],
+      [
+        "bbef9c623af73c14",
+        2,
+        2,
+        2,
+        0
+      ],
+      [
+        "c25006b6c17cfaae",
+        2,
+        2,
+        2,
+        0
+      ],
+      [
+        "201a5b895ab673e9",
+        1,
+        2,
+        3,
+        0
+      ],
+      [
+        "b1b25b79327612cc",
+        1,
+        2,
+        3,
+        0
+      ],
+      [
+        "afd57e70643ee1c4",
+        1,
+        2,
+        4,
+        0
+      ],
+      [
+        "0c363a14eea9043e",
+        1,
+        2,
+        4,
+        0
+      ],
+      [
+        "12eb3429dc69e478",
+        1,
+        2,
+        5,
+        0
+      ],
+      [
+        "8529cea01d42b188",
+        1,
+        2,
+        5,
+        0
+      ],
+      [
+        "3a6966ef0e054a01",
+        1,
+        2,
+        5,
+        0
+      ],
+      [
+        "63a58bc98af34062",
+        1,
+        2,
+        0,
+        1
+      ],
+      [
+        "c546d6039402b9c4",
+        1,
+        2,
+        0,
+        1
+      ],
+      [
+        "d0a9e677d00c3c13",
+        1,
+        2,
+        0,
+        1
+      ],
+      [
+        "4fa7eec5e701db40",
+        1,
+        2,
+        0,
+        1
+      ]
+    ]
+  }
 }
