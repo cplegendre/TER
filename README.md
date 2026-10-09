@@ -24,7 +24,8 @@ flowchart LR
     S["Claude Code<br/>transcript or hooks"] --> E["ter.event stream"]
     E --> T["TER ratio<br/>(TER 3, kept)"]
     O["Test results<br/>(JUnit XML)"] --> V["Outcome verdict"]
-    E --> L["Lean model<br/>value stream · 16 waste detectors"]
+    E --> L["Lean model<br/>value stream · waste detectors"]
+    R["Repository at the start commit<br/>(L3 evidence)"] --> L
     L --> G["Evidence graph"]
     L --> SC["Scorecard<br/>flow efficiency · activity · waste cost"]
     T --> SC
@@ -59,20 +60,23 @@ flowchart LR
 ### Maturity levels
 
 TER 4 is delivered in seven levels. A level is claimed only when every
-requirement at that level is verified by a passing test; CI gates L0, L1 and
-L2 today.
+requirement at that level is verified by a passing test. **L0 to L3 are met:
+TER 4 is at L3 Grounded**, and L4 Advisory is next. The
+[strategy and maturity roadmap](docs/ter4/strategy.md) says what was checked
+on real sessions, what is still unproven, and how L4 to L6 will be built.
 
 | Level | Name | Adds | Status | Requirements verified | Points done / partial / not started |
 |---|---|---|---|---:|---:|
-| L0 | Measured | TER 3 parity inside the hexagon: event contract, scoring, dated prices | Gate passing; the runtime maturity ceiling (TER-INT-001) is planned | 23 of 24 | 10 / 1 / 0 |
-| L1 | Observed | Event stream as the core boundary, Claude Code hooks (Stop and SubagentStop included), hook recorder, live = batch | Gate passing; calibrating against recorded hook payloads waits on real data (#35) | 14 of 19 | 10 / 6 / 0 |
-| L2 | Explained | Lean model, waste detectors, evidence graph, scorecard, A3, outcome verdict, redacted corpus import | Built, gate passing; more detectors and a real corpus (#34) to come | 33 of 55 | 26 / 23 / 5 |
-| L3 | Grounded | Repository evidence: symbols, tests, git diff, change surface | Started: session evidence-graph edges only | 2 of 20 | 3 / 8 / 37 |
-| L4 | Advisory | Intervention engine, declarative policies, ledger | Not started | 0 of 15 | 0 / 4 / 35 |
-| L5 | Corrective | Routing, opt-in corrective actions, calibration | Not started | 0 of 9 | 1 / 4 / 8 |
-| L6 | Learning | Closed loop, second harness, research datasets | Not started | 0 of 9 | 0 / 3 / 16 |
+| L0 | Measured | TER 3 parity inside the hexagon: event contract, scoring, dated prices, no intervention below L4 | Met; CI gate | 25 of 25 | 10 / 1 / 0 |
+| L1 | Observed | Event stream as the core boundary, Claude Code hooks (Stop and SubagentStop included), hook recorder, live = batch | Met; CI gate; hook ids checked on real recordings | 22 of 22 | 15 / 1 / 0 |
+| L2 | Explained | Lean model, waste detectors, evidence graph, scorecard, A3, outcome verdict, redacted corpus import | Met; CI gate; detectors calibrated on real sessions | 54 of 54 | 49 / 5 / 0 |
+| L3 | Grounded | Repository evidence (symbols, imports, tests, call edges, Git), change surface, architecture contracts, context bundles, advisory routing | Met; `--gate L3` passes, CI step next | 34 of 34 | 25 / 23 / 0 |
+| L4 | Advisory | Intervention engine, declarative policies, ledger | Next | 0 of 16 | 0 / 5 / 34 |
+| L5 | Corrective | Calibration, benchmarks, opt-in corrective actions | Not started | 0 of 10 | 1 / 4 / 8 |
+| L6 | Learning | Closed loop, second harness, research datasets | Second harness (GARE) and stack comparison built | 11 of 19 | 1 / 4 / 14 |
 
-Live numbers: `ter-req report` (requirements) and
+Points that need real session data stay partial until real sessions confirm
+them. Live numbers: `ter-req report` (requirements) and
 [docs/ter4/points.md](docs/ter4/points.md) (points).
 
 ## Quick start
@@ -134,10 +138,30 @@ ter explain session.jsonl --json --graph evidence.json
 ter a3 session.jsonl --html a3.html --json a3.json # the A3: root causes and countermeasures
 ter a3 session.jsonl --outcome junit.xml --html a3.html  # add the test verdict beside the measures
 python -m ter explain session.jsonl --outcome junit.xml  # findings plus accepted / rejected / incomplete
-python -m ter explain session.jsonl --repo ../repo-at-start  # L3: change surface, edits outside it, boundary violations
 python -m ter capabilities                         # adapters registered for each port, and any broken
 python -m ter observe session.jsonl --timeline     # L1 observables, event by event
 ```
+
+### Ground in the repository (TER 4, L3)
+
+Give TER the repository the session worked in, checked out at the commit the
+session started from:
+
+```bash
+python -m ter explain session.jsonl --repo ../repo-at-start  # change surface, edits outside it, boundary violations
+ter a3 session.jsonl --repo ../repo-at-start --html a3.html  # the A3, grounded
+python -m ter route session.jsonl                  # task classes, model roles, escalations (advisory)
+python -m ter route session.jsonl --repo ../repo-at-start --json
+python -m ter context bundle session.jsonl --repo ../repo-at-start --budget 4000 --out bundle.md
+python -m ter context report session.jsonl --repo ../repo-at-start --critical critical.json
+```
+
+`--repo-engine` picks the evidence engine (`syntax` by default: Python,
+TypeScript, JavaScript, Svelte and Vue; also `python-ast`, `lexical` and
+the version-control engine). Architecture contracts are read from the
+repository's import-linter or dependency-cruiser configuration. Context
+bundles and routing are advisory: below L4, TER never writes into a hook
+response. Details in [L3 Grounded](docs/ter4/l3-grounded.md).
 
 ### Observe live (hooks)
 
@@ -188,7 +212,7 @@ Every `ter` command and option is described in the
 ```bash
 ter-req lint --tests tests                          # EARS grammar, catalogue, points, test markers
 python -m pytest --req-trace=req-trace.json
-ter-req trace --results req-trace.json --gate L2    # forward and backward traceability gate
+ter-req trace --results req-trace.json --gate L3    # forward and backward traceability gate
 ter-req report --results req-trace.json --out coverage.md
 ter-req points                                      # regenerate docs/ter4/points.md
 ter-req points --check                              # fail if it is stale
@@ -208,10 +232,12 @@ ter-req points --check                              # fail if it is stale
 | [Contributing](docs/guides/contributing.md) | Setup, workflow, gates, commit and PR conventions |
 
 All guides: [docs/guides](docs/guides/README.md). Reference:
+[strategy and maturity roadmap](docs/ter4/strategy.md) ·
 [TER 4 architecture](docs/ter4/architecture.md) ·
 [L1 Observed](docs/ter4/l1-observed.md) ·
 [L2 Explained](docs/ter4/l2-explained.md) ·
 [L3 Grounded](docs/ter4/l3-grounded.md) ·
+[stack comparison](docs/ter4/l6-stack-comparison.md) ·
 [visual reports](docs/ter4/reports.md) ·
 [outcome and acceptance](docs/ter4/outcome.md) ·
 [real session corpus](docs/ter4/corpus.md) ·
@@ -263,10 +289,12 @@ The TER 3 pipeline is described in [docs/architecture.md](docs/architecture.md).
   `scripts/labeling_priority.py` finds sessions with enough structure to be
   worth labelling.
 - Claims about real agent behaviour need real session data. That work is
-  tracked in GitHub issues #34 to #46 (tracker #47), and the points that
-  depend on it are never marked done from synthetic tests. The tools to
-  collect it exist (`python -m ter corpus import`, `python -m ter hook --record`);
-  the sessions themselves are still to come.
+  tracked in GitHub issues #34 to #46 and #64 (tracker #47), and the points
+  that depend on it are never marked done from synthetic tests. The owner's
+  corpus (286 sessions), hook recordings and 52 sessions with their
+  repositories were checked on 9 October 2026; annotation, benchmarks and
+  critical-evidence lists are still to come
+  ([what was checked and what remains](docs/ter4/strategy.md#where-ter-is-now-l0-to-l3-met)).
 
 ## Development
 

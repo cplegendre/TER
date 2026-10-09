@@ -208,11 +208,12 @@ Markdown report with one row per level:
 Mermaid pie chart of the status split, the vision-point grid and a table of
 every requirement per level follow.
 
-CI runs the gate at L0, L1 and L2. Raising the gate (`--gate L3`) is the
-build side of claiming a level; `Maturity.permits` is the runtime side. Each gate
+CI runs the gate at L0, L1 and L2. Every L3 requirement is verified too and
+`--gate L3` passes, so adding that step to CI is the next change
+([strategy.md](strategy.md)). Raising the gate is the build side of claiming
+a level; `Maturity.permits` is the runtime side. Each gate
 checks only the requirements already verified at or below its level; planned
-ones (for example correlating Stop hooks with the transcript, which waits on
-issue #35) do not fail it.
+ones (today the L4 to L6 roadmap) do not fail it.
 
 ## Where the code lives
 

@@ -16,7 +16,7 @@ Both install from one `pyproject.toml`. Three console entry points exist:
 
 ```bash
 ter --help                    # TER 3 CLI; `ter a3` and `ter explain` are handed to TER 4
-python -m ter --help          # TER 4 CLI: observe, explain, a3, hook, capabilities
+python -m ter --help          # TER 4 CLI: observe, explain, a3, route, context, hook, capabilities
 ter-req --help                # requirements tooling: lint, trace, points, report
 ```
 
@@ -31,9 +31,9 @@ flowchart LR
         REQ["req_cli, pytest_req<br/>ter-req, --req-trace"]
     end
     subgraph core["Core"]
-        APP["application<br/>ObserveEvent · RecordEvent ·<br/>AnalyseTrace · AnalyseEventLog ·<br/>ExplainSession"]
+        APP["application<br/>ObserveEvent · RecordEvent ·<br/>AnalyseTrace · AnalyseEventLog ·<br/>ExplainSession · ground_session ·<br/>context · RouteSession"]
         PORTS["ports<br/>Protocols only"]
-        DOM(["domain<br/>events · scoring · pricing ·<br/>stream · lean · outcome · report · requirements"])
+        DOM(["domain<br/>events · scoring · pricing ·<br/>stream · lean · outcome · report · requirements ·<br/>repository · context bundles · routing · stack"])
     end
     subgraph driven["Driven adapters (ter.adapters.driven)"]
         CC["claude_code"]
@@ -44,6 +44,11 @@ flowchart LR
         T3["ter3"]
         RY["requirements_yaml"]
         JU["junit"]
+        GA["gare"]
+        RE["repository engines"]
+        AC["import_linter · dependency_cruiser"]
+        RP["routing_profiles"]
+        CE["critical_evidence"]
         MEM["in_memory (fakes)"]
     end
     BOOT["bootstrap<br/>composition root"] --> driving
@@ -98,7 +103,7 @@ add an exemption.
 
 | Port | Kind | Real adapters | Fake | Contract suite |
 |---|---|---|---|---|
-| `SessionSource` | driven | `ClaudeCodeJsonlSource` | `InMemorySessionSource` | `tests/contract/test_session_source.py` |
+| `SessionSource` | driven | `ClaudeCodeJsonlSource`, `GareRunSource` ([gare.md](../ter4/gare.md)) | `InMemorySessionSource` | `tests/contract/test_session_source.py` |
 | `Tokenizer` | driven | `RegexTokenizer` (offline, deterministic), `TiktokenTokenizer` | the regex one doubles as the fake | covered by golden and unit tests |
 | `Embedder` | driven | `HashingEmbedder` (offline, deterministic) | same | covered by golden tests |
 | `Clock` | driven | `SystemClock` | `FixedClock` | unit tests |
@@ -106,7 +111,9 @@ add an exemption.
 | `EventLog` | driven | `JsonlEventLog` | `InMemoryEventLog` | `tests/contract/test_event_log.py` |
 | `TerScorer` | driven | `Ter3Scorer` (wraps TER 3) | `FixedTerScorer` | `tests/contract/test_ter_scorer.py` |
 | `OutcomeSource` | driven | `JUnitOutcomeSource` (JUnit XML test results, [outcome.md](../ter4/outcome.md)) | `InMemoryOutcomeSource` | `tests/contract/test_outcome_source.py` |
-| `RepositoryEvidence` | driven | `LexicalRepositoryEvidence`, `GitRepositoryEvidence`, `PythonSyntaxEvidence` ([l3-grounded.md](../ter4/l3-grounded.md)) | `InMemoryRepositoryEvidence` | `tests/contract/test_repository_evidence.py` |
+| `RepositoryEvidence` | driven | `LexicalRepositoryEvidence`, `GitRepositoryEvidence`, `PythonSyntaxEvidence`, `SourceSyntaxEvidence` (Python, TypeScript, JavaScript, Svelte, Vue) ([l3-grounded.md](../ter4/l3-grounded.md)) | `InMemoryRepositoryEvidence` | `tests/contract/test_repository_evidence.py` |
+| `ArchitectureContracts` | driven | `ImportLinterContracts`, `DependencyCruiserContracts` | `InMemoryArchitectureContracts` | `tests/contract/test_architecture_contracts.py` |
+| `RoutingProfiles` | driven | `JsonRoutingProfiles` (`src/ter/data/routing_profiles/*.json`) | `InMemoryRoutingProfiles` | `tests/contract/test_routing_profiles.py` |
 | `EventIngest` | driving | `ObserveEvent` (long-lived process), `RecordEvent` (append-only, one hook process) | n/a | `tests/contract/test_event_ingest.py` |
 
 Ports are `typing.Protocol` classes in `src/ter/ports/driven.py` and
@@ -229,37 +236,39 @@ Worked example: a second session format.
 - a **runtime ceiling**: `Maturity.permits(required)` answers whether a
   capability needing level `required` may run under an installation's
   ceiling, and the composition root is the place that applies it. Nothing
-  above L2 exists yet; today's hook adapter is observe-only and always
-  answers Claude Code with `{}` (TER-OBS-008), so observation cannot steer
-  the agent.
+  above L3 exists yet; today's hook adapter is observe-only and always
+  answers Claude Code with `{}` (TER-OBS-008, TER-INT-001), so observation,
+  context bundles and routing advice cannot steer the agent.
 
 | Level | Name | What it adds | What its gate means |
 |---|---|---|---|
 | L0 | Measured | TER 3 parity inside the hexagon: event contract, scoring, pricing | Golden TER 3 scores unchanged, user tokens never scored, dependencies point inward |
 | L1 | Observed | The event stream as the core boundary; Claude Code hooks; live analysis equals batch | Hook append within 50 ms p95, redelivery changes nothing, incremental = batch |
-| L2 | Explained | Lean model, sixteen waste detectors, evidence graph, scorecard, A3 | Every finding cites events; iteration is not rework; A3 derives countermeasures from findings |
-| L3 | Grounded | Repository evidence: AST, symbols, tests, git diff, change surface | Not started beyond the session-level evidence graph |
-| L4 | Advisory | Intervention engine, declarative policies, an intervention ledger | Not started |
-| L5 | Corrective | Routing and opt-in corrective actions; calibration on real data | Not started |
-| L6 | Learning | Closed loop, a second harness, research datasets | Not started |
+| L2 | Explained | Lean model, waste detectors, evidence graph, scorecard, A3 | Every finding cites events; iteration is not rework; A3 derives countermeasures from findings |
+| L3 | Grounded | Repository evidence: syntax, symbols, imports, tests, call edges, Git; change surface; architecture contracts; context bundles; advisory routing | Evidence only through the port; deterministic engines; bundles measured for precision and recall; models named by role only |
+| L4 | Advisory | Intervention engine, declarative policies, an intervention ledger | Advice changes no agent input; no advice without evidence; every intervention ledgered |
+| L5 | Corrective | Calibration on labelled real data, benchmarks, opt-in corrective actions | Precision and recall with confidence intervals per category before any correction |
+| L6 | Learning | Closed loop, a second harness, research datasets | Policies scored and suspended from outcomes; experiments and figures reproducible |
 
 Current state (from `ter-req report` and [points.md](../ter4/points.md)):
 
 | Level | Requirements verified | Vision points done / partial / not started | CI gate |
 |---|---|---|---|
-| L0 Measured | 23 of 24 | 10 / 1 / 0 | `ter-req trace --gate L0` |
-| L1 Observed | 4 of 12 | 10 / 6 / 0 | `ter-req trace --gate L1` |
-| L2 Explained | 33 of 55 | 26 / 23 / 5 | `ter-req trace --gate L2` |
-| L3 Grounded | 2 of 20 | 3 / 8 / 37 | none yet |
-| L4 Advisory | 0 of 15 | 0 / 4 / 35 | none yet |
-| L5 Corrective | 0 of 9 | 1 / 3 / 9 | none yet |
-| L6 Learning | 0 of 9 | 0 / 2 / 17 | none yet |
+| L0 Measured | 25 of 25 (met) | 10 / 1 / 0 | `ter-req trace --gate L0` |
+| L1 Observed | 22 of 22 (met) | 15 / 1 / 0 | `ter-req trace --gate L1` |
+| L2 Explained | 54 of 54 (met) | 49 / 5 / 0 | `ter-req trace --gate L2` |
+| L3 Grounded | 34 of 34 (met) | 25 / 23 / 0 | passes locally; CI step next |
+| L4 Advisory | 0 of 16 | 0 / 5 / 34 | none yet |
+| L5 Corrective | 0 of 10 | 1 / 4 / 8 | none yet |
+| L6 Learning | 11 of 19 | 1 / 4 / 14 | none yet |
 
 A gate checks only requirements already `verified` at or below its level;
 `planned` ones document the road ahead without failing CI. So "the L1 gate
 passes" means every verified L1 requirement has a passing test, not that all
-of L1 is built: the Stop and SubagentStop hooks, for example, wait on real
-data in issue #35. Get live numbers with:
+of L1 is built. A level is met when nothing at it is planned any more; even
+then, points that need real data stay `partial` until real sessions confirm
+them. The [strategy and maturity roadmap](../ter4/strategy.md) says what was
+checked on real data and maps L4 to L6. Get live numbers with:
 
 ```bash
 python -m pytest --req-trace=req-trace.json
@@ -270,7 +279,10 @@ ter-req report --results req-trace.json
 
 - [docs/ter4/architecture.md](../ter4/architecture.md): contracts, strangler
   table, gate tables per level.
-- [docs/ter4/l1-observed.md](../ter4/l1-observed.md) and
-  [docs/ter4/l2-explained.md](../ter4/l2-explained.md): what each level built.
+- [docs/ter4/l1-observed.md](../ter4/l1-observed.md),
+  [docs/ter4/l2-explained.md](../ter4/l2-explained.md) and
+  [docs/ter4/l3-grounded.md](../ter4/l3-grounded.md): what each level built.
+- [docs/ter4/strategy.md](../ter4/strategy.md): where TER is and what comes
+  next, L4 to L6.
 - [Testing guide](testing.md): how the gates are tested.
 - [Contributing guide](contributing.md): the checklist for a change.

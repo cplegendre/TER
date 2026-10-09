@@ -14,8 +14,11 @@ repository's architecture contracts, [context bundles](#context-bundles),
 [evidence usage, outcome value, drift and the evidence graph](#evidence-usage-outcome-value-drift-and-the-evidence-graph),
 [advisory model routing](#model-routing-advisory), and
 [call edges, more contracts and recorded measures](#call-edges-more-contracts-and-recorded-measures).
-Every L3 requirement is verified by tests; the vision points that need real
-sessions stay `partial` until they are checked on a judged corpus.
+All 34 L3 requirements are verified by tests, so **L3 Grounded is met**
+(with L0 to L2). The vision points that need real sessions stay `partial`
+until they are checked on a judged corpus; what was checked on 9 October
+2026, what is still unproven and the road to L4 are in
+[strategy.md](strategy.md).
 
 ## Requirements
 
@@ -43,19 +46,21 @@ Unless named otherwise, the test classes are in
 `tests/unit/test_ter4_change_surface.py` (grounded detectors). Live
 analysis does not read the diff (P062), so P051 and P062 stay partial.
 
-**Real data still needed.** TER-EVD-006 and TER-EVD-007 are verified on
-synthetic sessions and synthetic repositories committed with Git. The points
-they serve (P063 change surface, P064 expansion, P065 boundary violations,
-P066 unrelated modifications) stay `partial` until the detectors are run on
-real sessions together with the repository each session worked in, checked
-out at the commit it started from (D4 in the maturity plan), and their
-finding rates and false positives are recorded.
+**Real data.** TER-EVD-006 and TER-EVD-007 are verified on synthetic
+sessions and synthetic repositories committed with Git. On 9 October 2026
+the detectors were run on the owner's 52 real sessions, each with the
+repository it worked in checked out at its start commit; that run produced
+the session-root rules (TER-EVD-017 to TER-EVD-020) and the
+[`unrelated_modification` calibration](#calibration-unrelated_modification-9-oct-2026)
+(0 of 29 judged findings true). The points they serve (P063 change surface,
+P064 expansion, P065 boundary violations, P066 unrelated modifications) stay
+`partial` until a judged corpus shows true positives and finding rates.
 
 ## The port
 
 ```mermaid
 flowchart LR
-    D["detectors, intent analysis<br/>(later L3 steps)"] --> P["RepositoryEvidence port<br/>ter.ports.driven"]
+    D["grounded detectors, context bundles,<br/>evidence usage, routing"] --> P["RepositoryEvidence port<br/>ter.ports.driven"]
     P --> L["lexical<br/>files, search, test links"]
     P --> G["git<br/>+ diff, history"]
     P --> A["python-ast<br/>+ symbols, imports, calls"]
@@ -1006,6 +1011,10 @@ source's usage limits (they qualify figures) and repository grounding
 
 ## Known limits
 
+L3 is met by its requirements; these are the limits of what it reads. The
+open real-data questions (precision, context recall, escalation value) are
+listed in [strategy.md](strategy.md#what-remains-unproven-on-real-data).
+
 - Test-to-source links and import graphs cover Python, TypeScript,
   JavaScript, Svelte and Vue; other languages have no structure.
 - Call edges name what is called and resolve it only through the file's
@@ -1029,6 +1038,13 @@ source's usage limits (they qualify figures) and repository grounding
 - Under the `syntax` engine the change surface reads Python, TypeScript,
   JavaScript, Svelte and Vue imports; any other file (CSS, Markdown, JSON)
   is inside it only when the prompt names it, so its findings are uncertain.
+- The change surface does not read the issue a prompt names, the files the
+  session read before editing, or file roles (test, doc, CI, config), which
+  is why every `unrelated_modification` finding is capped below 0.70.
+- Live analysis does not read the working-tree diff (P062); grounding uses
+  the repository at the start commit.
+- Routing and context bundles are advisory and offline: below L4 nothing is
+  written into a hook response.
 
 ## Checking the grounded detectors on real sessions
 

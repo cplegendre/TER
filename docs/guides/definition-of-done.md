@@ -123,13 +123,14 @@ Examples from the catalogue:
 
 - **P119** (duplicate events do not distort analysis) is done: its one rule,
   TER-OBS-004, is verified by contract and property tests.
-- **P003** (value, waste, flow, quality, cost, risk and outcome as
-  first-class concepts) is partial: value, waste, flow and cost exist;
-  quality, risk and outcome need repository evidence at L3 (TER-SCR-001).
-- **P196** (an open, inspectable research platform) is partial: the points
-  index is checked in CI and by `tests/docs`, and the docs' links and
-  commands are tested; recomputing every metric from events alone
-  (TER-EXP-001) is still planned.
+- **P063** (activity stays within the expected change surface) is partial
+  although its rule, TER-EVD-006, is verified: the detector was run on the
+  owner's real sessions, and the judged findings showed that the import
+  graph misses tests, CI, docs and modules a prompt implies, so the point
+  waits on a judged corpus with evidence beyond imports.
+- **P155** (context recall when critical evidence was needed) is partial:
+  TER-EVD-005 is verified on synthetic sessions, and no critical-evidence
+  lists for real sessions exist yet (issue #42).
 
 ### The real-data rule
 
