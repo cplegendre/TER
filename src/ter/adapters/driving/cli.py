@@ -761,6 +761,34 @@ def format_surfaces(analysis: LeanAnalysis) -> str:
     return line
 
 
+def format_evidence(analysis: LeanAnalysis) -> str:
+    """Two lines on evidence usage and outcome value of a grounded (L3)
+    analysis (TER-EVD-008, TER-LEN-009); empty without them."""
+    u, v = analysis.usage, analysis.value
+    if u is None or v is None:
+        return ""
+    s = u.as_dict()["summary"]
+    assert isinstance(s, dict)
+    lines = [
+        f"  evidence usage   {s['reads']} read(s): {s['used']} used "
+        f"({s['material']} by a change, command or check), {s['unused']} unused "
+        f"({s['unused_context_tokens']:,} tok), {s['pending']} pending; "
+        f"{s['explored_and_changed']} of {s['files_explored']} file(s) read "
+        "were changed"
+    ]
+    totals: dict[str, int] = {}
+    for counts in v.counts().values():
+        for k, n in counts.items():
+            totals[k] = totals.get(k, 0) + n
+    lines.append(
+        "  outcome value    "
+        + ", ".join(f"{n} {k.replace('_', ' ')}" for k, n in totals.items())
+        + f" ({sum(j.uncertain and j.value.value != 'unjudged' for j in v.judgements)}"
+        " uncertain)"
+    )
+    return "\n".join(lines)
+
+
 def format_profile(analysis: LeanAnalysis) -> str:
     """The session's languages and, when grounded, its stack (TER-STK-001,
     TER-STK-002); empty when it named no file and has no stack."""
@@ -841,6 +869,9 @@ def format_findings(
         lines.append(profile)
     if analysis.repository is not None:
         lines.append(format_surfaces(analysis))
+        evidence = format_evidence(analysis)
+        if evidence:
+            lines.append(evidence)
     lines.append(
         f"  findings         {sc.findings} confident, {sc.uncertain_findings} uncertain, "
         f"{sc.risks} risk(s)"

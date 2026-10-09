@@ -147,7 +147,7 @@ requirements:
     source_points: [67, 68, 69, 70]
     rationale: >-
       Reads with downstream use are value; reads without it are waste.
-    status: planned
+    status: verified
 
   - id: TER-EVD-012
     pattern: optional
@@ -320,7 +320,7 @@ requirements:
     source_points: [71, 72, 77]
     rationale: >-
       The evidence graph reconstructs how a change emerged.
-    status: planned
+    status: verified
 
   - id: TER-GRF-002
     pattern: ubiquitous
@@ -393,7 +393,7 @@ requirements:
       Exploration that looks unrelated in words is often needed; only
       repository evidence of what the change depends on separates it from
       drift. L2 judges edits and writes (TER-ITN-003).
-    status: planned
+    status: verified
 
   - id: TER-LEN-009
     pattern: ubiquitous
@@ -408,7 +408,7 @@ requirements:
       Whether a read or a check served the requested outcome depends on the
       repository, not on the event stream alone. L2 judges edits and writes
       (TER-LEN-003).
-    status: planned
+    status: verified
 
   - id: TER-DET-011
     pattern: event-driven

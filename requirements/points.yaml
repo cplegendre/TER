@@ -124,7 +124,7 @@ points:
       outcome.
     level: L2
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Value classification takes the current intent's requested outcome as
@@ -135,7 +135,7 @@ points:
     rules: [TER-LEN-003, TER-LEN-009]
     verification:
       - 'test: tests/unit/test_ter4_lean_intent.py::test_the_same_edit_is_valued_against_the_current_intent'
-      - 'planned: judge exploration, reasoning and validation against the outcome with repository evidence (TER-LEN-009, L3)'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestOutcomeValue::test_the_same_read_is_valued_against_the_current_intent'
 
   - id: P007
     text: >-
@@ -143,7 +143,7 @@ points:
       advancing that outcome.
     level: L2
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         The waste definition (resource use without proportionate progress
@@ -155,7 +155,7 @@ points:
     verification:
       - 'test: tests/unit/test_ter4_lean_properties.py::test_findings_are_traceable_and_bounded'
       - 'test: tests/unit/test_ter4_lean_intent.py::test_the_same_edit_is_valued_against_the_current_intent'
-      - 'planned: judge exploration, reasoning and validation against the outcome with repository evidence (TER-LEN-009, L3)'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestOutcomeValue'
 
   - id: P008
     text: >-
@@ -780,7 +780,8 @@ points:
     rules: [TER-ITN-003, TER-ITN-006]
     verification:
       - 'test: tests/unit/test_ter4_lean_intent.py::TestIntentDrift'
-      - 'planned: drift in exploration and reasoning with repository evidence (TER-ITN-006, L3)'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestExplorationDrift'
+      - 'planned: calibrate exploration_drift on judged real sessions with their repository at the start commit (D4), as unrelated_modification was'
 
   - id: P049
     text: >-
@@ -1076,40 +1077,43 @@ points:
       Measure repository exploration against the eventual files changed.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - Reports compare files explored with files eventually changed.
     rules: [TER-EVD-008]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-008'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestEvidenceUsage'
+      - 'planned: usage rates on real sessions with their repository at the start commit (D4)'
 
   - id: P068
     text: >-
       Measure how much retrieved evidence contributes to subsequent actions.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Reports give the share of retrieved evidence that later actions
         used.
     rules: [TER-EVD-008]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-008'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestEvidenceUsage'
+      - 'planned: usage rates on real sessions with their repository at the start commit (D4)'
 
   - id: P069
     text: >-
       Identify repository reads that materially influence implementation.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - >-
         Reads that later decisions, edits or tests used are marked
         influential.
     rules: [TER-EVD-008]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-008'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestEvidenceUsage'
+      - 'planned: usage rates on real sessions with their repository at the start commit (D4)'
 
   - id: P070
     text: >-
@@ -1117,12 +1121,13 @@ points:
       value.
     level: L3
     kind: capability
-    status: not-started
+    status: partial
     definition_of_done:
       - Reads with no downstream use are marked and costed.
     rules: [TER-EVD-008]
     verification:
-      - 'planned: passing tests tagged req for TER-EVD-008'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestEvidenceUsage'
+      - 'planned: usage rates on real sessions with their repository at the start commit (D4)'
 
   - id: P071
     text: >-
@@ -1130,7 +1135,7 @@ points:
       actions, changes, and validation.
     level: L3
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         An evidence graph type links intent, observations, decisions,
@@ -1138,7 +1143,7 @@ points:
     rules: [TER-GRF-001]
     verification:
       - 'test: tests/unit/test_ter4_lean_analysis.py::test_evidence_graph_edges_and_export'
-      - 'planned: decision and repository nodes (TER-GRF-001, L3)'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestEvidenceGraph'
 
   - id: P072
     text: >-
@@ -1146,7 +1151,7 @@ points:
       observable.
     level: L3
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Every observable decision node in the graph has at least one
@@ -1154,7 +1159,7 @@ points:
     rules: [TER-GRF-001]
     verification:
       - 'test: tests/unit/test_ter4_lean_analysis.py::test_evidence_graph_edges_and_export'
-      - 'planned: decisions as graph nodes (TER-GRF-001, L3)'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestEvidenceGraph::test_every_decision_rests_on_evidence'
 
   - id: P073
     text: >-
@@ -1219,6 +1224,7 @@ points:
     verification:
       - 'test: tests/unit/test_ter4_lean_analysis.py::test_evidence_graph_edges_and_export'
       - 'planned: a command that prints the reconstruction of a change (TER-GRF-001)'
+      - 'test: tests/unit/test_ter4_evidence_usage.py::TestEvidenceGraph::test_following_edges_back_reconstructs_the_change'
 
   - id: P078
     text: >-
