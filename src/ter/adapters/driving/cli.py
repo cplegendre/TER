@@ -81,8 +81,9 @@ REPO_HELP = (
     "it and imports that break the repository's import-linter contracts"
 )
 REPO_ENGINE_HELP = (
-    "RepositoryEvidence engine for --repo: python-ast (default; needed for "
-    "the import graph), lexical, git or any installed one"
+    "RepositoryEvidence engine for --repo: syntax (default: the import graph "
+    "of Python, TypeScript, JavaScript, Svelte and Vue files), python-ast "
+    "(Python only), lexical (no import graph), git or any installed one"
 )
 OUTCOME_HELP = (
     "test results of the run (JUnit XML, e.g. from pytest --junitxml): judge "
@@ -101,7 +102,7 @@ class ExplainTranscript(Protocol):
         ter: str,
         outcome: Path | None = None,
         repo: Path | None = None,
-        repo_engine: str = "python-ast",
+        repo_engine: str = "syntax",
     ) -> ExplainedSession: ...
 
 
@@ -493,7 +494,7 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
     explain.add_argument("--tokenizer", default="regex", help=TOKENIZER_HELP)
     explain.add_argument("--outcome", type=Path, metavar="FILE", help=OUTCOME_HELP)
     explain.add_argument("--repo", type=Path, metavar="DIR", help=REPO_HELP)
-    explain.add_argument("--repo-engine", default="python-ast", help=REPO_ENGINE_HELP)
+    explain.add_argument("--repo-engine", default="syntax", help=REPO_ENGINE_HELP)
 
     a3 = commands.add_parser("a3", help="L2: a one-page Lean A3 report of a session")
     a3.add_argument("path", type=Path, help="Claude Code session .jsonl")
@@ -519,7 +520,7 @@ def _parser(default_log_dir: Path) -> argparse.ArgumentParser:
     a3.add_argument("--tokenizer", default="regex", help=TOKENIZER_HELP)
     a3.add_argument("--outcome", type=Path, metavar="FILE", help=OUTCOME_HELP)
     a3.add_argument("--repo", type=Path, metavar="DIR", help=REPO_HELP)
-    a3.add_argument("--repo-engine", default="python-ast", help=REPO_ENGINE_HELP)
+    a3.add_argument("--repo-engine", default="syntax", help=REPO_ENGINE_HELP)
 
     commands.add_parser(
         "capabilities",

@@ -843,7 +843,9 @@ points:
     verification:
       - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
       - 'test: tests/unit/test_ter4_repository_evidence.py::TestTestsImporting'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestEcmaScriptTests'
       - 'test: tests/unit/test_ter4_change_surface.py::TestChangeSurface'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestEcmaScriptChangeSurface'
       - 'planned: per-task listing of related symbols and architectural components with their evidence (the change surface lists files and tests, TER-EVD-006)'
 
   - id: P053
@@ -908,6 +910,7 @@ points:
     verification:
       - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
       - 'test: tests/golden/test_repository_evidence_snapshot.py::test_python_syntax_evidence_matches_golden_snapshot'
+      - 'test: tests/golden/test_repository_evidence_snapshot.py::test_multi_language_syntax_evidence_matches_golden_snapshot'
 
   - id: P057
     text: >-
@@ -922,6 +925,7 @@ points:
     rules: [TER-EVD-012]
     verification:
       - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestDefinitions'
       - 'planned: navigate symbol references (beyond call edges) from evidence queries'
 
   - id: P058
@@ -936,25 +940,29 @@ points:
     verification:
       - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
       - 'test: tests/unit/test_ter4_repository_evidence.py::TestLexicalImports'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestImportForms'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestResolution'
+      - 'test: tests/contract/test_repository_evidence.py::test_an_engine_that_reads_a_language_resolves_its_imports_to_files'
 
   - id: P059
     text: >-
       Add call-graph evidence where practical.
     level: L3
     kind: capability
-    status: done
+    status: partial
     definition_of_done:
       - The adapter returns call edges for supported languages.
-    rules: [TER-EVD-012]
+    rules: [TER-EVD-012, TER-EVD-016]
     verification:
       - 'test: tests/unit/test_ter4_repository_evidence.py::TestPythonSyntax'
+      - 'planned: call edges of TypeScript, JavaScript, Svelte and Vue files (TER-EVD-016)'
 
   - id: P060
     text: >-
       Add test-to-source relationships.
     level: L3
     kind: capability
-    status: partial
+    status: done
     definition_of_done:
       - >-
         For any source module, the adapter returns every test module that
@@ -963,7 +971,8 @@ points:
     verification:
       - 'test: tests/contract/test_repository_evidence.py::test_returns_every_test_module_that_imports_a_source_module'
       - 'test: tests/unit/test_ter4_repository_evidence.py::TestTestsImporting'
-      - 'planned: test-to-source links for languages other than Python (TER-EVD-014)'
+      - 'test: tests/contract/test_repository_evidence.py::test_tests_of_another_language_are_linked_or_refused'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestEcmaScriptTests'
 
   - id: P061
     text: >-
@@ -1008,6 +1017,7 @@ points:
     rules: [TER-EVD-006]
     verification:
       - 'test: tests/unit/test_ter4_change_surface.py::TestChangeSurface'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestEcmaScriptChangeSurface'
       - 'test: tests/unit/test_ter4_grounded_cli.py'
       - 'planned: real-data check on sessions with their repository and start commit (D4)'
 
@@ -1022,6 +1032,7 @@ points:
     rules: [TER-EVD-006]
     verification:
       - 'test: tests/unit/test_ter4_change_surface.py::TestSurfaceExpansion'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestEcmaScriptChangeSurface'
       - 'planned: real-data check on sessions with their repository and start commit (D4)'
 
   - id: P065
@@ -1053,6 +1064,7 @@ points:
     rules: [TER-EVD-006]
     verification:
       - 'test: tests/unit/test_ter4_change_surface.py::TestUnrelatedModification'
+      - 'test: tests/unit/test_ter4_ecmascript_evidence.py::TestEcmaScriptChangeSurface'
       - 'test: tests/unit/test_ter4_grounded_cli.py'
       - 'planned: real-data check on sessions with their repository and start commit (D4)'
 

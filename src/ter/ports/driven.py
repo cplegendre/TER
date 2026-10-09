@@ -186,18 +186,25 @@ class RepositoryEvidence(Protocol):
       every UTF-8 text file;
     * ``tests_importing(path)`` returns every test module (``test_*.py`` or
       ``*_test.py``) whose import statements load the Python module at
-      ``path``, sorted (TER-EVD-003); a non-Python path raises
+      ``path``, sorted (TER-EVD-003); an engine that reads another language
+      (``syntax``: TypeScript, JavaScript, Svelte, Vue) does the same for it
+      with that language's test conventions (``*.test.*``, ``*.spec.*``,
+      ``__tests__/``, ``tests/``) and import resolution (TER-EVD-014); a
+      path in a language the engine has no import rule for raises
       ``UnsupportedLanguageError``;
     * ``structure(path)`` returns the file's symbols, imports and call edges
       from its syntax tree, or ``None`` when the engine does not support the
-      file's language (TER-EVD-012);
+      file's language (TER-EVD-012). An import of a language that imports
+      files by path carries the repository paths it may load
+      (``ImportEdge.candidates``);
     * ``structure_of(path, text)`` returns what ``structure(path)`` would
       return if the file at ``path`` held ``text``: equal to
       ``structure(path)`` for a listed file's own text, and also served for a
       path the repository does not list (a file a session creates), whose
       module name is read as if it were added. It reads nothing from the
-      repository but the file list, so an edit can be judged on its result
-      (TER-EVD-007);
+      repository but the file list (and, for import resolution, the
+      project configuration such as ``tsconfig.json`` and ``package.json``
+      files), so an edit can be judged on its result (TER-EVD-007);
     * ``diff()`` and ``history(path)`` return the working tree's changes and
       a file's commits (newest first), or ``None`` when the engine has no
       version control evidence (TER-EVD-013).

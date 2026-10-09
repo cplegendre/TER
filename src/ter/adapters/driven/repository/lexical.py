@@ -196,7 +196,7 @@ class LexicalRepositoryEvidence:
         module = module_name(path, files)
         imports: dict[str, tuple[str, ...]] = {}
         for candidate in sorted(files):
-            if not is_test_module(candidate):
+            if not is_test_module(candidate) or not is_python_source(candidate):
                 continue
             text = self._read(candidate)
             if text is None:

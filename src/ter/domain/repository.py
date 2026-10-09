@@ -50,15 +50,21 @@ __all__ = [
     "import_candidates",
     "imported_modules",
     "imports_module",
+    "is_ecmascript_source",
     "is_python_source",
     "is_test_module",
+    "is_vendored",
     "module_name",
     "package_of",
     "repository_path",
+    "resolve_import",
     "resolve_relative",
     "session_root",
+    "source_language",
     "tests_importing",
     "within",
+    "ECMASCRIPT_SUFFIXES",
+    "VENDOR_DIRS",
 ]
 
 MODULE_LEVEL = "<module>"
@@ -130,6 +136,13 @@ class ImportEdge:
     module: str
     names: tuple[str, ...]
     line: int
+    #: For a language that imports files by path (TypeScript, JavaScript,
+    #: Svelte), the repository paths the import may load, in resolution
+    #: order: the first that is a file of the repository is the one it loads
+    #: (:func:`resolve_import`). ``module`` is then the specifier as written
+    #: (``./util``, ``$lib/api``, ``react``). Empty for a Python import, which
+    #: is resolved by module name, and for an import of an external package.
+    candidates: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -152,7 +165,11 @@ class CallEdge:
 class SourceStructure:
     """What a file's syntax tree says: definitions, imports and calls, each in
     source order. ``error`` is set (and the tuples are empty) when the file
-    does not parse."""
+    does not parse.
+
+    ``module`` is the name other files import the file by: a dotted name for
+    Python, the file's own repository path for a language that imports files
+    by path (``language`` ``ecmascript``)."""
 
     path: str
     language: str
@@ -223,12 +240,68 @@ def is_python_source(path: str) -> bool:
     return PurePosixPath(path).suffix == ".py"
 
 
+#: File suffixes whose imports TER reads as ECMAScript modules: TypeScript,
+#: JavaScript, and the ``<script>`` blocks of Svelte and Vue components.
+ECMASCRIPT_SUFFIXES = frozenset(
+    {".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".svelte", ".vue"}
+)
+
+#: Directories that hold installed third-party packages, not the
+#: repository's own source.
+VENDOR_DIRS = frozenset({"node_modules"})
+
+
+def is_ecmascript_source(path: str) -> bool:
+    return PurePosixPath(path).suffix in ECMASCRIPT_SUFFIXES
+
+
+def source_language(path: str) -> str | None:
+    """The language TER has import rules for, by file suffix: ``python``,
+    ``ecmascript`` (TypeScript, JavaScript, Svelte, Vue), or ``None``."""
+    if is_python_source(path):
+        return "python"
+    if is_ecmascript_source(path):
+        return "ecmascript"
+    return None
+
+
+def is_vendored(path: str) -> bool:
+    """Whether ``path`` is third-party or built code, never the repository's
+    own source: a file in an installed-packages directory (``node_modules``)
+    or a minified bundle (``pdf.worker.min.mjs``, ``jquery.min.js``)."""
+    parts = path.split("/")
+    return ".min." in parts[-1] or any(part in VENDOR_DIRS for part in parts[:-1])
+
+
+_ES_TEST = re.compile(r"\.(?:test|spec)\.[A-Za-z]+$")
+_ES_TEST_DIRS = frozenset({"__tests__", "tests"})
+
+
 def is_test_module(path: str) -> bool:
-    """pytest's default rule: ``test_*.py`` or ``*_test.py``."""
-    name = PurePosixPath(path).name
-    return name.endswith(".py") and (
-        name.startswith("test_") or name.endswith("_test.py")
-    )
+    """Whether ``path`` is a test module.
+
+    Python: pytest's default rule, ``test_*.py`` or ``*_test.py``
+    (``conftest.py`` and helpers are not tests). TypeScript and JavaScript
+    (and Svelte or Vue components): the Jest, Vitest and Playwright
+    conventions, ``*.test.*`` or ``*.spec.*``, or any such file under a
+    ``__tests__/`` or ``tests/`` directory. Nothing under ``node_modules``.
+    """
+    p = PurePosixPath(path)
+    name = p.name
+    if name.endswith(".py"):
+        return name.startswith("test_") or name.endswith("_test.py")
+    if p.suffix not in ECMASCRIPT_SUFFIXES or is_vendored(path):
+        return False
+    if _ES_TEST.search(name):
+        return True
+    return any(part in _ES_TEST_DIRS for part in p.parts[:-1])
+
+
+def resolve_import(edge: ImportEdge, files: Collection[str]) -> str | None:
+    """The repository file an import that names files by path loads: its
+    first candidate that ``files`` holds, or ``None`` (an external package,
+    or a file the repository does not have)."""
+    return next((c for c in edge.candidates if c in files), None)
 
 
 def module_name(path: str, files: Collection[str]) -> str:

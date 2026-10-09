@@ -1,6 +1,6 @@
 """Repository evidence engines: adapters for the ``RepositoryEvidence`` port.
 
-Three engines, each a capability (``RepositoryEvidence.<engine>``, ADR 0005):
+Four engines, each a capability (``RepositoryEvidence.<engine>``, ADR 0005):
 
 * :class:`LexicalRepositoryEvidence` (``lexical``): the deterministic
   baseline. Files, text search, and test-to-source links read from import
@@ -12,6 +12,11 @@ Three engines, each a capability (``RepositoryEvidence.<engine>``, ADR 0005):
 * :class:`PythonSyntaxEvidence` (``python-ast``): the lexical engine plus
   symbols, imports and call edges of Python files from the standard
   library's ``ast`` (TER-EVD-012).
+* :class:`SourceSyntaxEvidence` (``syntax``): the Python syntax-tree engine
+  plus imports, definitions and test-to-source links of TypeScript,
+  JavaScript, Svelte and Vue files, resolved to repository files through
+  relative paths, ``tsconfig``/``jsconfig`` paths, SvelteKit's ``$lib`` and
+  workspace packages (TER-EVD-012, TER-EVD-014). The default for ``--repo``.
 
 They share one package because the richer engines extend the baseline; the
 package as a whole is one adapter for the import contracts. No engine imports
@@ -23,9 +28,11 @@ from __future__ import annotations
 from .git import GitRepositoryEvidence
 from .lexical import LexicalRepositoryEvidence
 from .python_ast import PythonSyntaxEvidence
+from .syntax import SourceSyntaxEvidence
 
 __all__ = [
     "GitRepositoryEvidence",
     "LexicalRepositoryEvidence",
     "PythonSyntaxEvidence",
+    "SourceSyntaxEvidence",
 ]

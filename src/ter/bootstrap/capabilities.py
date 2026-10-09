@@ -68,6 +68,7 @@ BUILTIN_CAPABILITIES: dict[str, str] = {
     "RepositoryEvidence.git": "ter.adapters.driven.repository:GitRepositoryEvidence",
     "RepositoryEvidence.lexical": "ter.adapters.driven.repository:LexicalRepositoryEvidence",
     "RepositoryEvidence.python-ast": "ter.adapters.driven.repository:PythonSyntaxEvidence",
+    "RepositoryEvidence.syntax": "ter.adapters.driven.repository:SourceSyntaxEvidence",
     "SessionSource.claude-code": "ter.adapters.driven.claude_code:ClaudeCodeJsonlSource",
     "SessionSource.gare": "ter.adapters.driven.gare:GareRunSource",
     "TerScorer.ter3": "ter.adapters.driven.ter3:Ter3Scorer",
@@ -448,7 +449,7 @@ def repository_evidence(
     """The repository engine ``RepositoryEvidence.<engine>`` for ``root``.
 
     Repository engines are capabilities like any adapter (TER-ARC-007): TER's
-    own (``lexical``, ``git``, ``python-ast``) are built in, and an installed
+    own (``lexical``, ``git``, ``python-ast``, ``syntax``) are built in, and an installed
     package adds one with a ``RepositoryEvidence.<name>`` entry point whose
     class takes the repository root. Raises :class:`CapabilityError` for an
     unknown or broken engine, and the engine's own error (such as

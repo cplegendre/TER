@@ -221,6 +221,7 @@
       "error": null,
       "imports": [
         {
+          "candidates": [],
           "line": 1,
           "module": "pkg.core",
           "names": [
@@ -245,6 +246,7 @@
       "error": null,
       "imports": [
         {
+          "candidates": [],
           "line": 1,
           "module": "pkg.core",
           "names": [
@@ -275,6 +277,7 @@
       "error": null,
       "imports": [
         {
+          "candidates": [],
           "line": 1,
           "module": "pkg",
           "names": [
@@ -307,6 +310,7 @@
       "error": null,
       "imports": [
         {
+          "candidates": [],
           "line": 1,
           "module": "pkg.core",
           "names": [
@@ -331,6 +335,7 @@
       "error": null,
       "imports": [
         {
+          "candidates": [],
           "line": 1,
           "module": "json",
           "names": []
@@ -360,6 +365,7 @@
       "error": null,
       "imports": [
         {
+          "candidates": [],
           "line": 1,
           "module": "pkg.util",
           "names": []
@@ -382,6 +388,7 @@
       "error": null,
       "imports": [
         {
+          "candidates": [],
           "line": 1,
           "module": "pkg.core",
           "names": [

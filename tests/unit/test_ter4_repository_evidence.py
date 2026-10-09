@@ -21,6 +21,7 @@ from ter.adapters.driven.repository import (
     GitRepositoryEvidence,
     LexicalRepositoryEvidence,
     PythonSyntaxEvidence,
+    SourceSyntaxEvidence,
 )
 from ter.adapters.driven.repository.lexical import lexical_imports
 from ter.bootstrap.capabilities import (
@@ -636,12 +637,14 @@ class TestRepositoryEnginesArePlugins:
             "git",
             "lexical",
             "python-ast",
+            "syntax",
         }
         root = git_repo(tmp_path / "repo")
         expected = {
             "lexical": LexicalRepositoryEvidence,
             "git": GitRepositoryEvidence,
             "python-ast": PythonSyntaxEvidence,
+            "syntax": SourceSyntaxEvidence,
         }
         for name, cls in expected.items():
             engine = repository_evidence(root, name)
@@ -691,5 +694,6 @@ class TestRepositoryEnginesArePlugins:
             "RepositoryEvidence.git",
             "RepositoryEvidence.lexical",
             "RepositoryEvidence.python-ast",
+            "RepositoryEvidence.syntax",
         }
         assert CapabilityRegistry(discover=None).check("RepositoryEvidence") == ()
