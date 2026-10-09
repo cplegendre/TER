@@ -74,15 +74,15 @@ at L3 and L4.
 
 | Detector | Lean waste | Evidence it cites | Confidence rule | Countermeasure |
 |---|---|---|---|---|
-| `repeated_tool_call` (pts 19, 39) | over-processing | both calls and results | 0.90 same input and output, nothing edited between; 0.85 validation re-run without edits; 0.75 edits between but identical output; 0.50 an output not observed. Different output: none | CLAUDE.md "reuse results"; PreToolUse(Bash) hook blocking identical commands on an unchanged tree |
+| `repeated_tool_call` (pts 19, 39) | over-processing | both calls and results | within one prompt's turn: 0.90 same input and output, nothing edited between; 0.85 validation re-run without edits; 0.75 edits between but identical output. 0.50 an output not observed, or a new prompt between the two calls (calibrated on real sessions: 13 of 13 confident repeats crossed a prompt, such as a turn-ending call made once per turn, and none was waste). Different output: none | CLAUDE.md "reuse results"; PreToolUse(Bash) hook blocking identical commands on an unchanged tree |
 | `repeated_exploration` (18, 28, 36) | motion | both reads/searches and results | 0.85 same arguments, identical output, file not edited between; 0.55 output not observed. Re-read after an edit or of another range: none | CLAUDE.md "do not re-read"; a "Where things live" map; PreToolUse(Read) hook blocking unchanged re-reads |
 | `rework_cycle` (26, 37) | rework | failed run, failure, fix edits, next run | same command, edits between: 0.80 when the next run fails with the same failure signature, 0.90 for the second in a row. Pass or different failure: iteration, no finding | CLAUDE.md "same failure twice → stop and re-diagnose"; PostToolUse(Bash) hook flagging an identical failure |
-| `unvalidated_implementation` (25) | defects (risk) | unvalidated edits and the response | per prompt, after a response: 0.85 no check in the session; 0.75 checks only earlier; 0.50 docs only; 0.85 responded after a failing check | CLAUDE.md "validation is part of done" with the session's own test command; PostToolUse(Edit\|Write) hook running it |
-| `premature_implementation` (22, 23) | defects (risk) | the prompt and the edit | 0.75 in-place edit of a file never read, written or named in output; 0.45 new file before any exploration | CLAUDE.md "read before editing"; `permissions.defaultMode: plan` |
+| `unvalidated_implementation` (25) | defects (risk) | unvalidated edits and the response | per prompt, after a response: 0.85 no check in the session; 0.75 checks only earlier; 0.50 docs only; 0.85 responded after a failing check. A check is a validation run, or any shell line that runs a named check tool beside a change (`sed -i … && pytest`, `ruff check && git commit`; real sessions chain checks this way) | CLAUDE.md "validation is part of done" with the session's own test command; PostToolUse(Edit\|Write) hook running it |
+| `premature_implementation` (22, 23) | defects (risk) | the prompt and the edit | 0.75 in-place edit of a file never read, written, named in an earlier shell command (`cat f`, `sed -n 1,80p f`) or named in output; 0.45 new file before any exploration | CLAUDE.md "read before editing"; `permissions.defaultMode: plan` |
 | `excessive_planning` (8, 24) | over-processing | the planning run | ≥ 4 planning steps with no action between; 0.55 + 0.05 per step, ≤ 0.90; a step beyond the second is waste only when it adds no decision (reasoning ≤ 25% new words, or a repeated to-do update); no restating step, no finding | CLAUDE.md "act after planning"; plan-mode practice |
 | `fragmented_edits` (27, 28) | motion | the edits and results | ≥ 3 consecutive edits to one file; 0.70 + 0.05 per extra, ≤ 0.85; only round-trip overhead is waste | CLAUDE.md "one MultiEdit per coherent change" |
 | `unused_context` (21, 34, 35) | inventory | the read and its result | after a response, nothing later names the file or what it defines: 0.65 (defines names) or 0.55 — always uncertain at L2 | CLAUDE.md "read with a purpose"; verify first, then map or `/compact` |
-| `unnecessary_handoff` (29, 30) | handoffs | handoff, result, the agent's own call | a later own call shares ≥ 3 key words and ≥ 50% of the smaller set: 0.45 + 0.40 × overlap, ≤ 0.85 | CLAUDE.md "when to delegate"; `permissions.deny: ["Task"]` for small tasks |
+| `unnecessary_handoff` (29, 30) | handoffs | handoff, result, the agent's own call | a later own call shares ≥ 3 key words with the handoff's task and covers ≥ 50% of the task's words: 0.45 + 0.40 × coverage, ≤ 0.85. Overlap with the smaller set flagged an orchestrator's every short review or merge command against its long worker briefs | CLAUDE.md "when to delegate"; `permissions.deny: ["Task"]` for small tasks |
 | `repeated_reasoning` (8, 17) | over-processing | both reasoning blocks | same prompt, no edit between, ≥ 3 shared words, ≤ 25% new words, none of them from a tool result seen since (new evidence): 0.85 − novelty (− 0.10 under 6 words) | CLAUDE.md "act instead of restating" |
 | `regeneration` (20) | overproduction | earlier write or read, the rewrite | whole-file write keeping ≥ 80% of the agent's own earlier write: 0.80; ≥ 60% of a file just read: 0.60 | CLAUDE.md "Edit, not Write, for existing files"; PreToolUse(Write) hook |
 | `intent_drift` (6, 7, 48) | overproduction | the prompt in force, the agent's "also …" reasoning, the edit and result | edit or write scoring below the drift band (0.25) against an intent of ≥ 3 key terms, no intent change recorded: 0.85 continues a goal the developer dropped, or the agent called it additional; 0.55 (uncertain) only defines names the intent does not mention (calibrated on real sessions: 17 of 17 such findings were the requested change or helper scripts), or only added words (≥ 3) depart | CLAUDE.md "propose extra work, do not do it"; say wanted extras in the prompt |
@@ -101,6 +101,27 @@ custom `DetectorRegistry` to change it. A reasoning span or planning step
 (`DECISION_NOVELTY`) are new to the prompt and the reasoning it is compared
 with, and *adds evidence* when a new word comes from a tool result observed
 since; such a span is never waste (TER-LEN-004).
+
+### Calibration on real sessions
+
+Detectors are calibrated against real Claude Code transcripts: run
+`python -m ter explain` (or `scripts/corpus_findings.py` over an imported
+corpus), read the events each confident finding cites and judge it. A rule
+with false positives is fixed structurally or its branch is lowered below
+0.70, with the evidence in a code comment. On this project's own cloud
+transcripts (one orchestrator session and eight worker subagents, 2026-10)
+the four largest confident detectors of a 286-session private corpus
+measured:
+
+| Detector | Confident before | True | Cause of the false positives | Fix | Confident after |
+|---|---|---|---|---|---|
+| `repeated_tool_call` | 13 | 0 | identical call in separate turns: a turn-ending tool once per turn, a status re-check when asked again, a tool schema re-loaded after compaction | a new prompt between the calls makes it 0.50 (uncertain) | 0 |
+| `unnecessary_handoff` | 5 (+4 uncertain) | 0 | parallel workers given long briefs; the orchestrator's later `sed -n` or merge shared a few words of each brief, which overlap with the smaller set counted as a match | coverage of the delegated task's words | 0 |
+| `premature_implementation` | 1 | 0 | file read with `cat` in the shell before the edit | shell command words count as seen | 0 |
+| `unvalidated_implementation` | 0 | – | none here; 15 of 260 check-running shell lines chained the check after a change and read as changes, which would hide the check | named check tools anywhere in a shell line count as a check; `gh pr checks`, `gh run watch/view` and `pre-commit run` are validation | 0 |
+
+The sample is small and from one project, so these are precision fixes, not
+a precision estimate; the private corpus counts are the next check.
 
 ## Exploration drivers
 

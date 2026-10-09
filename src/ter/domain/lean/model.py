@@ -237,6 +237,10 @@ class Step:
     #: Content words of the questions the event's text asks (sentences ending
     #: in ``?``): the open questions a prompt, reasoning or response records.
     questions: frozenset[str] = frozenset()
+    #: A shell request whose line runs a named check tool in any of its
+    #: commands, even when ``shell`` reads it as a change (``sed -i … &&
+    #: pytest``); see :func:`~.facts.runs_check`.
+    runs_check: bool = False
 
     @property
     def is_generated(self) -> bool:
@@ -260,6 +264,12 @@ class Step:
     @property
     def is_validation(self) -> bool:
         return self.is_request and self.shell is ShellIntent.VALIDATE
+
+    @property
+    def checks(self) -> bool:
+        """A request that runs a check: a validation, or a change line that
+        also runs a named check tool."""
+        return self.is_validation or (self.is_request and self.runs_check)
 
     @property
     def is_failover(self) -> bool:

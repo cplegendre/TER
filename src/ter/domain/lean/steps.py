@@ -23,6 +23,7 @@ from .facts import (
     normalise_command,
     output_fingerprint,
     question_words,
+    runs_check,
     shell_intent,
     source_lines,
     tool_paths,
@@ -165,6 +166,7 @@ class StepLog:
         identifiers: frozenset[str] = frozenset()
         lines: frozenset[str] = frozenset()
         subject = ""
+        checks = False
 
         if event.kind is EventKind.PROMPT:
             stage = Stage.INTENT
@@ -186,6 +188,7 @@ class StepLog:
                 command = normalise_command(raw)
                 # Classified before normalising: newlines separate commands.
                 shell = shell_intent(raw)
+                checks = runs_check(raw)
             stage = stage_of_tool(tool.kind, shell)
             subject = _subject(tool.kind, arguments, command)
             words = content_words(_argument_text(arguments))
@@ -258,6 +261,7 @@ class StepLog:
                 in (EventKind.PROMPT, EventKind.REASONING, EventKind.RESPONSE)
                 else frozenset()
             ),
+            runs_check=checks,
         )
 
     def _unkeyed_request(self) -> _Open | None:
