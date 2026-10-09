@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 470" width="1160" height="470" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif">
+  <title>The TER 4 hexagon</title>
+  <desc>Driving adapters call application use cases; the application depends on ports and the pure domain; driven adapters implement the ports; bootstrap wires everything.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52514e"/>
+    </marker>
+  </defs>
+  <!-- driving -->
+  <rect x="10" y="40" width="250" height="330" rx="12" fill="#ffffff" stroke="#c3c2b7" stroke-width="2"/>
+  <text x="135" y="30" font-size="18" font-weight="700" text-anchor="middle" fill="#52514e">Driving adapters</text>
+  <g font-size="18" text-anchor="middle" fill="#0b0b0b">
+    <rect x="30" y="60" width="210" height="60" rx="8" fill="#f3f2ee"/>
+    <text x="135" y="96">CLI · ter / python -m ter</text>
+    <rect x="30" y="135" width="210" height="60" rx="8" fill="#f3f2ee"/>
+    <text x="135" y="171">Reports · HTML · SVG · A3</text>
+    <rect x="30" y="210" width="210" height="60" rx="8" fill="#f3f2ee"/>
+    <text x="135" y="246">Claude Code hooks (L1)</text>
+    <rect x="30" y="285" width="210" height="60" rx="8" fill="#ffffff" stroke="#c3c2b7" stroke-dasharray="5 4"/>
+    <text x="135" y="321" fill="#6f6d68">CI gate (L4, planned)</text>
+  </g>
+  <!-- core -->
+  <rect x="330" y="40" width="500" height="330" rx="12" fill="#f6fbfa" stroke="#0d7a6f" stroke-width="2.5"/>
+  <text x="580" y="30" font-size="18" font-weight="700" text-anchor="middle" fill="#0d7a6f">TER core</text>
+  <g font-size="18" text-anchor="middle" fill="#0b0b0b">
+    <rect x="360" y="60" width="440" height="70" rx="8" fill="#ffffff" stroke="#0d7a6f"/>
+    <text x="580" y="90" font-weight="700">application</text>
+    <text x="580" y="115" font-size="15" fill="#52514e">use cases: observe · analyse · explain</text>
+    <rect x="360" y="150" width="440" height="70" rx="8" fill="#ffffff" stroke="#0d7a6f"/>
+    <text x="580" y="180" font-weight="700">ports (Protocols only)</text>
+    <text x="580" y="205" font-size="15" fill="#52514e">SessionSource · PriceBook · EventLog · OutcomeSource …</text>
+    <rect x="360" y="240" width="440" height="110" rx="55" fill="#dff1ee" stroke="#0d7a6f" stroke-width="2"/>
+    <text x="580" y="280" font-weight="700">domain: pure</text>
+    <text x="580" y="305" font-size="15" fill="#52514e">events · scoring · pricing · Lean model · detectors</text>
+    <text x="580" y="327" font-size="15" fill="#52514e">evidence graph · scorecard · A3 · outcome verdict</text>
+  </g>
+  <g stroke="#52514e" stroke-width="2" marker-end="url(#a)">
+    <line x1="580" y1="130" x2="580" y2="146"/>
+    <line x1="580" y1="220" x2="580" y2="236"/>
+    <line x1="260" y1="205" x2="356" y2="105"/>
+  </g>
+  <!-- driven -->
+  <rect x="900" y="40" width="250" height="330" rx="12" fill="#ffffff" stroke="#c3c2b7" stroke-width="2"/>
+  <text x="1025" y="30" font-size="18" font-weight="700" text-anchor="middle" fill="#52514e">Driven adapters</text>
+  <g font-size="17" text-anchor="middle" fill="#0b0b0b">
+    <rect x="920" y="58" width="210" height="44" rx="8" fill="#f3f2ee"/><text x="1025" y="86">claude_code JSONL</text>
+    <rect x="920" y="110" width="210" height="44" rx="8" fill="#f3f2ee"/><text x="1025" y="138">tokenizers · embedders</text>
+    <rect x="920" y="162" width="210" height="44" rx="8" fill="#f3f2ee"/><text x="1025" y="190">dated price book</text>
+    <rect x="920" y="214" width="210" height="44" rx="8" fill="#f3f2ee"/><text x="1025" y="242">event log · corpus</text>
+    <rect x="920" y="266" width="210" height="44" rx="8" fill="#f3f2ee"/><text x="1025" y="294">JUnit outcome source</text>
+    <rect x="920" y="318" width="210" height="44" rx="8" fill="#f3f2ee"/><text x="1025" y="346">in-memory fakes</text>
+  </g>
+  <g stroke="#52514e" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#a)">
+    <line x1="900" y1="185" x2="804" y2="185"/>
+  </g>
+  <text x="852" y="210" font-size="14" text-anchor="middle" fill="#52514e">implements</text>
+  <!-- bootstrap -->
+  <rect x="330" y="400" width="500" height="56" rx="10" fill="#fff6e0" stroke="#eda100" stroke-width="2"/>
+  <text x="580" y="434" font-size="18" text-anchor="middle" fill="#0b0b0b"><tspan font-weight="700">bootstrap</tspan> · composition root · ter.capabilities entry points</text>
+  <text x="135" y="430" font-size="15" text-anchor="middle" fill="#6f6d68">TER 3 (ter_calculator)</text>
+  <text x="135" y="450" font-size="15" text-anchor="middle" fill="#6f6d68">wrapped by adapters only</text>
+  <text x="1025" y="430" font-size="15" text-anchor="middle" fill="#6f6d68">dependencies point inward,</text>
+  <text x="1025" y="450" font-size="15" text-anchor="middle" fill="#6f6d68">checked by lint-imports in CI</text>
+</svg>
