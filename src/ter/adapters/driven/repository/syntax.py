@@ -59,7 +59,9 @@ class SourceSyntaxEvidence(PythonSyntaxEvidence):
     def _ecmascript(self, path: str, text: str | None) -> SourceStructure:
         if text is None:
             return SourceStructure(path, LANGUAGE, path, error="not UTF-8 text")
-        return ecmascript_structure(path, text, self.project().candidates)
+        return ecmascript_structure(
+            path, text, self.project().candidates, self.listing()
+        )
 
     def structure(self, path: str) -> SourceStructure | None:
         if not is_ecmascript_source(path):
