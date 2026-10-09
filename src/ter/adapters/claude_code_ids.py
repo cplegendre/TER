@@ -7,15 +7,16 @@ transcript the session source reads
 get the same event id on both sides (TER-OBS-007), so each kind's id is
 defined here once and both adapters call it.
 
-==================  ====================================================  ==========================
-Kind                Id                                                    Key both sides can see
-==================  ====================================================  ==========================
-``tool.requested``  ``make_event_id(session, tool_use_id, kind)``         ``tool_use_id`` of the call
-``tool.completed``  ``make_event_id(session, tool_use_id, kind)``         ``tool_use_id`` of the call
-``intent.stated``   ``make_event_id(session, record_uuid, block, kind)``  uuid of the record holding it
-``task.completed``  ``make_event_id(session, turn_uuid, "stop", kind)``   uuid of the turn it closes
-others              ``make_event_id(session, record_uuid, block, kind)``  transcript only
-==================  ====================================================  ==========================
+======================  ====================================================  =============================
+Kind                    Id                                                    Key both sides can see
+======================  ====================================================  =============================
+``tool.requested``      ``make_event_id(session, tool_use_id, kind)``         ``tool_use_id`` of the call
+``tool.completed``      ``make_event_id(session, tool_use_id, kind)``         ``tool_use_id`` of the call
+``intent.stated``       ``make_event_id(session, record_uuid, block, kind)``  uuid of the record holding it
+``task.completed``      ``make_event_id(session, turn_uuid, "stop", kind)``   uuid of the turn it closes
+``subagent.completed``  see :func:`subagent_event_id`                         the subagent's ``agent_id``
+others                  ``make_event_id(session, record_uuid, block, kind)``  transcript only
+======================  ====================================================  =============================
 
 Fallbacks, each of which can no longer correlate across the two sides:
 
@@ -26,7 +27,8 @@ Fallbacks, each of which can no longer correlate across the two sides:
 * A hook payload without a ``tool_use_id`` keeps the hook's own key (a digest
   of the tool name and input); a ``UserPromptSubmit`` whose record is not in
   the transcript yet keeps the prompt-text key; a ``Stop`` with no readable
-  turn keeps the receive-time key. ``python -m ter hooks check`` reports
+  turn keeps the receive-time key; a ``SubagentStop`` without an
+  ``agent_id`` keeps its receive-time key. ``python -m ter hooks check`` reports
   these as unkeyed.
 
 Prompts are never keyed by their text on the transcript side: redaction
@@ -50,6 +52,7 @@ __all__ = [
     "queued_prompt_text",
     "record_event_id",
     "stop_event_id",
+    "subagent_event_id",
     "tool_event_id",
 ]
 
@@ -93,6 +96,25 @@ def stop_event_id(session_id: str, turn_uuid: str) -> EventId:
     See :mod:`ter.adapters.claude_code_turns` for how both sides find the turn.
     """
     return make_event_id(session_id, turn_uuid, "stop", EventKind.TASK_COMPLETED.value)
+
+
+#: The namespace the ``subagent.completed`` id was born in: the hook adapter
+#: keyed SubagentStop payloads before the session source derived them, so the
+#: transcript side adopts the hook's id rather than changing recorded ids.
+SUBAGENT_ID_NAMESPACE = "claude-code-hooks"
+
+
+def subagent_event_id(session_id: str, agent_id: str) -> EventId:
+    """The ``subagent.completed`` id for subagent ``agent_id`` of a session.
+
+    ``session_id`` is the parent's. The ``SubagentStop`` payload names the
+    subagent (``agent_id``) and Claude Code writes its transcript as
+    ``<session>/subagents/agent-<agent_id>.jsonl``, so both sides see the
+    key. One id per subagent: a subagent resumed and stopped again keeps it.
+    See :mod:`ter.adapters.claude_code_subagents` for when the transcript
+    shows a subagent finished.
+    """
+    return make_event_id(SUBAGENT_ID_NAMESPACE, session_id, "SubagentStop", agent_id)
 
 
 def queued_prompt_text(record: Mapping[str, Any]) -> str | None:

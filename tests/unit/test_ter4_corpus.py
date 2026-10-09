@@ -12,7 +12,7 @@ from typing import Any
 
 import pytest
 
-from ter.adapters.driven.claude_code import corpus
+from ter.adapters.driven.claude_code import ClaudeCodeJsonlSource, corpus
 from ter.adapters.driven.claude_code.corpus import (
     CORPUS_SCHEMA,
     import_corpus,
@@ -20,6 +20,7 @@ from ter.adapters.driven.claude_code.corpus import (
 )
 from ter.adapters.driven.claude_code.redaction import RedactionPolicy
 from ter.bootstrap import cli_services
+from ter.domain import EventKind
 from ter.adapters.driving.cli import main
 from tests.golden.corpus import CORPUS
 
@@ -459,3 +460,42 @@ def test_cli_refuses_bad_input_and_writes_nothing(
     code, _, err = run(*argv)
     assert code == 2 and err
     assert not (out / "manifest.json").exists()
+
+
+@pytest.mark.req("TER-SRC-022")
+def test_a_redacted_corpus_keeps_finished_subagents(tmp_path: Path) -> None:
+    """The importer keeps ``<session>/subagents/agent-<id>.jsonl`` beside the
+    session, so the redacted session derives the same ``subagent.completed``."""
+    root = tmp_path / "projects"
+    parent = write_session(root / PROJECT)
+    agent = write_session(root / PROJECT / SESSION / "subagents", "agent-a1b2c3")
+    answer = {
+        "sessionId": SESSION,
+        "cwd": CWD,
+        "type": "assistant",
+        "uuid": "a2",
+        "parentUuid": "r1",
+        "timestamp": "2026-10-01T09:00:09Z",
+        "message": {
+            "id": "msg_2",
+            "role": "assistant",
+            "model": "claude-test",
+            "stop_reason": "end_turn",
+            "usage": {"input_tokens": 10, "output_tokens": 3},
+            "content": [{"type": "text", "text": f"done with {SECRET}"}],
+        },
+    }
+    with agent.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(answer) + "\n")
+
+    def subagents(path: Path) -> list[str]:
+        trace = ClaudeCodeJsonlSource().read(path)
+        return [e.id for e in trace.events if e.kind is EventKind.SUBAGENT_COMPLETED]
+
+    raw = subagents(parent)
+    assert len(raw) == 1
+    out = tmp_path / "corpus"
+    import_corpus([root], out)
+    [copied] = (out / "sessions").rglob(f"{SESSION}.jsonl")
+    assert (copied.with_suffix("") / "subagents" / "agent-a1b2c3.jsonl").is_file()
+    assert subagents(copied) == raw

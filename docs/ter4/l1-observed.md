@@ -82,7 +82,7 @@ registered in two settings files) counts once.
 | `PreToolUse` | `tool.requested` (assistant), tool kind from the Claude Code tool map, arguments = `tool_input` | session + `tool_use_id` + kind (else hash of tool name and input) |
 | `PostToolUse` | the same `tool.requested` as PreToolUse, plus `tool.completed` (tool), text = `tool_response` | as above; the completion's `parent_id` is the request |
 | `Stop` | `task.completed` (system), empty text | session + the turn it closes (last main-chain `assistant` uuid in `transcript_path` written by the receive time); session + second received when the transcript cannot be read |
-| `SubagentStop` | `subagent.completed` (system) in the parent session, text = `agent_type` when sent | session + `agent_id` when sent, else the exact receive time (parallel subagents can finish within one second) |
+| `SubagentStop` | `subagent.completed` (system) in the parent session, text = `agent_type` when sent | session + `agent_id` when sent (the shared rule below), else the exact receive time (parallel subagents can finish within one second) |
 | `SessionStart`, `SessionEnd`, `SubagentStart`, `PreCompact`, `Notification` | none (status `lifecycle`) | n/a |
 | anything else, or a malformed payload | none (status `ignored`, with a reason) | n/a |
 
@@ -103,6 +103,7 @@ called by both sides.
 | `tool.requested`, `tool.completed` | `make_event_id(session, tool_use_id, kind)` | Pre/PostToolUse `tool_use_id` | `id` of the `tool_use` block, `tool_use_id` of the `tool_result` block |
 | `intent.stated` | `make_event_id(session, record_uuid, block_index, kind)` | the record holding the prompt, found in the transcript tail | the `user` record's text block; a `queued_command` attachment is block 0 (TER-SRC-024) |
 | `task.completed` | `make_event_id(session, turn_uuid, "stop", kind)` | the last main-chain `assistant` record in the transcript tail by the receive time | the last main-chain `assistant` record before each `stop_hook_summary` |
+| `subagent.completed` | `make_event_id("claude-code-hooks", session, "SubagentStop", agent_id)` (the hook's original key, kept) | SubagentStop `agent_id` | each finished `<session>/subagents/agent-<agent_id>.jsonl` |
 | `reasoning`, `response` | `make_event_id(session, record_uuid, block_index, kind)` | no hook | every block |
 
 How each side finds the record is in `ter/adapters/claude_code_turns.py`:
@@ -121,6 +122,30 @@ How each side finds the record is in `ter/adapters/claude_code_turns.py`:
   time is not seen early. The text only finds the record: the id is the
   record's, so a redacted session keeps its ids (TER-SRC-022).
 * **Tools.** Both sides carry the `tool_use_id`; no lookup is needed.
+* **Subagents** (`ter/adapters/claude_code_subagents.py`). Claude Code writes
+  each subagent's transcript to `<session id>/subagents/agent-<agent_id>.jsonl`
+  (with `.meta.json` and `.prefix.json` siblings) from its first record, so a
+  file alone does not mean the subagent stopped. The session source derives
+  one `subagent.completed` per subagent file that holds a finish marker:
+  the subagent's own transcript ends with an assistant record whose
+  `stop_reason` is not `tool_use` and no user record after it
+  (`final-turn`); a parent record whose `toolUseResult` names the `agentId`
+  with `status: completed` (a foreground Agent call returned,
+  `parent-result`); or a parent `queued_command` attachment with
+  `commandMode: task-notification` naming `<task-id>` the agent and
+  `<status>completed</status>` (a background agent finished,
+  `parent-notification`). Markers were read off real Claude Code 2.1.295
+  transcripts. The event takes the latest marker's time (a subagent resumed
+  and stopped again keeps one id, as the hook side dedupes by id), is placed
+  after every parent event stamped no later, cites the marker's record, and
+  takes `agentType` from `.meta.json` as its text (as SubagentStop's
+  `agent_type`). A subagent still running, or one whose finish left none of
+  these markers, gets no event; a parent marker without a subagent file
+  (older releases) gets none either, so sessions without a `subagents` folder
+  read exactly as before. Redaction drops `toolUseResult`, so on a redacted
+  corpus a foreground agent is found by its `final-turn` marker; the corpus
+  importer keeps the `<session id>/subagents/agent-<id>.jsonl` layout (it
+  does not copy the meta files, so the text is empty there).
 
 Fallbacks, which cannot correlate and which `python -m ter hooks check`
 reports as such:
@@ -131,20 +156,18 @@ reports as such:
 * a tool hook without `tool_use_id` is keyed by a hash of tool name and input;
 * a prompt whose record is not in the transcript when the hook runs, or a
   payload without `transcript_path`, keeps the text-and-second key above;
-* a Stop with no readable turn is keyed by the second it arrived.
+* a Stop with no readable turn is keyed by the second it arrived;
+* a SubagentStop without `agent_id` is keyed by the exact time it arrived.
 
-Claude Code 2.1 transcripts suggest the prompt's record (and a queued
-prompt's attachment) is written only after the `UserPromptSubmit` hooks
-return: the hook's own `hook_additional_context` attachment follows the user
-record by 15 to 25 ms, less than a hook process takes to run. If the
-recordings in issue #35 confirm it, live prompts will stay on the fallback
-key and correlating them needs another key (a prompt id in the payload, or
-re-keying at the next hook).
+Claude Code 2.1 transcripts suggested the prompt's record might be written
+only after the `UserPromptSubmit` hooks return. The real recordings of
+9 October 2026 say otherwise: all 11 live prompts were keyed to their
+transcript record and matched.
 
 The rule change re-keyed tool events in every transcript (previously session
 + record uuid + block + kind); event ids are opaque, so the `ter.event`
-schema did not change. The session source derives no `subagent.completed`
-events.
+schema did not change. Deriving `subagent.completed` adds events only to
+sessions with a `subagents` folder; the golden corpus has none.
 
 ### Checking recordings against transcripts (TER-OBS-012)
 
@@ -157,8 +180,18 @@ ids with a reason for each miss (TER-OBS-007), and per Stop payload whether
 its id equals the session source's for the same stop (TER-OBS-005). The
 report holds no payload content, so it is how TER-OBS-005 and TER-OBS-007
 get checked on real recordings that cannot leave their owner's machine
-(issue #35). Both stay `planned` until such a run is reported. See
+(issue #35). See
 [the hooks guide](../guides/hooks.md#checking-recordings-against-transcripts).
+
+The owner's run of 9 October 2026 (Claude Code on Windows, two real
+sessions, summarised content-free in
+`tests/fixtures/hooks/real-check-2026-10-09.md`) matched 87 of 94 hook
+events: every `intent.stated` (11), `tool.requested` (34), `tool.completed`
+(32) and `task.completed` (10 of 10 Stop payloads). TER-OBS-005 is
+therefore verified. The 7 misses were all `subagent.completed`, which the
+session source did not derive then; it now does (above), so TER-OBS-007
+stays `planned` and awaits one re-run of the hooks check on that machine
+with sessions that use subagents.
 
 ## Observables (`StreamReport`)
 
