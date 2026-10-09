@@ -147,7 +147,7 @@ def test_explain_with_a_repository_reports_surfaces_and_violations(
         "unrelated",
         "inside",
     ]
-    assert analysis["repository"]["engine"] == "python-ast"
+    assert analysis["repository"]["engine"] == "syntax"
     assert analysis["repository"]["contracts"] == ["layers", "pure-domain"]
     by = {f["detector"]: f for f in analysis["findings"]}
     assert by["unrelated_modification"]["confidence"] == 0.8

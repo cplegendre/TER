@@ -7,8 +7,9 @@ All of it comes through one provider-neutral driven port,
 `RepositoryEvidence`, served by interchangeable engines that load as
 capabilities.
 
-This page covers what is built so far: the port and three engines (steps 1
-to 3 of the L3 plan), and the first detectors grounded on them: each task's
+This page covers what is built so far: the port and four engines (steps 1
+to 3 of the L3 plan, with TypeScript, JavaScript, Svelte and Vue imports
+beside Python's), and the first detectors grounded on them: each task's
 expected change surface with the edits outside it, and imports that break
 the repository's architecture contracts (step 4). Evidence usage, context
 bundles and model routing come in later steps, and the requirements for them
@@ -21,13 +22,14 @@ stay `planned` in `requirements/l3_grounded.yaml`.
 | TER-EVD-001 | TER shall obtain repository evidence only through the provider-neutral RepositoryEvidence port. | `tests/contract/test_repository_evidence.py`, `tests/architecture/test_repository_evidence_boundary.py`, the `provider-neutral-evidence` import contract |
 | TER-EVD-002 | The lexical repository evidence adapter shall return identical results for identical repository content. | `tests/unit/test_ter4_repository_evidence.py::TestLexicalDeterminism`, `tests/golden/test_repository_evidence_snapshot.py` |
 | TER-EVD-003 | When a detector requests repository evidence for a Python source module, the repository evidence adapter shall return every test module whose import statements import that source module. | contract suite, `TestTestsImporting`, `TestSharedRules` |
-| TER-EVD-012 | Where the repository evidence adapter supports the language of a source file, the repository evidence adapter shall return the symbols, imports and call edges of that file from its syntax tree. | `TestPythonSyntax`, golden `repository/python-ast.json` |
+| TER-EVD-012 | Where the repository evidence adapter supports the language of a source file, the repository evidence adapter shall return the symbols and imports of that file read from its syntax, and the call edges of a Python file. | `TestPythonSyntax`, golden `repository/python-ast.json`; `tests/unit/test_ter4_ecmascript_evidence.py` (`TestImportForms`, `TestWhatIsNotAnImport`, `TestComponents`, `TestDefinitions`, `TestResolution`), golden `repository/syntax.json`, the contract suite's TypeScript/Svelte monorepo |
 | TER-EVD-013 | Where the repository is a Git working tree, the Git repository evidence adapter shall return the current diff and the history of each file. | `TestGitWorkTree`, `TestGitDiff`, `TestGitHistory` |
 | TER-ARC-007 | TER shall load repository engines through the ter.capabilities plugin registry. | `TestRepositoryEnginesArePlugins` |
 | TER-EVD-006 | TER shall compute the expected change surface of each task and report every edit outside it. | `tests/unit/test_ter4_change_surface.py` (`TestChangeSurface`, `TestUnrelatedModification`, `TestSurfaceExpansion`, `TestGroundedFold`), `tests/unit/test_ter4_grounded_cli.py` |
 | TER-EVD-007 | When an edit to a Python module adds an import that breaks a declared import-linter forbidden, layers or independence contract, TER shall report an architectural boundary violation. | `TestBoundaryViolation`, `TestContractRules`, `TestImportLinterReader`, `tests/contract/test_architecture_contracts.py`, the `structure_of` contract tests, `tests/unit/test_ter4_grounded_cli.py` |
-| TER-EVD-014 (planned) | Test-to-source links for languages other than Python. | split from TER-EVD-003 |
+| TER-EVD-014 | When a detector requests repository evidence for a TypeScript, JavaScript, Svelte or Vue source module, the repository evidence adapter shall return every test module whose imports load that source module. | `TestEcmaScriptTests`, contract `test_tests_of_another_language_are_linked_or_refused`, golden `repository/syntax.json` |
 | TER-EVD-015 (planned) | Boundary violations for contracts TER-EVD-007 does not evaluate: other languages, other contract types, indirect import chains. | split from TER-EVD-007 |
+| TER-EVD-016 (planned) | Call edges of TypeScript, JavaScript, Svelte and Vue files. | split from TER-EVD-012 |
 
 Unless named otherwise, the test classes are in
 `tests/unit/test_ter4_repository_evidence.py` (engines) or
@@ -52,6 +54,7 @@ flowchart LR
     P --> L["lexical<br/>files, search, test links"]
     P --> G["git<br/>+ diff, history"]
     P --> A["python-ast<br/>+ symbols, imports, calls"]
+    P --> S["syntax<br/>python-ast + TS, JS, Svelte, Vue imports"]
     P --> F["InMemoryRepositoryEvidence<br/>(fake for tests)"]
 ```
 
@@ -63,19 +66,23 @@ An engine is built for one repository root. Every method returns values from
 | `files()` | every file, relative to the root, `/`-separated, sorted; no `.git`, `.hg` or `.svn` content, no symbolic links | all have it |
 | `text(path)` | a listed file's UTF-8 text | all have it |
 | `search(needle, regex=False)` | `TextMatch(path, line, text)` for every line containing `needle`, by path then line; binary and non-UTF-8 files are skipped | all have it |
-| `tests_importing(path)` | the test modules whose import statements import the Python module at `path` | all have it (Python only) |
+| `tests_importing(path)` | the test modules whose import statements import the module at `path` | all have it for Python; `syntax` also for TypeScript, JavaScript, Svelte and Vue |
 | `structure(path)` | `SourceStructure`: symbols, imports, call edges, or a parse `error` | `None` |
 | `structure_of(path, text)` | what `structure(path)` would return if the file held `text`; also for a path the repository does not list (a file a session creates) | `None` |
 | `diff()` | `RepositoryDiff`: the working tree against `HEAD` | `None` |
 | `history(path)` | `FileCommit`s, newest first | `None` |
 
 A path the repository does not list raises `UnknownPathError`; asking for
-the tests of a non-Python file raises `UnsupportedLanguageError`. An engine
-says what it cannot do by returning `None`, never by guessing.
+the tests of a file in a language the engine has no import rule for raises
+`UnsupportedLanguageError`. An engine says what it cannot do by returning
+`None`, never by guessing.
 
 Every obligation is a test in `tests/contract/test_repository_evidence.py`,
-run against all three engines and the in-memory fake on one synthetic
-repository (`tests/contract/repository_fixture.py`).
+run against all four engines and the in-memory fake on one synthetic
+repository (`tests/contract/repository_fixture.py`), and again on a
+TypeScript/Svelte monorepo (`tests/contract/ecmascript_fixture.py`): an
+engine that reads a file's structure must resolve its imports to the files
+the fixture names and link its tests; one that does not must refuse.
 
 ## Engines
 
@@ -87,7 +94,7 @@ through the registry:
 ```python
 from ter.bootstrap.capabilities import repository_evidence
 
-engine = repository_evidence("path/to/repo", "python-ast")  # default: "lexical"
+engine = repository_evidence("path/to/repo", "syntax")  # default: "lexical"
 engine.tests_importing("src/pkg/core.py")
 ```
 
@@ -129,6 +136,80 @@ Its test-to-source links use the syntax tree, so an import inside a string
 does not count; a test file that does not parse falls back to the lexical
 reading. Files in other languages have no structure.
 
+### `syntax`: Python, TypeScript, JavaScript, Svelte and Vue
+
+The `python-ast` engine extended, file by file, to the languages of a
+typical web repository (`ter.adapters.driven.repository.syntax`, reader in
+`ecmascript.py`). It is the default for `--repo`. `.py` files are read
+exactly as `python-ast` reads them. `.ts`, `.tsx`, `.mts`, `.cts`, `.js`,
+`.jsx`, `.mjs`, `.cjs` files and the `<script>` blocks of `.svelte` and
+`.vue` components (line numbers counted in the whole file; an HTML comment
+cannot hide a script block, and markup is never read) give:
+
+- **imports**: `import x, {a as b} from 'm'`, `import * as ns from 'm'`,
+  `import type {T} from 'm'` (a type-only import is still a dependency: the
+  importer compiles against it), `export {a} from 'm'`, `export * from 'm'`,
+  side-effect `import 'm'`, `require('m')` and `import('m')` with a literal
+  specifier. `ImportEdge.module` is the specifier as written and
+  `ImportEdge.candidates` the repository paths it may load, in resolution
+  order; `resolve_import(edge, files)` picks the first the repository (or
+  the session) holds. A computed specifier (`import(name)`, a template with
+  `${}`) names no file and is left out;
+- **symbols**: `function` and `class` declarations (qualified within
+  enclosing definitions), class methods, module-level
+  `const f = (...) =>` arrow functions and, for a component whose file stem
+  is a name (`CourseCard.svelte`), the component itself;
+- no call edges (TER-EVD-016). The file's `module` is its own path.
+
+The reader is a tokenizer, not a parser, and needs no third-party package:
+it skips comments, string literals, template literals (but reads the code
+inside `${...}`) and regular expression literals (a `/` after a value
+divides, anywhere else it starts a regular expression), so `import` in a
+comment, a string or a regex is never an import, and `loader.import(x)`,
+`{ import: 1 }` and `import.meta` are not imports either. A quote string
+ends at its line, so an apostrophe in JSX text cannot swallow the rest of
+the file.
+
+**Resolution.** Relative specifiers resolve against the importing file's
+directory; then, in order: `$lib` to `src/lib` of the nearest SvelteKit
+project (a directory with `svelte.config.*` or a `package.json` that
+depends on `@sveltejs/kit`); the `compilerOptions.paths` of the nearest
+`tsconfig.json` or `jsconfig.json` (JSON with comments and trailing commas;
+`extends` followed within the repository; the longest matching pattern
+wins; `paths` resolve against `baseUrl`, else the config's own directory);
+a workspace package, by the `name` of any `package.json` outside
+`node_modules`, to its declared entries (`exports`, `svelte`, `types`,
+`module`, `main`; a `.js` entry also tries the `.ts` it compiles from) then
+`src/index.*`, `src/lib/index.*` and `index.*`, and a subpath of it
+(`@scope/pkg/sub`, `exports` subpath patterns) to that path in the package;
+and finally `baseUrl`. Each resolved path is probed as written, with each
+source suffix (`.ts`, `.tsx`, `.d.ts`, `.js`, ..., `.svelte`, `.vue`,
+`.json`) and as a directory's `index.*`. Anything else (`react`,
+`svelte/store`, `$app/stores`, `node:fs`) is an external package: no
+candidates, no edge. Generated files that are not in the repository
+(`.svelte-kit/tsconfig.json`, SvelteKit's `./$types`) resolve to nothing.
+
+The project configuration is read once per engine, on the first ECMAScript
+question, from the repository's own files; an engine serves one commit.
+
+**Tests.** A TypeScript or JavaScript test module is `*.test.*` or
+`*.spec.*`, or any such file under a `__tests__/` or `tests/` directory;
+nothing under `node_modules` is a test. `tests_importing(path)` returns the
+test modules with an import that resolves to `path`. Links are direct: a
+test that imports `./index` is a test of the index file, not of what the
+index re-exports (TER-EVD-014).
+
+**On real repositories.** On shallow clones of two public repositories of
+the kind TER's real sessions worked in (`tutors-sdk/tutors-mono-repo`, a
+SvelteKit pnpm monorepo of 730 source files, and `lgriffin/ESI.ts`, 1,703),
+96% and 99.6% of the imports that name a repository path resolved to a
+file (1,566 of 1,626 and 4,174 of 4,189). Every miss, checked by hand,
+names a file the checkout does not hold: SvelteKit's generated `./$types`,
+packages whose only entry is a build output, and fixtures whose paths are
+deliberately broken. The grounding
+precompute takes 1.4 s and 3.1 s there (the Python-only engine on TER's own
+repository: 1.9 s).
+
 ### `git`: diff and history
 
 The lexical engine over the files Git sees (tracked files still on disk and
@@ -162,8 +243,9 @@ python -m ter explain session.jsonl --repo ../shop-at-start
 python -m ter a3 session.jsonl --repo ../shop-at-start --html a3.html
 ```
 
-`--repo-engine` picks the engine (default `python-ast`, which the import
-graph needs; `lexical` gives the surface without import links). The
+`--repo-engine` picks the engine (default `syntax`, which reads the import
+graph of Python, TypeScript, JavaScript, Svelte and Vue files; `python-ast`
+reads Python only; `lexical` gives the surface without import links). The
 repository must be the one at the session's start commit: TER replays the
 session's edits on it, so a checkout that already holds them reads as edits
 that cannot be replayed. Without `--repo`, `explain` and `a3` are exactly
@@ -177,7 +259,9 @@ values only:
 
 - the files, the Python module names and the **import graph** at the start
   commit (which repository files each file imports, and the reverse), from
-  syntax trees;
+  the syntax of every Python, TypeScript, JavaScript, Svelte and Vue file
+  the engine reads; third-party code (`node_modules`, minified `*.min.*`
+  bundles) is not read;
 - the **distinctive symbols** each file defines: names a prompt can only
   mean one way, with an inner underscore or an inner capital
   (`tests_importing`, `ExplainSession`; never `run` or `main`);
@@ -189,7 +273,9 @@ values only:
 - for each edit and write, the file **after** it, replayed on the start
   commit's text (`replay_edit`: `content` replaces; `old_string` must be
   found, else the file's text is unknown from there on), parsed with
-  `structure_of`, and the imports the edit **added**;
+  `structure_of`, and the imports the edit **added** (a TypeScript or
+  JavaScript import resolves against the start commit's files and the
+  files the session created);
 - the architecture contracts the repository declares, read through the
   `ArchitectureContracts` port.
 
@@ -257,7 +343,7 @@ repository evidence, so an L2 analysis lists exactly the L2 detectors.
 
 | Detector | Waste | Kind | Confidence rule |
 |---|---|---|---|
-| `unrelated_modification` | overproduction | waste | Per task and file outside the surface and not one import link beyond it: **0.80** when the prompt named the seeds and the file's imports were read from a syntax tree; 0.65 (uncertain) when the seeds were inherited; 0.55 (uncertain) when the file has no import evidence (not Python, did not parse, or a `lexical` engine) or the seed is the task's first edit, or the file is a test module the task created (on a real session, a new test reached the code under test only through the CLI). |
+| `unrelated_modification` | overproduction | waste | Per task and file outside the surface and not one import link beyond it: **0.80** when the prompt named the seeds and the file's imports were read from its syntax; 0.65 (uncertain) when the seeds were inherited; 0.55 (uncertain) when the file has no import evidence (a language the engine does not read, did not parse, or a `lexical` engine) or the seed is the task's first edit, or the file is a test module the task created (on a real session, a new test reached the code under test only through the CLI). |
 | `surface_expansion` | overproduction | waste | Per task and file one import link beyond the surface: 0.60 (uncertain) when the prompt named the seeds, 0.50 otherwise. Always uncertain: callers often have to change with what they call. |
 | `boundary_violation` | defects | risk | Per added import and broken contract: **0.90** when the import is still there after the session's last edit of the file; 0.70 when a later edit could not be replayed; 0.55 (uncertain) when a later edit removed it. |
 
@@ -272,7 +358,14 @@ The pure rules every engine and the fake share live in
 `ter.domain.repository`:
 
 - a **test module** is `test_*.py` or `*_test.py` (pytest's default naming;
-  `conftest.py` and helpers are not tests);
+  `conftest.py` and helpers are not tests), or a TypeScript, JavaScript,
+  Svelte or Vue file named `*.test.*` or `*.spec.*` or lying under
+  `__tests__/` or `tests/` (`is_test_module`);
+- **third-party code** is anything under `node_modules` and minified
+  bundles (`*.min.js`, `*.min.mjs`): never a source or a test of the
+  repository (`is_vendored`);
+- an ECMAScript import **loads** the first of its candidate paths that is a
+  file (`resolve_import`);
 - a file's **module name** follows parent directories while they hold an
   `__init__.py`; the first directory without one is an import root (`src/`,
   `tests/`, the repository root). Namespace packages are not recognised;
@@ -304,24 +397,30 @@ The pure rules every engine and the fake share live in
 | domain | `ter/domain/repository.py` also: `ArchitectureContract`, `Layer`, `ContractViolation`, `contract_violations`, `imported_modules`, `session_root`, `repository_path` |
 | domain | `ter/domain/lean/grounding.py`: `RepositoryGrounding`, `EditGrounding`, `replay_edit`; `ter/domain/lean/surface.py`: `ChangeSurface`, `change_surfaces`, the grounded detectors |
 | ports | `ter/ports/driven.py`: `RepositoryEvidence`, `ArchitectureContracts` |
-| driven adapters | `ter/adapters/driven/repository/`: `lexical.py`, `python_ast.py`, `git.py`; `ter/adapters/driven/import_linter.py`; fakes `InMemoryRepositoryEvidence`, `InMemoryArchitectureContracts` in `ter/adapters/driven/in_memory.py` |
+| driven adapters | `ter/adapters/driven/repository/`: `lexical.py`, `python_ast.py`, `git.py`, `syntax.py` with the ECMAScript reader `ecmascript.py`; `ter/adapters/driven/import_linter.py`; fakes `InMemoryRepositoryEvidence`, `InMemoryArchitectureContracts` in `ter/adapters/driven/in_memory.py` |
 | application | `ter/application/ground.py`: `ground_session`; `ExplainSession(repository=, contracts=)` |
 | composition | `ter/bootstrap/capabilities.py`: `repository_evidence(root, engine)`; `ter/bootstrap`: `make_contracts()`, `--repo` wiring |
 
 ## Known limits
 
-- Test-to-source links and syntax trees are Python only (TER-EVD-014 is the
-  next language).
-- Call edges name what is called; they are not resolved to a definition in
-  another file, and method calls through `self` stay unresolved.
+- Test-to-source links and import graphs cover Python, TypeScript,
+  JavaScript, Svelte and Vue; other languages have no structure.
+- Call edges are Python only (TER-EVD-016); they name what is called, are
+  not resolved to a definition in another file, and method calls through
+  `self` stay unresolved.
+- TypeScript and JavaScript are read by a tokenizer: a `{` in a function's
+  return type (`): { a: string } {`) ends the symbol early, and Vite or
+  bundler aliases other than `$lib` and `tsconfig` paths are not read.
+- Architecture contracts are checked for Python modules only (TER-EVD-015).
 - Symbol references other than calls are not yet navigable (P057).
 - The engines read the repository on every call; nothing is cached, which
   keeps answers current. Checking that a path is listed costs no walk in the
   lexical and syntax-tree engines (each path component is checked
   directly), but `files()`, `search()` and `tests_importing()` walk the
   tree, and the Git engine asks `git` each time.
-- The change surface reads only Python imports; a non-Python file is inside
-  it only when the prompt names it, so its findings are uncertain.
+- Under the `syntax` engine the change surface reads Python, TypeScript,
+  JavaScript, Svelte and Vue imports; any other file (CSS, Markdown, JSON)
+  is inside it only when the prompt names it, so its findings are uncertain.
 
 ## Checking the grounded detectors on real sessions
 

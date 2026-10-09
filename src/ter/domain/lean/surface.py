@@ -333,8 +333,10 @@ def change_surfaces(view: SessionView) -> tuple[ChangeSurface, ...]:
 
 def _imports_read(g: RepositoryGrounding, view: SessionView, path: str) -> bool:
     """Whether the engine read the file's imports from a syntax tree, at the
-    start commit or after one of the session's edits."""
-    if not g.syntax or not g.is_python(path):
+    start commit or after one of the session's edits: a Python file, or a
+    TypeScript, JavaScript, Svelte or Vue file under an engine that reads
+    them (``syntax``)."""
+    if not g.syntax:
         return False
     return path in g.links or any(e.parsed for e in g.edits.values() if e.path == path)
 
@@ -405,7 +407,8 @@ class UnrelatedModification:
         "named the seeds and the file's imports were read from a syntax tree; "
         "0.65 (uncertain) when the seeds were inherited from an earlier prompt "
         "the intent continues; 0.55 (uncertain) when the file has no import "
-        "evidence (not Python, or it did not parse) or the seed is only the "
+        "evidence (a language the engine does not read, or it did not parse) "
+        "or the seed is only the "
         "task's first edit, or when the file is a test module the task "
         "created. Files outside the repository: no finding."
     )

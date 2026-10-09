@@ -11,7 +11,9 @@ What it holds:
 
 * the repository's files, Python module names, and the **import graph** at
   the start commit (``links``: which repository files each file imports, and
-  the reverse, ``importers``), read from syntax trees;
+  the reverse, ``importers``), read from syntax trees of Python files and,
+  under an engine that reads them, TypeScript, JavaScript, Svelte and Vue
+  files;
 * the **distinctive symbols** each file defines (names a prompt can only mean
   one way: ``tests_importing``, ``ExplainSession``);
 * the mapping from the paths the session's tools used to repository paths;
@@ -58,6 +60,8 @@ class EditGrounding:
     syntax tree; only then are ``imports``, ``links`` and ``added`` read.
     ``imports`` are the modules the file imports after the edit; ``links``
     the repository files those are; ``added`` the imports this edit added.
+    A TypeScript, JavaScript, Svelte or Vue import is named by the repository
+    file it loads (its path), and ``module`` is ``None`` for such a file.
     """
 
     event_id: EventId

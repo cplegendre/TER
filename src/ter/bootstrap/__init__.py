@@ -208,7 +208,7 @@ def cli_services() -> CliServices:
         ter: str,
         outcome: Path | None = None,
         repo: Path | None = None,
-        repo_engine: str = "python-ast",
+        repo_engine: str = "syntax",
     ) -> ExplainedSession:
         from ..adapters.driven.claude_code import ClaudeCodeJsonlSource
         from ..adapters.driven.pricing import default_price_book

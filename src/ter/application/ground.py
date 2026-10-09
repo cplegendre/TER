@@ -7,7 +7,13 @@ once, through the :class:`~ter.ports.driven.RepositoryEvidence` port
 analysis then stays a fold over events with no IO in the domain; the grounded
 detectors read this value like any other index.
 
-Cost: one syntax tree per Python file of the repository, one per edit, and
+Imports are read per language: a Python import names a module, resolved
+to the repository file that defines it; a TypeScript, JavaScript, Svelte or
+Vue import names files (``ImportEdge.candidates``), resolved to the first
+that the repository holds at the start commit or the session created.
+Files under ``node_modules`` are third-party code and are not read.
+
+Cost: one syntax tree per source file of the repository, one per edit, and
 one text read per edited file; nothing per event that is not an edit.
 """
 
@@ -32,9 +38,12 @@ from ..domain.repository import (
     SourceStructure,
     imported_modules,
     is_python_source,
+    is_vendored,
     module_name,
     repository_path,
+    resolve_import,
     session_root,
+    source_language,
 )
 from ..ports.driven import ArchitectureContracts, RepositoryEvidence
 
@@ -54,11 +63,19 @@ class _Replayed:
 
 
 def _modules_of(
-    imports: Iterable[ImportEdge], modules: frozenset[str]
+    imports: Iterable[ImportEdge], modules: frozenset[str], files: frozenset[str]
 ) -> dict[str, int]:
-    """Imported module -> first line importing it."""
+    """Imported module -> first line importing it. A Python import names a
+    module; an import that names files (TypeScript, JavaScript, Svelte, Vue)
+    is named by the repository file it loads, and one that loads none (an
+    external package) is left out."""
     out: dict[str, int] = {}
     for edge in imports:
+        if edge.candidates:
+            target = resolve_import(edge, files)
+            if target is not None:
+                out.setdefault(target, edge.line)
+            continue
         for name in imported_modules(edge, modules):
             out.setdefault(name, edge.line)
     return out
@@ -109,11 +126,14 @@ def ground_session(
     root = session_root(session_paths, files)
     paths = {p: repository_path(p, root) for p in session_paths}
 
-    # Start commit: modules, syntax trees, the import graph and symbols.
-    start_modules = {p: module_name(p, files) for p in files if is_python_source(p)}
+    # Start commit: syntax trees of every source file (not third-party
+    # code), then the import graph and symbols.
+    sources = sorted(
+        p for p in files if source_language(p) is not None and not is_vendored(p)
+    )
     structures: dict[str, SourceStructure] = {}
     syntax = False
-    for start in sorted(start_modules):
+    for start in sources:
         structure = evidence.structure(start)
         if structure is None:
             continue
@@ -147,7 +167,7 @@ def ground_session(
         texts[path] = text
         structure = (
             evidence.structure_of(path, text)
-            if text is not None and is_python_source(path)
+            if text is not None and source_language(path) is not None
             else None
         )
         replayed.append(_Replayed(event.id, path, created, text is not None, structure))
@@ -163,11 +183,22 @@ def ground_session(
         by_module.setdefault(module, []).append(path)
 
     def resolve(names: Iterable[str]) -> tuple[str, ...]:
-        return tuple(sorted({p for n in names for p in by_module.get(n, ())}))
+        """Imported modules -> repository files (a file-named import is its
+        own file)."""
+        return tuple(
+            sorted(
+                {
+                    p
+                    for n in names
+                    for p in by_module.get(n, (n,) if n in all_files else ())
+                }
+            )
+        )
 
-    links = {
-        p: resolve(_modules_of(s.imports, module_set)) for p, s in structures.items()
-    }
+    def imported(s: SourceStructure) -> dict[str, int]:
+        return _modules_of(s.imports, module_set, all_files)
+
+    links = {p: resolve(imported(s)) for p, s in structures.items()}
     importers: dict[str, list[str]] = {}
     for importer, targets in links.items():
         for target in targets:
@@ -182,7 +213,7 @@ def ground_session(
     # Each edit's imports after it, and what it added to the file's imports
     # just before it (unknown when the file's text or syntax tree was).
     state: dict[str, frozenset[str] | None] = {
-        p: frozenset(_modules_of(s.imports, module_set)) for p, s in structures.items()
+        p: frozenset(imported(s)) for p, s in structures.items()
     }
     edits: dict[EventId, EditGrounding] = {}
     for r in replayed:
@@ -194,11 +225,7 @@ def ground_session(
         else:
             before = None  # an existing file whose imports were never read
         parsed = r.structure is not None and r.structure.error is None
-        after = (
-            _modules_of(r.structure.imports, module_set)
-            if r.structure is not None and parsed
-            else None
-        )
+        after = imported(r.structure) if r.structure is not None and parsed else None
         added: tuple[AddedImport, ...] = ()
         if after is not None and before is not None:
             added = tuple(
