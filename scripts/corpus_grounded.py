@@ -47,6 +47,30 @@ def export(cwd: str, commit: str, dest: Path) -> None:
     (dest / ".ter-exported").write_text(commit, encoding="utf-8")
 
 
+def _norm(path: str) -> str:
+    return path.replace("\\", "/").rstrip("/")
+
+
+def why_outside(path: str, root: str | None, cwd: str) -> str:
+    """A content-free reason an edit was placed outside the repository."""
+    p, c = _norm(path), _norm(cwd)
+    if "/.claude/worktrees/" in p:
+        return "under a .claude/worktrees checkout"
+    if "/.claude/" in p or p.startswith("~"):
+        return "under ~/.claude (plans, memory, settings)"
+    if not (p.startswith("/") or p[1:2] == ":"):
+        return "relative path"
+    under_cwd = p.lower().startswith(c.lower() + "/")
+    if root is None:
+        return "no session root found" + (" (path under cwd)" if under_cwd else "")
+    r = _norm(root)
+    if p.lower().startswith(r.lower() + "/"):
+        return "under the root but differs in letter case"
+    if under_cwd:
+        return "under cwd but not under the chosen root"
+    return "outside cwd"
+
+
 def main() -> None:
     from ter.bootstrap import cli_services
 
@@ -67,6 +91,8 @@ def main() -> None:
     placements: dict[str, Counter[str]] = defaultdict(Counter)
     confident: dict[str, Counter[str]] = defaultdict(Counter)
     uncertain: dict[str, Counter[str]] = defaultdict(Counter)
+    outside: dict[str, Counter[str]] = defaultdict(Counter)
+    by_suffix: dict[str, Counter[str]] = defaultdict(Counter)
     errors: Counter[str] = Counter()
     sessions: Counter[str] = Counter()
     review: list[dict[str, Any]] = []
@@ -86,11 +112,19 @@ def main() -> None:
             continue
         sessions[repo] += 1
         analysis = explained.analysis
+        grounding = analysis.repository
+        root = grounding.root if grounding is not None else None
+        if not analysis.surfaces:
+            outside[repo]["session with no placed edit"] += 1
         seeds: dict[str, str] = {}
         for surface in analysis.surfaces:
             for edit in surface.edits:
                 placements[repo][edit.placement.value] += 1
+                suffix = Path(edit.path).suffix.lower() or "(none)"
+                by_suffix[repo][f"{edit.placement.value} {suffix}"] += 1
                 seeds[edit.path] = " ".join(surface.seeds)
+                if edit.placement.value == "outside_repository":
+                    outside[repo][why_outside(edit.path, root, row["cwd"])] += 1
         for f in analysis.findings:
             if f.detector not in DETECTORS:
                 continue
@@ -118,6 +152,8 @@ def main() -> None:
                 "placements": dict(placements[repo]),
                 "confident": dict(confident[repo]),
                 "uncertain": dict(uncertain[repo]),
+                "outside_reasons": dict(outside[repo]),
+                "placements_by_suffix": dict(by_suffix[repo].most_common()),
             }
             for repo, n in sorted(sessions.items())
         },
