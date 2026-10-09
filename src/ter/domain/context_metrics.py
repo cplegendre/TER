@@ -446,10 +446,13 @@ def measure_context(
     first, carry, turns, unpriced = _carry(events, prices, on)
 
     # Bundles in order of their first supplied fragment.
+    # A fragment supplied again (the same bundle re-delivered) counts once.
     supplied: dict[str, list[tuple[int, SuppliedFragment]]] = {}
+    seen: set[tuple[str, str]] = set()
     for i, e in enumerate(events):
         s = read_supplied(e)
-        if s is not None:
+        if s is not None and (s.bundle, s.fragment) not in seen:
+            seen.add((s.bundle, s.fragment))
             supplied.setdefault(s.bundle, []).append((i, s))
     order = sorted(supplied, key=lambda b: supplied[b][0][0])
     starts = [supplied[b][0][0] for b in order]

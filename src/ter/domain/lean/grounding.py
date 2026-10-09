@@ -120,6 +120,9 @@ class RepositoryGrounding:
     #: root, then Claude Code worktree checkouts and other checkouts of the
     #: same repository (TER-EVD-017).
     roots: tuple[str, ...] = ()
+    #: Edit and write requests whose tool reported a failure: they changed
+    #: nothing, so no surface places them.
+    failed_edits: frozenset[EventId] = frozenset()
 
     def repository_path(self, path: str) -> str | None:
         return self.paths.get(path)

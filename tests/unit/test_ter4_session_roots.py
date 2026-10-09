@@ -8,12 +8,14 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
+import subprocess
 from pathlib import Path
 from types import ModuleType
 
 import pytest
 from ter4_lean_builder import Script
-from ter4_shop_repo import SESSION_ROOT, SHOP, at, shop_repo
+from ter4_shop_repo import GIT_ENV, SESSION_ROOT, SHOP, at, shop_repo
 
 from ter.adapters.driven.tokenizers import RegexTokenizer
 from ter.adapters.driving.cli import format_surfaces
@@ -381,3 +383,30 @@ def test_the_corpus_script_splits_reasons_an_edit_is_outside() -> None:
 def test_the_corpus_script_counts_sessions_by_roots() -> None:
     bucket = _corpus_script().roots_bucket
     assert [bucket(n) for n in (0, 1, 2, 3)] == ["0", "1", "2+", "2+"]
+
+
+@EVD17
+def test_the_corpus_script_exports_again_for_another_commit(tmp_path: Path) -> None:
+    repo = shop_repo(tmp_path / "shop")
+    first = _git(repo, "rev-parse", "HEAD")
+    (repo / "added.txt").write_text("new\n", encoding="utf-8")
+    _git(repo, "add", "added.txt")
+    _git(repo, "commit", "-q", "-m", "second")
+    second = _git(repo, "rev-parse", "HEAD")
+    export = _corpus_script().export
+    dest = tmp_path / "export"
+    export(str(repo), first, dest)
+    assert not (dest / "added.txt").exists()
+    export(str(repo), second, dest)
+    assert (dest / "added.txt").exists()
+    assert (dest / ".ter-exported").read_text(encoding="utf-8") == second
+    export(str(repo), first, dest)
+    assert not (dest / "added.txt").exists()
+
+
+def _git(repo: Path, *args: str) -> str:
+    env = {**os.environ, **GIT_ENV, "HOME": str(repo.parent)}
+    done = subprocess.run(
+        ["git", *args], cwd=repo, env=env, check=True, capture_output=True, text=True
+    )
+    return done.stdout.strip()

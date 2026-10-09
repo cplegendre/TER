@@ -302,6 +302,13 @@ def output_fingerprint(text: str) -> str:
     return fingerprint(_NOISE.sub("#", text.strip()))
 
 
+def tool_call_failed(output: str) -> bool:
+    """Whether a tool completion reports that the call itself failed: the
+    harness's error envelope (``<tool_use_error>`` in Claude Code), as when
+    an edit's text is not found or a write is refused."""
+    return output.lstrip().startswith("<tool_use_error>")
+
+
 def tool_paths(arguments: Mapping[str, object]) -> tuple[str, ...]:
     """File paths a file tool call names (empty for searches and shell)."""
     for key in _PATH_KEYS:

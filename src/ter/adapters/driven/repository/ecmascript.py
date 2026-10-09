@@ -143,7 +143,7 @@ NAME, STRING, TEMPLATE, PUNCT, VALUE = "name", "str", "tpl", "punct", "value"
 # whitespace and comments match.
 _TOKEN = re.compile(
     r"""
-    (?:\s+|//[^\n]*|/\*(?:[^*]|\*(?!/))*(?:\*/|\Z))*+
+    (?:\s+|//[^\n\r\u2028\u2029]*|/\*(?:[^*]|\*(?!/))*(?:\*/|\Z))*+
     (?:
       (?P<name>[A-Za-z_$ -￿][\w$ -￿]*)
       |(?P<punct>=>|\.\.\.|\?\.|[{}()\[\];,.<>=!+\-*%&|^~?:@#])
@@ -341,7 +341,9 @@ def script_code(path: str, text: str) -> str:
     parts: list[str] = []
     last = 0
     for match in _SCRIPT.finditer(visible):
-        parts.append("\n" * visible.count("\n", last, match.start(1)) + ";")
+        # A carriage return ends a line comment the block before ended on
+        # (a JavaScript line terminator, but not counted as a line here).
+        parts.append("\r" + "\n" * visible.count("\n", last, match.start(1)) + ";")
         parts.append(match.group(1))
         last = match.end(1)
     return "".join(parts)

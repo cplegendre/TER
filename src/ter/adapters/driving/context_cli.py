@@ -56,8 +56,11 @@ class BundleRequest:
     session_path: Path | None
     session_id: str | None
     prompt: str | None
-    #: Where the ``context.supplied`` events go (``None``: not recorded).
+    #: The session's event log: its history, and where the
+    #: ``context.supplied`` events go.
     event_log: Path | None
+    #: ``False`` (``--no-record``): read the log's history, append nothing.
+    record: bool = True
 
 
 @dataclass(frozen=True)
@@ -200,7 +203,7 @@ def _bundle(
     if args.session is None and args.session_id is None:
         err.write("ter context bundle: give a session transcript or --session\n")
         return 2
-    log: Path | None = None if args.no_record else args.event_log
+    log: Path | None = args.event_log
     supplied = services.bundle(
         BundleRequest(
             repo=args.repo,
@@ -211,6 +214,7 @@ def _bundle(
             session_id=args.session_id,
             prompt=args.prompt,
             event_log=log,
+            record=not args.no_record,
         )
     )
     bundle = supplied.bundle
@@ -222,7 +226,7 @@ def _bundle(
         text = bundle.to_json() if target.suffix == ".json" else bundle.render()
         target.write_text(text, encoding="utf-8")
         err.write(f"Wrote {target}\n")
-    if log is not None:
+    if log is not None and not args.no_record:
         err.write(
             f"Recorded {len(supplied.events)} context.supplied event(s) for "
             f"session {bundle.session_id} in {log}\n"

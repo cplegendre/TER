@@ -46,10 +46,12 @@ def context_services(
         else:
             assert request.session_id is not None  # checked by the CLI
             session_id = request.session_id
+            if log is not None and not request.record:
+                events = log.events(session_id)  # history only, nothing appended
         use_case = SupplyContext(
             repository_evidence(request.repo, request.engine),
             make_tokenizer(request.tokenizer),
-            log,
+            log if request.record else None,
             SystemClock(),
         )
         return use_case(

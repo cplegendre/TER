@@ -122,16 +122,21 @@ class JsonRoutingProfiles:
         else:
             root = Path(directory)
             self.name = str(directory)
-        files = sorted(
-            (f for f in root.iterdir() if f.name.endswith(".json")),
-            key=lambda f: f.name,
-        )
+        try:
+            files = sorted(
+                (f for f in root.iterdir() if f.name.endswith(".json")),
+                key=lambda f: f.name,
+            )
+        except OSError as exc:
+            raise RoutingProfileError(f"{self.name}: cannot read: {exc}") from exc
         self._profiles: dict[str, RoutingProfile] = {}
         for f in files:
             try:
                 document = json.loads(f.read_text(encoding="utf-8"))
             except json.JSONDecodeError as exc:
                 raise RoutingProfileError(f"{f.name}: not JSON: {exc}") from exc
+            except (OSError, UnicodeDecodeError) as exc:
+                raise RoutingProfileError(f"{f.name}: cannot read: {exc}") from exc
             profile = parse_routing_profile(document, f.name)
             if profile.name in self._profiles:
                 raise RoutingProfileError(

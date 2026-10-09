@@ -283,6 +283,21 @@ class TestImportLinterReader:
 
 @pytest.mark.req("TER-EVD-006")
 class TestChangeSurface:
+    def test_an_edit_or_write_whose_tool_failed_changed_nothing(
+        self, shop: Path
+    ) -> None:
+        s = Script()
+        pricing_task(s)
+        failed = "<tool_use_error>String to replace not found in file.</tool_use_error>"
+        s.edit(at(SUMMARY), "len(rows)", "len(list(rows))", output=failed)
+        s.write(at("src/app/new.py"), "X = 1\n", output=failed)
+        g = ground(s, shop)
+        assert [e.path for e in g.edits.values()] == [PRICING]
+        assert len(g.failed_edits) == 2
+        assert "src/app/new.py" not in g.modules
+        [surface] = analyse(s, shop).surfaces
+        assert {e.path for e in surface.edits} == {PRICING}
+
     def test_every_task_has_a_surface_and_every_edit_is_placed(
         self, shop: Path
     ) -> None:

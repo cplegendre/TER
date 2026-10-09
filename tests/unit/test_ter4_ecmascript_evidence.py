@@ -180,6 +180,13 @@ class TestComponents:
         ]
         assert script_code("src/a.ts", "x") == "x"
 
+    def test_a_line_comment_ending_a_block_hides_nothing_after_it(self) -> None:
+        component = (
+            '<script context="module">// x</script>'
+            "<script>import a from './a'</script>\n"
+        )
+        assert imports(component, "src/A.svelte") == [("./a", ("default",), 1)]
+
     def test_a_vue_component_is_read_the_same_way(self) -> None:
         vue = "<template><div/></template>\n<script setup>\nimport A from './A.vue'\n</script>\n"
         assert imports(vue, "src/App.vue") == [("./A.vue", ("default",), 3)]
@@ -473,6 +480,24 @@ class TestResolution:
         assert p.candidates("other/b.js", "#u/fmt")[1] == "other/utils/fmt.ts"
         # A file under no config gets no mapping.
         assert p.candidates("elsewhere/c.ts", "@/models/course") == ()
+
+    def test_an_unavailable_extends_target_inherits_nothing(self) -> None:
+        # The reader raises for any file the repository does not hold, as a
+        # real engine does: such a target is never read.
+        files = {
+            "tsconfig.json": (
+                '{ "extends": "./.svelte-kit/tsconfig.json",'
+                ' "compilerOptions": { "paths": { "@/*": ["src/*"] } } }'
+            )
+        }
+
+        def text(path: str) -> str | None:
+            if path not in files:
+                raise FileNotFoundError(path)
+            return files[path]
+
+        p = EcmaScriptProject.read(sorted(files), text)
+        assert p.candidates("a.ts", "@/x")[0] == "src/x"
 
     def test_the_longest_matching_pattern_wins(self) -> None:
         files = {

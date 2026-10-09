@@ -162,8 +162,11 @@ class _Task:
     edits: tuple[Step, ...]
 
 
-def _tasks(view: SessionView) -> Iterator[_Task]:
-    """Every prompt segment (and the edits before the first prompt)."""
+def _tasks(
+    view: SessionView, failed: frozenset[EventId] = frozenset()
+) -> Iterator[_Task]:
+    """Every prompt segment (and the edits before the first prompt); an
+    edit whose tool failed (``failed``) changed nothing and is left out."""
     prompt: Step | None = None
     edits: list[Step] = []
     started = False
@@ -173,7 +176,7 @@ def _tasks(view: SessionView) -> Iterator[_Task]:
                 yield _Task(prompt, tuple(edits))
             prompt, edits, started = step, [], True
             continue
-        if step.is_edit:
+        if step.is_edit and step.event_id not in failed:
             edits.append(step)
 
 
@@ -342,7 +345,7 @@ def change_surfaces(view: SessionView) -> tuple[ChangeSurface, ...]:
     relation = {r.event_id: r.relation for r in view.intent.record.revisions}
     last: tuple[tuple[str, ...], Step] | None = None
     out: list[ChangeSurface] = []
-    for task in _tasks(view):
+    for task in _tasks(view, g.failed_edits):
         named = names.named(task.prompt.words) if task.prompt is not None else ()
         named_by: Step | None
         if named and task.prompt is not None:

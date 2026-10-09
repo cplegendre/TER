@@ -43,6 +43,7 @@ from ter.domain.context_bundle import (
     supplied_events,
 )
 from ter.domain.context_metrics import (
+    BundleMeasure,
     ContextMeasures,
     CriticalEvidence,
     CriticalItem,
@@ -460,6 +461,25 @@ class TestPrecisionRecall:
         assert next(f for f in b.fragments if f.source == PRICING).used
 
     @pytest.mark.req("TER-CTX-003")
+    def test_a_bundle_supplied_twice_counts_once(self, shop: Path) -> None:
+        b = bundle(shop, "Fix pricing.py")
+        once, twice = Script(), Script()
+        once.events.extend(supplied_events(b))
+        twice.events.extend([*supplied_events(b), *supplied_events(b)])
+        for s in (once, twice):
+            s.prompt("Fix pricing.py")
+            s.edit(at(PRICING), "* 1.2", "* 12 / 10")
+        g = ground_session(once.events, repository_evidence(shop, "python-ast"))
+        (one,) = measure_context(once.events, g).bundles
+        (two,) = measure_context(twice.events, g).bundles
+
+        def counted(m: BundleMeasure) -> list[tuple[str, int, bool]]:
+            return [(f.fragment, f.tokens, f.used) for f in m.fragments]
+
+        assert counted(two) == counted(one)
+        assert two.as_dict()["inventory"] == one.as_dict()["inventory"]
+
+    @pytest.mark.req("TER-CTX-003")
     def test_boundary_a_prompt_before_any_tool_request_stays_in_the_window(
         self, shop: Path
     ) -> None:
@@ -719,6 +739,26 @@ class TestCli:
         assert code == 0, err
         assert json.loads(out)["seeds"] == [PRICING]
         assert not logdir.exists()
+
+    @pytest.mark.req("TER-EVD-004")
+    def test_no_record_still_reads_the_logged_prompt(
+        self, shop: Path, tmp_path: Path
+    ) -> None:
+        logdir = tmp_path / "log"
+        log = JsonlEventLog(logdir)
+        for e in pricing_session().events:
+            log.append(e)
+        before = log.events("s")
+        code, out, err = run(
+            [
+                "context", "bundle", "--session", "s", "--repo", str(shop),
+                "--event-log", str(logdir), "--no-record", "--json",
+            ]
+        )  # fmt: skip
+        assert code == 0, err
+        assert PRICING in json.loads(out)["seeds"]
+        assert log.events("s") == before
+        assert "Recorded" not in err
 
     @pytest.mark.req("TER-CTX-003")
     @pytest.mark.req("TER-CTX-004")

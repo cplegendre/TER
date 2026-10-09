@@ -438,6 +438,42 @@ class TestGitWorkTree:
         assert PythonSyntaxEvidence(root).history("src/pkg/core.py") is None
 
     @pytest.mark.req("TER-EVD-013")
+    def test_a_tracked_directory_replaced_by_a_link_lists_nothing(
+        self, tmp_path: Path
+    ) -> None:
+        root = git_repo(tmp_path / "repo")
+        outside = write_repo(tmp_path / "outside", {"pkg/core.py": "SECRET = 1\n"})
+        os.rename(root / "src", tmp_path / "moved")
+        (root / "src").symlink_to(outside)
+        engine = GitRepositoryEvidence(root)
+        assert not any(p.startswith("src/") for p in engine.files())
+        assert "src/pkg/core.py" not in engine.listing()
+        assert all("SECRET" not in m.line for m in engine.search("SECRET"))
+
+    @pytest.mark.req("TER-EVD-013")
+    def test_membership_asks_git_once_not_per_file(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        root = git_repo(tmp_path / "repo")
+        engine = GitRepositoryEvidence(root)
+        calls: list[str] = []
+        run = engine._run
+        monkeypatch.setattr(
+            engine, "_run", lambda args, **kw: calls.append(args[0]) or run(args, **kw)
+        )
+        for path in REPO:
+            assert path in engine.listing()
+        assert calls == ["ls-files"]
+        # A file created since is still found; an ignored one is asked once.
+        (root / "src/pkg/fresh.py").write_text("X = 1\n", encoding="utf-8")
+        assert "src/pkg/fresh.py" in engine.listing()
+        (root / ".git/info/exclude").write_text("*.log\n", encoding="utf-8")
+        (root / "run.log").write_text("x\n", encoding="utf-8")
+        assert "run.log" not in engine.listing()
+        assert "run.log" not in engine.listing()
+        assert calls == ["ls-files"] * 3
+
+    @pytest.mark.req("TER-EVD-013")
     def test_a_subdirectory_of_a_work_tree_is_refused(self, tmp_path: Path) -> None:
         root = git_repo(tmp_path / "repo")
         with pytest.raises(NotAWorkTreeError, match="top level"):

@@ -164,3 +164,11 @@ def test_a_profile_defined_twice_is_refused(tmp_path: Path) -> None:
 def test_an_empty_directory_is_refused(tmp_path: Path) -> None:
     with pytest.raises(RoutingProfileError, match="no routing profiles"):
         JsonRoutingProfiles(tmp_path)
+
+
+def test_an_unreadable_directory_or_file_is_refused(tmp_path: Path) -> None:
+    with pytest.raises(RoutingProfileError, match="cannot read"):
+        JsonRoutingProfiles(tmp_path / "missing")
+    (tmp_path / "latin1.json").write_bytes(b'{"name": "caf\xe9"}')
+    with pytest.raises(RoutingProfileError, match="cannot read"):
+        JsonRoutingProfiles(tmp_path)

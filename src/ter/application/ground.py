@@ -23,7 +23,7 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 
 from ..domain.events import Event, EventId, EventKind, ToolKind
-from ..domain.lean.facts import tool_paths
+from ..domain.lean.facts import tool_call_failed, tool_paths
 from ..domain.lean.grounding import (
     AddedImport,
     EditGrounding,
@@ -137,6 +137,16 @@ def ground_session(
     started; ``contracts`` reads the architecture contracts it declares.
     """
     files = frozenset(evidence.files())
+    events = tuple(events)
+    # A file tool call whose completion reports a tool error changed nothing.
+    failed = {
+        e.tool.call_id
+        for e in events
+        if e.kind is EventKind.TOOL_COMPLETED
+        and e.tool is not None
+        and e.tool.call_id
+        and tool_call_failed(e.text)
+    }
     requests = [
         e
         for e in events
@@ -172,7 +182,7 @@ def ground_session(
     replayed: list[_Replayed] = []
     for event in requests:
         assert event.tool is not None
-        if event.tool.kind not in _EDIT_KINDS:
+        if event.tool.kind not in _EDIT_KINDS or event.tool.call_id in failed:
             continue
         named = tool_paths(event.tool.arguments)
         path = paths.get(named[0]) if named else None
@@ -288,4 +298,11 @@ def ground_session(
         contracts=found,
         contract_source=source,
         contract_problem=problem,
+        failed_edits=frozenset(
+            e.id
+            for e in requests
+            if e.tool is not None
+            and e.tool.kind in _EDIT_KINDS
+            and e.tool.call_id in failed
+        ),
     )

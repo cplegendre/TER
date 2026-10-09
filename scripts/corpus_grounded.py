@@ -22,6 +22,7 @@ import csv
 import io
 import json
 import re
+import shutil
 import subprocess
 import tarfile
 import time
@@ -35,9 +36,13 @@ DETECTORS = ("unrelated_modification", "surface_expansion", "boundary_violation"
 
 
 def export(cwd: str, commit: str, dest: Path) -> None:
-    """The repository at ``commit``, unpacked into ``dest`` (once)."""
-    if (dest / ".ter-exported").exists():
-        return
+    """The repository at ``commit``, unpacked into ``dest`` (once per
+    commit)."""
+    marker = dest / ".ter-exported"
+    if marker.exists():
+        if marker.read_text(encoding="utf-8").strip() == commit:
+            return
+        shutil.rmtree(dest)  # exported at another commit: start again
     dest.mkdir(parents=True, exist_ok=True)
     data = subprocess.run(
         ["git", "-C", cwd, "archive", "--format=tar", commit],

@@ -68,6 +68,8 @@ class GitRepositoryEvidence(LexicalRepositoryEvidence):
 
     def __init__(self, root: str | Path) -> None:
         super().__init__(root)
+        self._git_files: frozenset[str] | None = None
+        self._git_ignored: set[str] = set()
         self._git = shutil.which("git")
         if self._git is None:
             raise RepositoryEvidenceError("the git executable is not on PATH")
@@ -120,19 +122,39 @@ class GitRepositoryEvidence(LexicalRepositoryEvidence):
     # -- files -------------------------------------------------------------
 
     def files(self) -> tuple[str, ...]:
-        listed = self._run(
-            ["ls-files", "-z", "--cached", "--others", "--exclude-standard"]
+        return tuple(
+            sorted(p for p in self._git_listed(refresh=True) if self._on_disk(p))
         )
-        paths = set()
-        for path in listed.split("\0"):
-            full = self.root / path
-            if path and not full.is_symlink() and full.is_file():
-                paths.add(path)
-        return tuple(sorted(paths))
+
+    def _git_listed(self, *, refresh: bool = False) -> frozenset[str]:
+        """What ``git ls-files`` lists, asked once and kept until a refresh."""
+        if refresh or self._git_files is None:
+            listed = self._run(
+                ["ls-files", "-z", "--cached", "--others", "--exclude-standard"]
+            )
+            self._git_files = frozenset(p for p in listed.split("\0") if p)
+            self._git_ignored.clear()
+        return self._git_files
+
+    def _on_disk(self, path: str) -> bool:
+        # A regular file reached through no symbolic link at any component:
+        # a tracked directory replaced by a link to elsewhere lists nothing.
+        return super()._listed(path)
 
     def _listed(self, path: str) -> bool:
-        # Git decides what is listed (ignored files are not), so ask it.
-        return path in self.files()
+        # Git decides what is listed (ignored files are not). The listing is
+        # kept, so a membership test runs no subprocess; a file on disk the
+        # kept listing lacks (created since) asks Git once more.
+        if not self._on_disk(path):
+            return False
+        if path in self._git_listed():
+            return True
+        if path in self._git_ignored:
+            return False
+        if path in self._git_listed(refresh=True):
+            return True
+        self._git_ignored.add(path)  # on disk, but Git does not list it
+        return False
 
     # -- diff --------------------------------------------------------------
 
