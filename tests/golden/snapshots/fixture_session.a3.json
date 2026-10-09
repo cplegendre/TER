@@ -56,7 +56,7 @@
           {
             "key": "wip_peak",
             "label": "Peak WIP",
-            "note": "after event db87d39fd196b34d",
+            "note": "after event be577742b1fe80db",
             "unit": "items",
             "value": 3
           },
@@ -327,18 +327,18 @@
       ],
       "open_at_end": {
         "edits": [
-          "66675543479d5262",
-          "0c500468149caeae"
+          "ebdc557f2464af54",
+          "fa615a96e084b535"
         ],
         "failures": [],
         "hypotheses": [
-          "db87d39fd196b34d"
+          "be577742b1fe80db"
         ],
         "tasks": []
       },
       "peak": {
         "edits": 2,
-        "event_id": "db87d39fd196b34d",
+        "event_id": "be577742b1fe80db",
         "failures": 0,
         "hypotheses": 1,
         "tasks": 0,
@@ -373,14 +373,14 @@
           0
         ],
         [
-          "66675543479d5262",
+          "ebdc557f2464af54",
           0,
           0,
           1,
           0
         ],
         [
-          "9a6da2c967f21f87",
+          "8278c55ced353419",
           0,
           0,
           1,
@@ -401,28 +401,28 @@
           0
         ],
         [
-          "0c500468149caeae",
+          "fa615a96e084b535",
           0,
           0,
           2,
           0
         ],
         [
-          "8a871331a40d3fb9",
+          "b825712aa989022b",
           0,
           0,
           2,
           0
         ],
         [
-          "db87d39fd196b34d",
+          "be577742b1fe80db",
           1,
           0,
           2,
           0
         ],
         [
-          "e94e5cb630b59fd7",
+          "681e9b8cbbf2a4a1",
           1,
           0,
           2,
@@ -461,7 +461,7 @@
         {
           "band": "aligned",
           "basis": "names",
-          "event_id": "66675543479d5262",
+          "event_id": "ebdc557f2464af54",
           "names": [
             "login"
           ],
@@ -487,7 +487,7 @@
         {
           "band": "aligned",
           "basis": "changed_words",
-          "event_id": "0c500468149caeae",
+          "event_id": "fa615a96e084b535",
           "names": [],
           "revision": 1,
           "score": 0.6
@@ -495,7 +495,7 @@
         {
           "band": "unknown",
           "basis": "text",
-          "event_id": "db87d39fd196b34d",
+          "event_id": "be577742b1fe80db",
           "names": [],
           "revision": 1,
           "score": null
@@ -569,7 +569,7 @@
         }
       ],
       "addresses": [
-        "unvalidated_implementation:66675543479d5262"
+        "unvalidated_implementation:ebdc557f2464af54"
       ],
       "detector": "unvalidated_implementation",
       "rationale": "1 finding(s), 0 generated tokens: 2 edit(s) reported without validation.",
@@ -589,15 +589,15 @@
           "kind": "setting",
           "language": "json",
           "snippet": "{\n  \"permissions\": {\n    \"defaultMode\": \"plan\"\n  }\n}",
-          "text": "Start unfamiliar tasks in plan mode, so exploration comes before edits (changed before reading: `templates/login.html`, `src/login.py`)."
+          "text": "Start unfamiliar tasks in plan mode, so exploration comes before edits (changed before reading: `src/login.py`, `templates/login.html`)."
         }
       ],
       "addresses": [
-        "premature_implementation:0c500468149caeae",
-        "premature_implementation:66675543479d5262"
+        "premature_implementation:ebdc557f2464af54",
+        "premature_implementation:fa615a96e084b535"
       ],
       "detector": "premature_implementation",
-      "rationale": "2 finding(s), 0 generated tokens: Changed templates/login.html before reading it; Changed src/login.py before reading it. All below the confidence threshold: verify before acting.",
+      "rationale": "2 finding(s), 0 generated tokens: Changed src/login.py before reading it; Changed templates/login.html before reading it. All below the confidence threshold: verify before acting.",
       "title": "Collect evidence before changing code",
       "uncertain": true,
       "waste": "defects"
@@ -639,9 +639,9 @@
         "avoidable_tokens": 0,
         "context_tokens": 6,
         "findings": [
-          "premature_implementation:0c500468149caeae",
-          "premature_implementation:66675543479d5262",
-          "unvalidated_implementation:66675543479d5262"
+          "premature_implementation:ebdc557f2464af54",
+          "premature_implementation:fa615a96e084b535",
+          "unvalidated_implementation:ebdc557f2464af54"
         ],
         "seconds": 12.0,
         "stage": "implement",
@@ -663,7 +663,7 @@
         "avoidable_tokens": 0,
         "context_tokens": 0,
         "findings": [
-          "unvalidated_implementation:66675543479d5262"
+          "unvalidated_implementation:ebdc557f2464af54"
         ],
         "seconds": 4.0,
         "stage": "respond",
@@ -779,31 +779,10 @@
       "detector": "premature_implementation",
       "evidence": [
         "efbc3fb8debf69d2",
-        "0c500468149caeae"
-      ],
-      "explanation": "Write changed templates/login.html with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
-      "id": "premature_implementation:0c500468149caeae",
-      "kind": "risk",
-      "seconds": 0.0,
-      "share": 0.0,
-      "subject": "templates/login.html",
-      "title": "Changed templates/login.html before reading it",
-      "tokens": 0,
-      "uncertain": true,
-      "waste": "defects",
-      "waste_events": []
-    },
-    {
-      "activity_class": "avoidable",
-      "confidence": 0.45,
-      "context_tokens": 0,
-      "detector": "premature_implementation",
-      "evidence": [
-        "efbc3fb8debf69d2",
-        "66675543479d5262"
+        "ebdc557f2464af54"
       ],
       "explanation": "Write changed src/login.py with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
-      "id": "premature_implementation:66675543479d5262",
+      "id": "premature_implementation:ebdc557f2464af54",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
@@ -816,18 +795,39 @@
     },
     {
       "activity_class": "avoidable",
+      "confidence": 0.45,
+      "context_tokens": 0,
+      "detector": "premature_implementation",
+      "evidence": [
+        "efbc3fb8debf69d2",
+        "fa615a96e084b535"
+      ],
+      "explanation": "Write changed templates/login.html with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
+      "id": "premature_implementation:fa615a96e084b535",
+      "kind": "risk",
+      "seconds": 0.0,
+      "share": 0.0,
+      "subject": "templates/login.html",
+      "title": "Changed templates/login.html before reading it",
+      "tokens": 0,
+      "uncertain": true,
+      "waste": "defects",
+      "waste_events": []
+    },
+    {
+      "activity_class": "avoidable",
       "confidence": 0.85,
       "context_tokens": 0,
       "detector": "unvalidated_implementation",
       "evidence": [
-        "66675543479d5262",
-        "9a6da2c967f21f87",
-        "0c500468149caeae",
-        "8a871331a40d3fb9",
+        "ebdc557f2464af54",
+        "8278c55ced353419",
+        "fa615a96e084b535",
+        "b825712aa989022b",
         "96610fb80b1bda8a"
       ],
       "explanation": "The agent edited src/login.py, templates/login.html and then responded without running tests, a type check or the code. No check ran anywhere in the session.",
-      "id": "unvalidated_implementation:66675543479d5262",
+      "id": "unvalidated_implementation:ebdc557f2464af54",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
@@ -1035,14 +1035,14 @@
       "context_tokens": 0,
       "detector": "unvalidated_implementation",
       "evidence": [
-        "66675543479d5262",
-        "9a6da2c967f21f87",
-        "0c500468149caeae",
-        "8a871331a40d3fb9",
+        "ebdc557f2464af54",
+        "8278c55ced353419",
+        "fa615a96e084b535",
+        "b825712aa989022b",
         "96610fb80b1bda8a"
       ],
       "explanation": "The agent edited src/login.py, templates/login.html and then responded without running tests, a type check or the code. No check ran anywhere in the session.",
-      "id": "unvalidated_implementation:66675543479d5262",
+      "id": "unvalidated_implementation:ebdc557f2464af54",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
@@ -1060,15 +1060,15 @@
       "detector": "premature_implementation",
       "evidence": [
         "efbc3fb8debf69d2",
-        "0c500468149caeae"
+        "ebdc557f2464af54"
       ],
-      "explanation": "Write changed templates/login.html with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
-      "id": "premature_implementation:0c500468149caeae",
+      "explanation": "Write changed src/login.py with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
+      "id": "premature_implementation:ebdc557f2464af54",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
-      "subject": "templates/login.html",
-      "title": "Changed templates/login.html before reading it",
+      "subject": "src/login.py",
+      "title": "Changed src/login.py before reading it",
       "tokens": 0,
       "uncertain": true,
       "waste": "defects",
@@ -1081,15 +1081,15 @@
       "detector": "premature_implementation",
       "evidence": [
         "efbc3fb8debf69d2",
-        "66675543479d5262"
+        "fa615a96e084b535"
       ],
-      "explanation": "Write changed src/login.py with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
-      "id": "premature_implementation:66675543479d5262",
+      "explanation": "Write changed templates/login.html with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
+      "id": "premature_implementation:fa615a96e084b535",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
-      "subject": "src/login.py",
-      "title": "Changed src/login.py before reading it",
+      "subject": "templates/login.html",
+      "title": "Changed templates/login.html before reading it",
       "tokens": 0,
       "uncertain": true,
       "waste": "defects",

@@ -56,7 +56,7 @@
           {
             "key": "wip_peak",
             "label": "Peak WIP",
-            "note": "after event 5783fac4e7fb70bd",
+            "note": "after event a319570797cdc7f7",
             "unit": "items",
             "value": 3
           },
@@ -339,7 +339,7 @@
       },
       "peak": {
         "edits": 3,
-        "event_id": "5783fac4e7fb70bd",
+        "event_id": "a319570797cdc7f7",
         "failures": 0,
         "hypotheses": 0,
         "tasks": 0,
@@ -367,14 +367,14 @@
           0
         ],
         [
-          "ff2bdafc4174f0ae",
+          "a09b1560a78f36dd",
           0,
           0,
           1,
           0
         ],
         [
-          "74f80f9aa57df306",
+          "ddcc9071aaf79d84",
           0,
           0,
           1,
@@ -395,14 +395,14 @@
           0
         ],
         [
-          "3a726cf05dd3f436",
+          "cf1d7311b82b594e",
           0,
           0,
           2,
           0
         ],
         [
-          "915dd336f4f690a2",
+          "6cbaf9267ee9b6ba",
           0,
           0,
           2,
@@ -416,28 +416,28 @@
           0
         ],
         [
-          "5783fac4e7fb70bd",
+          "a319570797cdc7f7",
           0,
           0,
           3,
           0
         ],
         [
-          "b9b4608554250086",
+          "8f3d2b6f940a089b",
           0,
           0,
           3,
           0
         ],
         [
-          "dce4ed64099ffef5",
+          "142f769089564986",
           0,
           0,
           3,
           0
         ],
         [
-          "8ae1a7de2852286e",
+          "6b78609b074c0dfa",
           0,
           0,
           0,
@@ -468,7 +468,7 @@
         {
           "band": "aligned",
           "basis": "names",
-          "event_id": "ff2bdafc4174f0ae",
+          "event_id": "a09b1560a78f36dd",
           "names": [
             "median"
           ],
@@ -486,7 +486,7 @@
         {
           "band": "low",
           "basis": "names",
-          "event_id": "3a726cf05dd3f436",
+          "event_id": "cf1d7311b82b594e",
           "names": [
             "mean",
             "variance"
@@ -505,7 +505,7 @@
         {
           "band": "aligned",
           "basis": "names",
-          "event_id": "5783fac4e7fb70bd",
+          "event_id": "a319570797cdc7f7",
           "names": [
             "mode"
           ],
@@ -515,7 +515,7 @@
         {
           "band": "aligned",
           "basis": "text",
-          "event_id": "dce4ed64099ffef5",
+          "event_id": "142f769089564986",
           "names": [],
           "revision": 2,
           "score": 0.5
@@ -546,7 +546,7 @@
         "min_events": 3
       },
       "drift": [
-        "intent_drift:3a726cf05dd3f436"
+        "intent_drift:cf1d7311b82b594e"
       ],
       "low_alignment_periods": [],
       "revisions": [
@@ -620,7 +620,7 @@
         }
       ],
       "addresses": [
-        "intent_drift:3a726cf05dd3f436"
+        "intent_drift:cf1d7311b82b594e"
       ],
       "detector": "intent_drift",
       "rationale": "1 finding(s), 110 generated tokens: Edit departs from the intent: mean, variance.",
@@ -644,7 +644,7 @@
         }
       ],
       "addresses": [
-        "insufficient_context:3a726cf05dd3f436"
+        "insufficient_context:cf1d7311b82b594e"
       ],
       "detector": "insufficient_context",
       "rationale": "1 finding(s), 0 generated tokens: Changed src/stats.py with too little context. All below the confidence threshold: verify before acting.",
@@ -668,7 +668,7 @@
         }
       ],
       "addresses": [
-        "premature_implementation:ff2bdafc4174f0ae"
+        "premature_implementation:a09b1560a78f36dd"
       ],
       "detector": "premature_implementation",
       "rationale": "1 finding(s), 0 generated tokens: Changed src/stats.py before reading it. All below the confidence threshold: verify before acting.",
@@ -713,9 +713,9 @@
         "avoidable_tokens": 110,
         "context_tokens": 32,
         "findings": [
-          "intent_drift:3a726cf05dd3f436",
-          "premature_implementation:ff2bdafc4174f0ae",
-          "insufficient_context:3a726cf05dd3f436"
+          "intent_drift:cf1d7311b82b594e",
+          "premature_implementation:a09b1560a78f36dd",
+          "insufficient_context:cf1d7311b82b594e"
         ],
         "seconds": 9.0,
         "stage": "implement",
@@ -852,11 +852,11 @@
       "evidence": [
         "952a574075aacf7c",
         "8c8981ce0ad931aa",
-        "3a726cf05dd3f436",
-        "915dd336f4f690a2"
+        "cf1d7311b82b594e",
+        "6cbaf9267ee9b6ba"
       ],
       "explanation": "Edit of src/stats.py is about mean, variance, which scores 0.00 against intent revision 2 (below 0.25), and no intent change was recorded. The agent itself called it additional work.",
-      "id": "intent_drift:3a726cf05dd3f436",
+      "id": "intent_drift:cf1d7311b82b594e",
       "kind": "waste",
       "seconds": 3.0,
       "share": 1.0,
@@ -866,8 +866,8 @@
       "uncertain": false,
       "waste": "overproduction",
       "waste_events": [
-        "3a726cf05dd3f436",
-        "915dd336f4f690a2"
+        "cf1d7311b82b594e",
+        "6cbaf9267ee9b6ba"
       ]
     },
     {
@@ -877,10 +877,10 @@
       "detector": "premature_implementation",
       "evidence": [
         "48ba27d45b86300c",
-        "ff2bdafc4174f0ae"
+        "a09b1560a78f36dd"
       ],
       "explanation": "Write changed src/stats.py with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
-      "id": "premature_implementation:ff2bdafc4174f0ae",
+      "id": "premature_implementation:a09b1560a78f36dd",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
@@ -898,11 +898,11 @@
       "detector": "insufficient_context",
       "evidence": [
         "952a574075aacf7c",
-        "3a726cf05dd3f436",
-        "915dd336f4f690a2"
+        "cf1d7311b82b594e",
+        "6cbaf9267ee9b6ba"
       ],
       "explanation": "The task had acquired 0 context item(s) when it edited src/stats.py in place; the band asks for 1 (at least 1 item(s) per file edited in place, at most 3 per file changed plus 3). The file was read or written in an earlier task, so carried context may be enough.",
-      "id": "insufficient_context:3a726cf05dd3f436",
+      "id": "insufficient_context:cf1d7311b82b594e",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
@@ -1118,11 +1118,11 @@
       "evidence": [
         "952a574075aacf7c",
         "8c8981ce0ad931aa",
-        "3a726cf05dd3f436",
-        "915dd336f4f690a2"
+        "cf1d7311b82b594e",
+        "6cbaf9267ee9b6ba"
       ],
       "explanation": "Edit of src/stats.py is about mean, variance, which scores 0.00 against intent revision 2 (below 0.25), and no intent change was recorded. The agent itself called it additional work.",
-      "id": "intent_drift:3a726cf05dd3f436",
+      "id": "intent_drift:cf1d7311b82b594e",
       "kind": "waste",
       "seconds": 3.0,
       "share": 1.0,
@@ -1132,8 +1132,8 @@
       "uncertain": false,
       "waste": "overproduction",
       "waste_events": [
-        "3a726cf05dd3f436",
-        "915dd336f4f690a2"
+        "cf1d7311b82b594e",
+        "6cbaf9267ee9b6ba"
       ]
     },
     {
@@ -1143,11 +1143,11 @@
       "detector": "insufficient_context",
       "evidence": [
         "952a574075aacf7c",
-        "3a726cf05dd3f436",
-        "915dd336f4f690a2"
+        "cf1d7311b82b594e",
+        "6cbaf9267ee9b6ba"
       ],
       "explanation": "The task had acquired 0 context item(s) when it edited src/stats.py in place; the band asks for 1 (at least 1 item(s) per file edited in place, at most 3 per file changed plus 3). The file was read or written in an earlier task, so carried context may be enough.",
-      "id": "insufficient_context:3a726cf05dd3f436",
+      "id": "insufficient_context:cf1d7311b82b594e",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
@@ -1165,10 +1165,10 @@
       "detector": "premature_implementation",
       "evidence": [
         "48ba27d45b86300c",
-        "ff2bdafc4174f0ae"
+        "a09b1560a78f36dd"
       ],
       "explanation": "Write changed src/stats.py with no evidence collected about it first. Nothing in the repository had been explored yet; the file may be new.",
-      "id": "premature_implementation:ff2bdafc4174f0ae",
+      "id": "premature_implementation:a09b1560a78f36dd",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,

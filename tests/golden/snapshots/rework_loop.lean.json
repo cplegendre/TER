@@ -19,7 +19,7 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "f2873718c65cddef",
+      "e31ca633f6f5ea96",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -28,7 +28,7 @@
       "stage:explore is necessary but adds no value itself"
     ],
     [
-      "031f35117637cfd7",
+      "f5f2ec94106347c7",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -46,7 +46,7 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "b5dc801f9ba2fcf1",
+      "be52d3e10d534665",
       "implement",
       "value_adding",
       0.0,
@@ -55,7 +55,7 @@
       "stage:implement edits change the software"
     ],
     [
-      "ee00dc2afae9406b",
+      "501f20855ee029c1",
       "implement",
       "value_adding",
       0.0,
@@ -64,7 +64,7 @@
       "stage:implement edits change the software"
     ],
     [
-      "1c91989c08c0ed50",
+      "fc247227d92a10f7",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -73,7 +73,7 @@
       "stage:validate is necessary but adds no value itself"
     ],
     [
-      "67f5fdb471aa600f",
+      "51039ae2dacbebc3",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -91,40 +91,40 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "d149692b66de4b4b",
+      "3fcd365aa84f70a8",
       "implement",
       "avoidable",
       1.0,
       0.0,
       "reworking",
-      "rework_cycle:d149692b66de4b4b"
+      "rework_cycle:3fcd365aa84f70a8"
     ],
     [
-      "7bb0cb9e49bf57ce",
+      "d79e172da62edd11",
       "implement",
       "avoidable",
       1.0,
       0.0,
       "reworking",
-      "rework_cycle:d149692b66de4b4b"
+      "rework_cycle:3fcd365aa84f70a8"
     ],
     [
-      "763dc8c817be8d49",
+      "dda7bccaad7cce2a",
       "validate",
       "avoidable",
       1.0,
       0.0,
       "reworking",
-      "rework_cycle:d149692b66de4b4b"
+      "rework_cycle:3fcd365aa84f70a8"
     ],
     [
-      "672962215503debc",
+      "8f7cd1303a0b4752",
       "validate",
       "avoidable",
       1.0,
       0.0,
       "reworking",
-      "rework_cycle:d149692b66de4b4b"
+      "rework_cycle:3fcd365aa84f70a8"
     ],
     [
       "c502b1c166401b3c",
@@ -136,7 +136,7 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "f32c8aba5faf2655",
+      "8002a740aa59f968",
       "implement",
       "value_adding",
       0.0,
@@ -145,7 +145,7 @@
       "stage:implement edits change the software; productive iteration"
     ],
     [
-      "72c60d4bd7b11dc4",
+      "41e6ffe6ae79601f",
       "implement",
       "value_adding",
       0.0,
@@ -154,7 +154,7 @@
       "stage:implement edits change the software"
     ],
     [
-      "1721cb31e33a6b9b",
+      "338a4a54957a464b",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -163,7 +163,7 @@
       "stage:validate is necessary but adds no value itself; productive iteration"
     ],
     [
-      "41eddab414314d4f",
+      "548f9252455633bf",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -184,27 +184,27 @@
   "cycles": [
     {
       "command": "pytest tests/test_parser.py -q",
-      "failed_run": "1c91989c08c0ed50",
-      "failure": "67f5fdb471aa600f",
+      "failed_run": "fc247227d92a10f7",
+      "failure": "51039ae2dacbebc3",
       "fixes": [
-        "d149692b66de4b4b"
+        "3fcd365aa84f70a8"
       ],
       "next_outcome": "failed",
-      "next_result": "672962215503debc",
-      "next_run": "763dc8c817be8d49",
+      "next_result": "8f7cd1303a0b4752",
+      "next_run": "dda7bccaad7cce2a",
       "reason": "the next run failed identically",
       "verdict": "rework"
     },
     {
       "command": "pytest tests/test_parser.py -q",
-      "failed_run": "763dc8c817be8d49",
-      "failure": "672962215503debc",
+      "failed_run": "dda7bccaad7cce2a",
+      "failure": "8f7cd1303a0b4752",
       "fixes": [
-        "f32c8aba5faf2655"
+        "8002a740aa59f968"
       ],
       "next_outcome": "passed",
-      "next_result": "41eddab414314d4f",
-      "next_run": "1721cb31e33a6b9b",
+      "next_result": "548f9252455633bf",
+      "next_run": "338a4a54957a464b",
       "reason": "the next run passed",
       "verdict": "iteration"
     }
@@ -316,143 +316,143 @@
         "type": "motivated_by"
       },
       {
-        "source": "f2873718c65cddef",
+        "source": "e31ca633f6f5ea96",
         "target": "e2450187ade21441",
         "type": "motivated_by"
       },
       {
-        "source": "031f35117637cfd7",
-        "target": "f2873718c65cddef",
+        "source": "f5f2ec94106347c7",
+        "target": "e31ca633f6f5ea96",
         "type": "completes"
       },
       {
         "source": "77dbe291b043466d",
-        "target": "031f35117637cfd7",
+        "target": "f5f2ec94106347c7",
         "type": "motivated_by"
       },
       {
-        "source": "b5dc801f9ba2fcf1",
+        "source": "be52d3e10d534665",
         "target": "e2450187ade21441",
         "type": "motivated_by"
       },
       {
-        "source": "b5dc801f9ba2fcf1",
-        "target": "031f35117637cfd7",
+        "source": "be52d3e10d534665",
+        "target": "f5f2ec94106347c7",
         "type": "motivated_by"
       },
       {
-        "source": "ee00dc2afae9406b",
-        "target": "b5dc801f9ba2fcf1",
+        "source": "501f20855ee029c1",
+        "target": "be52d3e10d534665",
         "type": "completes"
       },
       {
-        "source": "1c91989c08c0ed50",
-        "target": "b5dc801f9ba2fcf1",
+        "source": "fc247227d92a10f7",
+        "target": "be52d3e10d534665",
         "type": "validates"
       },
       {
-        "source": "1c91989c08c0ed50",
-        "target": "ee00dc2afae9406b",
+        "source": "fc247227d92a10f7",
+        "target": "501f20855ee029c1",
         "type": "motivated_by"
       },
       {
-        "source": "67f5fdb471aa600f",
-        "target": "1c91989c08c0ed50",
+        "source": "51039ae2dacbebc3",
+        "target": "fc247227d92a10f7",
         "type": "completes"
       },
       {
         "source": "b79c917cdfc846b5",
-        "target": "67f5fdb471aa600f",
+        "target": "51039ae2dacbebc3",
         "type": "motivated_by"
       },
       {
-        "source": "d149692b66de4b4b",
+        "source": "3fcd365aa84f70a8",
         "target": "e2450187ade21441",
         "type": "motivated_by"
       },
       {
-        "source": "d149692b66de4b4b",
-        "target": "031f35117637cfd7",
+        "source": "3fcd365aa84f70a8",
+        "target": "f5f2ec94106347c7",
         "type": "motivated_by"
       },
       {
-        "source": "d149692b66de4b4b",
-        "target": "67f5fdb471aa600f",
+        "source": "3fcd365aa84f70a8",
+        "target": "51039ae2dacbebc3",
         "type": "corrects"
       },
       {
-        "source": "d149692b66de4b4b",
-        "target": "67f5fdb471aa600f",
+        "source": "3fcd365aa84f70a8",
+        "target": "51039ae2dacbebc3",
         "type": "motivated_by"
       },
       {
-        "source": "7bb0cb9e49bf57ce",
-        "target": "d149692b66de4b4b",
+        "source": "d79e172da62edd11",
+        "target": "3fcd365aa84f70a8",
         "type": "completes"
       },
       {
-        "source": "763dc8c817be8d49",
-        "target": "d149692b66de4b4b",
+        "source": "dda7bccaad7cce2a",
+        "target": "3fcd365aa84f70a8",
         "type": "validates"
       },
       {
-        "source": "763dc8c817be8d49",
-        "target": "7bb0cb9e49bf57ce",
+        "source": "dda7bccaad7cce2a",
+        "target": "d79e172da62edd11",
         "type": "motivated_by"
       },
       {
-        "source": "672962215503debc",
-        "target": "763dc8c817be8d49",
+        "source": "8f7cd1303a0b4752",
+        "target": "dda7bccaad7cce2a",
         "type": "completes"
       },
       {
         "source": "c502b1c166401b3c",
-        "target": "672962215503debc",
+        "target": "8f7cd1303a0b4752",
         "type": "motivated_by"
       },
       {
-        "source": "f32c8aba5faf2655",
+        "source": "8002a740aa59f968",
         "target": "e2450187ade21441",
         "type": "motivated_by"
       },
       {
-        "source": "f32c8aba5faf2655",
-        "target": "031f35117637cfd7",
+        "source": "8002a740aa59f968",
+        "target": "f5f2ec94106347c7",
         "type": "motivated_by"
       },
       {
-        "source": "f32c8aba5faf2655",
-        "target": "672962215503debc",
+        "source": "8002a740aa59f968",
+        "target": "8f7cd1303a0b4752",
         "type": "corrects"
       },
       {
-        "source": "f32c8aba5faf2655",
-        "target": "672962215503debc",
+        "source": "8002a740aa59f968",
+        "target": "8f7cd1303a0b4752",
         "type": "motivated_by"
       },
       {
-        "source": "72c60d4bd7b11dc4",
-        "target": "f32c8aba5faf2655",
+        "source": "41e6ffe6ae79601f",
+        "target": "8002a740aa59f968",
         "type": "completes"
       },
       {
-        "source": "1721cb31e33a6b9b",
-        "target": "f32c8aba5faf2655",
+        "source": "338a4a54957a464b",
+        "target": "8002a740aa59f968",
         "type": "validates"
       },
       {
-        "source": "1721cb31e33a6b9b",
-        "target": "72c60d4bd7b11dc4",
+        "source": "338a4a54957a464b",
+        "target": "41e6ffe6ae79601f",
         "type": "motivated_by"
       },
       {
-        "source": "41eddab414314d4f",
-        "target": "1721cb31e33a6b9b",
+        "source": "548f9252455633bf",
+        "target": "338a4a54957a464b",
         "type": "completes"
       },
       {
         "source": "ee6a5952b4a08820",
-        "target": "41eddab414314d4f",
+        "target": "548f9252455633bf",
         "type": "motivated_by"
       }
     ],
@@ -477,7 +477,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "f2873718c65cddef",
+        "id": "e31ca633f6f5ea96",
         "index": 2,
         "kind": "tool.requested",
         "label": "Read src/parser.py",
@@ -486,7 +486,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "031f35117637cfd7",
+        "id": "f5f2ec94106347c7",
         "index": 3,
         "kind": "tool.completed",
         "label": "result: Read src/parser.py",
@@ -504,7 +504,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "b5dc801f9ba2fcf1",
+        "id": "be52d3e10d534665",
         "index": 5,
         "kind": "tool.requested",
         "label": "Edit src/parser.py",
@@ -513,7 +513,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "ee00dc2afae9406b",
+        "id": "501f20855ee029c1",
         "index": 6,
         "kind": "tool.completed",
         "label": "result: Edit src/parser.py",
@@ -522,7 +522,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "1c91989c08c0ed50",
+        "id": "fc247227d92a10f7",
         "index": 7,
         "kind": "tool.requested",
         "label": "Bash pytest tests/test_parser.py -q",
@@ -531,7 +531,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "67f5fdb471aa600f",
+        "id": "51039ae2dacbebc3",
         "index": 8,
         "kind": "tool.completed",
         "label": "result: Bash pytest tests/test_parser.py -q (failed)",
@@ -549,7 +549,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "d149692b66de4b4b",
+        "id": "3fcd365aa84f70a8",
         "index": 10,
         "kind": "tool.requested",
         "label": "Edit src/parser.py",
@@ -558,7 +558,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "7bb0cb9e49bf57ce",
+        "id": "d79e172da62edd11",
         "index": 11,
         "kind": "tool.completed",
         "label": "result: Edit src/parser.py",
@@ -567,7 +567,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "763dc8c817be8d49",
+        "id": "dda7bccaad7cce2a",
         "index": 12,
         "kind": "tool.requested",
         "label": "Bash pytest tests/test_parser.py -q",
@@ -576,7 +576,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "672962215503debc",
+        "id": "8f7cd1303a0b4752",
         "index": 13,
         "kind": "tool.completed",
         "label": "result: Bash pytest tests/test_parser.py -q (failed)",
@@ -594,7 +594,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "f32c8aba5faf2655",
+        "id": "8002a740aa59f968",
         "index": 15,
         "kind": "tool.requested",
         "label": "Edit src/parser.py",
@@ -603,7 +603,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "72c60d4bd7b11dc4",
+        "id": "41e6ffe6ae79601f",
         "index": 16,
         "kind": "tool.completed",
         "label": "result: Edit src/parser.py",
@@ -612,7 +612,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "1721cb31e33a6b9b",
+        "id": "338a4a54957a464b",
         "index": 17,
         "kind": "tool.requested",
         "label": "Bash pytest tests/test_parser.py -q",
@@ -621,7 +621,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "41eddab414314d4f",
+        "id": "548f9252455633bf",
         "index": 18,
         "kind": "tool.completed",
         "label": "result: Bash pytest tests/test_parser.py -q (passed)",
@@ -644,7 +644,7 @@
   "exploration": [
     {
       "driver": "intent_directed",
-      "event_id": "f2873718c65cddef",
+      "event_id": "e31ca633f6f5ea96",
       "motive": "e2450187ade21441",
       "shared": [
         "parser",
@@ -660,15 +660,15 @@
       "context_tokens": 38,
       "detector": "rework_cycle",
       "evidence": [
-        "1c91989c08c0ed50",
-        "67f5fdb471aa600f",
-        "d149692b66de4b4b",
-        "7bb0cb9e49bf57ce",
-        "763dc8c817be8d49",
-        "672962215503debc"
+        "fc247227d92a10f7",
+        "51039ae2dacbebc3",
+        "3fcd365aa84f70a8",
+        "d79e172da62edd11",
+        "dda7bccaad7cce2a",
+        "8f7cd1303a0b4752"
       ],
       "explanation": "1 edit(s) to src/parser.py after `pytest tests/test_parser.py -q` failed, then the same command failed with the same failure. The attempt was rework: it did not move the check.",
-      "id": "rework_cycle:d149692b66de4b4b",
+      "id": "rework_cycle:3fcd365aa84f70a8",
       "kind": "waste",
       "seconds": 9.0,
       "share": 1.0,
@@ -678,10 +678,10 @@
       "uncertain": false,
       "waste": "rework",
       "waste_events": [
-        "d149692b66de4b4b",
-        "7bb0cb9e49bf57ce",
-        "763dc8c817be8d49",
-        "672962215503debc"
+        "3fcd365aa84f70a8",
+        "d79e172da62edd11",
+        "dda7bccaad7cce2a",
+        "8f7cd1303a0b4752"
       ]
     }
   ],
@@ -698,7 +698,7 @@
       {
         "band": "aligned",
         "basis": "text",
-        "event_id": "f2873718c65cddef",
+        "event_id": "e31ca633f6f5ea96",
         "names": [],
         "revision": 1,
         "score": 1.0
@@ -714,7 +714,7 @@
       {
         "band": "low",
         "basis": "changed_words",
-        "event_id": "b5dc801f9ba2fcf1",
+        "event_id": "be52d3e10d534665",
         "names": [],
         "revision": 1,
         "score": 0.0
@@ -722,7 +722,7 @@
       {
         "band": "aligned",
         "basis": "text",
-        "event_id": "1c91989c08c0ed50",
+        "event_id": "fc247227d92a10f7",
         "names": [],
         "revision": 1,
         "score": 0.6667
@@ -738,7 +738,7 @@
       {
         "band": "low",
         "basis": "changed_words",
-        "event_id": "d149692b66de4b4b",
+        "event_id": "3fcd365aa84f70a8",
         "names": [],
         "revision": 1,
         "score": 0.0
@@ -746,7 +746,7 @@
       {
         "band": "aligned",
         "basis": "text",
-        "event_id": "763dc8c817be8d49",
+        "event_id": "dda7bccaad7cce2a",
         "names": [],
         "revision": 1,
         "score": 0.6667
@@ -762,7 +762,7 @@
       {
         "band": "low",
         "basis": "text",
-        "event_id": "f32c8aba5faf2655",
+        "event_id": "8002a740aa59f968",
         "names": [],
         "revision": 1,
         "score": 0.0
@@ -770,7 +770,7 @@
       {
         "band": "aligned",
         "basis": "text",
-        "event_id": "1721cb31e33a6b9b",
+        "event_id": "338a4a54957a464b",
         "names": [],
         "revision": 1,
         "score": 0.6667
@@ -926,7 +926,7 @@
       "avoidable_tokens": 74,
       "context_tokens": 33,
       "findings": [
-        "rework_cycle:d149692b66de4b4b"
+        "rework_cycle:3fcd365aa84f70a8"
       ],
       "seconds": 9.0,
       "stage": "implement",
@@ -938,7 +938,7 @@
       "avoidable_tokens": 18,
       "context_tokens": 61,
       "findings": [
-        "rework_cycle:d149692b66de4b4b"
+        "rework_cycle:3fcd365aa84f70a8"
       ],
       "seconds": 18.0,
       "stage": "validate",
@@ -982,7 +982,7 @@
     },
     "peak": {
       "edits": 1,
-      "event_id": "d149692b66de4b4b",
+      "event_id": "3fcd365aa84f70a8",
       "failures": 1,
       "hypotheses": 0,
       "tasks": 0,
@@ -1010,14 +1010,14 @@
         0
       ],
       [
-        "f2873718c65cddef",
+        "e31ca633f6f5ea96",
         1,
         0,
         0,
         0
       ],
       [
-        "031f35117637cfd7",
+        "f5f2ec94106347c7",
         1,
         0,
         0,
@@ -1031,28 +1031,28 @@
         0
       ],
       [
-        "b5dc801f9ba2fcf1",
+        "be52d3e10d534665",
         0,
         0,
         1,
         0
       ],
       [
-        "ee00dc2afae9406b",
+        "501f20855ee029c1",
         0,
         0,
         1,
         0
       ],
       [
-        "1c91989c08c0ed50",
+        "fc247227d92a10f7",
         0,
         0,
         1,
         0
       ],
       [
-        "67f5fdb471aa600f",
+        "51039ae2dacbebc3",
         0,
         0,
         0,
@@ -1066,28 +1066,28 @@
         1
       ],
       [
-        "d149692b66de4b4b",
+        "3fcd365aa84f70a8",
         0,
         0,
         1,
         1
       ],
       [
-        "7bb0cb9e49bf57ce",
+        "d79e172da62edd11",
         0,
         0,
         1,
         1
       ],
       [
-        "763dc8c817be8d49",
+        "dda7bccaad7cce2a",
         0,
         0,
         1,
         1
       ],
       [
-        "672962215503debc",
+        "8f7cd1303a0b4752",
         0,
         0,
         0,
@@ -1101,28 +1101,28 @@
         1
       ],
       [
-        "f32c8aba5faf2655",
+        "8002a740aa59f968",
         0,
         0,
         1,
         1
       ],
       [
-        "72c60d4bd7b11dc4",
+        "41e6ffe6ae79601f",
         0,
         0,
         1,
         1
       ],
       [
-        "1721cb31e33a6b9b",
+        "338a4a54957a464b",
         0,
         0,
         1,
         1
       ],
       [
-        "41eddab414314d4f",
+        "548f9252455633bf",
         0,
         0,
         0,

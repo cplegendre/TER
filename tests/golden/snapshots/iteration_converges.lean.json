@@ -19,7 +19,7 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "859848add6d59788",
+      "5c03460d9d68b092",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -28,7 +28,7 @@
       "stage:explore is necessary but adds no value itself"
     ],
     [
-      "9528667881123db0",
+      "aafe2f95cff904c1",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -46,7 +46,7 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "369f28daa4834090",
+      "4706222a1a474ad5",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -55,7 +55,7 @@
       "stage:validate is necessary but adds no value itself"
     ],
     [
-      "a5c243f6052afc48",
+      "943db568c1703ced",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -73,7 +73,7 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "696b7e17e0df4dbd",
+      "321d23d8448d431f",
       "implement",
       "value_adding",
       0.0,
@@ -82,7 +82,7 @@
       "stage:implement edits change the software; productive iteration"
     ],
     [
-      "40c138342748a4ad",
+      "7941c6e8c3f9dcc9",
       "implement",
       "value_adding",
       0.0,
@@ -91,7 +91,7 @@
       "stage:implement edits change the software"
     ],
     [
-      "26e6810009a47440",
+      "dd8137f7506a06d0",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -100,7 +100,7 @@
       "stage:validate is necessary but adds no value itself; productive iteration"
     ],
     [
-      "fb1848c1455585d0",
+      "bf1cb792a841ceb3",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -118,7 +118,7 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "520a0393af0ce62e",
+      "f8cde61261bee94b",
       "implement",
       "value_adding",
       0.0,
@@ -127,7 +127,7 @@
       "stage:implement edits change the software; productive iteration"
     ],
     [
-      "3aa429cc01c64d36",
+      "0249214039b33fbc",
       "implement",
       "value_adding",
       0.0,
@@ -136,7 +136,7 @@
       "stage:implement edits change the software"
     ],
     [
-      "a0201b2048241360",
+      "248317b892030b95",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -145,7 +145,7 @@
       "stage:validate is necessary but adds no value itself; productive iteration"
     ],
     [
-      "35e20b6ed4ec5fbc",
+      "108e377894674726",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -166,27 +166,27 @@
   "cycles": [
     {
       "command": "pytest tests/test_text.py -q",
-      "failed_run": "369f28daa4834090",
-      "failure": "a5c243f6052afc48",
+      "failed_run": "4706222a1a474ad5",
+      "failure": "943db568c1703ced",
       "fixes": [
-        "696b7e17e0df4dbd"
+        "321d23d8448d431f"
       ],
       "next_outcome": "failed",
-      "next_result": "fb1848c1455585d0",
-      "next_run": "26e6810009a47440",
+      "next_result": "bf1cb792a841ceb3",
+      "next_run": "dd8137f7506a06d0",
       "reason": "the next run failed differently",
       "verdict": "iteration"
     },
     {
       "command": "pytest tests/test_text.py -q",
-      "failed_run": "26e6810009a47440",
-      "failure": "fb1848c1455585d0",
+      "failed_run": "dd8137f7506a06d0",
+      "failure": "bf1cb792a841ceb3",
       "fixes": [
-        "520a0393af0ce62e"
+        "f8cde61261bee94b"
       ],
       "next_outcome": "passed",
-      "next_result": "35e20b6ed4ec5fbc",
-      "next_run": "a0201b2048241360",
+      "next_result": "108e377894674726",
+      "next_run": "248317b892030b95",
       "reason": "the next run passed",
       "verdict": "iteration"
     }
@@ -298,123 +298,123 @@
         "type": "motivated_by"
       },
       {
-        "source": "859848add6d59788",
+        "source": "5c03460d9d68b092",
         "target": "22e15f3412d803b0",
         "type": "motivated_by"
       },
       {
-        "source": "9528667881123db0",
-        "target": "859848add6d59788",
+        "source": "aafe2f95cff904c1",
+        "target": "5c03460d9d68b092",
         "type": "completes"
       },
       {
         "source": "24e229083a25898b",
-        "target": "9528667881123db0",
+        "target": "aafe2f95cff904c1",
         "type": "motivated_by"
       },
       {
-        "source": "369f28daa4834090",
-        "target": "9528667881123db0",
+        "source": "4706222a1a474ad5",
+        "target": "aafe2f95cff904c1",
         "type": "motivated_by"
       },
       {
-        "source": "a5c243f6052afc48",
-        "target": "369f28daa4834090",
+        "source": "943db568c1703ced",
+        "target": "4706222a1a474ad5",
         "type": "completes"
       },
       {
         "source": "301ea5d00770f42b",
-        "target": "a5c243f6052afc48",
+        "target": "943db568c1703ced",
         "type": "motivated_by"
       },
       {
-        "source": "696b7e17e0df4dbd",
+        "source": "321d23d8448d431f",
         "target": "22e15f3412d803b0",
         "type": "motivated_by"
       },
       {
-        "source": "696b7e17e0df4dbd",
-        "target": "9528667881123db0",
+        "source": "321d23d8448d431f",
+        "target": "aafe2f95cff904c1",
         "type": "motivated_by"
       },
       {
-        "source": "696b7e17e0df4dbd",
-        "target": "a5c243f6052afc48",
+        "source": "321d23d8448d431f",
+        "target": "943db568c1703ced",
         "type": "corrects"
       },
       {
-        "source": "696b7e17e0df4dbd",
-        "target": "a5c243f6052afc48",
+        "source": "321d23d8448d431f",
+        "target": "943db568c1703ced",
         "type": "motivated_by"
       },
       {
-        "source": "40c138342748a4ad",
-        "target": "696b7e17e0df4dbd",
+        "source": "7941c6e8c3f9dcc9",
+        "target": "321d23d8448d431f",
         "type": "completes"
       },
       {
-        "source": "26e6810009a47440",
-        "target": "696b7e17e0df4dbd",
+        "source": "dd8137f7506a06d0",
+        "target": "321d23d8448d431f",
         "type": "validates"
       },
       {
-        "source": "26e6810009a47440",
-        "target": "40c138342748a4ad",
+        "source": "dd8137f7506a06d0",
+        "target": "7941c6e8c3f9dcc9",
         "type": "motivated_by"
       },
       {
-        "source": "fb1848c1455585d0",
-        "target": "26e6810009a47440",
+        "source": "bf1cb792a841ceb3",
+        "target": "dd8137f7506a06d0",
         "type": "completes"
       },
       {
         "source": "33fd1243654ec8e9",
-        "target": "fb1848c1455585d0",
+        "target": "bf1cb792a841ceb3",
         "type": "motivated_by"
       },
       {
-        "source": "520a0393af0ce62e",
+        "source": "f8cde61261bee94b",
         "target": "22e15f3412d803b0",
         "type": "motivated_by"
       },
       {
-        "source": "520a0393af0ce62e",
-        "target": "9528667881123db0",
+        "source": "f8cde61261bee94b",
+        "target": "aafe2f95cff904c1",
         "type": "motivated_by"
       },
       {
-        "source": "520a0393af0ce62e",
-        "target": "fb1848c1455585d0",
+        "source": "f8cde61261bee94b",
+        "target": "bf1cb792a841ceb3",
         "type": "corrects"
       },
       {
-        "source": "520a0393af0ce62e",
-        "target": "fb1848c1455585d0",
+        "source": "f8cde61261bee94b",
+        "target": "bf1cb792a841ceb3",
         "type": "motivated_by"
       },
       {
-        "source": "3aa429cc01c64d36",
-        "target": "520a0393af0ce62e",
+        "source": "0249214039b33fbc",
+        "target": "f8cde61261bee94b",
         "type": "completes"
       },
       {
-        "source": "a0201b2048241360",
-        "target": "520a0393af0ce62e",
+        "source": "248317b892030b95",
+        "target": "f8cde61261bee94b",
         "type": "validates"
       },
       {
-        "source": "a0201b2048241360",
-        "target": "3aa429cc01c64d36",
+        "source": "248317b892030b95",
+        "target": "0249214039b33fbc",
         "type": "motivated_by"
       },
       {
-        "source": "35e20b6ed4ec5fbc",
-        "target": "a0201b2048241360",
+        "source": "108e377894674726",
+        "target": "248317b892030b95",
         "type": "completes"
       },
       {
         "source": "057e3f9f09da3e5c",
-        "target": "35e20b6ed4ec5fbc",
+        "target": "108e377894674726",
         "type": "motivated_by"
       }
     ],
@@ -439,7 +439,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "859848add6d59788",
+        "id": "5c03460d9d68b092",
         "index": 2,
         "kind": "tool.requested",
         "label": "Read src/text.py",
@@ -448,7 +448,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "9528667881123db0",
+        "id": "aafe2f95cff904c1",
         "index": 3,
         "kind": "tool.completed",
         "label": "result: Read src/text.py",
@@ -466,7 +466,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "369f28daa4834090",
+        "id": "4706222a1a474ad5",
         "index": 5,
         "kind": "tool.requested",
         "label": "Bash pytest tests/test_text.py -q",
@@ -475,7 +475,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "a5c243f6052afc48",
+        "id": "943db568c1703ced",
         "index": 6,
         "kind": "tool.completed",
         "label": "result: Bash pytest tests/test_text.py -q (failed)",
@@ -493,7 +493,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "696b7e17e0df4dbd",
+        "id": "321d23d8448d431f",
         "index": 8,
         "kind": "tool.requested",
         "label": "Edit src/text.py",
@@ -502,7 +502,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "40c138342748a4ad",
+        "id": "7941c6e8c3f9dcc9",
         "index": 9,
         "kind": "tool.completed",
         "label": "result: Edit src/text.py",
@@ -511,7 +511,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "26e6810009a47440",
+        "id": "dd8137f7506a06d0",
         "index": 10,
         "kind": "tool.requested",
         "label": "Bash pytest tests/test_text.py -q",
@@ -520,7 +520,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "fb1848c1455585d0",
+        "id": "bf1cb792a841ceb3",
         "index": 11,
         "kind": "tool.completed",
         "label": "result: Bash pytest tests/test_text.py -q (failed)",
@@ -538,7 +538,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "520a0393af0ce62e",
+        "id": "f8cde61261bee94b",
         "index": 13,
         "kind": "tool.requested",
         "label": "Edit src/text.py",
@@ -547,7 +547,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "3aa429cc01c64d36",
+        "id": "0249214039b33fbc",
         "index": 14,
         "kind": "tool.completed",
         "label": "result: Edit src/text.py",
@@ -556,7 +556,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "a0201b2048241360",
+        "id": "248317b892030b95",
         "index": 15,
         "kind": "tool.requested",
         "label": "Bash pytest tests/test_text.py -q",
@@ -565,7 +565,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "35e20b6ed4ec5fbc",
+        "id": "108e377894674726",
         "index": 16,
         "kind": "tool.completed",
         "label": "result: Bash pytest tests/test_text.py -q (passed)",
@@ -588,7 +588,7 @@
   "exploration": [
     {
       "driver": "intent_directed",
-      "event_id": "859848add6d59788",
+      "event_id": "5c03460d9d68b092",
       "motive": "22e15f3412d803b0",
       "shared": [
         "src",
@@ -610,7 +610,7 @@
       {
         "band": "aligned",
         "basis": "text",
-        "event_id": "859848add6d59788",
+        "event_id": "5c03460d9d68b092",
         "names": [],
         "revision": 1,
         "score": 1.0
@@ -626,7 +626,7 @@
       {
         "band": "aligned",
         "basis": "text",
-        "event_id": "369f28daa4834090",
+        "event_id": "4706222a1a474ad5",
         "names": [],
         "revision": 1,
         "score": 0.6667
@@ -642,7 +642,7 @@
       {
         "band": "low",
         "basis": "text",
-        "event_id": "696b7e17e0df4dbd",
+        "event_id": "321d23d8448d431f",
         "names": [],
         "revision": 1,
         "score": 0.0
@@ -650,7 +650,7 @@
       {
         "band": "aligned",
         "basis": "text",
-        "event_id": "26e6810009a47440",
+        "event_id": "dd8137f7506a06d0",
         "names": [],
         "revision": 1,
         "score": 0.6667
@@ -666,7 +666,7 @@
       {
         "band": "aligned",
         "basis": "changed_words",
-        "event_id": "520a0393af0ce62e",
+        "event_id": "f8cde61261bee94b",
         "names": [],
         "revision": 1,
         "score": 1.0
@@ -674,7 +674,7 @@
       {
         "band": "aligned",
         "basis": "text",
-        "event_id": "a0201b2048241360",
+        "event_id": "248317b892030b95",
         "names": [],
         "revision": 1,
         "score": 0.6667
@@ -883,7 +883,7 @@
     },
     "peak": {
       "edits": 0,
-      "event_id": "a5c243f6052afc48",
+      "event_id": "943db568c1703ced",
       "failures": 1,
       "hypotheses": 1,
       "tasks": 0,
@@ -911,14 +911,14 @@
         0
       ],
       [
-        "859848add6d59788",
+        "5c03460d9d68b092",
         1,
         0,
         0,
         0
       ],
       [
-        "9528667881123db0",
+        "aafe2f95cff904c1",
         1,
         0,
         0,
@@ -932,14 +932,14 @@
         0
       ],
       [
-        "369f28daa4834090",
+        "4706222a1a474ad5",
         1,
         0,
         0,
         0
       ],
       [
-        "a5c243f6052afc48",
+        "943db568c1703ced",
         1,
         0,
         0,
@@ -953,28 +953,28 @@
         1
       ],
       [
-        "696b7e17e0df4dbd",
+        "321d23d8448d431f",
         0,
         0,
         1,
         1
       ],
       [
-        "40c138342748a4ad",
+        "7941c6e8c3f9dcc9",
         0,
         0,
         1,
         1
       ],
       [
-        "26e6810009a47440",
+        "dd8137f7506a06d0",
         0,
         0,
         1,
         1
       ],
       [
-        "fb1848c1455585d0",
+        "bf1cb792a841ceb3",
         0,
         0,
         0,
@@ -988,28 +988,28 @@
         1
       ],
       [
-        "520a0393af0ce62e",
+        "f8cde61261bee94b",
         0,
         0,
         1,
         1
       ],
       [
-        "3aa429cc01c64d36",
+        "0249214039b33fbc",
         0,
         0,
         1,
         1
       ],
       [
-        "a0201b2048241360",
+        "248317b892030b95",
         0,
         0,
         1,
         1
       ],
       [
-        "35e20b6ed4ec5fbc",
+        "108e377894674726",
         0,
         0,
         0,

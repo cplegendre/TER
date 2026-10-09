@@ -56,7 +56,7 @@
           {
             "key": "wip_peak",
             "label": "Peak WIP",
-            "note": "after event a7ca94f36f4da52d",
+            "note": "after event 1b87a23bd9056e34",
             "unit": "items",
             "value": 1
           },
@@ -339,7 +339,7 @@
       },
       "peak": {
         "edits": 0,
-        "event_id": "a7ca94f36f4da52d",
+        "event_id": "1b87a23bd9056e34",
         "failures": 0,
         "hypotheses": 1,
         "tasks": 0,
@@ -374,14 +374,14 @@
           0
         ],
         [
-          "a7ca94f36f4da52d",
+          "1b87a23bd9056e34",
           1,
           0,
           0,
           0
         ],
         [
-          "811ba328293575c9",
+          "2b5db1c78a6dc335",
           1,
           0,
           0,
@@ -395,14 +395,14 @@
           0
         ],
         [
-          "53fa055cfc1d65bf",
+          "524b6ec125634e52",
           1,
           0,
           0,
           0
         ],
         [
-          "c418879109656e20",
+          "c30726a9604bad2f",
           1,
           0,
           0,
@@ -416,28 +416,28 @@
           0
         ],
         [
-          "eca762078b6545c5",
+          "b9bd71937ecef64d",
           0,
           0,
           1,
           0
         ],
         [
-          "8892e9f624a892b5",
+          "b7d3f9e59a1f3f1c",
           0,
           0,
           1,
           0
         ],
         [
-          "48f5065363d25a9f",
+          "33ced9a1d0ffbcf2",
           0,
           0,
           1,
           0
         ],
         [
-          "2471b8726436c8ff",
+          "1f4e74fd6dc1a3db",
           0,
           0,
           0,
@@ -476,7 +476,7 @@
         {
           "band": "low",
           "basis": "text",
-          "event_id": "a7ca94f36f4da52d",
+          "event_id": "1b87a23bd9056e34",
           "names": [],
           "revision": 1,
           "score": 0.0
@@ -492,7 +492,7 @@
         {
           "band": "low",
           "basis": "text",
-          "event_id": "53fa055cfc1d65bf",
+          "event_id": "524b6ec125634e52",
           "names": [],
           "revision": 1,
           "score": 0.0
@@ -508,7 +508,7 @@
         {
           "band": "partial",
           "basis": "names",
-          "event_id": "eca762078b6545c5",
+          "event_id": "b9bd71937ecef64d",
           "names": [
             "health_check",
             "login",
@@ -520,7 +520,7 @@
         {
           "band": "low",
           "basis": "text",
-          "event_id": "48f5065363d25a9f",
+          "event_id": "33ced9a1d0ffbcf2",
           "names": [],
           "revision": 1,
           "score": 0.1818
@@ -547,9 +547,9 @@
           "events": [
             "3063f61df0524c05",
             "ee0118c14f82fa55",
-            "a7ca94f36f4da52d",
+            "1b87a23bd9056e34",
             "15fe5e5a30ddea26",
-            "53fa055cfc1d65bf",
+            "524b6ec125634e52",
             "11462446bcebf612"
           ],
           "mean_score": 0.0889,
@@ -597,9 +597,9 @@
       {
         "carried_turns": 3,
         "changed": false,
-        "event_id": "c418879109656e20",
+        "event_id": "c30726a9604bad2f",
         "path": "src/app.py",
-        "request_id": "53fa055cfc1d65bf",
+        "request_id": "524b6ec125634e52",
         "tokens": 28
       }
     ],
@@ -634,7 +634,7 @@
         }
       ],
       "addresses": [
-        "repeated_exploration:53fa055cfc1d65bf"
+        "repeated_exploration:524b6ec125634e52"
       ],
       "detector": "repeated_exploration",
       "rationale": "1 finding(s), 27 generated tokens: Re-read src/app.py.",
@@ -658,7 +658,7 @@
         }
       ],
       "addresses": [
-        "regeneration:eca762078b6545c5"
+        "regeneration:b9bd71937ecef64d"
       ],
       "detector": "regeneration",
       "rationale": "1 finding(s), 76 generated tokens: Rewrote src/app.py in full. All below the confidence threshold: verify before acting.",
@@ -683,7 +683,7 @@
         "avoidable_tokens": 27,
         "context_tokens": 56,
         "findings": [
-          "repeated_exploration:53fa055cfc1d65bf"
+          "repeated_exploration:524b6ec125634e52"
         ],
         "seconds": 4.0,
         "stage": "explore",
@@ -705,7 +705,7 @@
         "avoidable_tokens": 0,
         "context_tokens": 9,
         "findings": [
-          "regeneration:eca762078b6545c5"
+          "regeneration:b9bd71937ecef64d"
         ],
         "seconds": 1.0,
         "stage": "implement",
@@ -840,11 +840,11 @@
       "context_tokens": 0,
       "detector": "regeneration",
       "evidence": [
-        "c418879109656e20",
-        "eca762078b6545c5"
+        "c30726a9604bad2f",
+        "b9bd71937ecef64d"
       ],
       "explanation": "The agent rewrote src/app.py, a file it had just read, keeping 100% of its lines; 40% of the new file repeats existing content. An in-place edit would have produced only the change.",
-      "id": "regeneration:eca762078b6545c5",
+      "id": "regeneration:b9bd71937ecef64d",
       "kind": "waste",
       "seconds": 0.4,
       "share": 0.4,
@@ -854,7 +854,7 @@
       "uncertain": true,
       "waste": "overproduction",
       "waste_events": [
-        "eca762078b6545c5"
+        "b9bd71937ecef64d"
       ]
     },
     {
@@ -863,13 +863,13 @@
       "context_tokens": 28,
       "detector": "repeated_exploration",
       "evidence": [
-        "a7ca94f36f4da52d",
-        "811ba328293575c9",
-        "53fa055cfc1d65bf",
-        "c418879109656e20"
+        "1b87a23bd9056e34",
+        "2b5db1c78a6dc335",
+        "524b6ec125634e52",
+        "c30726a9604bad2f"
       ],
       "explanation": "Re-read src/app.py 3 events after the first time. The output was identical and the agent had not changed it. Its 28 tokens of output re-entered the context.",
-      "id": "repeated_exploration:53fa055cfc1d65bf",
+      "id": "repeated_exploration:524b6ec125634e52",
       "kind": "waste",
       "seconds": 1.0,
       "share": 1.0,
@@ -879,8 +879,8 @@
       "uncertain": false,
       "waste": "motion",
       "waste_events": [
-        "53fa055cfc1d65bf",
-        "c418879109656e20"
+        "524b6ec125634e52",
+        "c30726a9604bad2f"
       ]
     }
   ],
@@ -1080,13 +1080,13 @@
       "context_tokens": 28,
       "detector": "repeated_exploration",
       "evidence": [
-        "a7ca94f36f4da52d",
-        "811ba328293575c9",
-        "53fa055cfc1d65bf",
-        "c418879109656e20"
+        "1b87a23bd9056e34",
+        "2b5db1c78a6dc335",
+        "524b6ec125634e52",
+        "c30726a9604bad2f"
       ],
       "explanation": "Re-read src/app.py 3 events after the first time. The output was identical and the agent had not changed it. Its 28 tokens of output re-entered the context.",
-      "id": "repeated_exploration:53fa055cfc1d65bf",
+      "id": "repeated_exploration:524b6ec125634e52",
       "kind": "waste",
       "seconds": 1.0,
       "share": 1.0,
@@ -1096,8 +1096,8 @@
       "uncertain": false,
       "waste": "motion",
       "waste_events": [
-        "53fa055cfc1d65bf",
-        "c418879109656e20"
+        "524b6ec125634e52",
+        "c30726a9604bad2f"
       ]
     },
     {
@@ -1106,11 +1106,11 @@
       "context_tokens": 0,
       "detector": "regeneration",
       "evidence": [
-        "c418879109656e20",
-        "eca762078b6545c5"
+        "c30726a9604bad2f",
+        "b9bd71937ecef64d"
       ],
       "explanation": "The agent rewrote src/app.py, a file it had just read, keeping 100% of its lines; 40% of the new file repeats existing content. An in-place edit would have produced only the change.",
-      "id": "regeneration:eca762078b6545c5",
+      "id": "regeneration:b9bd71937ecef64d",
       "kind": "waste",
       "seconds": 0.4,
       "share": 0.4,
@@ -1120,7 +1120,7 @@
       "uncertain": true,
       "waste": "overproduction",
       "waste_events": [
-        "eca762078b6545c5"
+        "b9bd71937ecef64d"
       ]
     }
   ],

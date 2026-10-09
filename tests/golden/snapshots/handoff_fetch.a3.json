@@ -56,7 +56,7 @@
           {
             "key": "wip_peak",
             "label": "Peak WIP",
-            "note": "after event 0c09dd0c065ec07b",
+            "note": "after event b329caeafc26fa02",
             "unit": "items",
             "value": 3
           },
@@ -333,19 +333,19 @@
       ],
       "open_at_end": {
         "edits": [
-          "4f983f4cbf7260c1"
+          "330c37857326061d"
         ],
         "failures": [],
         "hypotheses": [
-          "3b63c8d624bcf410"
+          "e240461726e1d3cd"
         ],
         "tasks": [
-          "0c09dd0c065ec07b"
+          "b329caeafc26fa02"
         ]
       },
       "peak": {
         "edits": 0,
-        "event_id": "0c09dd0c065ec07b",
+        "event_id": "b329caeafc26fa02",
         "failures": 0,
         "hypotheses": 2,
         "tasks": 1,
@@ -373,70 +373,70 @@
           0
         ],
         [
-          "f1146cba7555b4e6",
+          "6540e8d5b7cc8006",
           1,
           0,
           0,
           0
         ],
         [
-          "61179269c4df5b69",
+          "dea9a705c7d3cec0",
           1,
           0,
           0,
           0
         ],
         [
-          "21222454fe82bdbe",
+          "f0c1b3c8cc1fe9e8",
           1,
           1,
           0,
           0
         ],
         [
-          "8c5e4ee9638011b7",
+          "a586b42e4b8dcab6",
           1,
           0,
           0,
           0
         ],
         [
-          "3b63c8d624bcf410",
+          "e240461726e1d3cd",
           2,
           0,
           0,
           0
         ],
         [
-          "85abe9461af226a2",
+          "666b4eb5df4422bc",
           2,
           0,
           0,
           0
         ],
         [
-          "0c09dd0c065ec07b",
+          "b329caeafc26fa02",
           2,
           1,
           0,
           0
         ],
         [
-          "be91bfcb97b1fce4",
+          "204fbd5db718e90a",
           2,
           1,
           0,
           0
         ],
         [
-          "4f983f4cbf7260c1",
+          "330c37857326061d",
           1,
           1,
           1,
           0
         ],
         [
-          "1797e204a67133ae",
+          "9df006d0c749f743",
           1,
           1,
           1,
@@ -467,7 +467,7 @@
         {
           "band": "aligned",
           "basis": "text",
-          "event_id": "f1146cba7555b4e6",
+          "event_id": "6540e8d5b7cc8006",
           "names": [],
           "revision": 1,
           "score": 1.0
@@ -475,7 +475,7 @@
         {
           "band": "aligned",
           "basis": "text",
-          "event_id": "21222454fe82bdbe",
+          "event_id": "f0c1b3c8cc1fe9e8",
           "names": [],
           "revision": 1,
           "score": 0.6
@@ -483,7 +483,7 @@
         {
           "band": "aligned",
           "basis": "text",
-          "event_id": "3b63c8d624bcf410",
+          "event_id": "e240461726e1d3cd",
           "names": [],
           "revision": 1,
           "score": 0.5
@@ -491,7 +491,7 @@
         {
           "band": "unknown",
           "basis": "text",
-          "event_id": "0c09dd0c065ec07b",
+          "event_id": "b329caeafc26fa02",
           "names": [],
           "revision": 1,
           "score": null
@@ -499,7 +499,7 @@
         {
           "band": "aligned",
           "basis": "text",
-          "event_id": "4f983f4cbf7260c1",
+          "event_id": "330c37857326061d",
           "names": [],
           "revision": 1,
           "score": 1.0
@@ -578,7 +578,7 @@
         }
       ],
       "addresses": [
-        "unnecessary_handoff:21222454fe82bdbe"
+        "unnecessary_handoff:f0c1b3c8cc1fe9e8"
       ],
       "detector": "unnecessary_handoff",
       "rationale": "1 finding(s), 30 generated tokens: Delegated Research requests changelog, then did it directly.",
@@ -602,7 +602,7 @@
         }
       ],
       "addresses": [
-        "unvalidated_implementation:4f983f4cbf7260c1"
+        "unvalidated_implementation:330c37857326061d"
       ],
       "detector": "unvalidated_implementation",
       "rationale": "1 finding(s), 0 generated tokens: 1 edit(s) reported without validation.",
@@ -627,7 +627,7 @@
         "avoidable_tokens": 30,
         "context_tokens": 62,
         "findings": [
-          "unnecessary_handoff:21222454fe82bdbe"
+          "unnecessary_handoff:f0c1b3c8cc1fe9e8"
         ],
         "seconds": 15.0,
         "stage": "explore",
@@ -649,7 +649,7 @@
         "avoidable_tokens": 0,
         "context_tokens": 9,
         "findings": [
-          "unvalidated_implementation:4f983f4cbf7260c1"
+          "unvalidated_implementation:330c37857326061d"
         ],
         "seconds": 6.0,
         "stage": "implement",
@@ -671,7 +671,7 @@
         "avoidable_tokens": 0,
         "context_tokens": 0,
         "findings": [
-          "unvalidated_implementation:4f983f4cbf7260c1"
+          "unvalidated_implementation:330c37857326061d"
         ],
         "seconds": 3.0,
         "stage": "respond",
@@ -786,13 +786,13 @@
       "context_tokens": 24,
       "detector": "unnecessary_handoff",
       "evidence": [
-        "21222454fe82bdbe",
-        "8c5e4ee9638011b7",
-        "3b63c8d624bcf410",
-        "85abe9461af226a2"
+        "f0c1b3c8cc1fe9e8",
+        "a586b42e4b8dcab6",
+        "e240461726e1d3cd",
+        "666b4eb5df4422bc"
       ],
       "explanation": "The agent handed 'Research requests changelog' to a subagent, then ran WebFetch on the same subject (https://example.invalid/requests/changelog), sharing 4 key words. The handoff added a round trip the agent did not rely on.",
-      "id": "unnecessary_handoff:21222454fe82bdbe",
+      "id": "unnecessary_handoff:f0c1b3c8cc1fe9e8",
       "kind": "waste",
       "seconds": 6.0,
       "share": 1.0,
@@ -802,8 +802,8 @@
       "uncertain": false,
       "waste": "handoffs",
       "waste_events": [
-        "21222454fe82bdbe",
-        "8c5e4ee9638011b7"
+        "f0c1b3c8cc1fe9e8",
+        "a586b42e4b8dcab6"
       ]
     },
     {
@@ -812,12 +812,12 @@
       "context_tokens": 0,
       "detector": "unvalidated_implementation",
       "evidence": [
-        "4f983f4cbf7260c1",
-        "1797e204a67133ae",
+        "330c37857326061d",
+        "9df006d0c749f743",
         "71f7f1f147f2ae8d"
       ],
       "explanation": "The agent edited pyproject.toml and then responded without running tests, a type check or the code. No check ran anywhere in the session.",
-      "id": "unvalidated_implementation:4f983f4cbf7260c1",
+      "id": "unvalidated_implementation:330c37857326061d",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
@@ -1025,13 +1025,13 @@
       "context_tokens": 24,
       "detector": "unnecessary_handoff",
       "evidence": [
-        "21222454fe82bdbe",
-        "8c5e4ee9638011b7",
-        "3b63c8d624bcf410",
-        "85abe9461af226a2"
+        "f0c1b3c8cc1fe9e8",
+        "a586b42e4b8dcab6",
+        "e240461726e1d3cd",
+        "666b4eb5df4422bc"
       ],
       "explanation": "The agent handed 'Research requests changelog' to a subagent, then ran WebFetch on the same subject (https://example.invalid/requests/changelog), sharing 4 key words. The handoff added a round trip the agent did not rely on.",
-      "id": "unnecessary_handoff:21222454fe82bdbe",
+      "id": "unnecessary_handoff:f0c1b3c8cc1fe9e8",
       "kind": "waste",
       "seconds": 6.0,
       "share": 1.0,
@@ -1041,8 +1041,8 @@
       "uncertain": false,
       "waste": "handoffs",
       "waste_events": [
-        "21222454fe82bdbe",
-        "8c5e4ee9638011b7"
+        "f0c1b3c8cc1fe9e8",
+        "a586b42e4b8dcab6"
       ]
     },
     {
@@ -1051,12 +1051,12 @@
       "context_tokens": 0,
       "detector": "unvalidated_implementation",
       "evidence": [
-        "4f983f4cbf7260c1",
-        "1797e204a67133ae",
+        "330c37857326061d",
+        "9df006d0c749f743",
         "71f7f1f147f2ae8d"
       ],
       "explanation": "The agent edited pyproject.toml and then responded without running tests, a type check or the code. No check ran anywhere in the session.",
-      "id": "unvalidated_implementation:4f983f4cbf7260c1",
+      "id": "unvalidated_implementation:330c37857326061d",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,

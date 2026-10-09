@@ -19,7 +19,7 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "b7220effbe9d33b8",
+      "fd0b6f42921a37f2",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -28,7 +28,7 @@
       "stage:explore is necessary but adds no value itself"
     ],
     [
-      "84876697215eb36b",
+      "b0553cce2053e258",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -37,7 +37,7 @@
       "stage:explore is necessary but adds no value itself"
     ],
     [
-      "69551b0f692010d4",
+      "d00b931283ea1956",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -46,7 +46,7 @@
       "stage:explore is necessary but adds no value itself"
     ],
     [
-      "a01c619d1c5c27e1",
+      "471c4b318b586d6c",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -55,40 +55,40 @@
       "stage:explore is necessary but adds no value itself"
     ],
     [
-      "98e08d2104e03291",
+      "04f87d31174f38ff",
       "explore",
       "necessary_non_value_adding",
       0.0,
       1.0,
       "progressing",
-      "stage:explore is necessary but adds no value itself; uncertain unused_context:98e08d2104e03291"
+      "stage:explore is necessary but adds no value itself; uncertain unused_context:04f87d31174f38ff"
     ],
     [
-      "a2a3ce288e90f730",
+      "a03907943c97b102",
       "explore",
       "necessary_non_value_adding",
       0.0,
       1.0,
       "progressing",
-      "stage:explore is necessary but adds no value itself; uncertain unused_context:98e08d2104e03291"
+      "stage:explore is necessary but adds no value itself; uncertain unused_context:04f87d31174f38ff"
     ],
     [
-      "a33373b4cca658c1",
+      "d9eb8e056a8c4e06",
       "explore",
       "necessary_non_value_adding",
       0.0,
       1.0,
       "progressing",
-      "stage:explore is necessary but adds no value itself; uncertain unused_context:a33373b4cca658c1"
+      "stage:explore is necessary but adds no value itself; uncertain unused_context:d9eb8e056a8c4e06"
     ],
     [
-      "c878858709305d4e",
+      "9252bf151ad82534",
       "explore",
       "necessary_non_value_adding",
       0.0,
       1.0,
       "progressing",
-      "stage:explore is necessary but adds no value itself; uncertain unused_context:a33373b4cca658c1"
+      "stage:explore is necessary but adds no value itself; uncertain unused_context:d9eb8e056a8c4e06"
     ],
     [
       "546f400bea474093",
@@ -100,40 +100,40 @@
       "repeated_reasoning:546f400bea474093"
     ],
     [
-      "1177e4320222fe66",
+      "10d6ca5500d89e17",
       "explore",
       "avoidable",
       1.0,
       0.0,
       "repeating",
-      "repeated_exploration:1177e4320222fe66"
+      "repeated_exploration:10d6ca5500d89e17"
     ],
     [
-      "aabd7f3b0c0ca016",
+      "3840d1b2ec18099a",
       "explore",
       "avoidable",
       1.0,
       0.0,
       "repeating",
-      "repeated_exploration:1177e4320222fe66"
+      "repeated_exploration:10d6ca5500d89e17"
     ],
     [
-      "8b7fad85cf80c1b4",
+      "db5d89ed876d571f",
       "explore",
       "avoidable",
       1.0,
       0.0,
       "repeating",
-      "repeated_exploration:8b7fad85cf80c1b4"
+      "repeated_exploration:db5d89ed876d571f"
     ],
     [
-      "551fb453dac2dc0c",
+      "00e63e3f599e0da3",
       "explore",
       "avoidable",
       1.0,
       0.0,
       "repeating",
-      "repeated_exploration:8b7fad85cf80c1b4"
+      "repeated_exploration:db5d89ed876d571f"
     ],
     [
       "978c4f7ab23a85c2",
@@ -145,7 +145,7 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "0f8094ebbe312229",
+      "45c733fb69783266",
       "implement",
       "value_adding",
       0.0,
@@ -154,7 +154,7 @@
       "stage:implement edits change the software"
     ],
     [
-      "6780ba10f97237d3",
+      "3a7c60b00602066d",
       "implement",
       "value_adding",
       0.0,
@@ -163,7 +163,7 @@
       "stage:implement edits change the software"
     ],
     [
-      "ad332e5d05b44868",
+      "bdeeea540baee64f",
       "implement",
       "value_adding",
       0.0,
@@ -172,7 +172,7 @@
       "stage:implement edits change the software"
     ],
     [
-      "a7dfb58e41535f1b",
+      "b68f57ee311cf3b3",
       "implement",
       "value_adding",
       0.0,
@@ -181,7 +181,7 @@
       "stage:implement edits change the software"
     ],
     [
-      "77910e19bcf7fd61",
+      "2756ece703f76f95",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -190,7 +190,7 @@
       "stage:validate is necessary but adds no value itself"
     ],
     [
-      "ba596fba8145538b",
+      "f1b675fedeaa8bc7",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -316,43 +316,43 @@
         "type": "motivated_by"
       },
       {
-        "source": "b7220effbe9d33b8",
+        "source": "fd0b6f42921a37f2",
         "target": "3bd62fa0b8f7bf38",
         "type": "motivated_by"
       },
       {
-        "source": "84876697215eb36b",
-        "target": "b7220effbe9d33b8",
+        "source": "b0553cce2053e258",
+        "target": "fd0b6f42921a37f2",
         "type": "completes"
       },
       {
-        "source": "69551b0f692010d4",
-        "target": "84876697215eb36b",
+        "source": "d00b931283ea1956",
+        "target": "b0553cce2053e258",
         "type": "motivated_by"
       },
       {
-        "source": "a01c619d1c5c27e1",
-        "target": "69551b0f692010d4",
+        "source": "471c4b318b586d6c",
+        "target": "d00b931283ea1956",
         "type": "completes"
       },
       {
-        "source": "98e08d2104e03291",
-        "target": "a01c619d1c5c27e1",
+        "source": "04f87d31174f38ff",
+        "target": "471c4b318b586d6c",
         "type": "motivated_by"
       },
       {
-        "source": "a2a3ce288e90f730",
-        "target": "98e08d2104e03291",
+        "source": "a03907943c97b102",
+        "target": "04f87d31174f38ff",
         "type": "completes"
       },
       {
-        "source": "a33373b4cca658c1",
-        "target": "a2a3ce288e90f730",
+        "source": "d9eb8e056a8c4e06",
+        "target": "a03907943c97b102",
         "type": "motivated_by"
       },
       {
-        "source": "c878858709305d4e",
-        "target": "a33373b4cca658c1",
+        "source": "9252bf151ad82534",
+        "target": "d9eb8e056a8c4e06",
         "type": "completes"
       },
       {
@@ -362,102 +362,102 @@
       },
       {
         "source": "546f400bea474093",
-        "target": "c878858709305d4e",
+        "target": "9252bf151ad82534",
         "type": "motivated_by"
       },
       {
-        "source": "1177e4320222fe66",
-        "target": "b7220effbe9d33b8",
+        "source": "10d6ca5500d89e17",
+        "target": "fd0b6f42921a37f2",
         "type": "repeats"
       },
       {
-        "source": "1177e4320222fe66",
-        "target": "c878858709305d4e",
+        "source": "10d6ca5500d89e17",
+        "target": "9252bf151ad82534",
         "type": "motivated_by"
       },
       {
-        "source": "aabd7f3b0c0ca016",
-        "target": "1177e4320222fe66",
+        "source": "3840d1b2ec18099a",
+        "target": "10d6ca5500d89e17",
         "type": "completes"
       },
       {
-        "source": "8b7fad85cf80c1b4",
-        "target": "69551b0f692010d4",
+        "source": "db5d89ed876d571f",
+        "target": "d00b931283ea1956",
         "type": "repeats"
       },
       {
-        "source": "8b7fad85cf80c1b4",
-        "target": "aabd7f3b0c0ca016",
+        "source": "db5d89ed876d571f",
+        "target": "3840d1b2ec18099a",
         "type": "motivated_by"
       },
       {
-        "source": "551fb453dac2dc0c",
-        "target": "8b7fad85cf80c1b4",
+        "source": "00e63e3f599e0da3",
+        "target": "db5d89ed876d571f",
         "type": "completes"
       },
       {
         "source": "978c4f7ab23a85c2",
-        "target": "551fb453dac2dc0c",
+        "target": "00e63e3f599e0da3",
         "type": "motivated_by"
       },
       {
-        "source": "0f8094ebbe312229",
+        "source": "45c733fb69783266",
         "target": "3bd62fa0b8f7bf38",
         "type": "motivated_by"
       },
       {
-        "source": "0f8094ebbe312229",
-        "target": "551fb453dac2dc0c",
+        "source": "45c733fb69783266",
+        "target": "00e63e3f599e0da3",
         "type": "motivated_by"
       },
       {
-        "source": "6780ba10f97237d3",
-        "target": "0f8094ebbe312229",
+        "source": "3a7c60b00602066d",
+        "target": "45c733fb69783266",
         "type": "completes"
       },
       {
-        "source": "ad332e5d05b44868",
+        "source": "bdeeea540baee64f",
         "target": "3bd62fa0b8f7bf38",
         "type": "motivated_by"
       },
       {
-        "source": "ad332e5d05b44868",
-        "target": "551fb453dac2dc0c",
+        "source": "bdeeea540baee64f",
+        "target": "00e63e3f599e0da3",
         "type": "motivated_by"
       },
       {
-        "source": "ad332e5d05b44868",
-        "target": "6780ba10f97237d3",
+        "source": "bdeeea540baee64f",
+        "target": "3a7c60b00602066d",
         "type": "motivated_by"
       },
       {
-        "source": "a7dfb58e41535f1b",
-        "target": "ad332e5d05b44868",
+        "source": "b68f57ee311cf3b3",
+        "target": "bdeeea540baee64f",
         "type": "completes"
       },
       {
-        "source": "77910e19bcf7fd61",
-        "target": "0f8094ebbe312229",
+        "source": "2756ece703f76f95",
+        "target": "45c733fb69783266",
         "type": "validates"
       },
       {
-        "source": "77910e19bcf7fd61",
-        "target": "ad332e5d05b44868",
+        "source": "2756ece703f76f95",
+        "target": "bdeeea540baee64f",
         "type": "validates"
       },
       {
-        "source": "77910e19bcf7fd61",
-        "target": "a7dfb58e41535f1b",
+        "source": "2756ece703f76f95",
+        "target": "b68f57ee311cf3b3",
         "type": "motivated_by"
       },
       {
-        "source": "ba596fba8145538b",
-        "target": "77910e19bcf7fd61",
+        "source": "f1b675fedeaa8bc7",
+        "target": "2756ece703f76f95",
         "type": "completes"
       },
       {
         "source": "1fe73e0664d87005",
-        "target": "ba596fba8145538b",
+        "target": "f1b675fedeaa8bc7",
         "type": "motivated_by"
       }
     ],
@@ -482,7 +482,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "b7220effbe9d33b8",
+        "id": "fd0b6f42921a37f2",
         "index": 2,
         "kind": "tool.requested",
         "label": "Grep argparse",
@@ -491,7 +491,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "84876697215eb36b",
+        "id": "b0553cce2053e258",
         "index": 3,
         "kind": "tool.completed",
         "label": "result: Grep argparse",
@@ -500,7 +500,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "69551b0f692010d4",
+        "id": "d00b931283ea1956",
         "index": 4,
         "kind": "tool.requested",
         "label": "Read src/cli.py",
@@ -509,7 +509,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "a01c619d1c5c27e1",
+        "id": "471c4b318b586d6c",
         "index": 5,
         "kind": "tool.completed",
         "label": "result: Read src/cli.py",
@@ -518,7 +518,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "98e08d2104e03291",
+        "id": "04f87d31174f38ff",
         "index": 6,
         "kind": "tool.requested",
         "label": "Read src/utils.py",
@@ -527,7 +527,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "a2a3ce288e90f730",
+        "id": "a03907943c97b102",
         "index": 7,
         "kind": "tool.completed",
         "label": "result: Read src/utils.py",
@@ -536,7 +536,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "a33373b4cca658c1",
+        "id": "d9eb8e056a8c4e06",
         "index": 8,
         "kind": "tool.requested",
         "label": "Read src/config.py",
@@ -545,7 +545,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "c878858709305d4e",
+        "id": "9252bf151ad82534",
         "index": 9,
         "kind": "tool.completed",
         "label": "result: Read src/config.py",
@@ -563,7 +563,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "1177e4320222fe66",
+        "id": "10d6ca5500d89e17",
         "index": 11,
         "kind": "tool.requested",
         "label": "Grep argparse",
@@ -572,7 +572,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "aabd7f3b0c0ca016",
+        "id": "3840d1b2ec18099a",
         "index": 12,
         "kind": "tool.completed",
         "label": "result: Grep argparse",
@@ -581,7 +581,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "8b7fad85cf80c1b4",
+        "id": "db5d89ed876d571f",
         "index": 13,
         "kind": "tool.requested",
         "label": "Read src/cli.py",
@@ -590,7 +590,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "551fb453dac2dc0c",
+        "id": "00e63e3f599e0da3",
         "index": 14,
         "kind": "tool.completed",
         "label": "result: Read src/cli.py",
@@ -608,7 +608,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "0f8094ebbe312229",
+        "id": "45c733fb69783266",
         "index": 16,
         "kind": "tool.requested",
         "label": "Edit src/cli.py",
@@ -617,7 +617,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "6780ba10f97237d3",
+        "id": "3a7c60b00602066d",
         "index": 17,
         "kind": "tool.completed",
         "label": "result: Edit src/cli.py",
@@ -626,7 +626,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "ad332e5d05b44868",
+        "id": "bdeeea540baee64f",
         "index": 18,
         "kind": "tool.requested",
         "label": "Edit src/cli.py",
@@ -635,7 +635,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "a7dfb58e41535f1b",
+        "id": "b68f57ee311cf3b3",
         "index": 19,
         "kind": "tool.completed",
         "label": "result: Edit src/cli.py",
@@ -644,7 +644,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "77910e19bcf7fd61",
+        "id": "2756ece703f76f95",
         "index": 20,
         "kind": "tool.requested",
         "label": "Bash python -m src.cli --verbose a.txt b.txt",
@@ -653,7 +653,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "ba596fba8145538b",
+        "id": "f1b675fedeaa8bc7",
         "index": 21,
         "kind": "tool.completed",
         "label": "result: Bash python -m src.cli --verbose a.txt b.txt",
@@ -676,7 +676,7 @@
   "exploration": [
     {
       "driver": "intent_directed",
-      "event_id": "b7220effbe9d33b8",
+      "event_id": "fd0b6f42921a37f2",
       "motive": "3bd62fa0b8f7bf38",
       "shared": [
         "src"
@@ -684,7 +684,7 @@
     },
     {
       "driver": "intent_directed",
-      "event_id": "69551b0f692010d4",
+      "event_id": "d00b931283ea1956",
       "motive": "3bd62fa0b8f7bf38",
       "shared": [
         "cli",
@@ -694,7 +694,7 @@
     },
     {
       "driver": "intent_directed",
-      "event_id": "98e08d2104e03291",
+      "event_id": "04f87d31174f38ff",
       "motive": "3bd62fa0b8f7bf38",
       "shared": [
         "src"
@@ -702,7 +702,7 @@
     },
     {
       "driver": "intent_directed",
-      "event_id": "a33373b4cca658c1",
+      "event_id": "d9eb8e056a8c4e06",
       "motive": "3bd62fa0b8f7bf38",
       "shared": [
         "src"
@@ -710,7 +710,7 @@
     },
     {
       "driver": "intent_directed",
-      "event_id": "1177e4320222fe66",
+      "event_id": "10d6ca5500d89e17",
       "motive": "3bd62fa0b8f7bf38",
       "shared": [
         "src"
@@ -718,7 +718,7 @@
     },
     {
       "driver": "intent_directed",
-      "event_id": "8b7fad85cf80c1b4",
+      "event_id": "db5d89ed876d571f",
       "motive": "3bd62fa0b8f7bf38",
       "shared": [
         "cli",
@@ -734,13 +734,13 @@
       "context_tokens": 54,
       "detector": "repeated_exploration",
       "evidence": [
-        "69551b0f692010d4",
-        "a01c619d1c5c27e1",
-        "8b7fad85cf80c1b4",
-        "551fb453dac2dc0c"
+        "d00b931283ea1956",
+        "471c4b318b586d6c",
+        "db5d89ed876d571f",
+        "00e63e3f599e0da3"
       ],
       "explanation": "Re-read src/cli.py 9 events after the first time. The output was identical and the agent had not changed it. Its 54 tokens of output re-entered the context.",
-      "id": "repeated_exploration:8b7fad85cf80c1b4",
+      "id": "repeated_exploration:db5d89ed876d571f",
       "kind": "waste",
       "seconds": 6.0,
       "share": 1.0,
@@ -750,8 +750,8 @@
       "uncertain": false,
       "waste": "motion",
       "waste_events": [
-        "8b7fad85cf80c1b4",
-        "551fb453dac2dc0c"
+        "db5d89ed876d571f",
+        "00e63e3f599e0da3"
       ]
     },
     {
@@ -760,11 +760,11 @@
       "context_tokens": 22,
       "detector": "unused_context",
       "evidence": [
-        "98e08d2104e03291",
-        "a2a3ce288e90f730"
+        "04f87d31174f38ff",
+        "a03907943c97b102"
       ],
       "explanation": "Nothing the agent did after reading src/utils.py names the file or any of the 1 name(s) it defines. Its 22 tokens stayed in the context as inventory.",
-      "id": "unused_context:98e08d2104e03291",
+      "id": "unused_context:04f87d31174f38ff",
       "kind": "waste",
       "seconds": 6.0,
       "share": 1.0,
@@ -774,8 +774,8 @@
       "uncertain": true,
       "waste": "inventory",
       "waste_events": [
-        "98e08d2104e03291",
-        "a2a3ce288e90f730"
+        "04f87d31174f38ff",
+        "a03907943c97b102"
       ]
     },
     {
@@ -784,13 +784,13 @@
       "context_tokens": 10,
       "detector": "repeated_exploration",
       "evidence": [
-        "b7220effbe9d33b8",
-        "84876697215eb36b",
-        "1177e4320222fe66",
-        "aabd7f3b0c0ca016"
+        "fd0b6f42921a37f2",
+        "b0553cce2053e258",
+        "10d6ca5500d89e17",
+        "3840d1b2ec18099a"
       ],
       "explanation": "Re-ran search argparse 9 events after the first time. The output was identical and the agent had not changed it. Its 10 tokens of output re-entered the context.",
-      "id": "repeated_exploration:1177e4320222fe66",
+      "id": "repeated_exploration:10d6ca5500d89e17",
       "kind": "waste",
       "seconds": 3.0,
       "share": 1.0,
@@ -800,8 +800,8 @@
       "uncertain": false,
       "waste": "motion",
       "waste_events": [
-        "1177e4320222fe66",
-        "aabd7f3b0c0ca016"
+        "10d6ca5500d89e17",
+        "3840d1b2ec18099a"
       ]
     },
     {
@@ -810,11 +810,11 @@
       "context_tokens": 9,
       "detector": "unused_context",
       "evidence": [
-        "a33373b4cca658c1",
-        "c878858709305d4e"
+        "d9eb8e056a8c4e06",
+        "9252bf151ad82534"
       ],
       "explanation": "Nothing the agent did after reading src/config.py names the file or any of the 1 name(s) it defines. Its 9 tokens stayed in the context as inventory.",
-      "id": "unused_context:a33373b4cca658c1",
+      "id": "unused_context:d9eb8e056a8c4e06",
       "kind": "waste",
       "seconds": 6.0,
       "share": 1.0,
@@ -824,8 +824,8 @@
       "uncertain": true,
       "waste": "inventory",
       "waste_events": [
-        "a33373b4cca658c1",
-        "c878858709305d4e"
+        "d9eb8e056a8c4e06",
+        "9252bf151ad82534"
       ]
     },
     {
@@ -865,7 +865,7 @@
       {
         "band": "low",
         "basis": "text",
-        "event_id": "b7220effbe9d33b8",
+        "event_id": "fd0b6f42921a37f2",
         "names": [],
         "revision": 1,
         "score": 0.0
@@ -873,7 +873,7 @@
       {
         "band": "aligned",
         "basis": "text",
-        "event_id": "69551b0f692010d4",
+        "event_id": "d00b931283ea1956",
         "names": [],
         "revision": 1,
         "score": 1.0
@@ -881,7 +881,7 @@
       {
         "band": "low",
         "basis": "text",
-        "event_id": "98e08d2104e03291",
+        "event_id": "04f87d31174f38ff",
         "names": [],
         "revision": 1,
         "score": 0.0
@@ -889,7 +889,7 @@
       {
         "band": "low",
         "basis": "text",
-        "event_id": "a33373b4cca658c1",
+        "event_id": "d9eb8e056a8c4e06",
         "names": [],
         "revision": 1,
         "score": 0.0
@@ -905,7 +905,7 @@
       {
         "band": "low",
         "basis": "text",
-        "event_id": "1177e4320222fe66",
+        "event_id": "10d6ca5500d89e17",
         "names": [],
         "revision": 1,
         "score": 0.0
@@ -913,7 +913,7 @@
       {
         "band": "aligned",
         "basis": "text",
-        "event_id": "8b7fad85cf80c1b4",
+        "event_id": "db5d89ed876d571f",
         "names": [],
         "revision": 1,
         "score": 1.0
@@ -929,7 +929,7 @@
       {
         "band": "partial",
         "basis": "changed_words",
-        "event_id": "0f8094ebbe312229",
+        "event_id": "45c733fb69783266",
         "names": [],
         "revision": 1,
         "score": 0.3333
@@ -937,7 +937,7 @@
       {
         "band": "aligned",
         "basis": "changed_words",
-        "event_id": "ad332e5d05b44868",
+        "event_id": "bdeeea540baee64f",
         "names": [],
         "revision": 1,
         "score": 0.5
@@ -945,7 +945,7 @@
       {
         "band": "aligned",
         "basis": "text",
-        "event_id": "77910e19bcf7fd61",
+        "event_id": "2756ece703f76f95",
         "names": [],
         "revision": 1,
         "score": 0.6667
@@ -1077,10 +1077,10 @@
       "avoidable_tokens": 32,
       "context_tokens": 159,
       "findings": [
-        "repeated_exploration:8b7fad85cf80c1b4",
-        "unused_context:98e08d2104e03291",
-        "repeated_exploration:1177e4320222fe66",
-        "unused_context:a33373b4cca658c1"
+        "repeated_exploration:db5d89ed876d571f",
+        "unused_context:04f87d31174f38ff",
+        "repeated_exploration:10d6ca5500d89e17",
+        "unused_context:d9eb8e056a8c4e06"
       ],
       "seconds": 30.0,
       "stage": "explore",
@@ -1152,15 +1152,15 @@
       "edits": [],
       "failures": [],
       "hypotheses": [
-        "b7220effbe9d33b8",
-        "98e08d2104e03291",
-        "a33373b4cca658c1"
+        "fd0b6f42921a37f2",
+        "04f87d31174f38ff",
+        "d9eb8e056a8c4e06"
       ],
       "tasks": []
     },
     "peak": {
       "edits": 2,
-      "event_id": "ad332e5d05b44868",
+      "event_id": "bdeeea540baee64f",
       "failures": 0,
       "hypotheses": 3,
       "tasks": 0,
@@ -1188,56 +1188,56 @@
         0
       ],
       [
-        "b7220effbe9d33b8",
+        "fd0b6f42921a37f2",
         1,
         0,
         0,
         0
       ],
       [
-        "84876697215eb36b",
+        "b0553cce2053e258",
         1,
         0,
         0,
         0
       ],
       [
-        "69551b0f692010d4",
+        "d00b931283ea1956",
         2,
         0,
         0,
         0
       ],
       [
-        "a01c619d1c5c27e1",
+        "471c4b318b586d6c",
         2,
         0,
         0,
         0
       ],
       [
-        "98e08d2104e03291",
+        "04f87d31174f38ff",
         3,
         0,
         0,
         0
       ],
       [
-        "a2a3ce288e90f730",
+        "a03907943c97b102",
         3,
         0,
         0,
         0
       ],
       [
-        "a33373b4cca658c1",
+        "d9eb8e056a8c4e06",
         4,
         0,
         0,
         0
       ],
       [
-        "c878858709305d4e",
+        "9252bf151ad82534",
         4,
         0,
         0,
@@ -1251,28 +1251,28 @@
         0
       ],
       [
-        "1177e4320222fe66",
+        "10d6ca5500d89e17",
         4,
         0,
         0,
         0
       ],
       [
-        "aabd7f3b0c0ca016",
+        "3840d1b2ec18099a",
         4,
         0,
         0,
         0
       ],
       [
-        "8b7fad85cf80c1b4",
+        "db5d89ed876d571f",
         4,
         0,
         0,
         0
       ],
       [
-        "551fb453dac2dc0c",
+        "00e63e3f599e0da3",
         4,
         0,
         0,
@@ -1286,42 +1286,42 @@
         0
       ],
       [
-        "0f8094ebbe312229",
+        "45c733fb69783266",
         3,
         0,
         1,
         0
       ],
       [
-        "6780ba10f97237d3",
+        "3a7c60b00602066d",
         3,
         0,
         1,
         0
       ],
       [
-        "ad332e5d05b44868",
+        "bdeeea540baee64f",
         3,
         0,
         2,
         0
       ],
       [
-        "a7dfb58e41535f1b",
+        "b68f57ee311cf3b3",
         3,
         0,
         2,
         0
       ],
       [
-        "77910e19bcf7fd61",
+        "2756ece703f76f95",
         3,
         0,
         2,
         0
       ],
       [
-        "ba596fba8145538b",
+        "f1b675fedeaa8bc7",
         3,
         0,
         0,

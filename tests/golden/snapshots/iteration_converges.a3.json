@@ -3,27 +3,27 @@
     "cycles": [
       {
         "command": "pytest tests/test_text.py -q",
-        "failed_run": "369f28daa4834090",
-        "failure": "a5c243f6052afc48",
+        "failed_run": "4706222a1a474ad5",
+        "failure": "943db568c1703ced",
         "fixes": [
-          "696b7e17e0df4dbd"
+          "321d23d8448d431f"
         ],
         "next_outcome": "failed",
-        "next_result": "fb1848c1455585d0",
-        "next_run": "26e6810009a47440",
+        "next_result": "bf1cb792a841ceb3",
+        "next_run": "dd8137f7506a06d0",
         "reason": "the next run failed differently",
         "verdict": "iteration"
       },
       {
         "command": "pytest tests/test_text.py -q",
-        "failed_run": "26e6810009a47440",
-        "failure": "fb1848c1455585d0",
+        "failed_run": "dd8137f7506a06d0",
+        "failure": "bf1cb792a841ceb3",
         "fixes": [
-          "520a0393af0ce62e"
+          "f8cde61261bee94b"
         ],
         "next_outcome": "passed",
-        "next_result": "35e20b6ed4ec5fbc",
-        "next_run": "a0201b2048241360",
+        "next_result": "108e377894674726",
+        "next_run": "248317b892030b95",
         "reason": "the next run passed",
         "verdict": "iteration"
       }
@@ -83,7 +83,7 @@
           {
             "key": "wip_peak",
             "label": "Peak WIP",
-            "note": "after event a5c243f6052afc48",
+            "note": "after event 943db568c1703ced",
             "unit": "items",
             "value": 2
           },
@@ -360,7 +360,7 @@
       },
       "peak": {
         "edits": 0,
-        "event_id": "a5c243f6052afc48",
+        "event_id": "943db568c1703ced",
         "failures": 1,
         "hypotheses": 1,
         "tasks": 0,
@@ -388,14 +388,14 @@
           0
         ],
         [
-          "859848add6d59788",
+          "5c03460d9d68b092",
           1,
           0,
           0,
           0
         ],
         [
-          "9528667881123db0",
+          "aafe2f95cff904c1",
           1,
           0,
           0,
@@ -409,14 +409,14 @@
           0
         ],
         [
-          "369f28daa4834090",
+          "4706222a1a474ad5",
           1,
           0,
           0,
           0
         ],
         [
-          "a5c243f6052afc48",
+          "943db568c1703ced",
           1,
           0,
           0,
@@ -430,28 +430,28 @@
           1
         ],
         [
-          "696b7e17e0df4dbd",
+          "321d23d8448d431f",
           0,
           0,
           1,
           1
         ],
         [
-          "40c138342748a4ad",
+          "7941c6e8c3f9dcc9",
           0,
           0,
           1,
           1
         ],
         [
-          "26e6810009a47440",
+          "dd8137f7506a06d0",
           0,
           0,
           1,
           1
         ],
         [
-          "fb1848c1455585d0",
+          "bf1cb792a841ceb3",
           0,
           0,
           0,
@@ -465,28 +465,28 @@
           1
         ],
         [
-          "520a0393af0ce62e",
+          "f8cde61261bee94b",
           0,
           0,
           1,
           1
         ],
         [
-          "3aa429cc01c64d36",
+          "0249214039b33fbc",
           0,
           0,
           1,
           1
         ],
         [
-          "a0201b2048241360",
+          "248317b892030b95",
           0,
           0,
           1,
           1
         ],
         [
-          "35e20b6ed4ec5fbc",
+          "108e377894674726",
           0,
           0,
           0,
@@ -517,7 +517,7 @@
         {
           "band": "aligned",
           "basis": "text",
-          "event_id": "859848add6d59788",
+          "event_id": "5c03460d9d68b092",
           "names": [],
           "revision": 1,
           "score": 1.0
@@ -533,7 +533,7 @@
         {
           "band": "aligned",
           "basis": "text",
-          "event_id": "369f28daa4834090",
+          "event_id": "4706222a1a474ad5",
           "names": [],
           "revision": 1,
           "score": 0.6667
@@ -549,7 +549,7 @@
         {
           "band": "low",
           "basis": "text",
-          "event_id": "696b7e17e0df4dbd",
+          "event_id": "321d23d8448d431f",
           "names": [],
           "revision": 1,
           "score": 0.0
@@ -557,7 +557,7 @@
         {
           "band": "aligned",
           "basis": "text",
-          "event_id": "26e6810009a47440",
+          "event_id": "dd8137f7506a06d0",
           "names": [],
           "revision": 1,
           "score": 0.6667
@@ -573,7 +573,7 @@
         {
           "band": "aligned",
           "basis": "changed_words",
-          "event_id": "520a0393af0ce62e",
+          "event_id": "f8cde61261bee94b",
           "names": [],
           "revision": 1,
           "score": 1.0
@@ -581,7 +581,7 @@
         {
           "band": "aligned",
           "basis": "text",
-          "event_id": "a0201b2048241360",
+          "event_id": "248317b892030b95",
           "names": [],
           "revision": 1,
           "score": 0.6667

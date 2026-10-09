@@ -28,7 +28,7 @@
       "stage:intermediate narration"
     ],
     [
-      "a7ca94f36f4da52d",
+      "1b87a23bd9056e34",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -37,7 +37,7 @@
       "stage:explore is necessary but adds no value itself"
     ],
     [
-      "811ba328293575c9",
+      "2b5db1c78a6dc335",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -55,22 +55,22 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "53fa055cfc1d65bf",
+      "524b6ec125634e52",
       "explore",
       "avoidable",
       1.0,
       0.0,
       "repeating",
-      "repeated_exploration:53fa055cfc1d65bf"
+      "repeated_exploration:524b6ec125634e52"
     ],
     [
-      "c418879109656e20",
+      "c30726a9604bad2f",
       "explore",
       "avoidable",
       1.0,
       0.0,
       "repeating",
-      "repeated_exploration:53fa055cfc1d65bf"
+      "repeated_exploration:524b6ec125634e52"
     ],
     [
       "11462446bcebf612",
@@ -82,16 +82,16 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "eca762078b6545c5",
+      "b9bd71937ecef64d",
       "implement",
       "value_adding",
       0.0,
       0.4,
       "progressing",
-      "stage:implement edits change the software; uncertain regeneration:eca762078b6545c5"
+      "stage:implement edits change the software; uncertain regeneration:b9bd71937ecef64d"
     ],
     [
-      "8892e9f624a892b5",
+      "b7d3f9e59a1f3f1c",
       "implement",
       "value_adding",
       0.0,
@@ -100,7 +100,7 @@
       "stage:implement edits change the software"
     ],
     [
-      "48f5065363d25a9f",
+      "33ced9a1d0ffbcf2",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -109,7 +109,7 @@
       "stage:validate is necessary but adds no value itself"
     ],
     [
-      "2471b8726436c8ff",
+      "1f4e74fd6dc1a3db",
       "validate",
       "necessary_non_value_adding",
       0.0,
@@ -240,73 +240,73 @@
         "type": "motivated_by"
       },
       {
-        "source": "a7ca94f36f4da52d",
+        "source": "1b87a23bd9056e34",
         "target": "ea7ea3e6dc9e7df9",
         "type": "motivated_by"
       },
       {
-        "source": "811ba328293575c9",
-        "target": "a7ca94f36f4da52d",
+        "source": "2b5db1c78a6dc335",
+        "target": "1b87a23bd9056e34",
         "type": "completes"
       },
       {
         "source": "15fe5e5a30ddea26",
-        "target": "811ba328293575c9",
+        "target": "2b5db1c78a6dc335",
         "type": "motivated_by"
       },
       {
-        "source": "53fa055cfc1d65bf",
-        "target": "a7ca94f36f4da52d",
+        "source": "524b6ec125634e52",
+        "target": "1b87a23bd9056e34",
         "type": "repeats"
       },
       {
-        "source": "53fa055cfc1d65bf",
-        "target": "811ba328293575c9",
+        "source": "524b6ec125634e52",
+        "target": "2b5db1c78a6dc335",
         "type": "motivated_by"
       },
       {
-        "source": "c418879109656e20",
-        "target": "53fa055cfc1d65bf",
+        "source": "c30726a9604bad2f",
+        "target": "524b6ec125634e52",
         "type": "completes"
       },
       {
         "source": "11462446bcebf612",
-        "target": "c418879109656e20",
+        "target": "c30726a9604bad2f",
         "type": "motivated_by"
       },
       {
-        "source": "eca762078b6545c5",
+        "source": "b9bd71937ecef64d",
         "target": "ea7ea3e6dc9e7df9",
         "type": "motivated_by"
       },
       {
-        "source": "eca762078b6545c5",
-        "target": "c418879109656e20",
+        "source": "b9bd71937ecef64d",
+        "target": "c30726a9604bad2f",
         "type": "motivated_by"
       },
       {
-        "source": "8892e9f624a892b5",
-        "target": "eca762078b6545c5",
+        "source": "b7d3f9e59a1f3f1c",
+        "target": "b9bd71937ecef64d",
         "type": "completes"
       },
       {
-        "source": "48f5065363d25a9f",
-        "target": "eca762078b6545c5",
+        "source": "33ced9a1d0ffbcf2",
+        "target": "b9bd71937ecef64d",
         "type": "validates"
       },
       {
-        "source": "48f5065363d25a9f",
-        "target": "8892e9f624a892b5",
+        "source": "33ced9a1d0ffbcf2",
+        "target": "b7d3f9e59a1f3f1c",
         "type": "motivated_by"
       },
       {
-        "source": "2471b8726436c8ff",
-        "target": "48f5065363d25a9f",
+        "source": "1f4e74fd6dc1a3db",
+        "target": "33ced9a1d0ffbcf2",
         "type": "completes"
       },
       {
         "source": "d3a04d382391d0f4",
-        "target": "2471b8726436c8ff",
+        "target": "1f4e74fd6dc1a3db",
         "type": "motivated_by"
       }
     ],
@@ -340,7 +340,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "a7ca94f36f4da52d",
+        "id": "1b87a23bd9056e34",
         "index": 3,
         "kind": "tool.requested",
         "label": "Read src/app.py",
@@ -349,7 +349,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "811ba328293575c9",
+        "id": "2b5db1c78a6dc335",
         "index": 4,
         "kind": "tool.completed",
         "label": "result: Read src/app.py",
@@ -367,7 +367,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "53fa055cfc1d65bf",
+        "id": "524b6ec125634e52",
         "index": 6,
         "kind": "tool.requested",
         "label": "Read src/app.py",
@@ -376,7 +376,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "c418879109656e20",
+        "id": "c30726a9604bad2f",
         "index": 7,
         "kind": "tool.completed",
         "label": "result: Read src/app.py",
@@ -394,7 +394,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "eca762078b6545c5",
+        "id": "b9bd71937ecef64d",
         "index": 9,
         "kind": "tool.requested",
         "label": "Write src/app.py",
@@ -403,7 +403,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "8892e9f624a892b5",
+        "id": "b7d3f9e59a1f3f1c",
         "index": 10,
         "kind": "tool.completed",
         "label": "result: Write src/app.py",
@@ -412,7 +412,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "48f5065363d25a9f",
+        "id": "33ced9a1d0ffbcf2",
         "index": 11,
         "kind": "tool.requested",
         "label": "Bash python - <<'PY' from src.app import login asser…",
@@ -421,7 +421,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "2471b8726436c8ff",
+        "id": "1f4e74fd6dc1a3db",
         "index": 12,
         "kind": "tool.completed",
         "label": "result: Bash python - <<'PY' from src.app import login asser… (passed)",
@@ -444,13 +444,13 @@
   "exploration": [
     {
       "driver": "aimless",
-      "event_id": "a7ca94f36f4da52d",
+      "event_id": "1b87a23bd9056e34",
       "motive": null,
       "shared": []
     },
     {
       "driver": "aimless",
-      "event_id": "53fa055cfc1d65bf",
+      "event_id": "524b6ec125634e52",
       "motive": null,
       "shared": []
     }
@@ -462,11 +462,11 @@
       "context_tokens": 0,
       "detector": "regeneration",
       "evidence": [
-        "c418879109656e20",
-        "eca762078b6545c5"
+        "c30726a9604bad2f",
+        "b9bd71937ecef64d"
       ],
       "explanation": "The agent rewrote src/app.py, a file it had just read, keeping 100% of its lines; 40% of the new file repeats existing content. An in-place edit would have produced only the change.",
-      "id": "regeneration:eca762078b6545c5",
+      "id": "regeneration:b9bd71937ecef64d",
       "kind": "waste",
       "seconds": 0.4,
       "share": 0.4,
@@ -476,7 +476,7 @@
       "uncertain": true,
       "waste": "overproduction",
       "waste_events": [
-        "eca762078b6545c5"
+        "b9bd71937ecef64d"
       ]
     },
     {
@@ -485,13 +485,13 @@
       "context_tokens": 28,
       "detector": "repeated_exploration",
       "evidence": [
-        "a7ca94f36f4da52d",
-        "811ba328293575c9",
-        "53fa055cfc1d65bf",
-        "c418879109656e20"
+        "1b87a23bd9056e34",
+        "2b5db1c78a6dc335",
+        "524b6ec125634e52",
+        "c30726a9604bad2f"
       ],
       "explanation": "Re-read src/app.py 3 events after the first time. The output was identical and the agent had not changed it. Its 28 tokens of output re-entered the context.",
-      "id": "repeated_exploration:53fa055cfc1d65bf",
+      "id": "repeated_exploration:524b6ec125634e52",
       "kind": "waste",
       "seconds": 1.0,
       "share": 1.0,
@@ -501,8 +501,8 @@
       "uncertain": false,
       "waste": "motion",
       "waste_events": [
-        "53fa055cfc1d65bf",
-        "c418879109656e20"
+        "524b6ec125634e52",
+        "c30726a9604bad2f"
       ]
     }
   ],
@@ -527,7 +527,7 @@
       {
         "band": "low",
         "basis": "text",
-        "event_id": "a7ca94f36f4da52d",
+        "event_id": "1b87a23bd9056e34",
         "names": [],
         "revision": 1,
         "score": 0.0
@@ -543,7 +543,7 @@
       {
         "band": "low",
         "basis": "text",
-        "event_id": "53fa055cfc1d65bf",
+        "event_id": "524b6ec125634e52",
         "names": [],
         "revision": 1,
         "score": 0.0
@@ -559,7 +559,7 @@
       {
         "band": "partial",
         "basis": "names",
-        "event_id": "eca762078b6545c5",
+        "event_id": "b9bd71937ecef64d",
         "names": [
           "health_check",
           "login",
@@ -571,7 +571,7 @@
       {
         "band": "low",
         "basis": "text",
-        "event_id": "48f5065363d25a9f",
+        "event_id": "33ced9a1d0ffbcf2",
         "names": [],
         "revision": 1,
         "score": 0.1818
@@ -598,9 +598,9 @@
         "events": [
           "3063f61df0524c05",
           "ee0118c14f82fa55",
-          "a7ca94f36f4da52d",
+          "1b87a23bd9056e34",
           "15fe5e5a30ddea26",
-          "53fa055cfc1d65bf",
+          "524b6ec125634e52",
           "11462446bcebf612"
         ],
         "mean_score": 0.0889,
@@ -728,7 +728,7 @@
       "avoidable_tokens": 27,
       "context_tokens": 56,
       "findings": [
-        "repeated_exploration:53fa055cfc1d65bf"
+        "repeated_exploration:524b6ec125634e52"
       ],
       "seconds": 4.0,
       "stage": "explore",
@@ -750,7 +750,7 @@
       "avoidable_tokens": 0,
       "context_tokens": 9,
       "findings": [
-        "regeneration:eca762078b6545c5"
+        "regeneration:b9bd71937ecef64d"
       ],
       "seconds": 1.0,
       "stage": "implement",
@@ -804,7 +804,7 @@
     },
     "peak": {
       "edits": 0,
-      "event_id": "a7ca94f36f4da52d",
+      "event_id": "1b87a23bd9056e34",
       "failures": 0,
       "hypotheses": 1,
       "tasks": 0,
@@ -839,14 +839,14 @@
         0
       ],
       [
-        "a7ca94f36f4da52d",
+        "1b87a23bd9056e34",
         1,
         0,
         0,
         0
       ],
       [
-        "811ba328293575c9",
+        "2b5db1c78a6dc335",
         1,
         0,
         0,
@@ -860,14 +860,14 @@
         0
       ],
       [
-        "53fa055cfc1d65bf",
+        "524b6ec125634e52",
         1,
         0,
         0,
         0
       ],
       [
-        "c418879109656e20",
+        "c30726a9604bad2f",
         1,
         0,
         0,
@@ -881,28 +881,28 @@
         0
       ],
       [
-        "eca762078b6545c5",
+        "b9bd71937ecef64d",
         0,
         0,
         1,
         0
       ],
       [
-        "8892e9f624a892b5",
+        "b7d3f9e59a1f3f1c",
         0,
         0,
         1,
         0
       ],
       [
-        "48f5065363d25a9f",
+        "33ced9a1d0ffbcf2",
         0,
         0,
         1,
         0
       ],
       [
-        "2471b8726436c8ff",
+        "1f4e74fd6dc1a3db",
         0,
         0,
         0,

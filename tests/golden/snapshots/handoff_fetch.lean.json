@@ -19,7 +19,7 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "f1146cba7555b4e6",
+      "6540e8d5b7cc8006",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -28,7 +28,7 @@
       "stage:explore is necessary but adds no value itself"
     ],
     [
-      "61179269c4df5b69",
+      "dea9a705c7d3cec0",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -37,25 +37,25 @@
       "stage:explore is necessary but adds no value itself"
     ],
     [
-      "21222454fe82bdbe",
+      "f0c1b3c8cc1fe9e8",
       "explore",
       "avoidable",
       1.0,
       0.0,
       "waiting",
-      "unnecessary_handoff:21222454fe82bdbe"
+      "unnecessary_handoff:f0c1b3c8cc1fe9e8"
     ],
     [
-      "8c5e4ee9638011b7",
+      "a586b42e4b8dcab6",
       "explore",
       "avoidable",
       1.0,
       0.0,
       "waiting",
-      "unnecessary_handoff:21222454fe82bdbe"
+      "unnecessary_handoff:f0c1b3c8cc1fe9e8"
     ],
     [
-      "3b63c8d624bcf410",
+      "e240461726e1d3cd",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -64,7 +64,7 @@
       "stage:explore is necessary but adds no value itself"
     ],
     [
-      "85abe9461af226a2",
+      "666b4eb5df4422bc",
       "explore",
       "necessary_non_value_adding",
       0.0,
@@ -73,7 +73,7 @@
       "stage:explore is necessary but adds no value itself"
     ],
     [
-      "0c09dd0c065ec07b",
+      "b329caeafc26fa02",
       "plan",
       "necessary_non_value_adding",
       0.0,
@@ -82,7 +82,7 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "be91bfcb97b1fce4",
+      "204fbd5db718e90a",
       "plan",
       "necessary_non_value_adding",
       0.0,
@@ -91,7 +91,7 @@
       "stage:plan is necessary but adds no value itself"
     ],
     [
-      "4f983f4cbf7260c1",
+      "330c37857326061d",
       "implement",
       "value_adding",
       0.0,
@@ -100,7 +100,7 @@
       "stage:implement edits change the software"
     ],
     [
-      "1797e204a67133ae",
+      "9df006d0c749f743",
       "implement",
       "value_adding",
       0.0,
@@ -226,68 +226,68 @@
         "type": "motivated_by"
       },
       {
-        "source": "f1146cba7555b4e6",
+        "source": "6540e8d5b7cc8006",
         "target": "cfe38703c440c315",
         "type": "motivated_by"
       },
       {
-        "source": "61179269c4df5b69",
-        "target": "f1146cba7555b4e6",
+        "source": "dea9a705c7d3cec0",
+        "target": "6540e8d5b7cc8006",
         "type": "completes"
       },
       {
-        "source": "21222454fe82bdbe",
-        "target": "61179269c4df5b69",
+        "source": "f0c1b3c8cc1fe9e8",
+        "target": "dea9a705c7d3cec0",
         "type": "motivated_by"
       },
       {
-        "source": "8c5e4ee9638011b7",
-        "target": "21222454fe82bdbe",
+        "source": "a586b42e4b8dcab6",
+        "target": "f0c1b3c8cc1fe9e8",
         "type": "completes"
       },
       {
-        "source": "3b63c8d624bcf410",
-        "target": "8c5e4ee9638011b7",
+        "source": "e240461726e1d3cd",
+        "target": "a586b42e4b8dcab6",
         "type": "motivated_by"
       },
       {
-        "source": "85abe9461af226a2",
-        "target": "3b63c8d624bcf410",
+        "source": "666b4eb5df4422bc",
+        "target": "e240461726e1d3cd",
         "type": "completes"
       },
       {
-        "source": "0c09dd0c065ec07b",
-        "target": "85abe9461af226a2",
+        "source": "b329caeafc26fa02",
+        "target": "666b4eb5df4422bc",
         "type": "motivated_by"
       },
       {
-        "source": "be91bfcb97b1fce4",
-        "target": "0c09dd0c065ec07b",
+        "source": "204fbd5db718e90a",
+        "target": "b329caeafc26fa02",
         "type": "completes"
       },
       {
-        "source": "4f983f4cbf7260c1",
+        "source": "330c37857326061d",
         "target": "cfe38703c440c315",
         "type": "motivated_by"
       },
       {
-        "source": "4f983f4cbf7260c1",
-        "target": "61179269c4df5b69",
+        "source": "330c37857326061d",
+        "target": "dea9a705c7d3cec0",
         "type": "motivated_by"
       },
       {
-        "source": "4f983f4cbf7260c1",
-        "target": "be91bfcb97b1fce4",
+        "source": "330c37857326061d",
+        "target": "204fbd5db718e90a",
         "type": "motivated_by"
       },
       {
-        "source": "1797e204a67133ae",
-        "target": "4f983f4cbf7260c1",
+        "source": "9df006d0c749f743",
+        "target": "330c37857326061d",
         "type": "completes"
       },
       {
         "source": "71f7f1f147f2ae8d",
-        "target": "1797e204a67133ae",
+        "target": "9df006d0c749f743",
         "type": "motivated_by"
       }
     ],
@@ -312,7 +312,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "f1146cba7555b4e6",
+        "id": "6540e8d5b7cc8006",
         "index": 2,
         "kind": "tool.requested",
         "label": "Read pyproject.toml",
@@ -321,7 +321,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "61179269c4df5b69",
+        "id": "dea9a705c7d3cec0",
         "index": 3,
         "kind": "tool.completed",
         "label": "result: Read pyproject.toml",
@@ -330,7 +330,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "21222454fe82bdbe",
+        "id": "f0c1b3c8cc1fe9e8",
         "index": 4,
         "kind": "tool.requested",
         "label": "Task Research requests changelog",
@@ -339,7 +339,7 @@
       },
       {
         "activity_class": "avoidable",
-        "id": "8c5e4ee9638011b7",
+        "id": "a586b42e4b8dcab6",
         "index": 5,
         "kind": "tool.completed",
         "label": "result: Task Research requests changelog",
@@ -348,7 +348,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "3b63c8d624bcf410",
+        "id": "e240461726e1d3cd",
         "index": 6,
         "kind": "tool.requested",
         "label": "WebFetch https://example.invalid/requests/changelog",
@@ -357,7 +357,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "85abe9461af226a2",
+        "id": "666b4eb5df4422bc",
         "index": 7,
         "kind": "tool.completed",
         "label": "result: WebFetch https://example.invalid/requests/changelog",
@@ -366,7 +366,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "0c09dd0c065ec07b",
+        "id": "b329caeafc26fa02",
         "index": 8,
         "kind": "tool.requested",
         "label": "TodoWrite plan.todo",
@@ -375,7 +375,7 @@
       },
       {
         "activity_class": "necessary_non_value_adding",
-        "id": "be91bfcb97b1fce4",
+        "id": "204fbd5db718e90a",
         "index": 9,
         "kind": "tool.completed",
         "label": "result: TodoWrite plan.todo",
@@ -384,7 +384,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "4f983f4cbf7260c1",
+        "id": "330c37857326061d",
         "index": 10,
         "kind": "tool.requested",
         "label": "Edit pyproject.toml",
@@ -393,7 +393,7 @@
       },
       {
         "activity_class": "value_adding",
-        "id": "1797e204a67133ae",
+        "id": "9df006d0c749f743",
         "index": 11,
         "kind": "tool.completed",
         "label": "result: Edit pyproject.toml",
@@ -416,7 +416,7 @@
   "exploration": [
     {
       "driver": "intent_directed",
-      "event_id": "f1146cba7555b4e6",
+      "event_id": "6540e8d5b7cc8006",
       "motive": "cfe38703c440c315",
       "shared": [
         "pyproject.toml"
@@ -424,7 +424,7 @@
     },
     {
       "driver": "intent_directed",
-      "event_id": "21222454fe82bdbe",
+      "event_id": "f0c1b3c8cc1fe9e8",
       "motive": "cfe38703c440c315",
       "shared": [
         "breaking",
@@ -435,7 +435,7 @@
     },
     {
       "driver": "intent_directed",
-      "event_id": "3b63c8d624bcf410",
+      "event_id": "e240461726e1d3cd",
       "motive": "cfe38703c440c315",
       "shared": [
         "breaking",
@@ -452,13 +452,13 @@
       "context_tokens": 24,
       "detector": "unnecessary_handoff",
       "evidence": [
-        "21222454fe82bdbe",
-        "8c5e4ee9638011b7",
-        "3b63c8d624bcf410",
-        "85abe9461af226a2"
+        "f0c1b3c8cc1fe9e8",
+        "a586b42e4b8dcab6",
+        "e240461726e1d3cd",
+        "666b4eb5df4422bc"
       ],
       "explanation": "The agent handed 'Research requests changelog' to a subagent, then ran WebFetch on the same subject (https://example.invalid/requests/changelog), sharing 4 key words. The handoff added a round trip the agent did not rely on.",
-      "id": "unnecessary_handoff:21222454fe82bdbe",
+      "id": "unnecessary_handoff:f0c1b3c8cc1fe9e8",
       "kind": "waste",
       "seconds": 6.0,
       "share": 1.0,
@@ -468,8 +468,8 @@
       "uncertain": false,
       "waste": "handoffs",
       "waste_events": [
-        "21222454fe82bdbe",
-        "8c5e4ee9638011b7"
+        "f0c1b3c8cc1fe9e8",
+        "a586b42e4b8dcab6"
       ]
     },
     {
@@ -478,12 +478,12 @@
       "context_tokens": 0,
       "detector": "unvalidated_implementation",
       "evidence": [
-        "4f983f4cbf7260c1",
-        "1797e204a67133ae",
+        "330c37857326061d",
+        "9df006d0c749f743",
         "71f7f1f147f2ae8d"
       ],
       "explanation": "The agent edited pyproject.toml and then responded without running tests, a type check or the code. No check ran anywhere in the session.",
-      "id": "unvalidated_implementation:4f983f4cbf7260c1",
+      "id": "unvalidated_implementation:330c37857326061d",
       "kind": "risk",
       "seconds": 0.0,
       "share": 0.0,
@@ -508,7 +508,7 @@
       {
         "band": "aligned",
         "basis": "text",
-        "event_id": "f1146cba7555b4e6",
+        "event_id": "6540e8d5b7cc8006",
         "names": [],
         "revision": 1,
         "score": 1.0
@@ -516,7 +516,7 @@
       {
         "band": "aligned",
         "basis": "text",
-        "event_id": "21222454fe82bdbe",
+        "event_id": "f0c1b3c8cc1fe9e8",
         "names": [],
         "revision": 1,
         "score": 0.6
@@ -524,7 +524,7 @@
       {
         "band": "aligned",
         "basis": "text",
-        "event_id": "3b63c8d624bcf410",
+        "event_id": "e240461726e1d3cd",
         "names": [],
         "revision": 1,
         "score": 0.5
@@ -532,7 +532,7 @@
       {
         "band": "unknown",
         "basis": "text",
-        "event_id": "0c09dd0c065ec07b",
+        "event_id": "b329caeafc26fa02",
         "names": [],
         "revision": 1,
         "score": null
@@ -540,7 +540,7 @@
       {
         "band": "aligned",
         "basis": "text",
-        "event_id": "4f983f4cbf7260c1",
+        "event_id": "330c37857326061d",
         "names": [],
         "revision": 1,
         "score": 1.0
@@ -677,7 +677,7 @@
       "avoidable_tokens": 30,
       "context_tokens": 62,
       "findings": [
-        "unnecessary_handoff:21222454fe82bdbe"
+        "unnecessary_handoff:f0c1b3c8cc1fe9e8"
       ],
       "seconds": 15.0,
       "stage": "explore",
@@ -699,7 +699,7 @@
       "avoidable_tokens": 0,
       "context_tokens": 9,
       "findings": [
-        "unvalidated_implementation:4f983f4cbf7260c1"
+        "unvalidated_implementation:330c37857326061d"
       ],
       "seconds": 6.0,
       "stage": "implement",
@@ -721,7 +721,7 @@
       "avoidable_tokens": 0,
       "context_tokens": 0,
       "findings": [
-        "unvalidated_implementation:4f983f4cbf7260c1"
+        "unvalidated_implementation:330c37857326061d"
       ],
       "seconds": 3.0,
       "stage": "respond",
@@ -749,19 +749,19 @@
     ],
     "open_at_end": {
       "edits": [
-        "4f983f4cbf7260c1"
+        "330c37857326061d"
       ],
       "failures": [],
       "hypotheses": [
-        "3b63c8d624bcf410"
+        "e240461726e1d3cd"
       ],
       "tasks": [
-        "0c09dd0c065ec07b"
+        "b329caeafc26fa02"
       ]
     },
     "peak": {
       "edits": 0,
-      "event_id": "0c09dd0c065ec07b",
+      "event_id": "b329caeafc26fa02",
       "failures": 0,
       "hypotheses": 2,
       "tasks": 1,
@@ -789,70 +789,70 @@
         0
       ],
       [
-        "f1146cba7555b4e6",
+        "6540e8d5b7cc8006",
         1,
         0,
         0,
         0
       ],
       [
-        "61179269c4df5b69",
+        "dea9a705c7d3cec0",
         1,
         0,
         0,
         0
       ],
       [
-        "21222454fe82bdbe",
+        "f0c1b3c8cc1fe9e8",
         1,
         1,
         0,
         0
       ],
       [
-        "8c5e4ee9638011b7",
+        "a586b42e4b8dcab6",
         1,
         0,
         0,
         0
       ],
       [
-        "3b63c8d624bcf410",
+        "e240461726e1d3cd",
         2,
         0,
         0,
         0
       ],
       [
-        "85abe9461af226a2",
+        "666b4eb5df4422bc",
         2,
         0,
         0,
         0
       ],
       [
-        "0c09dd0c065ec07b",
+        "b329caeafc26fa02",
         2,
         1,
         0,
         0
       ],
       [
-        "be91bfcb97b1fce4",
+        "204fbd5db718e90a",
         2,
         1,
         0,
         0
       ],
       [
-        "4f983f4cbf7260c1",
+        "330c37857326061d",
         1,
         1,
         1,
         0
       ],
       [
-        "1797e204a67133ae",
+        "9df006d0c749f743",
         1,
         1,
         1,
