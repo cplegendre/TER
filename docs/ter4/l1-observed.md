@@ -15,6 +15,7 @@ the batch report of the same events are the same value.
 | TER-OBS-004 | If an event arrives with an identity already recorded, then TER shall discard it without changing analysis state. | `tests/unit/test_ter4_stream*.py`, `tests/contract/test_event_ingest.py`, `tests/contract/test_hook_payloads.py` |
 | TER-ANL-010 | TER shall produce identical reports for a session analysed incrementally and analysed in batch. | `tests/equivalence/test_live_static.py`, property tests, `tests/golden/test_stream_report_snapshot.py` |
 | TER-OBS-008 | While the maturity ceiling is L1 Observed, the hook adapter shall return an empty hook response to Claude Code. | `tests/unit/test_ter4_claude_hooks.py::TestRunHook`, `tests/unit/test_ter4_cli.py` (hook commands print `{}`) |
+| TER-OBS-012 | When the hook check runs on recorded hook payloads and transcripts, TER shall report for each session the share of hook events whose id matches a session-source event, without reproducing payload content. | `tests/unit/test_ter4_hook_check.py` |
 
 ## Flow
 
@@ -76,7 +77,7 @@ files) counts once.
 | `UserPromptSubmit` | `intent.stated` (user), text = `prompt` | session + hash of prompt + second received |
 | `PreToolUse` | `tool.requested` (assistant), tool kind from the Claude Code tool map, arguments = `tool_input` | session + `tool_use_id` (else hash of tool name and input) |
 | `PostToolUse` | the same `tool.requested` as PreToolUse, plus `tool.completed` (tool), text = `tool_response` | as above; the completion's `parent_id` is the request |
-| `Stop` | `task.completed` (system), empty text | session + second received |
+| `Stop` | `task.completed` (system), empty text | session + the turn it closes (last main-chain `assistant` uuid in `transcript_path` written by the receive time); session + second received when the transcript cannot be read |
 | `SubagentStop` | `subagent.completed` (system) in the parent session, text = `agent_type` when sent | session + `agent_id` when sent, else the exact receive time (parallel subagents can finish within one second) |
 | `SessionStart`, `SessionEnd`, `SubagentStart`, `PreCompact`, `Notification` | none (status `lifecycle`) | n/a |
 | anything else, or a malformed payload | none (status `ignored`, with a reason) | n/a |
@@ -88,8 +89,31 @@ both hooks run the second copy is discarded by TER-OBS-004.
 Known limits of hook identity: prompts are told apart only by text and the
 second they were received (hooks carry no prompt id), and tool calls without
 a `tool_use_id` are keyed by content. Hook events carry `sequence = 0`; order is the order of the
-log. Hook event ids differ from transcript event ids for the same session;
-equivalence holds per event stream, not across the two sources.
+log. Prompt and tool event ids differ from transcript event ids for the same
+session; equivalence holds per event stream, not across the two sources.
+
+Stops are the exception: one id rule serves both sides
+(`ter/adapters/claude_code_turns.py`). The session source derives a
+`task.completed` for each main-chain `system` record with subtype
+`stop_hook_summary` (Claude Code writes it after the Stop hooks ran), keyed by
+the last main-chain `assistant` record before it; the Stop hook keys its event
+by the last such record in the transcript tail when the payload arrived. Both
+use `make_event_id(session_id, turn_uuid, "stop", "task.completed")`. The
+session source derives no `subagent.completed` events.
+
+### Checking recordings against transcripts (TER-OBS-012)
+
+`python -m ter hooks check RECORDINGS TRANSCRIPTS [--json FILE]` replays what
+`ter hook --record` saved through the live hook path (`claude_hooks.derive`),
+reads each session's transcript through the session source, and reports per
+session: payload counts and field names by hook, hook-derived and
+transcript-derived event counts by kind, per kind the matched and unmatched
+ids with a reason for each miss (TER-OBS-007), and per Stop payload whether
+its id equals the session source's for the same stop (TER-OBS-005). The
+report holds no payload content, so it is how TER-OBS-005 and TER-OBS-007
+get checked on real recordings that cannot leave their owner's machine
+(issue #35). Both stay `planned` until such a run is reported. See
+[the hooks guide](../guides/hooks.md#checking-recordings-against-transcripts).
 
 ## Observables (`StreamReport`)
 
@@ -115,6 +139,7 @@ discarded before any state changes.
 python -m ter observe session.jsonl --timeline      # a recorded transcript
 python -m ter observe --event-log ~/.cache/ter/events # what hooks recorded
 python -m ter hook                                  # hook entry: payload on stdin
+python -m ter hooks check REC_DIR ~/.claude/projects  # recordings vs transcripts
 ```
 
 Register the hook in `.claude/settings.json`:
@@ -143,6 +168,8 @@ and an existing one that others can read is tightened. The TER 3 `ter hook monit
 | driving adapters | `ter/adapters/driving/claude_hooks/`, `ter/adapters/driving/cli.py` |
 | driven adapters | `ter/adapters/driven/event_log/` (JSONL), `InMemoryEventLog` |
 | shared data | `ter/adapters/claude_code_tools.py`: the Claude Code tool map, used by the JSONL source and the hooks adapter |
+| shared rule | `ter/adapters/claude_code_turns.py`: the turn a stop closes and the stop id, used by the JSONL source and the Stop hook |
+| hook check | `ter/adapters/driving/claude_hooks/check.py`: `python -m ter hooks check` |
 
 The tool map moved out of `ter.adapters.driven.claude_code` (which keeps a
 re-export) so the hook entry point does not import the transcript reader,

@@ -18,10 +18,14 @@ from typing import IO
 from ....domain.stream import Signals
 from ....ports.driven import Clock
 from ....ports.driving import EventIngest
+from ...claude_code_turns import transcript_turn
 from .record import record_payload
 from .translate import HookStatus, HookTranslation, translate
 
-__all__ = ["HookResult", "handle_hook", "run_hook"]
+__all__ = ["HookResult", "TurnLookup", "derive", "handle_hook", "run_hook"]
+
+#: Finds the turn a Stop closes: ``(transcript_path, received_at) -> uuid``.
+TurnLookup = Callable[[str, datetime | None], str | None]
 
 #: What the hook prints for Claude Code: an empty object changes nothing.
 HOOK_OUTPUT = "{}"
@@ -43,16 +47,45 @@ class HookResult:
     record_error: str = ""
 
 
+def derive(
+    payload: object,
+    received_at: datetime | None,
+    turns: TurnLookup | None = transcript_turn,
+) -> HookTranslation:
+    """The events the live hook derives from one decoded payload.
+
+    For a Stop, ``turns`` finds the transcript turn the stop closes, so the
+    ``task.completed`` id matches the session source's (TER-OBS-005). The
+    hook check replays recordings through this same function. A lookup that
+    fails leaves the stop keyed by the second it arrived.
+    """
+    turn: str | None = None
+    if (
+        turns is not None
+        and isinstance(payload, Mapping)
+        and payload.get("hook_event_name") == "Stop"
+    ):
+        path = payload.get("transcript_path")
+        if isinstance(path, str) and path:
+            try:
+                turn = turns(path, received_at)
+            except Exception:  # noqa: BLE001 - a hook must fail open
+                turn = None
+    return translate(payload, received_at=received_at, turn=turn)
+
+
 def handle_hook(
     raw: str | bytes | Mapping[str, object],
     ingest: EventIngest | Callable[[], EventIngest],
     *,
     clock: Clock | None = None,
+    turns: TurnLookup | None = transcript_turn,
 ) -> HookResult:
     """Translate one hook payload and apply its events to ``ingest``.
 
     ``ingest`` may be a factory, called only when there are events to apply,
-    so lifecycle hooks and bad input never touch the event log.
+    so lifecycle hooks and bad input never touch the event log. ``turns``
+    finds the turn a Stop closes (see :func:`derive`).
     """
     try:
         payload: object = raw if isinstance(raw, Mapping) else json.loads(raw)
@@ -60,7 +93,7 @@ def handle_hook(
         return HookResult(HookStatus.IGNORED, reason=f"invalid JSON: {error}")
     try:
         received_at: datetime | None = clock.now() if clock is not None else None
-        translation = translate(payload, received_at=received_at)
+        translation = derive(payload, received_at, turns)
         if translation.status is not HookStatus.RECORDED:
             return _unrecorded(translation)
         sink = ingest if isinstance(ingest, EventIngest) else ingest()

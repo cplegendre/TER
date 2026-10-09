@@ -11,7 +11,7 @@ Hook                      Events
 ``UserPromptSubmit``      ``intent.stated`` (user)
 ``PreToolUse``            ``tool.requested`` (assistant)
 ``PostToolUse``           ``tool.requested`` and ``tool.completed`` (tool)
-``Stop``                  ``task.completed`` (system)
+``Stop``                  ``task.completed`` (system), keyed by the turn it closes
 ``SubagentStop``          ``subagent.completed`` (system), in the parent session
 ``SessionStart`` etc.     none: lifecycle only, reported as ``lifecycle``
 anything else             none: reported as ``ignored`` with a reason
@@ -42,6 +42,7 @@ from ....domain.events import (
     make_event_id,
 )
 from ...claude_code_tools import tool_kind
+from ...claude_code_turns import stop_event_id
 
 __all__ = [
     "LIFECYCLE_HOOKS",
@@ -88,9 +89,18 @@ class _Malformed(ValueError):
 
 
 def translate(
-    payload: object, *, received_at: datetime | None = None
+    payload: object,
+    *,
+    received_at: datetime | None = None,
+    turn: str | None = None,
 ) -> HookTranslation:
-    """Translate one decoded hook payload. Never raises for bad input."""
+    """Translate one decoded hook payload. Never raises for bad input.
+
+    ``turn`` is, for a Stop, the uuid of the transcript turn the stop closes
+    (:func:`ter.adapters.claude_code_turns.transcript_turn`); with it the
+    ``task.completed`` id is the one the session source derives for the same
+    stop (TER-OBS-005). Other hooks ignore it.
+    """
     if not isinstance(payload, Mapping):
         return HookTranslation(
             HookStatus.IGNORED, reason=f"payload is {type(payload).__name__}"
@@ -106,7 +116,7 @@ def translate(
     if name in LIFECYCLE_HOOKS:
         return HookTranslation(HookStatus.LIFECYCLE, name, session_id)
     try:
-        events = _translate_content(name, session_id, payload, received_at)
+        events = _translate_content(name, session_id, payload, received_at, turn)
     except _Malformed as error:
         return HookTranslation(HookStatus.IGNORED, name, session_id, reason=str(error))
     if events is None:
@@ -121,6 +131,7 @@ def _translate_content(
     session_id: str,
     payload: Mapping[str, Any],
     received_at: datetime | None,
+    turn: str | None = None,
 ) -> tuple[Event, ...] | None:
     source = _source(payload)
     if name == "UserPromptSubmit":
@@ -154,7 +165,7 @@ def _translate_content(
             return (request,)
         return (request, _completion(session_id, payload, request, key, received_at))
     if name == "Stop":
-        return (_stop(session_id, source, received_at),)
+        return (_stop(session_id, source, received_at, turn),)
     if name == "SubagentStop":
         return (_subagent_stop(session_id, payload, source, received_at),)
     return None
@@ -168,7 +179,24 @@ def _second(received_at: datetime | None) -> tuple[str, ...]:
     return (received_at.replace(microsecond=0).isoformat(),)
 
 
-def _stop(session_id: str, source: str, received_at: datetime | None) -> Event:
+def _stop(
+    session_id: str, source: str, received_at: datetime | None, turn: str | None
+) -> Event:
+    if turn:
+        # The shared rule: the transcript records this stop too, keyed by the
+        # same turn (TER-OBS-005).
+        return Event(
+            id=stop_event_id(session_id, turn),
+            session_id=session_id,
+            sequence=0,
+            kind=EventKind.TASK_COMPLETED,
+            actor=Actor.SYSTEM,
+            text="",
+            provenance=Provenance(source, f"stop:turn:{turn}"),
+            timestamp=received_at,
+        )
+    # Without a readable transcript the stop is keyed by when it arrived; it
+    # then cannot correlate with the transcript.
     when = _second(received_at)
     return Event(
         id=make_event_id(_SOURCE, session_id, "Stop", *when),

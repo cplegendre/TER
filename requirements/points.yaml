@@ -1758,12 +1758,13 @@ points:
     real_data: true
     definition_of_done:
       - Stop hooks emit a task completion event.
-    rules: [TER-OBS-002, TER-OBS-005, TER-OBS-009, TER-OBS-010]
+    rules: [TER-OBS-002, TER-OBS-005, TER-OBS-009, TER-OBS-010, TER-OBS-012]
     verification:
       - 'test: tests/unit/test_ter4_hook_lifecycle.py::test_stop_appends_one_task_completed_event'
       - 'test: tests/unit/test_ter4_hook_lifecycle.py::test_record_writes_the_raw_payload_before_translating'
-      - 'planned: the task.completed id equals the id derived from the JSONL stop (TER-OBS-005)'
-      - 'planned: real-data verification in issue #35'
+      - 'test: tests/unit/test_ter4_hook_check.py::TestStopRule::test_the_live_stop_hook_uses_the_same_id'
+      - 'test: tests/unit/test_ter4_hook_check.py::TestHookCheck'
+      - 'planned: real-data verification of TER-OBS-005 with `python -m ter hooks check` in issue #35'
 
   - id: P116
     text: >-
@@ -1795,10 +1796,11 @@ points:
       - >-
         Every hook event correlates with its JSONL record by event id,
         including prompts.
-    rules: [TER-OBS-007, TER-OBS-005, TER-OBS-010]
+    rules: [TER-OBS-007, TER-OBS-005, TER-OBS-010, TER-OBS-012]
     verification:
       - 'test: tests/unit/test_ter4_hook_lifecycle.py::test_recordings_replay_to_the_same_events'
-      - 'planned: prompt correlation test across hook and JSONL'
+      - 'test: tests/unit/test_ter4_hook_check.py::TestHookCheck'
+      - 'planned: shared id rule for prompts and tool calls (the check reports them as same record, different id rule)'
       - 'planned: real-data verification in issue #35'
 
   - id: P118
@@ -1811,9 +1813,10 @@ points:
       - >-
         Static and live observation of the same record produce the same
         event id.
-    rules: [TER-OBS-007, TER-SRC-004]
+    rules: [TER-OBS-007, TER-SRC-004, TER-OBS-012]
     verification:
       - 'test: tests/golden/test_event_stream_snapshot.py::test_event_stream_matches_golden_snapshot'
+      - 'test: tests/unit/test_ter4_hook_check.py::TestStopRule'
       - 'planned: hook and transcript observation of one record share an event id (TER-OBS-007)'
 
   - id: P119

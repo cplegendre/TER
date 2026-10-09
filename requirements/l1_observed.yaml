@@ -175,6 +175,22 @@ requirements:
       upgrade stays readable after it.
     status: verified
 
+  - id: TER-OBS-012
+    pattern: event-driven
+    text: >-
+      When the hook check runs on recorded hook payloads and transcripts, TER
+      shall report for each session the share of hook events whose id matches
+      a session-source event, without reproducing payload content.
+    level: L1
+    source_points: [115, 117, 118]
+    rationale: >-
+      Issue #35: TER-OBS-005 and TER-OBS-007 can only be verified against real
+      recordings, which stay on the owner's machine. `python -m ter hooks
+      check` replays them through the live hook path and reports counts, ids,
+      reasons and field names, so the result can be shared when the
+      recordings cannot.
+    status: verified
+
   - id: TER-SRC-005
     pattern: ubiquitous
     text: >-

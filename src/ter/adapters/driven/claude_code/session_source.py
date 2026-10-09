@@ -9,6 +9,7 @@ an honest count of records it could not map.
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 from ter_calculator.loader import load_session
@@ -28,6 +29,7 @@ from ....domain.events import (
     make_event_id,
 )
 from ...claude_code_tools import tool_kind
+from ...claude_code_turns import read_records, record_time, stop_event_id, stop_records
 
 #: Record types that carry conversation content and are mapped to events.
 _CONTENT_TYPES = frozenset({"user", "assistant"})
@@ -95,7 +97,7 @@ class ClaudeCodeJsonlSource:
         return SessionTrace(
             session_id=session.session_id,
             source_format=self.format_name,
-            events=tuple(events),
+            events=_with_stops(path, session.session_id, source, events),
             unrecognised=unrecognised,
         )
 
@@ -211,3 +213,60 @@ def _usage(
 def _lines(message: Message, block: ContentBlock) -> tuple[int, ...]:
     lines = block.source_lines or ([block.source_line] if block.source_line else [])
     return tuple(lines or message.source_lines)
+
+
+def _with_stops(
+    path: Path, session_id: str, source: str, events: list[Event]
+) -> tuple[Event, ...]:
+    """``events`` with a ``task.completed`` for each stop the transcript records.
+
+    A stop is a ``stop_hook_summary`` record; its id comes from the turn it
+    closes, by the rule the Stop hook uses too
+    (:mod:`ter.adapters.claude_code_turns`, TER-OBS-005). Each stop goes after
+    the events read from lines before it, and the sequence and ``parent_id``
+    chain follow the merged order. A transcript without stops is unchanged.
+    """
+    with open(path, encoding="utf-8") as handle:
+        numbered = (
+            (line_number, record)
+            for line_number, line in enumerate(handle, 1)
+            for record in read_records((line,))
+        )
+        stops = [
+            Event(
+                id=stop_event_id(session_id, turn),
+                session_id=session_id,
+                sequence=0,
+                kind=EventKind.TASK_COMPLETED,
+                actor=Actor.SYSTEM,
+                text="",
+                provenance=Provenance(
+                    source=source,
+                    record_id=str(record.get("uuid") or f"stop:turn:{turn}"),
+                    lines=(line_number,),
+                ),
+                timestamp=record_time(record),
+            )
+            for line_number, record, turn in stop_records(numbered)
+        ]
+    if not stops:
+        return tuple(events)
+    merged: list[Event] = []
+    pending = iter(stops)
+    stop = next(pending, None)
+    for event in events:
+        while stop is not None and stop.provenance.lines[0] < min(
+            event.provenance.lines or (stop.provenance.lines[0] + 1,)
+        ):
+            merged.append(stop)
+            stop = next(pending, None)
+        merged.append(event)
+    while stop is not None:
+        merged.append(stop)
+        stop = next(pending, None)
+    chained: list[Event] = []
+    previous: EventId | None = None
+    for sequence, event in enumerate(merged):
+        chained.append(replace(event, sequence=sequence, parent_id=previous))
+        previous = event.id
+    return tuple(chained)
