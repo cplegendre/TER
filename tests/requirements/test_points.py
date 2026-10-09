@@ -268,9 +268,13 @@ def test_index_links_issues() -> None:
 
 def test_shipped_real_data_points_match_their_issues() -> None:
     real = {p.id: p.issue for p in CATALOGUE.points if p.real_data}
-    assert len(real) == 46
-    assert all(issue is not None and 34 <= issue <= 46 for issue in real.values())
-    assert real["P115"] == 35 and real["P200"] == 45
+    assert len(real) == 47
+    # #34 to #46 collect Claude Code sessions; #55 a real recorded GARE run.
+    assert all(
+        issue is not None and (34 <= issue <= 46 or issue == 55)
+        for issue in real.values()
+    )
+    assert real["P115"] == 35 and real["P200"] == 45 and real["P103"] == 55
 
 
 # -- repository checks --------------------------------------------------------

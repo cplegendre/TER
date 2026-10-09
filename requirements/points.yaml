@@ -1583,6 +1583,11 @@ points:
     level: L0
     kind: principle
     status: done
+    # Real GARE run c2ffdf8f1b09 (GARE 0.0.50, local Ollama) in
+    # tests/fixtures/gare/runs/ passes the contract suite as gare-run-real.
+    issue: 55
+    real_data: true
+    real_data_verified: true
     definition_of_done:
       - The event model uses provider-neutral tool kinds.
       - A second harness adapter passes the SessionSource contract suite.
@@ -1591,7 +1596,9 @@ points:
       - 'test: tests/unit/test_ter4_adapters.py::TestToolMap::test_every_kind_except_other_has_a_claude_tool'
       - 'test: tests/contract/test_session_source.py'
       - 'test: tests/unit/test_ter4_gare.py'
-      - 'planned: a real recorded GARE run passes the same suite (issue #55, TER-SRC-010)'
+      - 'test: tests/unit/test_ter4_gare.py::test_a_real_mission_maps_its_attempts_review_and_outcome'
+      - 'test: tests/unit/test_ter4_gare.py::test_a_real_runs_usage_matches_both_exports'
+      - 'planned: a real recorded GARE failover; the real run skipped its unavailable route without a call, so route.failover is still proven on the mock failover-run only'
 
   - id: P104
     text: >-
@@ -1623,6 +1630,7 @@ points:
       - 'test: tests/architecture/test_import_contracts.py'
       - 'test: tests/unit/test_ter4_gare.py::test_gare_traces_carry_no_cache_tokens_and_say_so'
       - 'test: tests/unit/test_ter4_gare.py::test_explanations_and_a3s_state_the_sources_limits'
+      - 'test: tests/unit/test_ter4_gare.py::test_observe_and_explain_read_the_real_run'
 
   - id: P106
     text: >-

@@ -17,7 +17,8 @@ The run becomes one session:
 GARE                      ter.event kind              actor
 ========================  ==========================  =========
 run event ``created``     ``intent.stated``           user
-``route_decision``        ``route.selected``          system
+``route_decision`` (the   ``route.selected``          system
+top candidate called)
 ``task_started``, first   ``attempt.started``         assistant
 route of a mission
 coder attempt
@@ -166,9 +167,6 @@ class GareRunSource:
                 rows.append((usage_path.name, line, row))
 
         run_id = _run_id(explain, rows, path)
-        groups: list[list[_Draft]] = []
-        if explain is not None:
-            groups.append(list(_run_events(explain, unrecognised)))
         usage_rows: list[tuple[str, int, dict[str, Any]]] = []
         for entry in rows:
             other = str(entry[2].get("run_id"))
@@ -176,6 +174,10 @@ class GareRunSource:
                 usage_rows.append(entry)
             else:
                 unrecognised.append(UnrecognisedRecord(entry[1], f"other-run:{other}"))
+        groups: list[list[_Draft]] = []
+        if explain is not None:
+            called = _called_routes(usage_rows, explain)
+            groups.append(list(_run_events(explain, unrecognised, called)))
         if usage_rows:
             groups.append(list(_usage_events(usage_rows, explain)))
         elif explain is not None:
@@ -304,7 +306,9 @@ def _run_id(
 
 
 def _run_events(
-    explain: Mapping[str, Any], unrecognised: list[UnrecognisedRecord]
+    explain: Mapping[str, Any],
+    unrecognised: list[UnrecognisedRecord],
+    called: Mapping[str, frozenset[tuple[str, str]]],
 ) -> Iterator[_Draft]:
     goal = str(explain["run"].get("goal") or "")
     attempts: set[int] = set()
@@ -346,7 +350,9 @@ def _run_events(
         elif state == "route_decision":
             task = str(detail.get("task_id") or "")
             yield draft(
-                EventKind.ROUTE_SELECTED, Actor.SYSTEM, _route_text(task, detail)
+                EventKind.ROUTE_SELECTED,
+                Actor.SYSTEM,
+                _route_text(task, detail, called.get(task, frozenset())),
             )
             match = _MISSION_ATTEMPT.match(task)
             if match and int(match.group(1)) not in attempts:
@@ -379,15 +385,48 @@ def _run_events(
             unrecognised.append(UnrecognisedRecord(index + 1, f"run_event:{state}"))
 
 
-def _route_text(task: str, detail: Mapping[str, Any]) -> str:
+def _route_text(
+    task: str, detail: Mapping[str, Any], called: frozenset[tuple[str, str]]
+) -> str:
+    """The route a decision selected: the highest-ranked candidate the run
+    called for the task. GARE ranks candidates before it checks them, so a
+    route ranked above that one which the run never called (an unavailable
+    provider GARE skipped) is named as not called rather than as selected.
+    When the run called none of the candidates, the top one stands."""
     candidates = [c for c in detail.get("candidates") or [] if isinstance(c, Mapping)]
     if not candidates:
         return f"{task}: no route"
-    first = candidates[0]
-    text = f"{task}: {first.get('provider')}/{first.get('model')}"
-    if len(candidates) > 1:
-        text += f" (of {len(candidates)} candidates)"
+    routes = [(str(c.get("provider")), str(c.get("model"))) for c in candidates]
+    rank = next((i for i, route in enumerate(routes) if route in called), 0)
+    provider, model = routes[rank]
+    text = f"{task}: {provider}/{model}"
+    if rank:
+        skipped = ", ".join(f"{p}/{m}" for p, m in routes[:rank])
+        text += f" (rank {rank + 1} of {len(routes)}; not called: {skipped})"
+    elif len(routes) > 1:
+        text += f" (of {len(routes)} candidates)"
     return text
+
+
+def _called_routes(
+    rows: Iterable[tuple[str, int, dict[str, Any]]], explain: Mapping[str, Any]
+) -> dict[str, frozenset[tuple[str, str]]]:
+    """Every (provider, model) the run called per task: usage rows (failed or
+    not), recorded errors and each task's final route."""
+    found: dict[str, set[tuple[str, str]]] = {}
+
+    def add(task: object, provider: object, model: object) -> None:
+        if task and provider:
+            found.setdefault(str(task), set()).add((str(provider), str(model)))
+
+    for _, _, row in rows:
+        add(row.get("task_id"), row.get("provider"), row.get("model"))
+    for task, provider, model in _errors(explain):
+        add(task, provider, model)
+    for task in explain["tasks"]:
+        if isinstance(task, Mapping):
+            add(task.get("id"), task.get("provider"), task.get("model"))
+    return {task: frozenset(routes) for task, routes in found.items()}
 
 
 def _verification_text(state: str, detail: Mapping[str, Any]) -> str:

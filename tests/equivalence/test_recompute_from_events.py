@@ -43,6 +43,7 @@ SESSIONS: dict[str, tuple[SessionSource, Path]] = {
     **{name: (ClaudeCodeJsonlSource(), path) for name, path in CORPUS.items()},
     "gare-failover-run": (GareRunSource(), GARE / "failover-run"),
     "gare-repair-mission": (GareRunSource(), GARE / "repair-mission"),
+    "gare-real-c2ffdf8f1b09": (GareRunSource(), GARE / "runs" / "c2ffdf8f1b09"),
 }
 
 

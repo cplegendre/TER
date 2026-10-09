@@ -93,7 +93,10 @@ def spies(monkeypatch: pytest.MonkeyPatch) -> list[SpyIngest]:
 
 
 def _gare_runs() -> list[Path]:
-    return sorted(p for p in GARE_RUNS.iterdir() if p.is_dir())
+    """The mock runs, and the real recorded runs under ``runs/`` (issue #55)."""
+    real = GARE_RUNS / "runs"
+    mocks = [p for p in GARE_RUNS.iterdir() if p.is_dir() and p != real]
+    return sorted(mocks + [p for p in real.iterdir() if p.is_dir()])
 
 
 def _assert_ter_events(trace: SessionTrace) -> None:
