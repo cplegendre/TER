@@ -13,6 +13,7 @@ from ter.domain.lean import (
     FindingKind,
     LeanAnalysis,
     LeanWaste,
+    Outcome,
     explain,
 )
 
@@ -313,9 +314,25 @@ class TestUnvalidatedImplementation:
         s.prompt("fix it")
         s.read("src/a.py")
         s.edit("src/a.py")
-        s.bash("sed -i 's/x/y/' src/b.py && pytest -q tests/unit", PASS)
+        _, done = s.bash("sed -i 's/x/y/' src/b.py && pytest -q tests/unit", PASS)
         s.say("Done.")
-        assert found(s, "unvalidated_implementation") == []
+        a = run(s)
+        assert [
+            f for f in a.findings if f.detector == "unvalidated_implementation"
+        ] == []
+        assert done is not None
+        [result] = [x for x in a.steps if x.event_id == done.id]
+        assert result.outcome is Outcome.PASSED
+
+    def test_failing_check_chained_after_a_change_is_reported(self) -> None:
+        s = Script()
+        s.prompt("fix it")
+        s.read("src/a.py")
+        s.edit("src/a.py")
+        s.bash("sed -i 's/x/y/' src/b.py && pytest -q tests/unit", FAIL)
+        s.say("Done, mostly.")
+        [f] = found(s, "unvalidated_implementation")
+        assert "failing" in f.title and f.confidence == 0.85
 
     def test_check_before_a_commit_validates_the_edits(self) -> None:
         s = Script()

@@ -233,7 +233,10 @@ class StepLog:
                 paths = request.paths
                 command = request.command
                 subject = request.subject
-                if shell is ShellIntent.VALIDATE:
+                # A check chained beside a change (``sed -i … && pytest``)
+                # reports its outcome too: the detector that clears edits on
+                # it must also see when it failed.
+                if shell is ShellIntent.VALIDATE or request.runs_check:
                     outcome = validation_outcome(event.text)
                     if outcome is Outcome.FAILED:
                         signature = failure_signature(event.text)
