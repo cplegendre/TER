@@ -301,7 +301,7 @@
       "waste": "over_processing"
     },
     {
-      "confidence_rule": "At least 3 consecutive edit calls to one file with only reasoning and their results in between. 0.70 for 3, plus 0.05 per extra edit, capped at 0.85. Only the round-trip overhead (results and waiting of edits after the first) is counted as waste, never the change itself.",
+      "confidence_rule": "Consecutive edit calls to one file, with only reasoning and the results of those edits in between, spread over at least 3 round trips (a round trip ends when a result arrives; calls sent together before any result are one round trip). 0.70 for 3 round trips, plus 0.05 per extra, capped at 0.85. Only the round-trip overhead (the results of edits after the first round trip) is counted as waste, never the change itself.",
       "id": "fragmented_edits",
       "kind": "waste",
       "waste": "motion"
@@ -964,13 +964,13 @@
         "12bb38c11ea216b3",
         "15982991b6d5b880"
       ],
-      "explanation": "3 consecutive edits to src/net.py, each a separate tool round trip, where one multi-edit would do.",
+      "explanation": "3 consecutive edits to src/net.py took 3 round trips, each waiting for the previous result. Edits planned together can be sent in one turn as parallel Edit calls.",
       "id": "fragmented_edits:325bf58465a44796",
       "kind": "waste",
       "seconds": 0.0,
       "share": 1.0,
       "subject": "src/net.py",
-      "title": "3 separate edits to src/net.py",
+      "title": "3 edits to src/net.py over 3 round trips",
       "tokens": 0,
       "uncertain": false,
       "waste": "motion",

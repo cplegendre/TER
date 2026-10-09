@@ -647,13 +647,13 @@
         {
           "kind": "claude_md",
           "language": "markdown",
-          "snippet": "- Change existing files with Edit or MultiEdit; use Write only for new files or rewrites the user asked for.",
+          "snippet": "- Change existing files with Edit; use Write only for new files or rewrites the user asked for.",
           "text": "Reserve whole-file writes for new files."
         },
         {
           "kind": "hook",
           "language": "json+bash",
-          "snippet": "{\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"Write\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"\\\"$CLAUDE_PROJECT_DIR\\\"/.claude/hooks/edit-not-write.sh\"\n          }\n        ]\n      }\n    ]\n  }\n}\n\n#!/usr/bin/env bash\n# .claude/hooks/edit-not-write.sh: PreToolUse(Write). Blocks whole-file rewrites\n# of files that already exist, so changes go through Edit/MultiEdit.\nfile=$(jq -r '.tool_input.file_path // empty')\nif [ -n \"$file\" ] && [ -f \"$file\" ]; then\n  echo \"$file exists: change it with Edit or MultiEdit instead of rewriting it.\" >&2\n  exit 2\nfi\n",
+          "snippet": "{\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"Write\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"\\\"$CLAUDE_PROJECT_DIR\\\"/.claude/hooks/edit-not-write.sh\"\n          }\n        ]\n      }\n    ]\n  }\n}\n\n#!/usr/bin/env bash\n# .claude/hooks/edit-not-write.sh: PreToolUse(Write). Blocks whole-file rewrites\n# of files that already exist, so changes go through Edit.\nfile=$(jq -r '.tool_input.file_path // empty')\nif [ -n \"$file\" ] && [ -f \"$file\" ]; then\n  echo \"$file exists: change it with Edit instead of rewriting it.\" >&2\n  exit 2\nfi\n",
           "text": "Block whole-file rewrites of existing files (rewritten: `src/app.py`)."
         }
       ],
@@ -773,7 +773,7 @@
       "waste": "over_processing"
     },
     {
-      "confidence_rule": "At least 3 consecutive edit calls to one file with only reasoning and their results in between. 0.70 for 3, plus 0.05 per extra edit, capped at 0.85. Only the round-trip overhead (results and waiting of edits after the first) is counted as waste, never the change itself.",
+      "confidence_rule": "Consecutive edit calls to one file, with only reasoning and the results of those edits in between, spread over at least 3 round trips (a round trip ends when a result arrives; calls sent together before any result are one round trip). 0.70 for 3 round trips, plus 0.05 per extra, capped at 0.85. Only the round-trip overhead (the results of edits after the first round trip) is counted as waste, never the change itself.",
       "id": "fragmented_edits",
       "kind": "waste",
       "waste": "motion"
