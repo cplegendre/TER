@@ -37,6 +37,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 
 from .maturity import Maturity
+from .signal import Signal
 
 __all__ = [
     "ADVICE_CONFIDENCE",
@@ -79,33 +80,6 @@ class Outcome(StrEnum):
     LOW_CONFIDENCE = "low_confidence"
     BELOW_HYSTERESIS = "below_hysteresis"
     COOLDOWN = "cooldown"
-
-
-@dataclass(frozen=True)
-class Signal:
-    """One structured detector signal: what the Intervention Engine reads.
-
-    ``position`` is the number of tool events observed when the signal became
-    known (its last cited event), the clock cooldowns count in. ``evidence``
-    lists the event ids the signal rests on; ``rule`` is the detector's
-    published confidence rule.
-    """
-
-    id: str
-    detector: str
-    waste: str
-    kind: str
-    confidence: float
-    title: str
-    subject: str
-    evidence: tuple[str, ...]
-    rule: str
-    position: int
-
-    @property
-    def has_evidence(self) -> bool:
-        """True when the signal cites at least one event (TER-INT-007)."""
-        return bool(self.evidence)
 
 
 @dataclass(frozen=True)
@@ -168,12 +142,21 @@ class Eligibility:
     """The calibration policy: detectors eligible for intervention (TER-INT-010).
 
     A detector is a waste category here: each detector names one kind of one
-    Lean waste, and judging happens per detector. ``basis`` says where the
-    list came from (a judged sample), so a report can cite it.
+    Lean waste, and judging happens per detector, so eligibility is per
+    detector too (a Lean waste spans detectors judged differently). ``basis``
+    names the judged sample behind the list; it is required whenever the list
+    is not empty.
     """
 
     detectors: frozenset[str]
-    basis: str = ""
+    basis: str
+
+    def __post_init__(self) -> None:
+        if self.detectors and not self.basis.strip():
+            raise PolicyError(
+                "an eligibility list needs its basis: the judged sample that "
+                "made its detectors eligible (TER-INT-010)"
+            )
 
     def allows(self, detector: str) -> bool:
         return detector in self.detectors
@@ -203,20 +186,30 @@ class Verdict:
 class _PolicyState:
     pending: int = 0
     fired_at: int | None = None
+    #: Signal ids counted toward ``pending`` or advised, so a re-derived
+    #: finding is never counted or advised twice.
+    counted: set[str] = field(default_factory=set)
+    advised: set[str] = field(default_factory=set)
 
 
 @dataclass
 class InterventionEngine:
     """The incremental Intervention Engine: one signal at a time.
 
-    Apply signals in the order they became known (by ``position``); applying
-    a signal id twice changes nothing and returns no verdicts.
+    Apply signals in the order they became known (by ``position``). Applying
+    the same signal twice changes nothing and returns no verdicts. Live
+    analysis re-derives findings, so a signal id can come back with a new
+    :attr:`~ter.domain.signal.Signal.revision` (a result arrived and raised
+    its confidence): it is judged again, but never counted toward hysteresis
+    twice and never advised twice by one policy.
     """
 
     policies: tuple[Policy, ...]
     eligibility: Eligibility
     ceiling: Maturity = Maturity.ADVISORY
-    _seen: set[str] = field(default_factory=set, init=False, repr=False)
+    _seen: dict[str, tuple[float, tuple[str, ...]]] = field(
+        default_factory=dict, init=False, repr=False
+    )
     _state: dict[str, _PolicyState] = field(
         default_factory=dict, init=False, repr=False
     )
@@ -227,14 +220,18 @@ class InterventionEngine:
             raise PolicyError("policy ids must be unique")
 
     def apply(self, signal: Signal) -> tuple[Verdict, ...]:
-        if signal.id in self._seen:
+        if self._seen.get(signal.id) == signal.revision:
             return ()
-        self._seen.add(signal.id)
+        self._seen[signal.id] = signal.revision
         return tuple(
             self._judge(signal, policy)
             for policy in self.policies
             if policy.answers(signal)
+            and signal.id not in self._state_of(policy).advised
         )
+
+    def _state_of(self, policy: Policy) -> _PolicyState:
+        return self._state.setdefault(policy.id, _PolicyState())
 
     def _judge(self, signal: Signal, policy: Policy) -> Verdict:
         def verdict(outcome: Outcome, reason: str) -> Verdict:
@@ -263,7 +260,7 @@ class InterventionEngine:
                 f"confidence {signal.confidence:.2f} is below "
                 f"{policy.confidence_floor:.2f}",
             )
-        state = self._state.setdefault(policy.id, _PolicyState())
+        state = self._state_of(policy)
         if (
             state.fired_at is not None
             and signal.position - state.fired_at < policy.cooldown_tool_events
@@ -273,7 +270,9 @@ class InterventionEngine:
                 f"{policy.id} fired {signal.position - state.fired_at} tool "
                 f"event(s) ago; cooldown is {policy.cooldown_tool_events}",
             )
-        state.pending += 1
+        if signal.id not in state.counted:
+            state.counted.add(signal.id)
+            state.pending += 1
         if state.pending < policy.min_signals:
             return verdict(
                 Outcome.BELOW_HYSTERESIS,
@@ -282,6 +281,7 @@ class InterventionEngine:
             )
         state.pending = 0
         state.fired_at = signal.position
+        state.advised.add(signal.id)
         return Verdict(
             signal,
             policy.id,

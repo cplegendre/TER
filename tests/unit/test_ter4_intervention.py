@@ -72,7 +72,9 @@ def test_a_matching_signal_gets_the_policys_advice_with_its_evidence() -> None:
 
 
 def test_a_signal_no_policy_answers_gets_no_verdict() -> None:
-    engine = InterventionEngine((policy(),), Eligibility(frozenset({"regeneration"})))
+    engine = InterventionEngine(
+        (policy(),), Eligibility(frozenset({"regeneration"}), "judged")
+    )
     assert engine.apply(signal(detector="regeneration")) == ()
 
 
@@ -140,7 +142,7 @@ def test_policy_ids_are_unique() -> None:
 
 @pytest.mark.req("TER-INT-010")
 def test_a_detector_not_marked_eligible_is_never_advised() -> None:
-    engine = InterventionEngine((policy(),), Eligibility(frozenset()))
+    engine = InterventionEngine((policy(),), Eligibility(frozenset(), ""))
     [verdict] = engine.apply(signal())
     assert verdict.outcome is Outcome.INELIGIBLE and "calibration" in verdict.reason
 
@@ -274,3 +276,44 @@ def test_detector_signals_carry_evidence_rule_and_tool_event_position() -> None:
     assert found.position == 3  # the third tool call is the re-read
     [verdict] = decide([found], [policy()], ELIGIBLE)
     assert verdict.advised
+
+
+@pytest.mark.req("TER-INT-010")
+def test_an_eligibility_list_needs_its_judged_basis() -> None:
+    with pytest.raises(PolicyError, match="basis"):
+        Eligibility(frozenset({"repeated_exploration"}), " ")
+
+
+# --- live re-derivation: a finding can come back stronger under its id -----
+
+
+@pytest.mark.req("TER-INT-006")
+def test_a_finding_confirmed_later_is_judged_again() -> None:
+    # Live, a re-read is first seen with its result pending (0.55), then
+    # confirmed (0.85) under the same id once the result arrives.
+    engine = InterventionEngine((policy(),), ELIGIBLE)
+    pending = signal(1, confidence=0.55, evidence=("e1", "e2"))
+    confirmed = replace(pending, confidence=0.85, evidence=("e1", "e2", "e3"))
+    assert [v.outcome for v in engine.apply(pending)] == [Outcome.LOW_CONFIDENCE]
+    assert [v.outcome for v in engine.apply(confirmed)] == [Outcome.ADVISED]
+    assert decide([confirmed], [policy()], ELIGIBLE)[0].advised
+
+
+@pytest.mark.req("TER-INT-016")
+def test_an_advised_finding_is_never_advised_again_when_it_changes() -> None:
+    engine = InterventionEngine((policy(cooldown_tool_events=0),), ELIGIBLE)
+    first = signal(1, confidence=0.80)
+    assert engine.apply(first)[0].advised
+    assert engine.apply(replace(first, confidence=0.90)) == ()
+
+
+@pytest.mark.req("TER-INT-016")
+def test_a_re_derived_finding_counts_once_toward_hysteresis() -> None:
+    engine = InterventionEngine(
+        (policy(min_signals=2, cooldown_tool_events=0),), ELIGIBLE
+    )
+    first = signal(1, confidence=0.80)
+    assert engine.apply(first)[0].outcome is Outcome.BELOW_HYSTERESIS
+    again = engine.apply(replace(first, confidence=0.90))
+    assert again[0].outcome is Outcome.BELOW_HYSTERESIS
+    assert engine.apply(signal(2))[0].advised

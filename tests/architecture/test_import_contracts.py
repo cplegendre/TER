@@ -25,6 +25,7 @@ EXPECTED_CONTRACTS = {
     "behaviour-blind-to-outcome",
     "provider-neutral-evidence",
     "intervention-reads-signals",
+    "analysis-knows-no-intervention",
 }
 
 
@@ -37,6 +38,9 @@ def test_the_intervention_engine_reads_only_signals() -> None:
     assert {"ter.domain.lean", "ter.domain.stream", "ter.domain.events"} <= set(
         engine["forbidden_modules"]
     )
+    analysis = contracts["analysis-knows-no-intervention"]
+    assert "ter.domain.lean" in analysis["source_modules"]
+    assert analysis["forbidden_modules"] == ["ter.domain.intervention"]
 
 
 @pytest.mark.req("TER-ARC-001")

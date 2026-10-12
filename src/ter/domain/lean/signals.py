@@ -2,7 +2,7 @@
 
 The Intervention Engine (:mod:`ter.domain.intervention`) never reads events,
 steps or findings (TER-INT-006). :func:`detector_signals` exports each
-finding of an analysis as a :class:`~ter.domain.intervention.Signal`, with
+finding of an analysis as a :class:`~ter.domain.signal.Signal`, with
 its evidence ids, its detector's published confidence rule, and the number
 of tool events observed when it became known (its last cited event), which
 is the clock that policy cooldowns count in.
@@ -10,7 +10,7 @@ is the clock that policy cooldowns count in.
 
 from __future__ import annotations
 
-from ..intervention import Signal
+from ..signal import Signal
 from .analysis import LeanAnalysis
 
 __all__ = ["detector_signals"]

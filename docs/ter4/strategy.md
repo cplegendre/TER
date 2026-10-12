@@ -214,8 +214,8 @@ suppressed by cooldown and suppressed for ineligible categories.
    with the evidence, eligibility and cooldown guards (TER-INT-006,
    TER-INT-007, TER-INT-010, TER-INT-016). Incremental equals batch.
    **Done** for signals, policies and guards (`ter.domain.intervention`,
-   `ter.domain.lean.signals`, the `intervention-reads-signals` import
-   contract); ledger-record values come with step 3.
+   `ter.domain.lean.signals`, the shared `ter.domain.signal`, and import
+   contracts in both directions); ledger-record values come with step 3.
 2. Policy files: a JSON policy reader as a capability, with an approval
    record (TER-INT-008, TER-ARC-008, TER-INT-015).
 3. `InterventionLedger` port, JSONL adapter, fake and contract suite
