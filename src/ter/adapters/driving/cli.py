@@ -9,6 +9,7 @@ Commands::
     python -m ter observe SESSION.jsonl [--timeline] [--json]
     python -m ter observe --event-log DIR [--session ID] [--timeline] [--json]
     python -m ter hook [--event-log DIR] [--record DIR]  # one payload on stdin
+                       [--advise POLICIES [--ledger DIR]]  # L4 advice on Stop
     python -m ter explain SESSION.jsonl [--json] [--graph FILE] [--outcome FILE]
                                         [--repo DIR [--repo-engine NAME]]
     python -m ter a3 SESSION.jsonl [--html FILE] [--json [FILE]] [--graph FILE]
@@ -51,7 +52,7 @@ from ...domain.stack import StackKind, stack_label
 from ...domain.stream import StreamReport
 from ...ports.driven import Clock
 from ...ports.driving import EventIngest
-from .claude_hooks import HookStatus, run_hook
+from .claude_hooks import AdviseHook, HookResult, HookStatus, run_hook
 from .context_cli import ContextServices, add_context_parser, run_context
 from .control_cli import ControlServices, add_control_parser, run_control
 from .policy_cli import PolicyServices, add_policy_parser, run_policy
@@ -171,6 +172,9 @@ class CliServices:
     control: ControlServices | None = None
     #: L4 intervention policy files (``python -m ter policy``, TER-INT-008).
     policies: PolicyServices | None = None
+    #: L4 live advice: ``hook_advise(event_log, session_id, policies, ledger)``
+    #: gives the messages due to the developer (TER-INT-003).
+    hook_advise: Callable[[Path, str, Path, Path], tuple[str, ...]] | None = None
 
 
 def main(
@@ -192,6 +196,7 @@ def main(
             lambda: services.hook_ingest(log_dir),
             clock=services.hook_clock,
             record_to=args.record,
+            advise=_hook_advice(args, services, log_dir),
         )
         # Still exit 0 so the agent carries on; stderr leaves a trace
         # (Claude Code shows it in verbose mode and debug logs).
@@ -199,6 +204,8 @@ def main(
             err.write(f"ter hook: payload not recorded: {result.record_error}\n")
         if result.status is HookStatus.IGNORED and result.reason:
             err.write(f"ter hook: event not recorded: {result.reason}\n")
+        if result.advice_error:
+            err.write(f"ter hook: no advice given: {result.advice_error}\n")
         return 0
     if (
         args.command in ("observe", "explain", "a3", "context", "route")
@@ -385,6 +392,24 @@ def _route(
     else:
         out.write(format_routing(routed.plan, routed.analysis.repository is not None))
     return 0
+
+
+def _hook_advice(
+    args: argparse.Namespace, services: CliServices, log_dir: Path
+) -> AdviseHook | None:
+    """The advice step of ``ter hook --advise POLICIES``, or ``None`` without it."""
+    policies: Path | None = args.advise
+    advise = services.hook_advise
+    if policies is None or advise is None:
+        return None
+    ledger: Path = args.ledger if args.ledger is not None else log_dir / "ledger"
+
+    def advice(result: HookResult) -> tuple[str, ...]:
+        if not result.session_id:
+            return ()
+        return advise(log_dir, result.session_id, policies, ledger)
+
+    return advice
 
 
 def _hooks_check(
@@ -714,6 +739,21 @@ def _parser(default_log_dir: Path, out: IO[str]) -> argparse.ArgumentParser:
         metavar="DIR",
         help="also save the raw payload to DIR/<session>/<seq>-<hook>.json "
         "(for collecting real hook payloads; contains tool inputs and output)",
+    )
+    hook.add_argument(
+        "--advise",
+        type=Path,
+        default=None,
+        metavar="POLICIES",
+        help="L4 Advisory: at the end of each turn (Stop), show the developer "
+        "the advice the approved policy file gives; never changes the agent's input",
+    )
+    hook.add_argument(
+        "--ledger",
+        type=Path,
+        default=None,
+        metavar="DIR",
+        help="where --advise records its decisions (default <event-log>/ledger)",
     )
 
     hooks = commands.add_parser(

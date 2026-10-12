@@ -50,10 +50,10 @@ test. Counts from `requirements/l*.yaml` on this commit:
 | L1 Observed | 22 of 22 | 0 | 15 / 1 / 0 |
 | L2 Explained | 72 of 72 | 0 | 50 / 5 / 0 |
 | L3 Grounded | 35 of 35 | 0 | 25 / 23 / 0 |
-| L4 Advisory | 9 of 18 | 9 | 13 / 5 / 21 |
+| L4 Advisory | 12 of 18 | 6 | 16 / 5 / 18 |
 | L5 Corrective | 0 of 10 | 10 | 1 / 4 / 8 |
 | L6 Learning | 11 of 19 | 8 | 1 / 4 / 14 |
-| **All** | **175 of 202** | **27** | **115 / 43 / 43** of 201 |
+| **All** | **178 of 202** | **24** | **118 / 43 / 40** of 201 |
 
 The L6 requirements already verified are the ones that did not have to wait:
 a second harness (the GARE session source, TER-SRC-010 to TER-SRC-017) and
@@ -245,6 +245,12 @@ suppressed by cooldown and suppressed for ineligible categories.
    data step before step 5.
 5. `InterventionChannel` port and the advisory adapter; ceiling-aware
    `test_no_intervention.py` (TER-INT-002, TER-INT-003, TER-INT-014).
+   **Done**: `python -m ter hook --advise POLICIES [--ledger DIR]` decides
+   on the session's signals at each `Stop` (`ter.application.advise`, the
+   same decisions as shadow mode), ledgers them, and shows the new advice as
+   the hook's `systemMessage`, which the developer sees and the model does
+   not. The `InterventionChannel` port has a message adapter, a fake and a
+   contract suite. See [l4-advisory.md](l4-advisory.md#live-advice).
 6. Ledger follow-up and policy effectiveness (TER-INT-011, TER-INT-012).
 7. The control loop wired in bootstrap (TER-INT-013); raise CI to
    `--gate L4`.

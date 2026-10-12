@@ -20,26 +20,19 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
-from ..domain.ledger import LedgerRecord
-from ..domain.lean.signals import detector_signals
+from ..domain.ledger import Intervention, LedgerRecord
 from ..domain.policy_set import PolicySet
-from ..domain.signal import Signal
 from ..ports.driven import Clock, InterventionLedger
+from .advise import decide
 from .explain import ExplainedSession
 
 __all__ = ["ShadowAdvice", "ShadowRun", "shadow_sessions"]
 
 
-@dataclass(frozen=True)
-class ShadowAdvice:
-    """One piece of advice TER would have given, with the signal behind it.
-
-    The signal's title and subject (a file path) are kept here for a person
-    judging the advice; the ledger record never holds them.
-    """
-
-    record: LedgerRecord
-    signal: Signal
+#: One piece of advice TER would have given, with the signal behind it. The
+#: signal's title and subject (a file path) are kept for a person judging the
+#: advice; the ledger record never holds them.
+ShadowAdvice = Intervention
 
 
 @dataclass(frozen=True)
@@ -78,7 +71,6 @@ def shadow_sessions(
     records: list[LedgerRecord] = []
     advice: list[ShadowAdvice] = []
     failures: list[tuple[str, str]] = []
-    version = policies.digest()
     written = 0
     for ref in refs:
         try:
@@ -88,20 +80,10 @@ def shadow_sessions(
             continue
         session_id = explained.trace.session_id or ref.stem
         sessions.append(session_id)
-        engine = policies.engine()
-        known = {e.id for e in ledger.entries(session_id)}
-        for signal in detector_signals(explained.analysis):
-            for verdict in engine.apply(signal):
-                record = LedgerRecord.from_verdict(
-                    verdict, session_id, clock.now(), version
-                )
-                if record.id not in known:
-                    ledger.record(record)
-                    known.add(record.id)
-                    written += 1
-                records.append(record)
-                if record.delivered:
-                    advice.append(ShadowAdvice(record, signal))
+        decisions = decide(session_id, explained.analysis, policies, ledger, clock)
+        records.extend(decisions.records)
+        advice.extend(decisions.interventions)
+        written += len(decisions.written)
     return ShadowRun(
         tuple(sessions), tuple(records), tuple(advice), tuple(failures), written
     )

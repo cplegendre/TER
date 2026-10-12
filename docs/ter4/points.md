@@ -10,9 +10,9 @@ rules that enforce it and how it is verified. Rules live in
 contributed from another source (an external capability, ADR 0005) and the
 Origin column names that source, its reference and author.
 
-**201 points** · ● done **115** · ◐ partial **43** · ○ not started **43**
+**201 points** · ● done **118** · ◐ partial **43** · ○ not started **40**
 
-`███████████████████████▓▓▓▓▓▓▓▓░░░░░░░░░`
+`███████████████████████▓▓▓▓▓▓▓▓▓░░░░░░░░`
 
 Legend: `█` done · `▓` partial · `░` not started
 
@@ -24,7 +24,7 @@ Legend: `█` done · `▓` partial · `░` not started
 | L1 Observed | `███████████████████▓` | 15 | 1 | 0 | 16 |
 | L2 Explained | `██████████████████▓▓` | 50 | 5 | 0 | 55 |
 | L3 Grounded | `██████████▓▓▓▓▓▓▓▓▓▓` | 25 | 23 | 0 | 48 |
-| L4 Advisory | `███████▓▓░░░░░░░░░░░` | 13 | 5 | 21 | 39 |
+| L4 Advisory | `████████▓▓▓░░░░░░░░░` | 16 | 5 | 18 | 39 |
 | L5 Corrective | `██▓▓▓▓▓▓░░░░░░░░░░░░` | 1 | 4 | 8 | 13 |
 | L6 Learning | `█▓▓▓▓░░░░░░░░░░░░░░░` | 1 | 4 | 14 | 19 |
 
@@ -45,9 +45,9 @@ P041 ● ● ● ● ● ● ● ◐ ● ● ◐ ◐ ◐ ● ● ● ◐ ● ●
 P061 ● ◐ ◐ ◐ ◐ ◐ ◐ ◐ ◐ ◐ ● ● ● ◐ ● ● ◐ ◐ ● ●
 P081 ● ● ● ● ● ● ◐ ○ ○ ○ ◐ ◐ ● ○ ◐ ○ ○ ○ ○ ◐
 P101 ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ◐ ● ● ● ●
-P121 ● ● ○ ○ ◐ ○ ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ◐ ● ●
+P121 ● ● ● ● ◐ ○ ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ◐ ● ●
 P141 ● ● ● ● ● ◐ ◐ ● ◐ ◐ ● ● ◐ ● ◐ ◐ ● ● ● ●
-P161 ● ◐ ● ● ● ● ○ ○ ○ ○ ○ ○ ● ○ ● ● ● ● ○ ◐
+P161 ● ◐ ● ● ● ● ○ ○ ○ ○ ○ ○ ● ● ● ● ● ● ○ ◐
 P181 ◐ ◐ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ● ● ● ◐ ○ ○
 P201 ◐
 ```
@@ -178,14 +178,14 @@ P201 ◐
 | P120 | Make hook processing sufficiently lightweight that TER does not become a source of… | vision | L1 | ● done |  | • Hook processing completes within 50 ms at p95 in a benchmark run in CI. | `TER-OBS-003` ✓ | test: tests/unit/test_ter4_claude_hooks.py::test_post_tool_use_is_appended_within_50ms_at_p95<br>test: tests/unit/test_ter4_claude_hooks.py::test_a_fresh_hook_process_appends_within_50ms_at_p95 |
 | P121 | Separate observation from intervention. | vision | L4 | ● done |  | • Observation and intervention live in separate engines with no import from analysis to intervention. | `TER-INT-006` ✓<br>`TER-INT-001` ✓ | test: tests/architecture/test_no_intervention.py<br>test: tests/architecture/test_import_contracts.py::test_the_intervention_engine_reads_only_signals<br>test: tests/unit/test_ter4_intervention.py::test_batch_equals_incremental_in_order_of_position |
 | P122 | Make passive observation the safest default operating mode. | vision | L1 | ● done |  | • The default ceiling observes only; the hook returns an empty response. | `TER-INT-001` ✓<br>`TER-OBS-008` ✓ | test: tests/unit/test_ter4_domain.py::TestMaturity::test_ceiling_permits_only_levels_at_or_below_it<br>test: tests/unit/test_ter4_claude_hooks.py::TestRunHook::test_prints_the_neutral_hook_output<br>test: tests/architecture/test_no_intervention.py |
-| P123 | Introduce advisory interventions as the first active-control level. | vision | L4 | ○ not started |  | • At the L4 ceiling TER delivers advice that changes no agent input. | `TER-INT-002` · | planned: passing tests tagged req for TER-INT-002 |
-| P124 | Allow TER to warn when repeated work is detected. | vision | L4 | ○ not started |  | • A policy warns on repetition findings. | `TER-INT-003` · | planned: passing tests tagged req for TER-INT-003 |
-| P125 | Allow TER to warn when context growth appears disproportionate to progress. | vision | L4 | ◐ partial |  | • A policy warns when context growth outpaces progress. | `TER-INT-003` · | planned: passing tests tagged req for TER-INT-003 |
-| P126 | Allow TER to warn when the agent appears to drift from intent. | vision | L4 | ○ not started |  | • A policy warns on drift findings. | `TER-INT-003` · | planned: passing tests tagged req for TER-INT-003 |
-| P127 | Allow TER to warn when repeated failures indicate a strategy should change. | vision | L4 | ○ not started |  | • A policy warns when repeated failures suggest a change of strategy. | `TER-INT-003` · | planned: passing tests tagged req for TER-INT-003 |
-| P128 | Allow TER to recommend validation when significant edits have not been tested. | vision | L4 | ○ not started |  | • A policy recommends validation after significant untested edits. | `TER-INT-003` · | planned: passing tests tagged req for TER-INT-003 |
-| P129 | Allow TER to recommend reducing WIP when multiple unresolved branches accumulate. | vision | L4 | ○ not started |  | • A policy recommends reducing WIP when open items exceed the limit. | `TER-INT-003` · | planned: passing tests tagged req for TER-INT-003 |
-| P130 | Allow TER to recommend context compaction when evidence indicates context bloat. | vision | L4 | ◐ partial |  | • A policy recommends compaction when context bloat is evidenced. | `TER-INT-003` · | planned: passing tests tagged req for TER-INT-003 |
+| P123 | Introduce advisory interventions as the first active-control level. | vision | L4 | ● done |  | • At the L4 ceiling TER delivers advice that changes no agent input. | `TER-INT-002` ✓ | test: tests/architecture/test_no_intervention.py::test_at_the_advisory_ceiling_a_stop_shows_advice_and_changes_no_input<br>test: tests/architecture/test_no_intervention.py::test_only_the_hook_entry_point_names_the_advice_field<br>test: tests/contract/test_intervention_channel.py |
+| P124 | Allow TER to warn when repeated work is detected. | vision | L4 | ● done |  | • A policy warns on repetition findings. | `TER-INT-003` ✓ | test: tests/unit/test_ter4_advise.py::test_an_advised_signal_issues_the_policys_advice<br>test: tests/unit/test_ter4_advise.py::test_asking_again_delivers_nothing_twice |
+| P125 | Allow TER to warn when context growth appears disproportionate to progress. | vision | L4 | ◐ partial |  | • A policy warns when context growth outpaces progress. | `TER-INT-003` ✓ | planned: a policy over a detector judged eligible for this signal; the advice path (TER-INT-003) is verified |
+| P126 | Allow TER to warn when the agent appears to drift from intent. | vision | L4 | ○ not started |  | • A policy warns on drift findings. | `TER-INT-003` ✓ | planned: a policy over a detector judged eligible for this signal; the advice path (TER-INT-003) is verified |
+| P127 | Allow TER to warn when repeated failures indicate a strategy should change. | vision | L4 | ○ not started |  | • A policy warns when repeated failures suggest a change of strategy. | `TER-INT-003` ✓ | planned: a policy over a detector judged eligible for this signal; the advice path (TER-INT-003) is verified |
+| P128 | Allow TER to recommend validation when significant edits have not been tested. | vision | L4 | ○ not started |  | • A policy recommends validation after significant untested edits. | `TER-INT-003` ✓ | planned: a policy over a detector judged eligible for this signal; the advice path (TER-INT-003) is verified |
+| P129 | Allow TER to recommend reducing WIP when multiple unresolved branches accumulate. | vision | L4 | ○ not started |  | • A policy recommends reducing WIP when open items exceed the limit. | `TER-INT-003` ✓ | planned: a policy over a detector judged eligible for this signal; the advice path (TER-INT-003) is verified |
+| P130 | Allow TER to recommend context compaction when evidence indicates context bloat. | vision | L4 | ◐ partial |  | • A policy recommends compaction when context bloat is evidenced. | `TER-INT-003` ✓ | planned: a policy over a detector judged eligible for this signal; the advice path (TER-INT-003) is verified |
 | P131 | Introduce corrective interventions as an explicitly configurable control level. | vision | L4 | ○ not started |  | • Corrective interventions are off by default and enabled only in policy configuration. | `TER-INT-004` · | planned: passing tests tagged req for TER-INT-004 |
 | P132 | Permit a hook to inject concise evidence or guidance when intervention thresholds are met. | vision | L4 | ○ not started |  | • A hook injects concise evidence or guidance only when policy thresholds are met. | `TER-INT-004` · | planned: passing tests tagged req for TER-INT-004 |
 | P133 | Permit TER to recommend reconsideration before an apparently duplicate tool call. | vision | L4 | ○ not started |  | • Before an apparently duplicate tool call, TER can recommend reconsideration. | `TER-INT-005` · | planned: passing tests tagged req for TER-INT-005 |
@@ -229,7 +229,7 @@ P201 ◐
 | P171 | Create a feedback loop of Observe, Analyse, Decide, Intervene, Measure, and Learn. | vision | L4 | ○ not started |  | • Observe, Analyse, Decide, Intervene, Measure and Learn are named stages in code. | `TER-INT-013` · | planned: passing tests tagged req for TER-INT-013 |
 | P172 | Position this feedback loop as the central architecture of TER. | vision | L4 | ○ not started |  | • The architecture docs place the feedback loop at the centre of TER. | `TER-INT-013` · | planned: passing tests tagged req for TER-INT-013 |
 | P173 | Preserve human control over intervention policy. | vision | L4 | ● done |  | • Policy changes apply only from human-approved policy files. | `TER-INT-015` ✓ | test: tests/unit/test_ter4_policy_set.py::test_a_changed_policy_does_not_apply_until_approved_again<br>test: tests/unit/test_ter4_policy_set.py::test_cli_check_then_approve_then_check<br>test: tests/contract/test_intervention_policies.py::test_never_approves_on_its_own |
-| P174 | Make every intervention explainable. | vision | L4 | ○ not started |  | • Every intervention shows its signal and evidence. | `TER-INT-014` · | planned: passing tests tagged req for TER-INT-014 |
+| P174 | Make every intervention explainable. | vision | L4 | ● done |  | • Every intervention shows its signal and evidence. | `TER-INT-014` ✓ | test: tests/contract/test_intervention_channel.py::test_each_message_shows_the_advice_signal_and_evidence<br>test: tests/unit/test_ter4_advise.py::test_every_delivery_carries_its_signal_and_evidence |
 | P175 | Record the signal that triggered each intervention. | vision | L4 | ● done |  | • The ledger records the triggering signal of each intervention. | `TER-INT-009` ✓ | test: tests/unit/test_ter4_ledger.py::test_an_advised_verdict_records_signal_evidence_and_action<br>test: tests/contract/test_intervention_ledger.py::test_each_record_holds_signal_evidence_action_and_outcome |
 | P176 | Record the evidence supporting that signal. | vision | L4 | ● done |  | • The ledger records the evidence behind each signal. | `TER-INT-009` ✓ | test: tests/unit/test_ter4_ledger.py::test_an_advised_verdict_records_signal_evidence_and_action<br>test: tests/unit/test_ter4_ledger.py::test_no_action_is_recorded_without_evidence |
 | P177 | Record the action TER proposed or performed. | vision | L4 | ● done |  | • The ledger records the action proposed or performed. | `TER-INT-009` ✓ | test: tests/unit/test_ter4_ledger.py::test_a_suppressed_verdict_records_the_reason_and_no_action<br>test: tests/contract/test_intervention_ledger.py::test_each_record_holds_signal_evidence_action_and_outcome |

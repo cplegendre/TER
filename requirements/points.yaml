@@ -1986,24 +1986,27 @@ points:
       Introduce advisory interventions as the first active-control level.
     level: L4
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - At the L4 ceiling TER delivers advice that changes no agent input.
     rules: [TER-INT-002]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-002'
+      - 'test: tests/architecture/test_no_intervention.py::test_at_the_advisory_ceiling_a_stop_shows_advice_and_changes_no_input'
+      - 'test: tests/architecture/test_no_intervention.py::test_only_the_hook_entry_point_names_the_advice_field'
+      - 'test: tests/contract/test_intervention_channel.py'
 
   - id: P124
     text: >-
       Allow TER to warn when repeated work is detected.
     level: L4
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - A policy warns on repetition findings.
     rules: [TER-INT-003]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-003'
+      - 'test: tests/unit/test_ter4_advise.py::test_an_advised_signal_issues_the_policys_advice'
+      - 'test: tests/unit/test_ter4_advise.py::test_asking_again_delivers_nothing_twice'
 
   - id: P125
     text: >-
@@ -2016,7 +2019,7 @@ points:
       - A policy warns when context growth outpaces progress.
     rules: [TER-INT-003]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-003'
+      - 'planned: a policy over a detector judged eligible for this signal; the advice path (TER-INT-003) is verified'
 
   - id: P126
     text: >-
@@ -2028,7 +2031,7 @@ points:
       - A policy warns on drift findings.
     rules: [TER-INT-003]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-003'
+      - 'planned: a policy over a detector judged eligible for this signal; the advice path (TER-INT-003) is verified'
 
   - id: P127
     text: >-
@@ -2041,7 +2044,7 @@ points:
       - A policy warns when repeated failures suggest a change of strategy.
     rules: [TER-INT-003]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-003'
+      - 'planned: a policy over a detector judged eligible for this signal; the advice path (TER-INT-003) is verified'
 
   - id: P128
     text: >-
@@ -2054,7 +2057,7 @@ points:
       - A policy recommends validation after significant untested edits.
     rules: [TER-INT-003]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-003'
+      - 'planned: a policy over a detector judged eligible for this signal; the advice path (TER-INT-003) is verified'
 
   - id: P129
     text: >-
@@ -2067,7 +2070,7 @@ points:
       - A policy recommends reducing WIP when open items exceed the limit.
     rules: [TER-INT-003]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-003'
+      - 'planned: a policy over a detector judged eligible for this signal; the advice path (TER-INT-003) is verified'
 
   - id: P130
     text: >-
@@ -2080,7 +2083,7 @@ points:
       - A policy recommends compaction when context bloat is evidenced.
     rules: [TER-INT-003]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-003'
+      - 'planned: a policy over a detector judged eligible for this signal; the advice path (TER-INT-003) is verified'
 
   - id: P131
     text: >-
@@ -2720,12 +2723,13 @@ points:
       Make every intervention explainable.
     level: L4
     kind: principle
-    status: not-started
+    status: done
     definition_of_done:
       - Every intervention shows its signal and evidence.
     rules: [TER-INT-014]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-014'
+      - 'test: tests/contract/test_intervention_channel.py::test_each_message_shows_the_advice_signal_and_evidence'
+      - 'test: tests/unit/test_ter4_advise.py::test_every_delivery_carries_its_signal_and_evidence'
 
   - id: P175
     text: >-

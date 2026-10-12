@@ -14,7 +14,7 @@ from pathlib import Path
 
 from ...domain.events import Event, SessionTrace
 from ...domain.intervention import PolicyError
-from ...domain.ledger import LedgerError, LedgerRecord, Observation
+from ...domain.ledger import Intervention, LedgerError, LedgerRecord, Observation
 from ...domain.lean.control import ControlLimits, ControlLimitsError
 from ...domain.policy_set import PolicySet
 from ...domain.outcome import OutcomeEvidence, OutcomeFormatError
@@ -312,6 +312,21 @@ class InMemoryInterventionPolicies:
             return self._documents[str(ref)]
         except KeyError:
             raise PolicyError(f"{ref}: no such policy file") from None
+
+
+class InMemoryInterventionChannel:
+    """Keeps every delivered intervention, for tests to inspect."""
+
+    name = "in-memory"
+
+    def __init__(self) -> None:
+        self.interventions: list[Intervention] = []
+
+    def deliver(self, intervention: Intervention) -> None:
+        self.interventions.append(intervention)
+
+    def delivered(self) -> tuple[str, ...]:
+        return tuple(i.message() for i in self.interventions)
 
 
 class InMemoryInterventionLedger:

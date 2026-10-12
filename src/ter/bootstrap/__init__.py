@@ -29,6 +29,7 @@ from ..application.observe import (
     AnalyseTrace,
     ObserveEvent,
     RecordEvent,
+    ingest_all,
 )
 from ..domain.capabilities import Capability, CapabilityProblem, UnknownCapabilityError
 from ..domain.stream import StreamReport
@@ -226,6 +227,36 @@ def make_recorder(directory: Path) -> EventIngest:
     return RecordEvent(make_tokenizer("regex"), JsonlEventLog(directory))
 
 
+def advise_from_log(
+    directory: Path, session_id: str, policies: Path, ledger: Path
+) -> tuple[str, ...]:
+    """The advice due now for a live session (L4 Advisory, TER-INT-003).
+
+    Replays the session's event log, explains it, and decides on its signals
+    under the approved policy file; the advice not given before is delivered
+    as messages to the developer. Raises when the file is unapproved or
+    unreadable; the hook turns that into no advice.
+    """
+    from ..adapters.driven.event_log import JsonlEventLog
+    from ..adapters.driven.intervention_channel import MessageChannel
+    from ..application.advise import advise_session
+
+    policy_set = make_policies().policies(policies)
+    policy_set.require_approved()
+    events = JsonlEventLog(directory).events(session_id)
+    analysis = ingest_all(make_ingest("regex"), events).explain(session_id)
+    channel = MessageChannel()
+    advise_session(
+        session_id,
+        analysis,
+        policy_set,
+        make_ledger(ledger),
+        channel,
+        SystemClock(),
+    )
+    return channel.delivered()
+
+
 def cli_services() -> CliServices:
     """Wire the CLI's use cases. Heavy adapters are imported on first use."""
 
@@ -251,6 +282,11 @@ def cli_services() -> CliServices:
 
     def hook_ingest(directory: Path) -> EventIngest:
         return make_recorder(directory)
+
+    def hook_advise(
+        directory: Path, session_id: str, policies: Path, ledger: Path
+    ) -> tuple[str, ...]:
+        return advise_from_log(directory, session_id, policies, ledger)
 
     def explain_transcript(
         path: Path,
@@ -414,6 +450,7 @@ def cli_services() -> CliServices:
         log_sessions=log_sessions,
         analyse_log=analyse_log,
         hook_ingest=hook_ingest,
+        hook_advise=hook_advise,
         default_log_dir=default_event_log_dir(),
         hook_clock=SystemClock(),
         explain_transcript=explain_transcript,

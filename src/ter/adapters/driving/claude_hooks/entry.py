@@ -23,14 +23,20 @@ from .record import record_payload
 from .translate import HookStatus, HookTranslation, is_internal_helper, translate
 
 __all__ = [
+    "ADVISE_ON",
+    "AdviseHook",
     "HookResult",
     "PromptLookup",
     "TurnLookup",
     "TranscriptExists",
     "derive",
     "handle_hook",
+    "hook_output",
     "run_hook",
 ]
+
+#: Gives the advice due for a handled payload: ``(result) -> messages``.
+AdviseHook = Callable[["HookResult"], tuple[str, ...]]
 
 #: Finds the turn a Stop closes: ``(transcript_path, received_at) -> uuid``.
 TurnLookup = Callable[[str, datetime | None], str | None]
@@ -49,6 +55,46 @@ def _is_file(path: str) -> bool:
 #: What the hook prints for Claude Code: an empty object changes nothing.
 HOOK_OUTPUT = "{}"
 
+#: The hook events after which advice is given: the end of a turn, so the
+#: developer reads it between turns and the analysis runs once per turn.
+ADVISE_ON = frozenset({"Stop"})
+
+
+#: Claude Code cuts hook output past 10,000 characters; advice stays inside it.
+MESSAGE_LIMIT = 10_000
+
+
+def hook_output(advice: tuple[str, ...]) -> str:
+    """The hook's stdout: ``{}``, or the advice as a message to the developer.
+
+    ``systemMessage`` is shown to the user and never added to the model's
+    context, so advice changes nothing the agent reads (TER-INT-002). It is
+    the only hook response field TER writes; the architecture test
+    ``tests/architecture/test_no_intervention.py`` keeps it that way. Advice
+    that would not fit in :data:`MESSAGE_LIMIT` is counted at the end rather
+    than cut mid-message; every piece is in the ledger.
+    """
+    if not advice:
+        return HOOK_OUTPUT
+    return json.dumps({"systemMessage": _fit(advice)}, ensure_ascii=False)
+
+
+def _fit(advice: tuple[str, ...]) -> str:
+    shown: list[str] = []
+    size = 0
+    for n, message in enumerate(advice):
+        rest = len(advice) - n - 1
+        tail = len(f"\n\nand {rest} more pieces of advice in the ledger") if rest else 0
+        if shown and size + 2 + len(message) + tail > MESSAGE_LIMIT:
+            break
+        shown.append(message)
+        size += len(message) + (2 if size else 0)
+    hidden = len(advice) - len(shown)
+    if hidden:
+        noun = "piece" if hidden == 1 else "pieces"
+        shown.append(f"and {hidden} more {noun} of advice in the ledger")
+    return "\n\n".join(shown)
+
 
 @dataclass(frozen=True)
 class HookResult:
@@ -64,6 +110,10 @@ class HookResult:
     recorded_to: Path | None = None
     #: Why recording failed; the payload is still handled.
     record_error: str = ""
+    #: The advice shown to the developer for this payload (L4 Advisory).
+    advice: tuple[str, ...] = ()
+    #: Why no advice could be given; the hook still answers.
+    advice_error: str = ""
 
 
 def derive(
@@ -180,11 +230,15 @@ def run_hook(
     *,
     clock: Clock | None = None,
     record_to: Path | None = None,
+    advise: AdviseHook | None = None,
 ) -> HookResult:
     """Read one payload from ``stdin``, handle it, and print the hook output.
 
     With ``record_to``, the raw payload is first recorded there (see
-    :mod:`.record`). Always writes :data:`HOOK_OUTPUT` and returns; the caller
+    :mod:`.record`). With ``advise`` (L4 Advisory), a recorded payload of an
+    :data:`ADVISE_ON` event asks it for the advice due, and the hook prints
+    that advice as a message to the developer (:func:`hook_output`); advice
+    that cannot be given leaves the output ``{}``. Always returns; the caller
     exits 0.
     """
     try:
@@ -206,8 +260,23 @@ def run_hook(
                 recorded_to=recorded_to,
                 record_error=record_error,
             )
-    stdout.write(HOOK_OUTPUT + "\n")
+    if advise is not None:
+        result = _advise(result, advise)
+    stdout.write(hook_output(result.advice) + "\n")
     return result
+
+
+def _advise(result: HookResult, advise: AdviseHook) -> HookResult:
+    if (
+        result.status is not HookStatus.RECORDED
+        or result.hook_event_name not in ADVISE_ON
+    ):
+        return result
+    try:
+        advice = tuple(advise(result))
+    except Exception as error:  # noqa: BLE001 - a hook must fail open
+        return replace(result, advice_error=f"{type(error).__name__}: {error}")
+    return replace(result, advice=advice)
 
 
 @dataclass(frozen=True)

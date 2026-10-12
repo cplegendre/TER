@@ -13,7 +13,7 @@ from ..domain.events import Event, SessionTrace
 # argument); re-exported here as the driven port adapters implement.
 from ..domain.lean.intent import AlignmentScorer as AlignmentScorer
 from ..domain.lean.control import ControlLimits
-from ..domain.ledger import LedgerRecord, Observation
+from ..domain.ledger import Intervention, LedgerRecord, Observation
 from ..domain.policy_set import PolicySet
 from ..domain.outcome import OutcomeEvidence
 from ..domain.pricing import Rates
@@ -282,6 +282,30 @@ class RoutingProfiles(Protocol):
     def default(self) -> str: ...
 
     def profile(self, name: str) -> RoutingProfile: ...
+
+
+@runtime_checkable
+class InterventionChannel(Protocol):
+    """Delivers advice to the developer (TER-INT-002, TER-INT-003, TER-INT-014).
+
+    At the L4 ceiling a channel delivers advice only: nothing it does changes
+    what the agent reads. Each delivery shows the advice with the signal and
+    evidence behind it (:meth:`ter.domain.ledger.Intervention.message`).
+
+    Obligations, verified by ``tests/contract/test_intervention_channel.py``:
+
+    * ``deliver`` takes only an advised record (an
+      :class:`~ter.domain.ledger.Intervention` cannot be built from a
+      suppressed one) and keeps deliveries in order;
+    * ``delivered()`` returns the messages delivered so far, each naming the
+      policy's advice, the signal's detector and confidence, and its evidence.
+    """
+
+    name: str
+
+    def deliver(self, intervention: Intervention) -> None: ...
+
+    def delivered(self) -> tuple[str, ...]: ...
 
 
 @runtime_checkable
