@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -227,15 +227,22 @@ def make_recorder(directory: Path) -> EventIngest:
 
 
 def advise_from_log(
-    directory: Path, session_id: str, policies: Path, ledger: Path
+    directory: Path,
+    session_id: str,
+    policies: Path,
+    ledger: Path,
+    warn: Callable[[str], None] | None = None,
 ) -> tuple[str, ...]:
     """The advice due now for a live session (L4 Advisory, TER-INT-003).
 
     One turn of the control loop (TER-INT-013): observe the session's event
     log, analyse it, decide on its signals under the approved policy file,
     deliver the advice not given before as messages to the developer, then
-    measure earlier advice and learn from the outcomes. Raises when the file
-    is unapproved or unreadable; the hook turns that into no advice.
+    measure earlier advice. Learn is left to ``python -m ter policy
+    effectiveness``: it reads the whole ledger, and a hook has nowhere to show
+    its report. Raises when the file is unapproved or unreadable; the hook
+    turns that into no advice. A failed Measure keeps the advice and is
+    passed to ``warn``.
     """
     from ..adapters.driven.event_log import JsonlEventLog
     from ..adapters.driven.intervention_channel import MessageChannel
@@ -244,8 +251,13 @@ def advise_from_log(
     policy_set = make_policies().policies(policies)
     policy_set.require_approved()
     channel = MessageChannel()
-    loop = ControlLoop(policy_set, make_ledger(ledger), SystemClock(), channel)
-    loop.turn(session_id, JsonlEventLog(directory), lambda: make_ingest("regex"))
+    loop = ControlLoop(
+        policy_set, make_ledger(ledger), SystemClock(), channel, learn=False
+    )
+    turn = loop.turn(session_id, JsonlEventLog(directory), lambda: make_ingest("regex"))
+    for stage, error in turn.errors:
+        if warn is not None:
+            warn(f"{stage} failed: {error}")
     return channel.delivered()
 
 
@@ -276,9 +288,13 @@ def cli_services() -> CliServices:
         return make_recorder(directory)
 
     def hook_advise(
-        directory: Path, session_id: str, policies: Path, ledger: Path
+        directory: Path,
+        session_id: str,
+        policies: Path,
+        ledger: Path,
+        warn: Callable[[str], None],
     ) -> tuple[str, ...]:
-        return advise_from_log(directory, session_id, policies, ledger)
+        return advise_from_log(directory, session_id, policies, ledger, warn)
 
     def explain_transcript(
         path: Path,

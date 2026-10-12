@@ -81,8 +81,9 @@ def test_a_live_turn_runs_every_stage_in_order() -> None:
     log, ledger = InMemoryEventLog(), InMemoryInterventionLedger()
     session = record(log, 8)
     first = loop(ledger, InMemoryInterventionChannel()).turn(session, log, ingest)
-    # Nothing to measure yet, so nothing to learn from.
-    assert first.stages == ORDER[:5] and first.learned == ()
+    assert first.stages == ORDER and first.observed == ()
+    # Nothing measured yet: the policy is unproven.
+    assert [p.effect.value for p in first.learned] == ["unproven"]
     assert first.tool_events == 8 and len(first.delivered) == 1
 
     record(log, 12, start=8)  # past the advice's window
@@ -132,8 +133,42 @@ def test_a_failed_measure_keeps_the_advice_already_decided(
     session = record(log, 8)
     turn = loop(InMemoryInterventionLedger(), channel).turn(session, log, ingest)
     assert len(channel.interventions) == 1
-    assert turn.stages == ORDER[:5] and turn.learned == ()
+    assert turn.stages == ORDER
     assert turn.errors == ((Stage.MEASURE, "OSError: ledger unreadable"),)
+
+
+@pytest.mark.req("TER-INT-013")
+def test_learn_scores_every_outcome_so_far_so_a_failed_learn_loses_nothing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from ter.application import loop as loop_module
+
+    log, ledger = InMemoryEventLog(), InMemoryInterventionLedger()
+    session = record(log, 8)
+    loop(ledger, InMemoryInterventionChannel()).turn(session, log, ingest)
+    record(log, 12, start=8)
+    real = loop_module.policy_effectiveness
+    monkeypatch.setattr(loop_module, "policy_effectiveness", lambda _: 1 / 0)
+    failed = loop(ledger, InMemoryInterventionChannel()).turn(session, log, ingest)
+    assert failed.observed and failed.learned == ()
+    assert failed.errors == ((Stage.LEARN, "ZeroDivisionError: division by zero"),)
+    monkeypatch.setattr(loop_module, "policy_effectiveness", real)
+    # The next turn observes nothing new and still scores that outcome.
+    later = loop(ledger, InMemoryInterventionChannel()).turn(session, log, ingest)
+    assert later.observed == ()
+    [score] = later.learned
+    assert score.observed == 1
+
+
+@pytest.mark.req("TER-INT-013")
+def test_the_hook_leaves_learn_to_a_person() -> None:
+    log, ledger = InMemoryEventLog(), InMemoryInterventionLedger()
+    session = record(log, 20)
+    hook = ControlLoop(
+        approved(), ledger, FixedClock(AT), InMemoryInterventionChannel(), learn=False
+    )
+    turn = hook.turn(session, log, ingest)
+    assert turn.stages == ORDER[:5] and turn.learned == ()
 
 
 @pytest.mark.req("TER-INT-013", "TER-INT-015")

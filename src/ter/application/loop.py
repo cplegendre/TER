@@ -15,13 +15,18 @@ every ``Stop``):
    :class:`~ter.ports.driven.InterventionChannel`;
 5. **Measure** the outcome of earlier advice whose window has passed
    (:func:`~ter.application.advise.follow_up_session`);
-6. **Learn**: when Measure recorded new outcomes, score every policy from
-   the ledger (:func:`~ter.application.advise.policy_effectiveness`) and
-   report the ones to recalibrate. TER never changes a policy itself: a
-   person edits and re-approves the file (TER-INT-015).
+6. **Learn**: score every policy from the ledger's outcomes
+   (:func:`~ter.application.advise.policy_effectiveness`) and report the
+   ones to recalibrate. TER never changes a policy itself: a person edits
+   and re-approves the file (TER-INT-015). Learn reads the whole ledger and
+   its report is for a person, so a caller that cannot show it (the hook)
+   turns it off with ``learn=False`` and a person runs it on demand
+   (``python -m ter policy effectiveness``). Since it always reads every
+   outcome recorded so far, a Learn that failed or was skipped loses nothing.
 
-Without a channel the loop is in shadow: it decides and records but
-delivers nothing, so it has nothing to measure or learn from.
+Without a channel the loop is in shadow (``python -m ter policy shadow``):
+it decides and records but delivers nothing, so it has nothing to measure
+or learn from.
 
 A failure up to Intervene raises, so a caller that must fail open (the
 hook) gives no advice. Measure and Learn run after the advice is in the
@@ -67,7 +72,7 @@ class LoopTurn:
     delivered: tuple[Intervention, ...]
     #: Records whose outcome was recorded this turn (Measure).
     observed: tuple[LedgerRecord, ...]
-    #: Every policy's effectiveness, when Measure recorded new outcomes (Learn).
+    #: Every policy's effectiveness, when Learn ran.
     learned: tuple[PolicyEffectiveness, ...]
     #: ``(stage, error)`` for a Measure or Learn stage that failed.
     errors: tuple[tuple[Stage, str], ...] = ()
@@ -82,7 +87,7 @@ class ControlLoop:
     """Observe, Analyse, Decide, Intervene, Measure, Learn for one session.
 
     Without a channel the loop is in shadow: Intervene, Measure and Learn
-    are skipped.
+    are skipped. ``learn=False`` skips Learn only.
     """
 
     def __init__(
@@ -92,8 +97,11 @@ class ControlLoop:
         clock: Clock,
         channel: InterventionChannel | None = None,
         ceiling: Maturity = Maturity.ADVISORY,
+        *,
+        learn: bool = True,
     ) -> None:
         self._policies = policies
+        self._learn = learn
         self._ledger = ledger
         self._clock = clock
         self._channel = channel
@@ -138,7 +146,7 @@ class ControlLoop:
             Stage.MEASURE, stages, errors, lambda: self.measure(session_id, analysis)
         )
         learned = (
-            self._after(Stage.LEARN, stages, errors, self.learn) if observed else ()
+            self._after(Stage.LEARN, stages, errors, self.learn) if self._learn else ()
         )
         return LoopTurn(
             session_id,

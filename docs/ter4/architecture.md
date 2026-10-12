@@ -120,7 +120,8 @@ Analyse, Decide, Intervene, Measure and Learn is TER's central control flow
 (TER-INT-013, points 171 and 172). The stages are named in
 `ter.domain.loop.Stage`, and `ter.application.loop.ControlLoop` runs one turn
 of them for a session. The live hook runs a turn at every `Stop`
-(`python -m ter hook --advise`, wired by `bootstrap.advise_from_log`).
+(`python -m ter hook --advise`, wired by `bootstrap.advise_from_log`), and
+`python -m ter policy shadow` runs one per recorded session.
 
 ```mermaid
 flowchart LR
@@ -141,15 +142,17 @@ flowchart LR
    `InterventionChannel` (at L4, a message the developer sees).
 5. **Measure**: record the outcome of earlier advice once 10 tool events
    have passed since it was delivered.
-6. **Learn**: when Measure recorded new outcomes, score every policy and
-   flag the ones that do not improve outcomes. At L4 that is a report:
-   TER never changes a policy itself, and a person edits and re-approves
-   the file (TER-INT-015).
+6. **Learn**: score every policy from the ledger's outcomes and flag the
+   ones that do not improve them. At L4 that is a report for a person: TER
+   never changes a policy itself, and a person edits and re-approves the
+   file (TER-INT-015). Learn reads the whole ledger, so the hook leaves it
+   off and a person runs it with `python -m ter policy effectiveness`.
 
 Shadow mode is the loop without a channel: it runs up to Decide and
 delivers nothing, so there is nothing to measure. A failure before Intervene
 means no advice, since the hook fails open. A failure in Measure or Learn is
-kept on the turn and never costs advice already decided. L5 widens Intervene
+kept on the turn, and the hook writes it to stderr, so it never costs advice
+already decided. L5 widens Intervene
 to opt-in corrective actions, and L6 closes Learn without a person in the
 middle ([strategy.md](strategy.md)).
 
