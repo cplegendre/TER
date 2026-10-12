@@ -29,7 +29,6 @@ from ..application.observe import (
     AnalyseTrace,
     ObserveEvent,
     RecordEvent,
-    ingest_all,
 )
 from ..domain.capabilities import Capability, CapabilityProblem, UnknownCapabilityError
 from ..domain.stream import StreamReport
@@ -232,28 +231,21 @@ def advise_from_log(
 ) -> tuple[str, ...]:
     """The advice due now for a live session (L4 Advisory, TER-INT-003).
 
-    Replays the session's event log, explains it, and decides on its signals
-    under the approved policy file; the advice not given before is delivered
-    as messages to the developer. Raises when the file is unapproved or
-    unreadable; the hook turns that into no advice.
+    One turn of the control loop (TER-INT-013): observe the session's event
+    log, analyse it, decide on its signals under the approved policy file,
+    deliver the advice not given before as messages to the developer, then
+    measure earlier advice and learn from the outcomes. Raises when the file
+    is unapproved or unreadable; the hook turns that into no advice.
     """
     from ..adapters.driven.event_log import JsonlEventLog
     from ..adapters.driven.intervention_channel import MessageChannel
-    from ..application.advise import advise_session
+    from ..application.loop import ControlLoop
 
     policy_set = make_policies().policies(policies)
     policy_set.require_approved()
-    events = JsonlEventLog(directory).events(session_id)
-    analysis = ingest_all(make_ingest("regex"), events).explain(session_id)
     channel = MessageChannel()
-    advise_session(
-        session_id,
-        analysis,
-        policy_set,
-        make_ledger(ledger),
-        channel,
-        SystemClock(),
-    )
+    loop = ControlLoop(policy_set, make_ledger(ledger), SystemClock(), channel)
+    loop.turn(session_id, JsonlEventLog(directory), lambda: make_ingest("regex"))
     return channel.delivered()
 
 

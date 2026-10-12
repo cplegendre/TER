@@ -2689,26 +2689,28 @@ points:
       Measure, and Learn.
     level: L4
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Observe, Analyse, Decide, Intervene, Measure and Learn are named
         stages in code.
     rules: [TER-INT-013]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-013'
+      - 'test: tests/unit/test_ter4_loop.py::test_the_stages_are_named_in_order'
+      - 'test: tests/unit/test_ter4_loop.py::test_a_live_turn_runs_every_stage_in_order'
 
   - id: P172
     text: >-
       Position this feedback loop as the central architecture of TER.
     level: L4
     kind: principle
-    status: not-started
+    status: done
     definition_of_done:
       - The architecture docs place the feedback loop at the centre of TER.
     rules: [TER-INT-013]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-013'
+      - 'test: tests/unit/test_ter4_loop.py::test_a_live_turn_runs_every_stage_in_order'
+      - 'test: tests/unit/test_ter4_loop.py::test_the_architecture_doc_puts_the_loop_at_the_centre'
 
   - id: P173
     text: >-
@@ -3160,7 +3162,8 @@ points:
     rules: [TER-INT-013, TER-OBS-001]
     verification:
       - 'test: tests/contract/test_ingest_wiring.py'
-      - 'planned: passing tests tagged req for TER-INT-013'
+      - 'test: tests/unit/test_ter4_loop.py::test_a_live_turn_runs_every_stage_in_order'
+      - 'planned: control beyond advice (L5 corrective, L6 learning)'
 
   - id: P199
     text: >-

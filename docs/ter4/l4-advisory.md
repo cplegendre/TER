@@ -154,7 +154,9 @@ python -m ter hook --event-log ~/.ter/events --advise docs/examples/policies/l4-
 
 `--ledger` defaults to `ledger` inside the event log directory. On `Stop`
 the hook replays the session's event log, explains it, and decides on its
-signals exactly as shadow mode does (`ter.application.advise`). Every
+signals exactly as shadow mode does: one turn of the control loop
+(`ter.application.loop`, see
+[architecture.md](architecture.md#the-control-loop)). Every
 decision is written to the ledger; the advice not given before is printed
 as the hook's `systemMessage`, which Claude Code shows the developer and
 never adds to the model's context (TER-INT-002). The same advice is never

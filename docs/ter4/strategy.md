@@ -50,10 +50,10 @@ test. Counts from `requirements/l*.yaml` on this commit:
 | L1 Observed | 22 of 22 | 0 | 15 / 1 / 0 |
 | L2 Explained | 72 of 72 | 0 | 50 / 5 / 0 |
 | L3 Grounded | 35 of 35 | 0 | 25 / 23 / 0 |
-| L4 Advisory | 14 of 18 | 4 | 16 / 10 / 13 |
+| L4 Advisory | 15 of 18 | 3 | 18 / 10 / 11 |
 | L5 Corrective | 0 of 10 | 10 | 1 / 4 / 8 |
 | L6 Learning | 11 of 19 | 8 | 1 / 4 / 14 |
-| **All** | **180 of 202** | **22** | **118 / 48 / 35** of 201 |
+| **All** | **181 of 202** | **21** | **120 / 48 / 33** of 201 |
 
 The L6 requirements already verified are the ones that did not have to wait:
 a second harness (the GARE session source, TER-SRC-010 to TER-SRC-017) and
@@ -62,8 +62,9 @@ the stack comparison (TER-STK-010 to TER-STK-013).
 **CI gates.** CI runs the L0 gate (golden, contract and architecture
 suites), the full suite with 90% branch coverage, `lint-imports` (eight
 import contracts), `mypy` on strict `ter` code, `ter-req lint --strict` and
-`ter-req points --check`, and `ter-req trace` at `--gate L0`, `L1`, `L2` and `L3`, so main cannot slip
-back below L3.
+`ter-req points --check`, and `ter-req trace` at `--gate L0`, `L1`, `L2`, `L3`
+and `L4`, so main cannot slip back below L3, and every L4 requirement
+verified so far stays traced to a passing test.
 
 ```bash
 python -m pytest --req-trace=req-trace.json
@@ -260,7 +261,13 @@ suppressed by cooldown and suppressed for ineligible categories.
    been followed up (issue #43). See
    [l4-advisory.md](l4-advisory.md#did-the-advice-help).
 7. The control loop wired in bootstrap (TER-INT-013); raise CI to
-   `--gate L4`.
+   `--gate L4`. **Done**: `ter.domain.loop` names the six stages and
+   `ter.application.loop.ControlLoop` runs them in order; the live hook runs
+   one turn per `Stop`, and shadow mode is the loop without a channel. CI and
+   `python dev.py gates` trace L0 to L4. See
+   [architecture.md](architecture.md#the-control-loop). What is left for the
+   L4 exit gate is TER-SPC-020 (control-chart signals as policy triggers)
+   and TER-INT-004 and TER-INT-005, the corrective interventions.
 
 ## L5 Corrective
 

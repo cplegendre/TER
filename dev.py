@@ -22,7 +22,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 TRACE = "req-trace.json"
-GATES = ("L0", "L1", "L2", "L3")
+GATES = ("L0", "L1", "L2", "L3", "L4")
 #: The coverage CI measures; pyproject.toml sets the 90% floor.
 COVERAGE = ("--cov=ter_calculator", "--cov=ter", "--cov-branch")
 PY_PATHS = ("src", "tests", "dev.py")
@@ -117,7 +117,7 @@ TASKS: dict[str, Task] = {
     ),
     "l0": Task("the L0 gate: golden parity, port contracts, architecture", _l0),
     "gates": Task(
-        "full suite with coverage and traces, then the L0-L3 gates (CI test job)",
+        "full suite with coverage and traces, then the L0-L4 gates (CI test job)",
         _gates,
     ),
     "check": Task(

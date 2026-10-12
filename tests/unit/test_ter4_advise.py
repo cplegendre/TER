@@ -22,7 +22,8 @@ from ter.adapters.driven.in_memory import (
     InMemoryInterventionChannel,
     InMemoryInterventionLedger,
 )
-from ter.application.advise import advise_session, decide
+from ter.application.advise import decide
+from ter.application.loop import advise_session
 from ter.domain.intervention import Outcome
 from ter.domain.lean import LeanAnalysis
 from ter.domain.maturity import Maturity

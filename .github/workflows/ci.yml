@@ -73,6 +73,9 @@ jobs:
       - name: Requirements traceability gate (L3)
         if: matrix.python-version == '3.11'
         run: ter-req trace --results req-trace.json --gate L3
+      - name: Requirements traceability gate (L4)
+        if: matrix.python-version == '3.11'
+        run: ter-req trace --results req-trace.json --gate L4
       - name: Upload coverage XML
         if: matrix.python-version == '3.11'
         uses: actions/upload-artifact@v4
