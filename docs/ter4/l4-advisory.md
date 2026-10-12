@@ -39,22 +39,28 @@ A policy file (`ter.intervention-policies/1`, TER-INT-008) declares:
 Only `advise` is a permitted action at L4. A corrective action is refused
 with a pointer to L5.
 
-The draft for the three eligible detectors is
-[docs/examples/policies/l4-advisory.json](../examples/policies/l4-advisory.json):
+The draft is
+[docs/examples/policies/l4-advisory.json](../examples/policies/l4-advisory.json).
+Two of its detectors are eligible:
 
 | Policy | Detector | Fires on |
 |---|---|---|
 | `batch-edits` | `fragmented_edits` | many small edits to one file in separate round trips |
 | `reuse-reads` | `repeated_exploration` | re-reading a file, or re-running a search, with no edit in between |
-| `edit-not-rewrite` | `regeneration` | a whole-file rewrite repeating at least 70% of the old file (confidence 0.80) |
+| `edit-not-rewrite` | `regeneration` (not eligible) | a whole-file rewrite repeating at least 70% of the old file; recorded as ineligible, never advised |
 
-Their eligibility rests on the two judged samples: `fragmented_edits` was 17
-of 17 waste, `repeated_exploration` 10 of 10, and `regeneration` at 70% or
-more repeated 3 of 3 ([l2-explained.md](l2-explained.md)). The
-`regeneration` rows come from one session, and the 70% cut was set from
-those same rows (7 unsure rows sat at 52% to 64%), so that policy is a
-proposal until another session confirms it. Shadow mode (step 4) is where
-that check happens, before any advice reaches a developer.
+Eligibility rests on the two judged samples and the first shadow run (12 Oct
+2026, 64 sessions, 12 pieces of advice judged by the owner):
+
+| Detector | Judged samples | Shadow run | Now |
+|---|---|---|---|
+| `fragmented_edits` | 17 of 17 waste | 5 waste, 0 not waste, 1 unsure | eligible |
+| `repeated_exploration` | 10 of 10 waste | 0 waste, 3 not waste | eligible; the 3 were re-read images a render had redrawn, which are now uncertain |
+| `regeneration` | 3 of 3 at 70% or more repeated, one session | 0 waste, 2 not waste, 1 unsure | not eligible |
+
+The two false `regeneration` rows rewrote files under 1 KB, where a rewrite
+costs no more than an edit. That is two rows, not a rule, so the detector is
+unchanged and only its eligibility is withdrawn.
 
 Policies load through the capability registry as `InterventionPolicies.json`
 (TER-ARC-008), so a capability pack can add another source.

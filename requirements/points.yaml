@@ -1474,7 +1474,7 @@ points:
       - 'test: tests/unit/test_ter4_intervention.py::test_an_uncertain_signal_is_never_advised_even_if_the_policy_allows'
       - 'test: tests/unit/test_ter4_lean_judge_l4.py::TestUnusedContextJudgeL4::test_boundary_an_unused_source_read_is_uncertain_waste'
       - 'test: tests/unit/test_ter4_shadow.py::test_every_decision_is_ledgered_and_nothing_is_delivered'
-      - 'planned: real-data verification in issue #41. Second judged sample (judge-l4, 12 Oct 2026): the four detectors promoted on 10 Oct were 0 waste of 30 decided and are uncertain again; only fragmented_edits, repeated_exploration and regeneration at 70% or more repeated have no judged false positives under their current rules (regeneration: one session, the cut a proposal). Shadow mode (TER-INT-017) gives further samples to judge before live advice'
+      - 'planned: real-data verification in issue #41. Second judged sample (judge-l4, 12 Oct 2026): the four detectors promoted on 10 Oct were 0 waste of 30 decided and are uncertain again; only fragmented_edits, repeated_exploration and regeneration at 70% or more repeated have no judged false positives under their current rules (regeneration: one session, the cut a proposal). First shadow run (12 Oct 2026, 64 sessions, 12 pieces of advice): fragmented_edits 5 waste and 1 unsure; repeated_exploration 3 not waste, all image re-reads, now uncertain; regeneration 0 waste, 2 not waste, 1 unsure, so no longer eligible'
 
   - id: P092
     text: >-

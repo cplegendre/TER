@@ -265,10 +265,12 @@ def test_the_example_policy_file_answers_only_the_eligible_detectors() -> None:
     assert policies.eligibility.detectors == {
         "fragmented_edits",
         "repeated_exploration",
-        "regeneration",
     }
     assert "judge-l4" in policies.eligibility.basis
-    assert policies.ineligible() == ()
+    assert "shadow run" in policies.eligibility.basis
+    # Withdrawn after the first shadow run: kept so shadow mode records what
+    # it would have said, as ineligible.
+    assert policies.ineligible() == (("edit-not-rewrite", "regeneration"),)
     # Shipped unapproved: the developer approves it, TER never does.
     assert policies.state is ApprovalState.UNAPPROVED
     # Regeneration advises only at 0.80: rewrites repeating 70% or more.

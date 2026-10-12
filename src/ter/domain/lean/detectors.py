@@ -22,7 +22,12 @@ from pathlib import PurePosixPath
 from typing import Protocol
 
 from ..events import EventId, EventKind, ToolKind
-from .facts import content_words, harness_output_path, looks_like_file_name
+from .facts import (
+    content_words,
+    harness_output_path,
+    looks_like_file_name,
+    output_fingerprint,
+)
 from .grounding import RepositoryGrounding
 from .intent import IntentRelation, IntentTimeline, SubjectBasis
 from .model import (
@@ -340,6 +345,10 @@ class RepeatedToolCall:
             )
 
 
+#: The fingerprint of a tool result with no text, as an image read gives.
+_EMPTY_OUTPUT = output_fingerprint("")
+
+
 @dataclass(frozen=True)
 class RepeatedExploration:
     """Points 18, 28, 36: re-reading a file or re-running a search."""
@@ -353,8 +362,10 @@ class RepeatedExploration:
     confidence_rule: str = (
         "0.85 when the same read or search (same arguments) returned identical "
         "output and the file was not edited in between; 0.55 (uncertain) when "
-        "either output was not observed. A read after an edit of that file, a "
-        "read of a different range, or a changed output is not a finding."
+        "either output was not observed, or a read returned no text both times "
+        "(an image, whose pixels the transcript does not compare). A read after "
+        "an edit of that "
+        "file, a read of a different range, or a changed output is not a finding."
     )
 
     def detect(self, view: SessionView) -> Iterable[Finding]:
@@ -379,6 +390,15 @@ class RepeatedExploration:
                 note = "One of the two results was not observed."
             elif before.output_hash != after.output_hash:
                 continue
+            elif (
+                step.tool_kind is ToolKind.FS_READ
+                and after.output_hash == _EMPTY_OUTPUT
+            ):
+                # An image read returns no text: equal hashes prove nothing,
+                # and a render or script may have redrawn it (shadow judge,
+                # 12 Oct 2026: three re-read screenshots, all not waste).
+                confidence = 0.55
+                note = "Both reads returned no text to compare (an image)."
             else:
                 confidence = 0.85
                 note = "The output was identical and the agent had not changed it."
