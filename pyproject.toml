@@ -227,6 +227,24 @@ source_modules = [
 forbidden_modules = ["ter.domain.outcome"]
 
 [[tool.importlinter.contracts]]
+id = "intervention-reads-signals"
+name = "The Intervention Engine reads only structured detector signals (TER-INT-006)"
+type = "forbidden"
+# Observation and intervention are separate engines (points 121, 161, 162):
+# the engine sees ter.domain.intervention.Signal values, never the events,
+# steps or findings the Analysis Engine works on.
+source_modules = ["ter.domain.intervention"]
+forbidden_modules = ["ter.domain.lean", "ter.domain.stream", "ter.domain.events"]
+
+[[tool.importlinter.contracts]]
+id = "analysis-knows-no-intervention"
+name = "The Analysis Engine never imports the Intervention Engine (P121)"
+type = "forbidden"
+# Both engines share only ter.domain.signal.Signal.
+source_modules = ["ter.domain.lean", "ter.domain.stream", "ter.domain.signal"]
+forbidden_modules = ["ter.domain.intervention"]
+
+[[tool.importlinter.contracts]]
 id = "independent-adapters"
 name = "Driven adapters do not import each other"
 type = "independence"

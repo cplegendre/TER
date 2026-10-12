@@ -63,7 +63,7 @@ requirements:
     rationale: >-
       Separating analysis from intervention keeps observation safe and
       decisions testable.
-    status: planned
+    status: verified
 
   - id: TER-INT-007
     pattern: unwanted
@@ -76,7 +76,7 @@ requirements:
     rationale: >-
       Token volume alone is not waste; an intervention needs a reason the
       agent and the user can inspect.
-    status: planned
+    status: verified
 
   - id: TER-INT-008
     pattern: ubiquitous
@@ -115,7 +115,7 @@ requirements:
     rationale: >-
       Issue #41: false interventions disrupt productive agents, so
       calibrated precision gates intervention.
-    status: planned
+    status: verified
 
   - id: TER-INT-011
     pattern: event-driven
@@ -187,7 +187,7 @@ requirements:
     source_points: [165, 166]
     rationale: >-
       Repeated warnings are their own form of waste.
-    status: planned
+    status: verified
 
   - id: TER-ARC-008
     pattern: ubiquitous
