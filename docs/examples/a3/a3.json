@@ -1708,7 +1708,7 @@
       "confidence": 0.55,
       "uncertain": true,
       "title": "Changed src/ratelimit.py with too little context",
-      "explanation": "The task had acquired 0 context item(s) when it edited src/ratelimit.py in place; the band asks for 1 (at least 1 item(s) per file edited in place, at most 3 per file changed plus 3). The file was read or written in an earlier task, so carried context may be enough.",
+      "explanation": "The task had acquired 0 context item(s) when it edited src/ratelimit.py in place; the band asks for 1 (at least 1 item(s) per file edited in place, at most 3 per file changed plus 3). The file was read, written or named in an exploring shell command earlier, so carried context may be enough.",
       "evidence": [
         "15a74055c20c93f5",
         "6f76a1b9a75a3cd7",
@@ -2125,7 +2125,7 @@
       "id": "insufficient_context",
       "waste": "defects",
       "kind": "risk",
-      "confidence_rule": "Per task (prompt): when the task first edits its n-th distinct file in place (Edit, not a new-file Write), it must have acquired at least min_per_file (1) × n distinct context items (reads, searches, fetches, handoffs, exploring shell). The first edit below that bound is the finding: 0.70 when that file was never read, written or named in a shell command earlier in the session; 0.55 (uncertain) when it was, since context carried from an earlier task may suffice. Edits of notes and documents (.md, .rst, .txt, .adoc) need no code context and are not judged (judged 12 Oct 2026: memory-note edits). A risk: it claims no cost."
+      "confidence_rule": "Per task (prompt): when the task first edits its n-th distinct file in place (Edit, not a new-file Write), it must have acquired at least min_per_file (1) × n distinct context items (reads, searches, fetches, handoffs, exploring shell). The first edit below that bound is the finding: 0.70 when that file was never read, written or named in an exploring shell command (cat, sed -n, grep …) earlier in the session; 0.55 (uncertain) when it was, since context carried from an earlier task may suffice. Edits of notes and documents (.md, .rst, .adoc) need no code context and are not judged (judged 12 Oct 2026: memory-note edits). A risk: it claims no cost."
     },
     {
       "id": "unused_traversal",
@@ -2370,8 +2370,8 @@
     "schema": "ter.session-control/1",
     "method": "average_moving_range",
     "computed_on": "2026-10-10",
-    "detectors": "408ceeb0b5e1",
-    "limits_detectors": "408ceeb0b5e1",
+    "detectors": "eeb33ec1b38d",
+    "limits_detectors": "eeb33ec1b38d",
     "stale": false,
     "signals": 6,
     "firing": 4,

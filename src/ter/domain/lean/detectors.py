@@ -34,6 +34,7 @@ from .model import (
     FindingKind,
     LeanWaste,
     Outcome,
+    ShellIntent,
     Stage,
     Step,
     ValidationCycle,
@@ -74,6 +75,9 @@ __all__ = [
 _EXPLORE_KINDS = frozenset({ToolKind.FS_READ, ToolKind.FS_SEARCH})
 _CHANGE_KINDS = frozenset({ToolKind.FS_EDIT, ToolKind.FS_WRITE})
 _DOC_SUFFIXES = frozenset({".md", ".rst", ".txt", ".adoc"})
+#: Notes and documents: editing one needs no code context. Not .txt, which
+#: also names build inputs (requirements.txt, CMakeLists.txt).
+_NOTE_SUFFIXES = frozenset({".md", ".rst", ".adoc"})
 #: Calls that can redo a delegated task: looking things up and running them.
 _REDO_KINDS = frozenset(
     {ToolKind.FS_READ, ToolKind.FS_SEARCH, ToolKind.NET_FETCH, ToolKind.EXEC_SHELL}
@@ -1497,10 +1501,10 @@ class InsufficientContext:
         "place (Edit, not a new-file Write), it must have acquired at least "
         "min_per_file (1) × n distinct context items (reads, searches, fetches, "
         "handoffs, exploring shell). The first edit below that bound is the "
-        "finding: 0.70 when that file was never read, written or named in a "
-        "shell command earlier in the session; 0.55 (uncertain) when it was, "
+        "finding: 0.70 when that file was never read, written or named in an "
+        "exploring shell command (cat, sed -n, grep …) earlier in the session; 0.55 (uncertain) when it was, "
         "since context carried from an earlier task may suffice. Edits of "
-        "notes and documents (.md, .rst, .txt, .adoc) need no code context and "
+        "notes and documents (.md, .rst, .adoc) need no code context and "
         "are not judged (judged 12 Oct 2026: memory-note edits). A risk: it "
         "claims no cost."
     )
@@ -1526,7 +1530,7 @@ class InsufficientContext:
                     p
                     for p in step.paths
                     if p not in in_place
-                    and PurePosixPath(_basename(p).lower()).suffix not in _DOC_SUFFIXES
+                    and PurePosixPath(_basename(p).lower()).suffix not in _NOTE_SUFFIXES
                 ]
                 in_place.extend(new)
                 acquired = current.items_before(step.index)
@@ -1536,7 +1540,11 @@ class InsufficientContext:
                     yield self._found(
                         view, current, step, new[0], acquired, need, known
                     )
-            if step.is_request and step.tool_kind is ToolKind.EXEC_SHELL:
+            if (
+                step.is_request
+                and step.tool_kind is ToolKind.EXEC_SHELL
+                and step.shell is ShellIntent.EXPLORE
+            ):
                 # A file read through the shell (``cat f``) before the task
                 # is carried context too (judged 12 Oct 2026).
                 known.update(step.words)
@@ -1568,8 +1576,8 @@ class InsufficientContext:
                 f"The task had acquired {len(acquired)} context item(s) when it edited "
                 f"{path} in place; the band asks for {need} ({self.band.describe()})."
                 + (
-                    " The file was read or written in an earlier task, so carried "
-                    "context may be enough."
+                    " The file was read, written or named in an exploring shell "
+                    "command earlier, so carried context may be enough."
                     if carried
                     else ""
                 )
@@ -1600,9 +1608,13 @@ def _file_names(words: frozenset[str]) -> frozenset[str]:
 #: probes the environment (judged 12 Oct 2026).
 _PROBE_TARGET = re.compile(
     r"(?:^|\s)['\"]?(?:(?:~|\$HOME)(?:/\.|\s|$)|%\w+%"
-    r"|/(?:usr|etc|opt|proc|sys|tmp|var|bin|lib)(?:/|\s|$)"
+    r"|/(?:usr|etc|proc|sys|tmp|bin|lib)(?:/|\s|$)"
     r"|[A-Za-z]:[/\\]Users[/\\][^/\\\s]+[/\\](?:AppData|\.))"
 )
+
+
+#: An output redirection and its target: where results go, not what is walked.
+_REDIRECT = re.compile(r"\d?>>?\s*\S+|\|\s*tee\s+(?:-\S+\s+)*\S+")
 
 
 def _path_words(step: Step) -> frozenset[str]:
@@ -1677,7 +1689,7 @@ class UnusedTraversal:
             step.tool_kind is ToolKind.EXEC_SHELL
             and step.command is not None
             and _TRAVERSAL.match(step.command) is not None
-            and _PROBE_TARGET.search(step.command) is None
+            and _PROBE_TARGET.search(_REDIRECT.sub(" ", step.command)) is None
         )
 
     @staticmethod

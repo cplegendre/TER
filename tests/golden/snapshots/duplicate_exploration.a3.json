@@ -960,7 +960,7 @@
       "waste": "inventory"
     },
     {
-      "confidence_rule": "Per task (prompt): when the task first edits its n-th distinct file in place (Edit, not a new-file Write), it must have acquired at least min_per_file (1) × n distinct context items (reads, searches, fetches, handoffs, exploring shell). The first edit below that bound is the finding: 0.70 when that file was never read, written or named in a shell command earlier in the session; 0.55 (uncertain) when it was, since context carried from an earlier task may suffice. Edits of notes and documents (.md, .rst, .txt, .adoc) need no code context and are not judged (judged 12 Oct 2026: memory-note edits). A risk: it claims no cost.",
+      "confidence_rule": "Per task (prompt): when the task first edits its n-th distinct file in place (Edit, not a new-file Write), it must have acquired at least min_per_file (1) × n distinct context items (reads, searches, fetches, handoffs, exploring shell). The first edit below that bound is the finding: 0.70 when that file was never read, written or named in an exploring shell command (cat, sed -n, grep …) earlier in the session; 0.55 (uncertain) when it was, since context carried from an earlier task may suffice. Edits of notes and documents (.md, .rst, .adoc) need no code context and are not judged (judged 12 Oct 2026: memory-note edits). A risk: it claims no cost.",
       "id": "insufficient_context",
       "kind": "risk",
       "waste": "defects"

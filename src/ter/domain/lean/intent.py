@@ -567,6 +567,7 @@ def _periods(
     alignments: Sequence[Alignment],
     steps: Sequence[Step],
     config: IntentConfig,
+    stated: frozenset[int],
 ) -> tuple[LowAlignmentPeriod, ...]:
     out: list[LowAlignmentPeriod] = []
     run: list[Alignment] = []
@@ -584,7 +585,10 @@ def _periods(
     by_index = {a.index: a for a in alignments}
     for step in steps:
         if step.kind is EventKind.PROMPT:
-            close()
+            # Only a prompt that stated intent ends a period: a harness
+            # notification arriving mid-drift does not (TER-ITN-008).
+            if step.index in stated:
+                close()
             continue
         a = by_index.get(step.index)
         if a is None or a.band is AlignmentBand.UNKNOWN:
@@ -638,7 +642,16 @@ def build_intent(
         record=IntentRecord(tuple(revisions)),
         changes=tuple(changes),
         alignments=tuple(alignments),
-        periods=_periods(alignments, steps, config),
+        periods=_periods(
+            alignments,
+            steps,
+            config,
+            frozenset(
+                s.index
+                for s, r in zip(steps, reads, strict=True)
+                if s.kind is EventKind.PROMPT and r is not None
+            ),
+        ),
         scorer=scorer.name,
         rule=scorer.rule,
         config=config,

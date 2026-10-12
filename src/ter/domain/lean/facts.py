@@ -235,7 +235,8 @@ def _command_heads(command: str) -> list[str]:
             else:
                 break
         if words:
-            program = words[0].rsplit("/", 1)[-1] or words[0]
+            # A quoted path keeps its backslashes ("C:\\Program Files\\...").
+            program = re.split(r"[/\\]", words[0])[-1] or words[0]
             if program.lower().endswith(".exe"):
                 program = program[:-4]
             words = [program, *words[1:]]

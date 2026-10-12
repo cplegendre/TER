@@ -68,6 +68,19 @@ def test_boundary_developer_text_mentioning_markers_is_not_injected(
 
 
 @pytest.mark.req("TER-ITN-008")
+def test_an_injected_message_does_not_split_a_drift_period() -> None:
+    s = Script()
+    s.prompt("Add a slugify helper to src/text.py with unit tests")
+    for i in range(2):
+        s.say(f"Configuring the kubernetes ingress controller replica {i}")
+    s.prompt("<task-notification><task-id>a1</task-id> research done")
+    s.say("Configuring the kubernetes ingress controller replica 2")
+    timeline = run(s).intent
+    assert len(timeline.periods) == 1
+    assert len(timeline.periods[0].events) == 3
+
+
+@pytest.mark.req("TER-ITN-008")
 def test_an_injected_message_is_not_an_intent_revision() -> None:
     s = Script()
     first = s.prompt("Add a slugify helper to src/text.py")
@@ -173,6 +186,21 @@ class TestUnusedTraversalJudgeL4:
         s.say("The setup looks fine.")
         assert found(s, "unused_traversal") == []
 
+    @pytest.mark.parametrize(
+        "command",
+        ["rg retry src > /tmp/out.txt", "ls /opt/app/src", "ls /var/www/site/src"],
+    )
+    def test_boundary_a_walk_of_the_work_writing_to_tmp_is_judged(
+        self, command: str
+    ) -> None:
+        # Only walked targets mark a probe: a redirection is where output
+        # goes, and projects live under /opt and /var too.
+        s = Script()
+        s.prompt("add retries")
+        s.bash(command, "legacy.py\nold.py")
+        s.say("done")
+        assert len(found(s, "unused_traversal")) == 1
+
     def test_boundary_a_walk_of_the_work_under_home_is_judged(self) -> None:
         s = Script()
         s.prompt("add retries")
@@ -238,6 +266,28 @@ class TestInsufficientContextJudgeL4:
         s.prompt("remember that the build needs node 20")
         s.edit("/home/u/.claude/memory/build.md", "node 18", "node 20")
         assert found(s, "insufficient_context") == []
+
+    @pytest.mark.parametrize(
+        "path", ["requirements.txt", "CMakeLists.txt", "notes.txt"]
+    )
+    def test_boundary_txt_edits_are_still_judged(self, path: str) -> None:
+        # .txt also names build inputs, so only .md, .rst and .adoc are notes.
+        s = Script()
+        s.prompt("pin the dependency")
+        s.edit(path, "requests", "requests==2.32")
+        assert len(found(s, "insufficient_context")) == 1
+
+    def test_a_file_only_mentioned_by_a_shell_command_is_not_carried(
+        self,
+    ) -> None:
+        s = Script()
+        s.prompt("stage the parser")
+        s.bash("git add src/parse.py", "")
+        s.say("Staged.")
+        s.prompt("now make it split on semicolons")
+        s.edit("src/parse.py", "','", "';'")
+        [f] = found(s, "insufficient_context")
+        assert f.confidence == 0.7
 
     def test_a_file_read_through_the_shell_earlier_is_carried(self) -> None:
         s = Script()
@@ -313,6 +363,7 @@ class TestRepeatedToolCallJudgeL4:
         "D:/code/TER-main/.venv/Scripts/python.exe -m pytest -q",
         "D:\\code\\TER-main\\.venv\\Scripts\\python.exe -m pytest tests",
         '"C:\\Python311\\python.exe" -m pytest',
+        '"C:\\Program Files\\Python311\\python.exe" -m pytest',
         "/home/u/app/.venv/bin/python -m pytest -q",
         "C:/tools/ruff.exe check src",
     ],
