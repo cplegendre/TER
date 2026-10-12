@@ -34,6 +34,7 @@ from ..domain.capabilities import Capability, CapabilityProblem, UnknownCapabili
 from ..domain.stream import StreamReport
 from ..ports.driven import (
     ArchitectureContracts,
+    InterventionLedger,
     InterventionPolicies,
     OutcomeSource,
     SessionSource,
@@ -60,6 +61,7 @@ __all__ = [
     "make_contracts",
     "make_ingest",
     "make_outcome_source",
+    "make_ledger",
     "make_policies",
     "make_recorder",
     "make_ter_scorer",
@@ -114,6 +116,14 @@ def make_policies(name: str = "json") -> InterventionPolicies:
     source = default_registry().create("InterventionPolicies", name)
     assert isinstance(source, InterventionPolicies)  # checked by the registry
     return source
+
+
+def make_ledger(directory: Path, name: str = "jsonl") -> InterventionLedger:
+    """An ``InterventionLedger.<name>`` capability (TER-INT-009): ``jsonl``
+    keeps one append-only ledger file per session under ``directory``."""
+    ledger = default_registry().create("InterventionLedger", name, directory)
+    assert isinstance(ledger, InterventionLedger)  # checked by the registry
+    return ledger
 
 
 def make_contracts(name: str = "import-linter") -> ArchitectureContracts:

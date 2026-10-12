@@ -50,10 +50,10 @@ test. Counts from `requirements/l*.yaml` on this commit:
 | L1 Observed | 22 of 22 | 0 | 15 / 1 / 0 |
 | L2 Explained | 72 of 72 | 0 | 50 / 5 / 0 |
 | L3 Grounded | 35 of 35 | 0 | 25 / 23 / 0 |
-| L4 Advisory | 7 of 17 | 10 | 9 / 4 / 26 |
+| L4 Advisory | 8 of 17 | 9 | 13 / 5 / 21 |
 | L5 Corrective | 0 of 10 | 10 | 1 / 4 / 8 |
 | L6 Learning | 11 of 19 | 8 | 1 / 4 / 14 |
-| **All** | **173 of 201** | **28** | **111 / 42 / 48** of 201 |
+| **All** | **174 of 201** | **27** | **115 / 43 / 43** of 201 |
 
 The L6 requirements already verified are the ones that did not have to wait:
 a second harness (the GARE session source, TER-SRC-010 to TER-SRC-017) and
@@ -231,7 +231,12 @@ suppressed by cooldown and suppressed for ineligible categories.
    [docs/examples/policies/l4-advisory.json](../examples/policies/l4-advisory.json),
    shipped unapproved. See [l4-advisory.md](l4-advisory.md).
 3. `InterventionLedger` port, JSONL adapter, fake and contract suite
-   (TER-INT-009).
+   (TER-INT-009). **Done**: `ter.domain.ledger` (`ter.intervention-ledger/1`,
+   one record per engine decision, the outcome attached once), the
+   `InterventionLedger` port with its JSONL adapter (one append-only file
+   per session) and fake, both passing
+   `tests/contract/test_intervention_ledger.py`. See
+   [l4-advisory.md](l4-advisory.md#the-ledger).
 4. Shadow mode: replay recorded sessions and write what TER *would* have
    advised, with no channel. Run it on the corpus and judge it before any
    live advice.

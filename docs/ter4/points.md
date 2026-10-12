@@ -10,9 +10,9 @@ rules that enforce it and how it is verified. Rules live in
 contributed from another source (an external capability, ADR 0005) and the
 Origin column names that source, its reference and author.
 
-**201 points** · ● done **111** · ◐ partial **42** · ○ not started **48**
+**201 points** · ● done **115** · ◐ partial **43** · ○ not started **43**
 
-`██████████████████████▓▓▓▓▓▓▓▓░░░░░░░░░░`
+`███████████████████████▓▓▓▓▓▓▓▓░░░░░░░░░`
 
 Legend: `█` done · `▓` partial · `░` not started
 
@@ -24,7 +24,7 @@ Legend: `█` done · `▓` partial · `░` not started
 | L1 Observed | `███████████████████▓` | 15 | 1 | 0 | 16 |
 | L2 Explained | `██████████████████▓▓` | 50 | 5 | 0 | 55 |
 | L3 Grounded | `██████████▓▓▓▓▓▓▓▓▓▓` | 25 | 23 | 0 | 48 |
-| L4 Advisory | `█████▓▓░░░░░░░░░░░░░` | 9 | 4 | 26 | 39 |
+| L4 Advisory | `███████▓▓░░░░░░░░░░░` | 13 | 5 | 21 | 39 |
 | L5 Corrective | `██▓▓▓▓▓▓░░░░░░░░░░░░` | 1 | 4 | 8 | 13 |
 | L6 Learning | `█▓▓▓▓░░░░░░░░░░░░░░░` | 1 | 4 | 14 | 19 |
 
@@ -47,7 +47,7 @@ P081 ● ● ● ● ● ● ◐ ○ ○ ○ ◐ ◐ ● ○ ◐ ○ ○ ○ ○
 P101 ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ◐ ● ● ● ●
 P121 ● ● ○ ○ ◐ ○ ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ◐ ● ●
 P141 ● ● ● ● ● ◐ ◐ ● ◐ ◐ ● ● ◐ ● ◐ ◐ ● ● ● ●
-P161 ● ◐ ● ● ● ● ○ ○ ○ ○ ○ ○ ● ○ ○ ○ ○ ○ ○ ○
+P161 ● ◐ ● ● ● ● ○ ○ ○ ○ ○ ○ ● ○ ● ● ● ● ○ ◐
 P181 ◐ ◐ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ● ● ● ◐ ○ ○
 P201 ◐
 ```
@@ -230,12 +230,12 @@ P201 ◐
 | P172 | Position this feedback loop as the central architecture of TER. | vision | L4 | ○ not started |  | • The architecture docs place the feedback loop at the centre of TER. | `TER-INT-013` · | planned: passing tests tagged req for TER-INT-013 |
 | P173 | Preserve human control over intervention policy. | vision | L4 | ● done |  | • Policy changes apply only from human-approved policy files. | `TER-INT-015` ✓ | test: tests/unit/test_ter4_policy_set.py::test_a_changed_policy_does_not_apply_until_approved_again<br>test: tests/unit/test_ter4_policy_set.py::test_cli_check_then_approve_then_check<br>test: tests/contract/test_intervention_policies.py::test_never_approves_on_its_own |
 | P174 | Make every intervention explainable. | vision | L4 | ○ not started |  | • Every intervention shows its signal and evidence. | `TER-INT-014` · | planned: passing tests tagged req for TER-INT-014 |
-| P175 | Record the signal that triggered each intervention. | vision | L4 | ○ not started |  | • The ledger records the triggering signal of each intervention. | `TER-INT-009` · | planned: passing tests tagged req for TER-INT-009 |
-| P176 | Record the evidence supporting that signal. | vision | L4 | ○ not started |  | • The ledger records the evidence behind each signal. | `TER-INT-009` · | planned: passing tests tagged req for TER-INT-009 |
-| P177 | Record the action TER proposed or performed. | vision | L4 | ○ not started |  | • The ledger records the action proposed or performed. | `TER-INT-009` · | planned: passing tests tagged req for TER-INT-009 |
-| P178 | Record the subsequent outcome. | vision | L4 | ○ not started |  | • The ledger records the outcome after each intervention. | `TER-INT-009` · | planned: passing tests tagged req for TER-INT-009 |
+| P175 | Record the signal that triggered each intervention. | vision | L4 | ● done |  | • The ledger records the triggering signal of each intervention. | `TER-INT-009` ✓ | test: tests/unit/test_ter4_ledger.py::test_an_advised_verdict_records_signal_evidence_and_action<br>test: tests/contract/test_intervention_ledger.py::test_each_record_holds_signal_evidence_action_and_outcome |
+| P176 | Record the evidence supporting that signal. | vision | L4 | ● done |  | • The ledger records the evidence behind each signal. | `TER-INT-009` ✓ | test: tests/unit/test_ter4_ledger.py::test_an_advised_verdict_records_signal_evidence_and_action<br>test: tests/unit/test_ter4_ledger.py::test_no_action_is_recorded_without_evidence |
+| P177 | Record the action TER proposed or performed. | vision | L4 | ● done |  | • The ledger records the action proposed or performed. | `TER-INT-009` ✓ | test: tests/unit/test_ter4_ledger.py::test_a_suppressed_verdict_records_the_reason_and_no_action<br>test: tests/contract/test_intervention_ledger.py::test_each_record_holds_signal_evidence_action_and_outcome |
+| P178 | Record the subsequent outcome. | vision | L4 | ● done |  | • The ledger records the outcome after each intervention. | `TER-INT-009` ✓ | test: tests/unit/test_ter4_ledger.py::test_the_outcome_is_recorded_with_the_intervention<br>test: tests/contract/test_intervention_ledger.py::test_an_outcome_is_attached_once |
 | P179 | Use intervention outcomes for future calibration. | vision | L4 | ○ not started | [#43](https://github.com/lgriffin/TER/issues/43) | • Ledger outcomes feed calibration of thresholds and policies. | `TER-INT-012` · | planned: passing tests tagged req for TER-INT-012<br>planned: real-data verification in issue #43 |
-| P180 | Never silently optimise agent behaviour without producing an auditable record. | vision | L4 | ○ not started |  | • No behaviour change is made without a ledger record. | `TER-INT-009` · | planned: passing tests tagged req for TER-INT-009 |
+| P180 | Never silently optimise agent behaviour without producing an auditable record. | vision | L4 | ◐ partial |  | • No behaviour change is made without a ledger record. | `TER-INT-009` ✓ | test: tests/contract/test_intervention_ledger.py::test_entries_come_back_in_record_order_field_for_field<br>planned: the advisory channel writes the ledger record before it delivers advice (L4 step 5) |
 | P181 | Create a research dataset describing software-agent value streams. | vision | L6 | ◐ partial | [#34](https://github.com/lgriffin/TER/issues/34) | • A versioned value stream dataset with a data card is published. | `TER-RSH-001` ·<br>`TER-GRF-003` ✓<br>`TER-SRC-023` ✓<br>`TER-STK-001` ✓ | test: tests/unit/test_ter4_corpus.py::test_labels_are_joined_by_session_id<br>test: tests/unit/test_ter4_stack.py::TestLanguages<br>planned: a published data card (template: docs/ter4/dataset-card.md)<br>planned: passing tests tagged req for TER-RSH-001, TER-GRF-003<br>planned: real-data verification in issue #34 |
 | P182 | Investigate whether classical Lean wastes meaningfully predict inefficiency in agentic… | vision | L6 | ◐ partial | [#44](https://github.com/lgriffin/TER/issues/44) | • A study reports whether each classical Lean waste predicts inefficiency. | `TER-RSH-002` ·<br>`TER-EXP-010` ·<br>`TER-STK-010` ✓<br>`TER-STK-011` ✓<br>`TER-STK-012` ✓<br>`TER-STK-013` ✓ | test: tests/unit/test_ter4_stack_comparison.py::TestStratification<br>test: tests/unit/test_ter4_stack_comparison.py::TestInsufficientStrata<br>test: tests/unit/test_ter4_stack_comparison.py::TestSpread<br>test: tests/unit/test_ter4_stack_comparison.py::TestNoFiles<br>planned: scripts/corpus_by_stack.py over a corpus with five or more sessions per stack, task category and outcome<br>planned: passing tests tagged req for TER-RSH-002, TER-EXP-010<br>planned: real-data verification in issue #44 |
 | P183 | Determine which Lean concepts require adaptation for non-human software agents. | vision | L6 | ○ not started | [#44](https://github.com/lgriffin/TER/issues/44) | • The study names which Lean concepts need adapting for agents, and why. | `TER-RSH-002` ·<br>`TER-EXP-010` · | planned: passing tests tagged req for TER-RSH-002, TER-EXP-010<br>planned: real-data verification in issue #44 |

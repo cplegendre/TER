@@ -5,8 +5,8 @@ The advice will appear as a message from the hook TER already runs, and it
 never changes what the agent sees. That hook delivery is a later step (step
 5): today the hook still prints nothing, and approving a policy file lets an
 engine be built from it, nothing more. This page covers the parts that exist
-so far: the Intervention Engine (step 1) and policy files with human approval
-(step 2). The build order and the remaining steps are in
+so far: the Intervention Engine (step 1), policy files with human approval
+(step 2) and the ledger (step 3). The build order and the remaining steps are in
 [strategy.md](strategy.md#l4-advisory).
 
 ## The Intervention Engine
@@ -79,3 +79,32 @@ python -m ter policy approve docs/examples/policies/l4-advisory.json --by "Your 
 when the file is unapproved or changed, and 2 when it is not a valid policy
 file. It also lists any policy that names a detector outside the eligibility
 list; such a policy's signals are recorded as ineligible and never advised.
+
+## The ledger
+
+Every decision the engine makes about a signal under a policy is written to
+the intervention ledger (`ter.domain.ledger`, TER-INT-009) as one record:
+
+- the triggering signal: its id, detector, waste, confidence, published rule
+  and position;
+- the evidence: the event ids the signal cites;
+- the action taken: `advise`, or none when a guard suppressed it, with the
+  outcome (`cooldown`, `ineligible`, `low_confidence` and so on) and the
+  reason;
+- the observed outcome, attached once to a delivered intervention: whether
+  the developer accepted, ignored or rejected it, and flow measures before
+  and after. Taking that measurement 10 tool events later is step 6
+  (TER-INT-011).
+
+Suppressions are recorded too, so the ledger shows advice delivered, held
+back by cooldown and held back for ineligible detectors, which is what the
+L4 exit gate asks to see. A record cites event ids, the detector, its rule
+and the policy, never prompt text, file content or a finding's title, so a
+ledger can be shared like the corpus reports. A record's id is a digest of
+the decision, so replaying the same signals writes the same ids, and a
+ledger keeps the first record for each id.
+
+The `InterventionLedger.jsonl` capability keeps one append-only
+`<session>.ledger.jsonl` file per session, private to its owner. Recording
+appends a line without reading the file, so a hook's cost does not grow with
+the session. A line cut short by a crash is skipped, never raised.

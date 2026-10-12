@@ -14,6 +14,7 @@ from pathlib import Path
 
 from ...domain.events import Event, SessionTrace
 from ...domain.intervention import PolicyError
+from ...domain.ledger import LedgerError, LedgerRecord, Observation
 from ...domain.lean.control import ControlLimits, ControlLimitsError
 from ...domain.policy_set import PolicySet
 from ...domain.outcome import OutcomeEvidence, OutcomeFormatError
@@ -311,3 +312,35 @@ class InMemoryInterventionPolicies:
             return self._documents[str(ref)]
         except KeyError:
             raise PolicyError(f"{ref}: no such policy file") from None
+
+
+class InMemoryInterventionLedger:
+    """An :class:`~ter.ports.driven.InterventionLedger` held in a dict, with
+    the JSONL ledger's semantics: the first record for an id stays, and an
+    outcome is attached once, to a delivered record."""
+
+    name = "in-memory"
+
+    def __init__(self) -> None:
+        self._entries: dict[str, dict[str, LedgerRecord]] = {}
+
+    def record(self, entry: LedgerRecord) -> None:
+        if entry.observation is not None:
+            raise LedgerError(
+                f"record {entry.id}: record the decision, then observe its outcome"
+            )
+        self._entries.setdefault(entry.session_id, {}).setdefault(entry.id, entry)
+
+    def observe(
+        self, session_id: str, record_id: str, observation: Observation
+    ) -> None:
+        session = self._entries.get(session_id, {})
+        if record_id not in session:
+            raise LedgerError(f"no ledger record {record_id} in session {session_id}")
+        session[record_id] = session[record_id].observed(observation)
+
+    def entries(self, session_id: str) -> tuple[LedgerRecord, ...]:
+        return tuple(self._entries.get(session_id, {}).values())
+
+    def sessions(self) -> tuple[str, ...]:
+        return tuple(sorted(self._entries))

@@ -102,7 +102,7 @@ requirements:
     rationale: >-
       The ledger is how interventions are audited and how L6 learns which
       ones help.
-    status: planned
+    status: verified
 
   - id: TER-INT-010
     pattern: unwanted
