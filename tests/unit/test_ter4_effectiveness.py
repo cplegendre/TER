@@ -108,10 +108,21 @@ class TestFollowUp:
         assert observation.after[REPEATS] == 0.1
 
     @pytest.mark.req("TER-INT-011")
-    def test_the_advised_signal_growing_is_not_a_repeat(self) -> None:
+    def test_the_advised_finding_growing_after_the_advice_is_ignored(self) -> None:
+        # More round trips on the same file extend one finding, under its id.
         grown = replace(signal(26), id="repeated_exploration:e20")
-        observation = observe(advised(), [signal(20), grown], 32)
+        observation = observe(advised(), [grown], 32)
+        assert observation is not None and observation.response is Response.IGNORED
+        assert observation.after[REPEATS] == 0.1
+        later = replace(signal(40), id="repeated_exploration:e20")  # past the window
+        observation = observe(advised(), [later], 40)
+        assert observation is not None and observation.response is Response.IGNORED
+
+    @pytest.mark.req("TER-INT-011")
+    def test_the_advised_finding_unchanged_is_not_a_repeat(self) -> None:
+        observation = observe(advised(), [signal(20)], 32)
         assert observation is not None and observation.response is Response.ACCEPTED
+        assert observation.before[REPEATS] == 0.0
 
     @pytest.mark.req("TER-INT-011")
     def test_an_uncertain_or_other_detector_signal_is_no_repeat_but_is_waste(
@@ -135,10 +146,10 @@ class TestFollowUp:
         assert observation.before[REPEATS] == 0.25  # 1 repeat over 4 tool events
 
     @pytest.mark.req("TER-INT-011")
-    def test_without_a_delivery_position_the_signal_position_is_used(self) -> None:
-        record = advised(delivered_at=None)
-        assert observe(record, [signal(20)], 29) is None
-        assert observe(record, [signal(20)], 30) is not None
+    def test_shadow_advice_is_never_followed_up(self) -> None:
+        record = advised(delivered_at=None)  # shadow mode: never shown
+        assert record.delivered
+        assert observe(record, [signal(20)], 100) is None
 
     @pytest.mark.req("TER-INT-011")
     def test_suppressed_or_already_observed_records_are_left_alone(self) -> None:
@@ -225,6 +236,12 @@ class TestEffectiveness:
             ("sha256:v1", Effect.IMPROVES),
             ("sha256:v2", Effect.UNPROVEN),
         ]
+
+    @pytest.mark.req("TER-INT-012")
+    def test_shadow_advice_is_not_scored(self) -> None:
+        assert effectiveness([advised(delivered_at=None)]) == ()
+        [score] = effectiveness([advised(), advised(delivered_at=None)])
+        assert score.advised == 1
 
     @pytest.mark.req("TER-INT-012")
     def test_suppressed_decisions_are_not_scored(self) -> None:

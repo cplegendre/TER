@@ -12,6 +12,7 @@ import time
 from dataclasses import replace
 from datetime import UTC, date, datetime
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -305,3 +306,29 @@ def test_policy_effectiveness_needs_a_ledger_folder(tmp_path: Path) -> None:
         stderr=err,
     )
     assert code == 2 and "No such ledger folder" in err.getvalue()
+
+
+@pytest.mark.req("TER-INT-011")
+def test_advice_under_another_policy_file_is_measured_on_its_own_detector(
+    analysis: LeanAnalysis, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from ter.application import advise
+
+    ledger = InMemoryInterventionLedger()
+    advise_session(
+        SID, analysis, approved(), ledger, InMemoryInterventionChannel(), FixedClock(AT)
+    )
+    [given] = [e for e in ledger.entries(SID) if e.delivered]
+    ledger.record(replace(given, id="int-old", policy_version="sha256:old"))
+    seen: dict[str, frozenset[str]] = {}
+
+    def spy(
+        record: Any, signals: Any, tool_events: int, detectors: Any, at: Any
+    ) -> None:
+        seen[record.id] = frozenset(detectors)
+
+    monkeypatch.setattr(advise, "follow_up", spy)
+    advise.follow_up_session(SID, analysis, approved(), ledger, FixedClock(AT))
+    current = next(p for p in approved().policies if p.id == "reuse-reads")
+    assert seen[given.id] == current.detectors
+    assert seen["int-old"] == frozenset()  # the record's own detector only

@@ -208,14 +208,17 @@ outcome:
 
 | Field | Meaning |
 |---|---|
-| `response` | `accepted` when no confident signal of the policy's detectors came back in the 10 tool events after the advice; `ignored` when one did. `rejected` is only ever a developer's word, never inferred |
+| `response` | `accepted` when no confident signal of the policy's detectors came back in the 10 tool events after the advice and the advised finding did not grow after it (more round trips on the same file extend one finding); `ignored` otherwise. `rejected` is only ever a developer's word, never inferred |
 | `before`, `after` | Flow measures over the 10 tool events before the delivery and the 10 after, per tool event: `repeats_per_tool_event` (confident signals of the policy's detectors, the advised one excluded) and `waste_per_tool_event` (every waste signal, uncertain ones included, per ADR 0006) |
 | `tool_events` | How many tool events after the delivery it was observed |
 
 Live records keep `delivered_at`, the tool event count at the Stop that
 delivered them, so the window starts when the developer saw the advice, not
-when the finding appeared. Shadow mode delivers nothing and follows nothing
-up.
+when the finding appeared. Shadow mode delivers nothing, so its records
+have no `delivered_at` and are never followed up or scored, even in a ledger
+shared with live advice. A record made under an earlier policy file is
+measured on its own detector only, since the current file may answer
+different ones.
 
 `python -m ter policy effectiveness` scores each policy from those outcomes
 (TER-INT-012):

@@ -9,15 +9,21 @@ observed after a piece of advice was delivered, the record gets its outcome:
 the flow measures over the :data:`WINDOW` tool events before the advice and
 the :data:`WINDOW` after it, and the response. The response is inferred from
 behaviour: *accepted* when no confident signal of the policy's detectors
-appears in the window after the advice, *ignored* when one does. *Rejected*
-needs the developer to say so; it is never inferred.
+appears in the window after the advice and the advised finding itself did
+not grow after it (more round trips on the same file extend one
+``fragmented_edits`` finding), *ignored* otherwise. *Rejected* needs the
+developer to say so; it is never inferred. Only advice delivered live (a
+record with ``delivered_at``) is followed up or scored: shadow advice was
+never shown to anyone.
 
 The measures, each per tool event of its window (so a short window at the
 start of a session compares fairly):
 
 * ``repeats_per_tool_event``: confident signals (at least
   :data:`~ter.domain.intervention.ADVICE_CONFIDENCE`) of the policy's
-  detectors, the advised signal itself excluded: the waste the advice is about;
+  detectors: the waste the advice is about. Before the advice, the advised
+  signal itself is left out; after it, the advised signal counts when it
+  grew after the delivery;
 * ``waste_per_tool_event``: every waste signal of any detector, uncertain
   ones included, since uncertain findings count as waste until verified
   (ADR 0006).
@@ -48,6 +54,7 @@ __all__ = [
     "PolicyEffectiveness",
     "effectiveness",
     "follow_up",
+    "is_live",
 ]
 
 #: Tool events after delivery before an outcome is recorded (TER-INT-011),
@@ -75,20 +82,27 @@ def follow_up(
 
     ``signals`` are the session's detector signals, ``tool_events`` the
     number of tool events observed so far, and ``detectors`` the detectors
-    the record's policy answers. Returns ``None`` for a suppressed record, one
-    already observed, or one with fewer than :data:`WINDOW` tool events after
-    its delivery.
+    the record's policy answers. Returns ``None`` for a record not delivered
+    live (a suppression, or shadow advice), one already observed, or one with
+    fewer than :data:`WINDOW` tool events after its delivery.
     """
-    if not record.delivered or record.observation is not None:
+    if not is_live(record) or record.observation is not None:
         return None
-    at = record.delivered_at if record.delivered_at is not None else record.position
+    at = record.delivered_at
+    assert at is not None  # is_live
     if tool_events - at < WINDOW:
         return None
     watched = frozenset(detectors) | {record.detector}
     before = _measures(signals, max(at - WINDOW, 0), at, watched, record.signal_id)
-    after = _measures(signals, at, at + WINDOW, watched, record.signal_id)
-    response = Response.IGNORED if after[REPEATS] > 0 else Response.ACCEPTED
+    after = _measures(signals, at, at + WINDOW, watched, None)
+    grew = any(s.id == record.signal_id and s.position > at for s in signals)
+    response = Response.IGNORED if after[REPEATS] > 0 or grew else Response.ACCEPTED
     return Observation(response, observed_at, tool_events - at, before, after)
+
+
+def is_live(record: LedgerRecord) -> bool:
+    """True for advice delivered to a developer while the session ran."""
+    return record.delivered and record.delivered_at is not None
 
 
 def _measures(
@@ -96,7 +110,7 @@ def _measures(
     start: int,
     end: int,
     watched: frozenset[str],
-    advised: str,
+    advised: str | None,
 ) -> dict[str, float]:
     """The measures over tool events ``start`` (exclusive) to ``end``."""
     span = end - start
@@ -169,7 +183,7 @@ def effectiveness(records: Iterable[LedgerRecord]) -> tuple[PolicyEffectiveness,
     """Every policy's effectiveness from ledger outcomes, by policy and file."""
     groups: dict[tuple[str, str], list[LedgerRecord]] = {}
     for record in records:
-        if record.delivered:
+        if is_live(record):
             groups.setdefault((record.policy, record.policy_version), []).append(record)
     return tuple(
         _score(policy, version, groups[policy, version])

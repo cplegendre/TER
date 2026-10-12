@@ -155,6 +155,9 @@ def follow_up_session(
     """
     signals = detector_signals(analysis)
     tool_events = tool_event_count(analysis)
+    # A record made under another policy file is measured on its own
+    # detector only: the current file may answer different detectors.
+    version = policies.digest()
     detectors = {p.id: p.detectors for p in policies.policies}
     observed: list[LedgerRecord] = []
     for record in ledger.entries(session_id):
@@ -162,7 +165,9 @@ def follow_up_session(
             record,
             signals,
             tool_events,
-            detectors.get(record.policy, frozenset()),
+            detectors.get(record.policy, frozenset())
+            if record.policy_version == version
+            else frozenset(),
             clock.now(),
         )
         if observation is not None:
