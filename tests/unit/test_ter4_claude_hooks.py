@@ -269,6 +269,18 @@ class TestRunHook:
     def test_no_advice_prints_the_neutral_output(self) -> None:
         assert hook_output(()) == HOOK_OUTPUT
 
+    @pytest.mark.req("TER-INT-002")
+    def test_advice_past_the_hook_output_limit_is_counted_not_cut(self) -> None:
+        advice = tuple(f"{n:03d} " + "x" * 996 for n in range(25))
+        message = json.loads(hook_output(advice))["systemMessage"]
+        assert len(message) <= 10_000
+        parts = message.split("\n\n")
+        assert parts[:-1] == list(advice[: len(parts) - 1])
+        assert (
+            parts[-1]
+            == f"and {25 - len(parts) + 1} more pieces of advice in the ledger"
+        )
+
 
 @pytest.mark.req("TER-OBS-003")
 def test_post_tool_use_is_appended_within_50ms_at_p95() -> None:

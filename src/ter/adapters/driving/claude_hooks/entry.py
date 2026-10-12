@@ -60,17 +60,40 @@ HOOK_OUTPUT = "{}"
 ADVISE_ON = frozenset({"Stop"})
 
 
+#: Claude Code cuts hook output past 10,000 characters; advice stays inside it.
+MESSAGE_LIMIT = 10_000
+
+
 def hook_output(advice: tuple[str, ...]) -> str:
     """The hook's stdout: ``{}``, or the advice as a message to the developer.
 
     ``systemMessage`` is shown to the user and never added to the model's
     context, so advice changes nothing the agent reads (TER-INT-002). It is
     the only hook response field TER writes; the architecture test
-    ``tests/architecture/test_no_intervention.py`` keeps it that way.
+    ``tests/architecture/test_no_intervention.py`` keeps it that way. Advice
+    that would not fit in :data:`MESSAGE_LIMIT` is counted at the end rather
+    than cut mid-message; every piece is in the ledger.
     """
     if not advice:
         return HOOK_OUTPUT
-    return json.dumps({"systemMessage": "\n\n".join(advice)}, ensure_ascii=False)
+    return json.dumps({"systemMessage": _fit(advice)}, ensure_ascii=False)
+
+
+def _fit(advice: tuple[str, ...]) -> str:
+    shown: list[str] = []
+    size = 0
+    for n, message in enumerate(advice):
+        rest = len(advice) - n - 1
+        tail = len(f"\n\nand {rest} more pieces of advice in the ledger") if rest else 0
+        if shown and size + 2 + len(message) + tail > MESSAGE_LIMIT:
+            break
+        shown.append(message)
+        size += len(message) + (2 if size else 0)
+    hidden = len(advice) - len(shown)
+    if hidden:
+        noun = "piece" if hidden == 1 else "pieces"
+        shown.append(f"and {hidden} more {noun} of advice in the ledger")
+    return "\n\n".join(shown)
 
 
 @dataclass(frozen=True)

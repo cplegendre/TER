@@ -57,11 +57,23 @@ def decide(
     The policies must be approved (TER-INT-015). The engine is fresh, so
     cooldowns count within the session, and the same signals under the same
     file give the same record ids.
+
+    A live finding can gain evidence between two asks (more fragmented edits
+    of one file), which gives its decision a new record id. A policy that
+    already advised on that signal under this file is not asked again: the
+    revised advice is neither written nor delivered, as one engine would
+    never advise a signal twice by one policy.
     """
     policies.require_approved()
     version = policies.digest()
     engine = policies.engine(ceiling)
-    known = {e.id for e in ledger.entries(session_id)}
+    entries = ledger.entries(session_id)
+    known = {e.id for e in entries}
+    given = {
+        (e.policy, e.signal_id)
+        for e in entries
+        if e.delivered and e.policy_version == version
+    }
     records: list[LedgerRecord] = []
     interventions: list[Intervention] = []
     written: list[LedgerRecord] = []
@@ -70,6 +82,10 @@ def decide(
             record = LedgerRecord.from_verdict(
                 verdict, session_id, clock.now(), version
             )
+            if record.id not in known and record.delivered:
+                if (record.policy, record.signal_id) in given:
+                    continue  # advised before, on an earlier revision
+                given.add((record.policy, record.signal_id))
             if record.id not in known:
                 ledger.record(record)
                 known.add(record.id)

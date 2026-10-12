@@ -158,8 +158,17 @@ decision is written to the ledger; the advice not given before is printed
 as the hook's `systemMessage`, which Claude Code shows the developer and
 never adds to the model's context (TER-INT-002). The same advice is never
 given twice, because a decision the ledger already holds is not written or
-delivered again (TER-INT-003). Every other hook event, and every hook
-without `--advise`, still prints `{}`.
+delivered again (TER-INT-003), and a finding that gains evidence between
+two turns (more small edits of one file) is not advised again by the policy
+that already advised it under the same file. Every other hook event, and
+every hook without `--advise`, still prints `{}`.
+
+The Stop hook replays the whole session, so its cost grows with the session,
+once per turn: about a second for 3,000 events (a benchmark in
+`tests/unit/test_ter4_advise.py`), against Claude Code's default hook
+timeout of 60 seconds. Advice past Claude Code's 10,000-character hook
+output limit is counted at the end of the message instead of being cut; all
+of it is in the ledger.
 
 Each message shows the advice with the signal and evidence behind it
 (TER-INT-014):
