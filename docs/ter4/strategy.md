@@ -39,10 +39,11 @@ A level is two things at once ([architecture](architecture.md#maturity-levels)):
 | L5 | Corrective | Calibration on labelled data and benchmarks decides which waste categories may be corrected, and corrective actions are opt-in | Annotations, agreement and per-category precision and recall with confidence intervals; benchmark comparisons with confidence intervals |
 | L6 | Learning | The loop closes: policies are scored and suspended from ledger outcomes, controlled experiments run, research datasets are published; more than one harness | Experiments assigned by recorded seed; every figure reproducible from recorded data; policies without effect suspended |
 
-## Where TER is now: L0 to L3 met
+## Where TER is now: L0 to L4 met
 
-Every requirement at L0, L1, L2 and L3 is verified by a passing, tagged
-test. Counts from `requirements/l*.yaml` on this commit:
+Every requirement at L0, L1, L2, L3 and L4 is verified by a passing, tagged
+test. L4's vision points that need real advisory use stay partial until the
+owner's own ledger shows them (issue #43). Counts from `requirements/l*.yaml` on this commit:
 
 | Level | Requirements verified | Planned | Vision points done / partial / not started |
 |---|---:|---:|---:|
@@ -50,10 +51,10 @@ test. Counts from `requirements/l*.yaml` on this commit:
 | L1 Observed | 22 of 22 | 0 | 15 / 1 / 0 |
 | L2 Explained | 72 of 72 | 0 | 50 / 5 / 0 |
 | L3 Grounded | 35 of 35 | 0 | 25 / 23 / 0 |
-| L4 Advisory | 15 of 18 | 3 | 18 / 10 / 11 |
-| L5 Corrective | 0 of 10 | 10 | 1 / 4 / 8 |
+| L4 Advisory | 16 of 16 | 0 | 19 / 8 / 4 |
+| L5 Corrective | 0 of 12 | 12 | 1 / 5 / 15 |
 | L6 Learning | 11 of 19 | 8 | 1 / 4 / 14 |
-| **All** | **181 of 202** | **21** | **120 / 48 / 33** of 201 |
+| **All** | **182 of 202** | **20** | **121 / 47 / 33** of 201 |
 
 The L6 requirements already verified are the ones that did not have to wait:
 a second harness (the GARE session source, TER-SRC-010 to TER-SRC-017) and
@@ -63,8 +64,7 @@ the stack comparison (TER-STK-010 to TER-STK-013).
 suites), the full suite with 90% branch coverage, `lint-imports` (eight
 import contracts), `mypy` on strict `ter` code, `ter-req lint --strict` and
 `ter-req points --check`, and `ter-req trace` at `--gate L0`, `L1`, `L2`, `L3`
-and `L4`, so main cannot slip back below L3, and every L4 requirement
-verified so far stays traced to a passing test.
+and `L4`, so main cannot slip back below L4.
 
 ```bash
 python -m pytest --req-trace=req-trace.json
@@ -152,12 +152,12 @@ changes nothing the agent reads.
 | Guards | No advice for a signal that cites only token counts; none for a waste category the calibration policy does not mark eligible; none during a policy's cooldown | TER-INT-007, TER-INT-010, TER-INT-016 |
 | Advice | At the L4 ceiling, interventions are advice only; a signal meeting a policy issues the warning it names; every intervention shows its signal and evidence | TER-INT-002, TER-INT-003, TER-INT-014 |
 | Ledger | One record per intervention (signal, evidence, action, outcome); after 10 further tool events, the response and before/after flow measures; each policy scored from its outcomes and flagged for recalibration when it does not help | TER-INT-009, TER-INT-011, TER-INT-012 |
-| Corrective (opt-in) | Inject evidence or guidance, or propose a catalogued corrective action, only where enabled and thresholds are met | TER-INT-004, TER-INT-005 |
+| Control-chart triggers | A firing control signal is a signal a policy can name by id | TER-SPC-020 |
 
-TER-INT-004 and TER-INT-005 sit in the L4 file but change agent input,
-which TER-INT-002 forbids at the L4 ceiling. **Recommendation: move them to
-L5**, where calibration decides which categories may be corrected. Until
-that decision, build them last and only behind a ceiling of L5.
+Corrective interventions (TER-INT-004, TER-INT-005) change agent input,
+which TER-INT-002 forbids at the L4 ceiling. **Decided (owner, 12 Oct
+2026): they moved to L5**, where calibration decides which categories may
+be corrected.
 
 ### Entry criteria
 
@@ -181,8 +181,8 @@ that decision, build them last and only behind a ceiling of L5.
 
 ### Exit gate
 
-All 16 L4 requirements verified (or 14, if TER-INT-004 and TER-INT-005 move
-to L5), `--gate L4` in CI, and `test_no_intervention.py` made ceiling-aware:
+All 16 L4 requirements verified (**met**, 12 Oct 2026, after TER-INT-004
+and TER-INT-005 moved to L5), `--gate L4` in CI, and `test_no_intervention.py` made ceiling-aware:
 below L4 every hook still answers `{}`; at L4 only user-facing fields appear,
 never `additionalContext`, a decision or `continue`. For points to go
 `done`: a ledger from the owner's own sessions showing advice delivered,
@@ -265,9 +265,13 @@ suppressed by cooldown and suppressed for ineligible categories.
    `ter.application.loop.ControlLoop` runs them in order; the live hook runs
    one turn per `Stop`, and shadow mode is the loop without a channel. CI and
    `python dev.py gates` trace L0 to L4. See
-   [architecture.md](architecture.md#the-control-loop). What is left for the
-   L4 exit gate is TER-SPC-020 (control-chart signals as policy triggers)
-   and TER-INT-004 and TER-INT-005, the corrective interventions.
+   [architecture.md](architecture.md#the-control-loop).
+8. Control-chart signals as policy triggers (TER-SPC-020). **Done**: with
+   `--limits`, the hook and shadow mode place each session against its
+   control limits, and each firing control signal is a signal a policy can
+   name by id. See
+   [l4-advisory.md](l4-advisory.md#control-signals-as-triggers). With the
+   corrective interventions moved to L5, this met the L4 exit gate.
 
 ## L5 Corrective
 
@@ -284,7 +288,7 @@ and allow corrective actions only for the categories where it is.
 | Benchmark | A versioned benchmark corpus (synthetic sessions, controlled tasks with expected outcomes, cleared real sessions); a reporter that gives the same table every run | TER-BEN-001, TER-ANL-030 |
 | Comparison | Same task across models, prompting, context and intervention settings; paired differences with confidence intervals | TER-BEN-002, TER-ANL-031 |
 | Claims | Every efficiency claim in a report links to the benchmark result behind it | TER-BEN-003 |
-| Corrective actions | (if moved from L4) evidence injection and catalogued corrective actions, enabled per category by the calibration policy | TER-INT-004, TER-INT-005 |
+| Corrective actions | Evidence injection and catalogued corrective actions (moved from L4 on 12 Oct 2026), enabled per category by the calibration policy | TER-INT-004, TER-INT-005 |
 
 ### Entry criteria
 
@@ -330,8 +334,8 @@ records that evidence.
    TER-ANL-030).
 5. Benchmark comparer (TER-BEN-002, TER-ANL-031).
 6. Claim links in reports (TER-BEN-003).
-7. Corrective actions behind a ceiling of L5 (TER-INT-004, TER-INT-005, if
-   moved); raise CI to `--gate L5`.
+7. Corrective actions behind a ceiling of L5 (TER-INT-004, TER-INT-005);
+   raise CI to `--gate L5`.
 
 ## L6 Learning
 

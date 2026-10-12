@@ -254,12 +254,12 @@ Current state (from `ter-req report` and [points.md](../ter4/points.md)):
 
 | Level | Requirements verified | Vision points done / partial / not started | CI gate |
 |---|---|---|---|
-| L0 Measured | 25 of 25 (met) | 10 / 1 / 0 | `ter-req trace --gate L0` |
+| L0 Measured | 26 of 26 (met) | 10 / 1 / 0 | `ter-req trace --gate L0` |
 | L1 Observed | 22 of 22 (met) | 15 / 1 / 0 | `ter-req trace --gate L1` |
-| L2 Explained | 54 of 54 (met) | 49 / 5 / 0 | `ter-req trace --gate L2` |
-| L3 Grounded | 34 of 34 (met) | 25 / 23 / 0 | gated in CI |
-| L4 Advisory | 0 of 16 | 0 / 5 / 34 | none yet |
-| L5 Corrective | 0 of 10 | 1 / 4 / 8 | none yet |
+| L2 Explained | 72 of 72 (met) | 50 / 5 / 0 | `ter-req trace --gate L2` |
+| L3 Grounded | 35 of 35 (met) | 25 / 23 / 0 | `ter-req trace --gate L3` |
+| L4 Advisory | 16 of 16 (met) | 19 / 8 / 4 | `ter-req trace --gate L4` |
+| L5 Corrective | 0 of 12 | 1 / 5 / 15 | none yet |
 | L6 Learning | 11 of 19 | 1 / 4 / 14 | none yet |
 
 A gate checks only requirements already `verified` at or below its level;
@@ -268,7 +268,7 @@ passes" means every verified L1 requirement has a passing test, not that all
 of L1 is built. A level is met when nothing at it is planned any more; even
 then, points that need real data stay `partial` until real sessions confirm
 them. The [strategy and maturity roadmap](../ter4/strategy.md) says what was
-checked on real data and maps L4 to L6. Get live numbers with:
+checked on real data and maps L5 and L6. Get live numbers with:
 
 ```bash
 python -m pytest --req-trace=req-trace.json
@@ -283,6 +283,6 @@ ter-req report --results req-trace.json
   [docs/ter4/l2-explained.md](../ter4/l2-explained.md) and
   [docs/ter4/l3-grounded.md](../ter4/l3-grounded.md): what each level built.
 - [docs/ter4/strategy.md](../ter4/strategy.md): where TER is and what comes
-  next, L4 to L6.
+  next, L5 and L6.
 - [Testing guide](testing.md): how the gates are tested.
 - [Contributing guide](contributing.md): the checklist for a change.

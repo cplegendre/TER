@@ -16,12 +16,14 @@ these as its Decide, Measure and Learn stages.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 from ..domain.effectiveness import PolicyEffectiveness, effectiveness, follow_up
 from ..domain.ledger import Intervention, LedgerRecord
 from ..domain.lean import LeanAnalysis
 from ..domain.lean.signals import detector_signals, tool_event_count
+from ..domain.signal import Signal, is_control
 from ..domain.maturity import Maturity
 from ..domain.policy_set import PolicySet
 from ..ports.driven import Clock, InterventionLedger
@@ -61,11 +63,15 @@ def decide(
     clock: Clock,
     ceiling: Maturity = Maturity.ADVISORY,
     delivered_at: int | None = None,
+    control: Sequence[Signal] = (),
 ) -> Decisions:
     """Judge every signal of ``analysis`` and record the decisions.
 
     ``delivered_at`` is the tool event count when the advice is delivered
     live; advised records keep it, so their follow-up counts from there.
+    ``control`` holds the session's firing control signals
+    (:func:`~ter.domain.lean.signals.control_signals`, TER-SPC-020), judged
+    after its findings like any detector signal.
 
     The policies must be approved (TER-INT-015). The engine is fresh, so
     cooldowns count within the session, and the same signals under the same
@@ -90,7 +96,7 @@ def decide(
     records: list[LedgerRecord] = []
     interventions: list[Intervention] = []
     written: list[LedgerRecord] = []
-    for signal in detector_signals(analysis):
+    for signal in (*detector_signals(analysis), *control):
         for verdict in engine.apply(signal):
             record = LedgerRecord.from_verdict(
                 verdict, session_id, clock.now(), version, delivered_at
@@ -115,12 +121,18 @@ def follow_up_session(
     policies: PolicySet,
     ledger: InterventionLedger,
     clock: Clock,
+    control: Sequence[Signal] | None = None,
 ) -> tuple[LedgerRecord, ...]:
     """Record the outcome of every delivered intervention now observable.
 
+    ``control`` holds the session's firing control signals now: advice on a
+    control signal whose findings grew after it was delivered was ignored.
+    ``None`` means they cannot be judged now (no limits, or stale ones), so
+    advice on a control signal waits rather than look accepted.
+
     Returns the records observed this time, with their outcomes.
     """
-    signals = detector_signals(analysis)
+    signals = (*detector_signals(analysis), *(control or ()))
     tool_events = tool_event_count(analysis)
     # A record made under another policy file is measured on its own
     # detector only: the current file may answer different detectors.
@@ -128,6 +140,8 @@ def follow_up_session(
     detectors = {p.id: p.detectors for p in policies.policies}
     observed: list[LedgerRecord] = []
     for record in ledger.entries(session_id):
+        if control is None and is_control(record.detector):
+            continue  # its limits are not here to judge it
         observation = follow_up(
             record,
             signals,

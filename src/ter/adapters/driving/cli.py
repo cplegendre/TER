@@ -173,10 +173,15 @@ class CliServices:
     #: L4 intervention policy files (``python -m ter policy``, TER-INT-008).
     policies: PolicyServices | None = None
     #: L4 live advice: ``hook_advise(event_log, session_id, policies, ledger,
-    #: warn)`` gives the messages due to the developer (TER-INT-003) and
-    #: passes a failed follow-up to ``warn``.
+    #: warn, limits)`` gives the messages due to the developer (TER-INT-003),
+    #: passes a failed follow-up to ``warn``, and places the session against
+    #: the control limits file when one is given (TER-SPC-020).
     hook_advise: (
-        Callable[[Path, str, Path, Path, Callable[[str], None]], tuple[str, ...]] | None
+        Callable[
+            [Path, str, Path, Path, Callable[[str], None], Path | None],
+            tuple[str, ...],
+        ]
+        | None
     ) = None
 
 
@@ -406,11 +411,12 @@ def _hook_advice(
     if policies is None or advise is None:
         return None
     ledger: Path = args.ledger if args.ledger is not None else log_dir / "ledger"
+    limits: Path | None = args.limits
 
     def advice(result: HookResult) -> tuple[str, ...]:
         if not result.session_id:
             return ()
-        return advise(log_dir, result.session_id, policies, ledger, warn)
+        return advise(log_dir, result.session_id, policies, ledger, warn, limits)
 
     def warn(message: str) -> None:
         # Advice was still given; stderr leaves a trace, as for the others.
@@ -761,6 +767,14 @@ def _parser(default_log_dir: Path, out: IO[str]) -> argparse.ArgumentParser:
         default=None,
         metavar="DIR",
         help="where --advise records its decisions (default <event-log>/ledger)",
+    )
+    hook.add_argument(
+        "--limits",
+        type=Path,
+        default=None,
+        metavar="FILE",
+        help="control limits for --advise: a policy may name a firing control "
+        "signal id such as control.rework_cycles.beyond_limits",
     )
 
     hooks = commands.add_parser(

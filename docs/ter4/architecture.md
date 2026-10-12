@@ -7,8 +7,8 @@ TER 3 by strangler fig: each step ships, keeps `ter analyze` working, and is
 protected by the golden tests of every level below it.
 
 The full design is the TER 4 Blueprint. This page covers what is in the
-repository today and the rules the code must follow. L0 to L3 are met; where
-TER goes next (L4 Advisory to L6 Learning) is in
+repository today and the rules the code must follow. L0 to L4 are met; where
+TER goes next (L5 Corrective and L6 Learning) is in
 [strategy.md](strategy.md).
 
 ## The hexagon
@@ -135,7 +135,9 @@ flowchart LR
 
 1. **Observe**: read the session's events from the `EventLog` port.
 2. **Analyse**: fold them through a fresh `EventIngest`, as a recorded
-   session is explained; the findings become detector signals.
+   session is explained; the findings become detector signals. Given
+   control limits (`--limits`), the session is placed against them and each
+   firing control signal becomes a signal too (TER-SPC-020).
 3. **Decide**: the Intervention Engine judges each signal under the approved
    policy file, and each verdict is a ledger record.
 4. **Intervene**: deliver the advice not given before through the
@@ -222,16 +224,16 @@ flowchart LR
     L0["L0 Measured<br/>TER 3 parity"]:::done --> L1["L1 Observed<br/>event stream, live = batch"]:::done
     L1 --> L2["L2 Explained<br/>Lean classes, evidence, A3"]:::done
     L2 --> L3["L3 Grounded<br/>repository evidence, bundles, routing"]:::done
-    L3 --> L4["L4 Advisory (next)<br/>policies, ledger"]:::now
-    L4 --> L5["L5 Corrective<br/>calibration, opt-in actions"]
+    L3 --> L4["L4 Advisory<br/>policies, ledger, advice"]:::done
+    L4 --> L5["L5 Corrective (next)<br/>calibration, opt-in actions"]:::now
     L5 --> L6["L6 Learning<br/>closed loop, 2nd harness"]
     classDef done fill:#dff1ee,stroke:#0d7a6f,color:#16212a
     classDef now fill:#fff4d6,stroke:#9a6b00,color:#16212a
 ```
 
-L0 to L3 are met: every requirement at those levels is verified by a passing
-test (25, 22, 54 and 34). L4 Advisory is next; [strategy.md](strategy.md)
-maps L4 to L6, their entry criteria, exit gates and build order.
+L0 to L4 are met: every requirement at those levels is verified by a passing
+test (26, 22, 72, 35 and 16). L5 Corrective is next; [strategy.md](strategy.md)
+maps L5 and L6, their entry criteria, exit gates and build order.
 `ter.domain.Maturity` models the levels. A level is both a build gate (every
 requirement at that level verified) and a runtime ceiling
 (`Maturity.permits`). Below L4 TER delivers no intervention: every hook
@@ -302,10 +304,30 @@ in [l3-grounded.md](l3-grounded.md).
 | Routing by role only; classes; escalation only on evidence | `tests/architecture/test_model_roles.py`, `tests/contract/test_routing_profiles.py`, `tests/unit/test_ter4_routing.py` | TER-RTE-001, TER-RTE-002, TER-RTE-003, TER-RTE-005, TER-DET-011 |
 | TER ratio and outcome recorded as events; metrics recomputed from events | `tests/equivalence/test_recompute_from_events.py` | TER-EXP-002 |
 
-CI runs `ter-req trace --gate L3`; the next level is on the
-[roadmap](strategy.md#l4-advisory). The
-calibration of the grounded detectors on real sessions (9 October 2026) is
-in [l3-grounded.md](l3-grounded.md#checking-the-grounded-detectors-on-real-sessions).
+The calibration of the grounded detectors on real sessions (9 October 2026)
+is in [l3-grounded.md](l3-grounded.md#checking-the-grounded-detectors-on-real-sessions).
+
+### L4 gate, as built
+
+Advice only: an Intervention Engine that reads structured signals, approved
+policy files, a ledger, shadow mode, live advice through the `Stop` hook,
+its follow-up and policy effectiveness, all run as
+[the control loop](#the-control-loop). Details are in
+[l4-advisory.md](l4-advisory.md).
+
+| Check | Where | Requirement |
+|---|---|---|
+| Below L4 every hook answers `{}`; at L4 only `systemMessage` | `tests/architecture/test_no_intervention.py` | TER-INT-001, TER-INT-002 |
+| The engine reads only signals; the analysis never imports it | `tests/architecture/test_import_contracts.py`, `lint-imports` | TER-INT-006 |
+| Evidence, eligibility and cooldown guards | `tests/unit/test_ter4_intervention.py` | TER-INT-007, TER-INT-010, TER-INT-016 |
+| Policy files, capability loading, human approval | `tests/unit/test_ter4_policy_set.py`, `tests/contract/test_intervention_policies.py` | TER-INT-008, TER-ARC-008, TER-INT-015 |
+| Ledger, shadow mode, live advice with its evidence | `tests/contract/test_intervention_ledger.py`, `tests/unit/test_ter4_shadow.py`, `tests/unit/test_ter4_advise.py`, `tests/contract/test_intervention_channel.py` | TER-INT-009, TER-INT-017, TER-INT-003, TER-INT-014 |
+| Follow-up and policy effectiveness | `tests/unit/test_ter4_effectiveness.py` | TER-INT-011, TER-INT-012 |
+| The control loop | `tests/unit/test_ter4_loop.py` | TER-INT-013 |
+| Control-chart signals as policy triggers | `tests/unit/test_ter4_control_signals.py` | TER-SPC-020 |
+
+CI runs `ter-req trace --gate L4`; the next level is on the
+[roadmap](strategy.md#l5-corrective).
 
 Tests carry `@pytest.mark.req("<id>")`. The EARS requirement catalogue and
 the CI traceability gate that checks these links are described in

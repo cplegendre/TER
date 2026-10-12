@@ -138,8 +138,10 @@ A signal **fires** only when both of these hold (TER-SPC-006):
 Token and time totals are charted but never fire, because no intervention
 may rest on a token count alone (TER-INT-007). Each signal has a stable id,
 `control.<measure>.<rule>` (for example `control.rework_cycles.beyond_limits`).
-At L4 an approved policy will name that id to advise on it (TER-SPC-020,
-planned).
+At L4 an approved policy names that id to advise on it (TER-SPC-020): the
+hook and shadow mode take the limits with `--limits` and place each session
+against them. See
+[l4-advisory.md](l4-advisory.md#control-signals-as-triggers).
 
 ## Stale limits
 

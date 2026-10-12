@@ -22,6 +22,7 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
+from ..domain.lean.control import ControlLimits
 from ..domain.ledger import Intervention, LedgerRecord
 from ..domain.policy_set import PolicySet
 from ..ports.driven import Clock, InterventionLedger
@@ -49,6 +50,9 @@ class ShadowRun:
     #: Decisions the ledger did not already hold: a replay under the same
     #: approved policies writes none.
     written: int = 0
+    #: Sessions measured with another detector set than the control limits:
+    #: their control signals were not used (TER-SPC-007).
+    stale_limits: tuple[str, ...] = ()
 
     def outcomes(self) -> Counter[tuple[str, str]]:
         """Records per (policy, outcome)."""
@@ -61,6 +65,7 @@ def shadow_sessions(
     policies: PolicySet,
     ledger: InterventionLedger,
     clock: Clock,
+    limits: ControlLimits | None = None,
 ) -> ShadowRun:
     """Replay each session through ``policies`` into ``ledger``.
 
@@ -69,7 +74,10 @@ def shadow_sessions(
     explained is recorded as a failure; the others are still replayed.
     """
     policies.require_approved()
-    loop = ControlLoop(policies, ledger, clock)  # no channel: shadow
+    # No channel: shadow. With limits, each session is placed against them
+    # and its firing control signals are judged too (TER-SPC-020).
+    loop = ControlLoop(policies, ledger, clock, limits=limits)
+    stale: list[str] = []
     sessions: list[str] = []
     records: list[LedgerRecord] = []
     advice: list[ShadowAdvice] = []
@@ -83,10 +91,18 @@ def shadow_sessions(
             continue
         session_id = explained.trace.session_id or ref.stem
         sessions.append(session_id)
-        decisions = loop.act(session_id, explained.analysis).decisions
+        turn = loop.act(session_id, explained.analysis)
+        decisions = turn.decisions
+        if turn.stale_limits:
+            stale.append(session_id)
         records.extend(decisions.records)
         advice.extend(decisions.interventions)
         written += len(decisions.written)
     return ShadowRun(
-        tuple(sessions), tuple(records), tuple(advice), tuple(failures), written
+        tuple(sessions),
+        tuple(records),
+        tuple(advice),
+        tuple(failures),
+        written,
+        tuple(stale),
     )

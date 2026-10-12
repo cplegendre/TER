@@ -7,7 +7,9 @@ every ``Stop``):
 
 1. **Observe** the session's events from the :class:`~ter.ports.driven.EventLog`;
 2. **Analyse** them through a fresh :class:`~ter.ports.driving.EventIngest`,
-   exactly as a recorded session is explained;
+   exactly as a recorded session is explained, and, given control limits,
+   place the session against them: each firing control signal becomes a
+   signal a policy can name (TER-SPC-020);
 3. **Decide** on every detector signal under the approved policy file
    (:func:`~ter.application.advise.decide`), writing each verdict to the
    ledger;
@@ -43,7 +45,9 @@ from typing import TypeVar
 from ..domain.effectiveness import PolicyEffectiveness
 from ..domain.events import Event
 from ..domain.lean import LeanAnalysis
-from ..domain.lean.signals import tool_event_count
+from ..domain.lean.control import ControlLimits, session_control
+from ..domain.lean.signals import control_signals, tool_event_count
+from ..domain.signal import Signal
 from ..domain.ledger import Intervention, LedgerRecord
 from ..domain.loop import Stage
 from ..domain.maturity import Maturity
@@ -76,6 +80,11 @@ class LoopTurn:
     learned: tuple[PolicyEffectiveness, ...]
     #: ``(stage, error)`` for a Measure or Learn stage that failed.
     errors: tuple[tuple[Stage, str], ...] = ()
+    #: The session's firing control signals, when the loop has limits.
+    control: tuple[Signal, ...] = ()
+    #: True when the limits came from another detector set, so no control
+    #: signal was used (TER-SPC-007).
+    stale_limits: bool = False
 
     @property
     def recalibrate(self) -> tuple[PolicyEffectiveness, ...]:
@@ -99,9 +108,11 @@ class ControlLoop:
         ceiling: Maturity = Maturity.ADVISORY,
         *,
         learn: bool = True,
+        limits: ControlLimits | None = None,
     ) -> None:
         self._policies = policies
         self._learn = learn
+        self._limits = limits
         self._ledger = ledger
         self._clock = clock
         self._channel = channel
@@ -135,15 +146,30 @@ class ControlLoop:
         stages: list[Stage],
     ) -> LoopTurn:
         events = tool_event_count(analysis)
-        decisions = self.decide(session_id, analysis)
+        placed, stale = self.place(analysis)
+        control = placed or ()
+        decisions = self.decide(session_id, analysis, control)
         stages.append(Stage.DECIDE)
         if not self.live:
-            return LoopTurn(session_id, tuple(stages), events, decisions, (), (), ())
+            return LoopTurn(
+                session_id,
+                tuple(stages),
+                events,
+                decisions,
+                (),
+                (),
+                (),
+                control=control,
+                stale_limits=stale,
+            )
         delivered = self.intervene(decisions)
         stages.append(Stage.INTERVENE)
         errors: list[tuple[Stage, str]] = []
         observed = self._after(
-            Stage.MEASURE, stages, errors, lambda: self.measure(session_id, analysis)
+            Stage.MEASURE,
+            stages,
+            errors,
+            lambda: self.measure(session_id, analysis, placed),
         )
         learned = (
             self._after(Stage.LEARN, stages, errors, self.learn) if self._learn else ()
@@ -157,6 +183,8 @@ class ControlLoop:
             observed,
             learned,
             tuple(errors),
+            control,
+            stale,
         )
 
     @staticmethod
@@ -171,7 +199,27 @@ class ControlLoop:
         """Analyse: fold the events into the session's Lean analysis."""
         return ingest_all(ingest(), events).explain(session_id)
 
-    def decide(self, session_id: str, analysis: LeanAnalysis) -> Decisions:
+    def place(self, analysis: LeanAnalysis) -> tuple[tuple[Signal, ...] | None, bool]:
+        """Part of Analyse: the session against its control limits.
+
+        Returns the firing control signals as signals (TER-SPC-020), or
+        ``None`` when they cannot be judged (no limits, or stale ones), and
+        whether the limits are stale. Live, the session is unfinished, so
+        only the measures it can be judged on mid-session are placed.
+        """
+        if self._limits is None:
+            return None, False
+        placed = session_control(analysis, self._limits)
+        if placed.stale:
+            return None, True
+        return control_signals(placed, analysis, live=self.live), False
+
+    def decide(
+        self,
+        session_id: str,
+        analysis: LeanAnalysis,
+        control: tuple[Signal, ...] = (),
+    ) -> Decisions:
         """Decide: judge every signal and record each verdict in the ledger.
 
         Live, advised records keep the tool event count they are delivered
@@ -185,6 +233,7 @@ class ControlLoop:
             self._clock,
             self._ceiling,
             delivered_at=tool_event_count(analysis) if self.live else None,
+            control=control,
         )
 
     def intervene(self, decisions: Decisions) -> tuple[Intervention, ...]:
@@ -200,11 +249,17 @@ class ControlLoop:
         return new
 
     def measure(
-        self, session_id: str, analysis: LeanAnalysis
+        self,
+        session_id: str,
+        analysis: LeanAnalysis,
+        control: tuple[Signal, ...] | None = None,
     ) -> tuple[LedgerRecord, ...]:
-        """Measure: record the outcome of earlier advice now observable."""
+        """Measure: record the outcome of earlier advice now observable.
+
+        Advice on a control signal waits while ``control`` is ``None``.
+        """
         return follow_up_session(
-            session_id, analysis, self._policies, self._ledger, self._clock
+            session_id, analysis, self._policies, self._ledger, self._clock, control
         )
 
     def learn(self) -> tuple[PolicyEffectiveness, ...]:

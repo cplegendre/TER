@@ -122,3 +122,28 @@ requirements:
       TER-CAL-002 (issues #36 and #41), so it belongs to L5 Corrective,
       not L2.
     status: planned
+
+  - id: TER-INT-004
+    pattern: optional
+    text: >-
+      Where corrective interventions are enabled in the active policy, TER
+      shall inject evidence or guidance into the agent session only when the
+      policy thresholds are met.
+    level: L5
+    port: InterventionChannel
+    source_points: [131, 132]
+    rationale: >-
+      Corrective control is explicit, configurable and threshold-bound.
+    status: planned
+
+  - id: TER-INT-005
+    pattern: event-driven
+    text: >-
+      When a corrective policy fires, TER shall propose the corrective
+      action that the policy names from the configured action catalogue.
+    level: L5
+    port: InterventionChannel
+    source_points: [133, 134, 135, 136, 137, 138]
+    rationale: >-
+      Corrective actions come from a closed, reviewable catalogue.
+    status: planned

@@ -42,6 +42,7 @@ from typing import IO, TYPE_CHECKING
 from ...domain.capabilities import CapabilityError
 from ...domain.effectiveness import MIN_OBSERVED, WINDOW, PolicyEffectiveness
 from ...domain.intervention import PolicyError
+from ...domain.lean.control import ControlLimitsError
 from ...domain.ledger import LedgerError
 from ...domain.policy_set import ApprovalState, PolicySet
 from ...ports.driven import InterventionLedger, InterventionPolicies
@@ -66,9 +67,13 @@ class PolicyServices:
     #: ``source(name)``: the ``InterventionPolicies.<name>`` capability.
     source: Callable[[str], InterventionPolicies]
     today: Callable[[], date]
-    #: ``shadow(sessions, policies, ledger_dir, tokenizer)``: replay sessions
-    #: through approved policies into a ledger (TER-INT-017).
-    shadow: Callable[[Sequence[Path], PolicySet, Path, str], "ShadowRun"] | None = None
+    #: ``shadow(sessions, policies, ledger_dir, tokenizer, limits)``: replay
+    #: sessions through approved policies into a ledger (TER-INT-017), placing
+    #: each against the control limits file when one is given (TER-SPC-020).
+    shadow: (
+        Callable[[Sequence[Path], PolicySet, Path, str, Path | None], "ShadowRun"]
+        | None
+    ) = None
     #: ``run_files(folder)``: the files of the one session exported to the
     #: folder (a GARE run), or none.
     run_files: Callable[[Path], Sequence[Path]] = lambda _: ()
@@ -116,6 +121,13 @@ def add_policy_parser(
         type=Path,
         metavar="CSV",
         help="write the advice to judge to CSV (stays on your machine)",
+    )
+    shadow.add_argument(
+        "--limits",
+        type=Path,
+        metavar="FILE",
+        help="control limits (ter.control-limits/1): a policy may name a "
+        "control signal id such as control.rework_cycles.beyond_limits",
     )
     shadow.add_argument("--tokenizer", default="regex", help="tokenizer (regex)")
     score = sub.add_parser(
@@ -208,7 +220,10 @@ def _shadow(
     assert services.shadow is not None  # checked in run_policy
     ledger = Path(args.ledger).expanduser()
     try:
-        run = services.shadow(paths, policies, ledger, args.tokenizer)
+        run = services.shadow(paths, policies, ledger, args.tokenizer, args.limits)
+    except ControlLimitsError as exc:
+        err.write(f"Cannot read the control limits {args.limits}: {exc}\n")
+        return 2
     except (OSError, LedgerError, CapabilityError, PolicyError) as exc:
         err.write(f"Cannot write the ledger in {ledger}: {exc}\n")
         return 2
@@ -326,6 +341,12 @@ def format_shadow(run: "ShadowRun", ledger: Path) -> str:
     if not outcomes:
         lines.append("  no signal matched any policy")
     lines.append(f"Advice TER would have given: {len(run.advice)}")
+    if run.stale_limits:
+        lines.append(
+            f"Control signals not used for {len(run.stale_limits)} session(s): "
+            "the limits came from another detector set; re-measure and "
+            "recompute them"
+        )
     return "\n".join(lines) + "\n"
 
 

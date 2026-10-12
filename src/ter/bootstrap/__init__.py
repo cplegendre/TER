@@ -50,6 +50,7 @@ if TYPE_CHECKING:
     from ..adapters.driving.policy_cli import PolicyServices
     from ..application.control import MeasuredSessions
     from ..application.shadow import ShadowRun
+    from ..domain.lean.control import ControlLimits
     from ..domain.policy_set import PolicySet
 
 __all__ = [
@@ -226,12 +227,22 @@ def make_recorder(directory: Path) -> EventIngest:
     return RecordEvent(make_tokenizer("regex"), JsonlEventLog(directory))
 
 
+def _control_limits(path: Path | None) -> "ControlLimits | None":
+    """The control limits file, or ``None`` without one."""
+    if path is None:
+        return None
+    from ..adapters.driven.control_limits import JsonControlLimits
+
+    return JsonControlLimits().limits(path)
+
+
 def advise_from_log(
     directory: Path,
     session_id: str,
     policies: Path,
     ledger: Path,
     warn: Callable[[str], None] | None = None,
+    limits: Path | None = None,
 ) -> tuple[str, ...]:
     """The advice due now for a live session (L4 Advisory, TER-INT-003).
 
@@ -240,9 +251,11 @@ def advise_from_log(
     deliver the advice not given before as messages to the developer, then
     measure earlier advice. Learn is left to ``python -m ter policy
     effectiveness``: it reads the whole ledger, and a hook has nowhere to show
-    its report. Raises when the file is unapproved or unreadable; the hook
-    turns that into no advice. A failed Measure keeps the advice and is
-    passed to ``warn``.
+    its report. With ``limits``, the session is placed against its control
+    limits and a policy may name a firing control signal (TER-SPC-020).
+    Raises when the policy or limits file is unapproved or unreadable; the
+    hook turns that into no advice. A failed Measure keeps the advice and is
+    passed to ``warn``, as are stale limits.
     """
     from ..adapters.driven.event_log import JsonlEventLog
     from ..adapters.driven.intervention_channel import MessageChannel
@@ -252,12 +265,22 @@ def advise_from_log(
     policy_set.require_approved()
     channel = MessageChannel()
     loop = ControlLoop(
-        policy_set, make_ledger(ledger), SystemClock(), channel, learn=False
+        policy_set,
+        make_ledger(ledger),
+        SystemClock(),
+        channel,
+        learn=False,
+        limits=_control_limits(limits),
     )
     turn = loop.turn(session_id, JsonlEventLog(directory), lambda: make_ingest("regex"))
-    for stage, error in turn.errors:
-        if warn is not None:
+    if warn is not None:
+        for stage, error in turn.errors:
             warn(f"{stage} failed: {error}")
+        if turn.stale_limits:
+            warn(
+                "control signals not used: the limits came from another "
+                "detector set; re-measure and recompute them"
+            )
     return channel.delivered()
 
 
@@ -293,8 +316,9 @@ def cli_services() -> CliServices:
         policies: Path,
         ledger: Path,
         warn: Callable[[str], None],
+        limits: Path | None,
     ) -> tuple[str, ...]:
-        return advise_from_log(directory, session_id, policies, ledger, warn)
+        return advise_from_log(directory, session_id, policies, ledger, warn, limits)
 
     def explain_transcript(
         path: Path,
@@ -427,7 +451,11 @@ def cli_services() -> CliServices:
         from ..application.shadow import shadow_sessions
 
         def shadow(
-            paths: Sequence[Path], policies: "PolicySet", ledger: Path, tokenizer: str
+            paths: Sequence[Path],
+            policies: "PolicySet",
+            ledger: Path,
+            tokenizer: str,
+            limits: Path | None,
         ) -> "ShadowRun":
             # TER off, as for control measures: shadow mode replays a corpus
             # and must not download a model.
@@ -437,6 +465,7 @@ def cli_services() -> CliServices:
                 policies,
                 make_ledger(ledger),
                 SystemClock(),
+                _control_limits(limits),
             )
 
         return PolicyServices(
