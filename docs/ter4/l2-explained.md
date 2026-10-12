@@ -79,7 +79,7 @@ at L3 and L4.
 | Detector | Lean waste | Evidence it cites | Confidence rule | Countermeasure |
 |---|---|---|---|---|
 | `repeated_tool_call` (pts 19, 39) | over-processing | both calls and results | within one prompt's turn: 0.90 same input and output, nothing edited between; 0.85 validation re-run without edits; 0.75 edits between but identical output. 0.50 an output not observed. A new prompt between the two calls, or a different output: none (calibrated on real sessions: 17 of 17 repeats across a prompt, such as a turn-ending call made once per turn, were not waste) | CLAUDE.md "reuse results"; PreToolUse(Bash) hook blocking identical commands on an unchanged tree |
-| `repeated_exploration` (18, 28, 36) | motion | both reads/searches and results | 0.85 same arguments, identical output, file not edited between; 0.55 output not observed. Re-read after an edit or of another range: none | CLAUDE.md "do not re-read"; a "Where things live" map; PreToolUse(Read) hook blocking unchanged re-reads |
+| `repeated_exploration` (18, 28, 36) | motion | both reads/searches and results | 0.85 same arguments, identical output, file not edited between; 0.55 output not observed or with no text (an image read). Re-read after an edit or of another range: none | CLAUDE.md "do not re-read"; a "Where things live" map; PreToolUse(Read) hook blocking unchanged re-reads |
 | `rework_cycle` (26, 37) | rework | failed run, failure, fix edits, next run | same command, edits between: 0.80 when the next run fails with the same failure signature, 0.90 for the second in a row. Pass or different failure: iteration, no finding | CLAUDE.md "same failure twice → stop and re-diagnose"; PostToolUse(Bash) hook flagging an identical failure |
 | `unvalidated_implementation` (25) | defects (risk) | unvalidated edits and the response | per prompt, after a response: 0.85 no check in the session; 0.75 checks only earlier; 0.50 docs only, from 3 documentation edits (fewer: none); 0.85 responded after a failing check. A check is a validation run, or any shell line that runs a named check tool beside a change (`sed -i … && pytest`, `ruff check && git commit`; real sessions chain checks this way), also by absolute or Windows path (`python.exe -m pytest`) | CLAUDE.md "validation is part of done" with the session's own test command; PostToolUse(Edit\|Write) hook running it |
 | `premature_implementation` (22, 23) | defects (risk) | the prompt and the edit | 0.75 in-place edit of a file never read, written, named in an earlier shell command (`cat f`, `sed -n 1,80p f`) or named in output; 0.45 new file before any exploration | CLAUDE.md "read before editing"; `permissions.defaultMode: plan` |
@@ -215,6 +215,15 @@ session: the 70% cut was set from the same 10 rows it is judged on (3 waste
 above it, 7 unsure below), so it is a proposal until another session
 confirms it. The sample is thin: 8 of 12
 detectors drew their rows from one or two sessions, and there was one judge.
+
+The first shadow run (12 Oct 2026, 64 sessions) put the advice TER would
+have given in front of the same judge. `fragmented_edits` held (5 waste, 1
+unsure). The 3 `repeated_exploration` rows were not waste: each re-read an
+image (two screenshots and a slide) that a render or script had redrawn in
+between. An image read returns no text, so the two equal fingerprints
+compared nothing; such re-reads are now uncertain (0.55). `regeneration` was
+0 waste, 2 not waste (files under 1 KB) and 1 unsure, so it is no longer
+eligible for L4 ([l4-advisory.md](l4-advisory.md)).
 
 ## Exploration drivers
 

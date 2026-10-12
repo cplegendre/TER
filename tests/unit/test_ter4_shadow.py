@@ -51,7 +51,7 @@ def test_every_decision_is_ledgered_and_nothing_is_delivered() -> None:
     # The suppression is recorded with its reason, not only the advice.
     assert {r.outcome for r in run.records} == {
         Outcome.ADVISED,
-        Outcome.LOW_CONFIDENCE,
+        Outcome.INELIGIBLE,
     }
     [advice] = run.advice
     assert advice.record.policy == "reuse-reads"
@@ -142,7 +142,7 @@ def test_cli_shadow_writes_the_ledger_and_a_judging_csv(tmp_path: Path) -> None:
     assert code == 0, err
     assert "Nothing was delivered" in out
     assert "reuse-reads: 1 advised" in out
-    assert "edit-not-rewrite: 1 low_confidence" in out
+    assert "edit-not-rewrite: 1 ineligible" in out
     entries = JsonlInterventionLedger(ledger).entries("sample-session-001")
     assert len(entries) == 2
     with open(judge, encoding="utf-8", newline="") as handle:

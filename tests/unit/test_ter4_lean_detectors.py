@@ -183,6 +183,33 @@ class TestRepeatedExploration:
         s.search("argparse")
         assert len(found(s, "repeated_exploration")) == 1
 
+    def test_an_image_reread_is_uncertain(self) -> None:
+        # Shadow judge (12 Oct 2026): re-read screenshots had been redrawn by a
+        # render in between; a text-less result cannot show they were the same.
+        s = Script()
+        s.read("shots/page.png", "")
+        s.bash("python render.py", "wrote shots/page.png")
+        s.read("shots/page.png", "")
+        [f] = found(s, "repeated_exploration")
+        assert f.confidence == 0.55 and f.uncertain
+        assert "no text" in f.explanation
+
+    def test_boundary_one_text_less_side_is_enough(self) -> None:
+        s = Script()
+        s.read("src/a.py", "x = 1")
+        s.read("src/a.py", "")
+        [f] = found(s, "repeated_exploration")
+        assert f.uncertain
+
+    def test_a_text_reread_with_a_shell_call_between_stays_confident(self) -> None:
+        # Identical text shows the shell call left the file as it was.
+        s = Script()
+        s.read("src/a.py", "x = 1")
+        s.bash("pytest -q", "1 passed")
+        s.read("src/a.py", "x = 1")
+        [f] = found(s, "repeated_exploration")
+        assert f.confidence == 0.85
+
     def test_unobserved_output_is_uncertain(self) -> None:
         s = Script()
         s.read("src/a.py")

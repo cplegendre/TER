@@ -1,5 +1,5 @@
 {
-  "detectors": "eeb33ec1b38d",
+  "detectors": "ebeaf71592ee",
   "measures": {
     "agent_seconds": "Agent time",
     "avoidable_share": "Avoidable share of generated tokens",
