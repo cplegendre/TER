@@ -6,7 +6,7 @@
       "regeneration",
       "repeated_exploration"
     ],
-    "basis": "Judged real sessions: judge-l2 (10 Oct 2026, 122 findings) and judge-l4 (12 Oct 2026, 87 findings). fragmented_edits 17 of 17 waste, repeated_exploration 10 of 10, regeneration 3 of 3 waste at 70% or more repeated, from one session, with 7 unsure rows at 52% to 64% repeated. None of the three has a judged false positive, but the 70% cut was set from the same rows it is judged on, so it is a proposal until another session confirms it."
+    "basis": "Judged real sessions: judge-l2 (10 Oct 2026, 122 findings) and judge-l4 (12 Oct 2026, 87 findings). fragmented_edits 17 of 17 waste, repeated_exploration 10 of 10, regeneration: judge-l2 14 waste and 1 not waste (a rewrite under 30% repeated, no longer a finding); judge-l4 3 of 3 waste at 70% or more repeated, from one session, with 7 unsure rows at 52% to 64% repeated. Under the current rules none of the three has a judged false positive, but the 70% cut was set from the same judge-l4 rows it is judged on, so it is a proposal until another session confirms it."
   },
   "policies": [
     {
