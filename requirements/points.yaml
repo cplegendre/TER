@@ -349,6 +349,7 @@ points:
     rules: [TER-DET-002]
     verification:
       - 'test: tests/unit/test_ter4_lean_detectors.py::TestRepeatedToolCall'
+      - 'test: tests/unit/test_ter4_lean_judge_l4.py::TestRepeatedToolCallJudgeL4'
 
   - id: P020
     text: >-
@@ -392,6 +393,7 @@ points:
     verification:
       - 'test: tests/unit/test_ter4_lean_context_motion_waiting.py::TestInsufficientContext'
       - 'test: tests/unit/test_ter4_lean_detectors.py::TestPrematureImplementation'
+      - 'test: tests/unit/test_ter4_lean_judge_l4.py::test_digit_and_dot_names_read_through_the_shell_are_not_premature'
 
   - id: P023
     text: >-
@@ -407,6 +409,7 @@ points:
     rules: [TER-DET-005]
     verification:
       - 'test: tests/unit/test_ter4_lean_detectors.py::TestPrematureImplementation'
+      - 'test: tests/unit/test_ter4_lean_judge_l4.py::test_boundary_a_digit_named_file_never_read_is_still_premature'
 
   - id: P024
     text: >-
