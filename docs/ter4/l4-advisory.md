@@ -1,9 +1,11 @@
 # L4 Advisory: policies and approval
 
 L4 turns confident, judged detector findings into advice for the developer.
-The advice appears as a hook message from the hook TER already runs, and it
-never changes what the agent sees. This page covers the parts that exist so
-far: the Intervention Engine (step 1) and policy files with human approval
+The advice will appear as a message from the hook TER already runs, and it
+never changes what the agent sees. That hook delivery is a later step (step
+5): today the hook still prints nothing, and approving a policy file lets an
+engine be built from it, nothing more. This page covers the parts that exist
+so far: the Intervention Engine (step 1) and policy files with human approval
 (step 2). The build order and the remaining steps are in
 [strategy.md](strategy.md#l4-advisory).
 
@@ -43,7 +45,7 @@ The draft for the three eligible detectors is
 | Policy | Detector | Fires on |
 |---|---|---|
 | `batch-edits` | `fragmented_edits` | many small edits to one file in separate round trips |
-| `reuse-reads` | `repeated_exploration` | re-reading a file that has not changed |
+| `reuse-reads` | `repeated_exploration` | re-reading a file, or re-running a search, with no edit in between |
 | `edit-not-rewrite` | `regeneration` | a whole-file rewrite repeating at least 70% of the old file (confidence 0.80) |
 
 Their eligibility rests on the two judged samples: `fragmented_edits` was 17

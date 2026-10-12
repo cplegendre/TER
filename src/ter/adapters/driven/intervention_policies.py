@@ -11,11 +11,26 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from ...domain.intervention import PolicyError
 from ...domain.policy_set import PolicySet
 
 __all__ = ["JsonInterventionPolicies"]
+
+
+def _unique_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    """A JSON object, refusing a repeated key.
+
+    The approval digest covers the parsed values, so a key written twice
+    would let the earlier, discarded copy change without voiding approval.
+    """
+    document: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in document:
+            raise PolicyError(f"duplicate key {key!r}")
+        document[key] = value
+    return document
 
 
 class JsonInterventionPolicies:
@@ -26,7 +41,11 @@ class JsonInterventionPolicies:
     def policies(self, ref: str | Path) -> PolicySet:
         path = Path(ref).expanduser()
         try:
-            document = json.loads(path.read_text(encoding="utf-8"))
+            document = json.loads(
+                path.read_text(encoding="utf-8"), object_pairs_hook=_unique_keys
+            )
+        except PolicyError as exc:
+            raise PolicyError(f"{path}: {exc}") from None
         except FileNotFoundError:
             raise PolicyError(f"{path}: no such policy file") from None
         except (OSError, UnicodeDecodeError) as exc:

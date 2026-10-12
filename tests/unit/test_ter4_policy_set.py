@@ -312,3 +312,55 @@ def test_cli_rejects_an_invalid_file(tmp_path: Path) -> None:
     assert code == 2 and "L5" in err
     code, _, err = run(["policy", "check", str(tmp_path / "missing.json")])
     assert code == 2 and "no such policy file" in err
+
+
+@pytest.mark.req("TER-INT-015")
+def test_a_repeated_key_is_refused_so_no_hidden_value_keeps_approval(
+    tmp_path: Path,
+) -> None:
+    approved = PolicySet.from_mapping(document()).approve("Leigh", DAY)
+    text = json.dumps(approved.as_dict())
+    # A second "schema" key: json.loads would keep only the last copy, so an
+    # edit to the first would never reach the digest.
+    path = tmp_path / "policies.json"
+    path.write_text(text.replace("{", '{"schema": "edited", ', 1), encoding="utf-8")
+    with pytest.raises(PolicyError, match="duplicate key 'schema'"):
+        JsonInterventionPolicies().policies(path)
+
+
+def test_cli_reports_an_unknown_policy_source(tmp_path: Path) -> None:
+    path = tmp_path / "policies.json"
+    path.write_text(json.dumps(document()), encoding="utf-8")
+    code, _, err = run(["policy", "check", str(path), "--source", "typo"])
+    assert code == 2 and "Unknown policy source" in err
+
+
+def test_cli_approve_writes_back_to_the_expanded_home_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "policies.json").write_text(json.dumps(document()), encoding="utf-8")
+    code, _, _ = run(["policy", "approve", "~/policies.json", "--by", "Leigh"])
+    assert code == 0 and not (tmp_path / "~").exists()
+    written = JsonInterventionPolicies().policies(tmp_path / "policies.json")
+    assert written.state is ApprovalState.APPROVED
+    assert [p.name for p in tmp_path.iterdir()] == ["policies.json"]
+
+
+def test_cli_approve_leaves_the_file_whole_when_the_write_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "policies.json"
+    original = json.dumps(document())
+    path.write_text(original, encoding="utf-8")
+
+    def refuse(*_: object) -> None:
+        raise OSError("disk full")
+
+    monkeypatch.setattr("ter.adapters.driving.policy_cli.os.replace", refuse)
+    code, _, err = run(["policy", "approve", str(path), "--by", "Leigh"])
+    assert code == 2 and "Cannot write the approval" in err and "disk full" in err
+    assert path.read_text(encoding="utf-8") == original
+    assert [p.name for p in tmp_path.iterdir()] == ["policies.json"]

@@ -33,7 +33,7 @@
       ],
       "advice": {
         "kind": "warning",
-        "message": "Claude re-read a file that has not changed since it last read it. The content is already in its context; a note in CLAUDE.md to reuse earlier reads avoids the repeat."
+        "message": "Claude re-read a file, or re-ran a search, with no edit in between. The answer is already in its context; a note in CLAUDE.md to reuse earlier reads and search results avoids the repeat."
       },
       "min_evidence": 2,
       "min_confidence": 0.7,

@@ -18,12 +18,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 from typing import IO
 
+from ...domain.capabilities import CapabilityError
 from ...domain.intervention import PolicyError
 from ...domain.policy_set import ApprovalState, PolicySet
 from ...ports.driven import InterventionPolicies
@@ -78,8 +80,14 @@ def run_policy(
         err.write("intervention policies are not available in this installation\n")
         return 2
     source = args.source if args.policy_command == "check" else "json"
+    path = Path(args.file).expanduser()
     try:
-        policies = services.source(source).policies(args.file)
+        reader = services.source(source)
+    except CapabilityError as exc:
+        err.write(f"Unknown policy source: {exc}\n")
+        return 2
+    try:
+        policies = reader.policies(path)
     except PolicyError as exc:
         err.write(f"Not a valid policy file: {exc}\n")
         return 2
@@ -92,11 +100,24 @@ def run_policy(
     except (ValueError, PolicyError) as exc:
         err.write(f"Cannot approve: {exc}\n")
         return 2
-    path: Path = args.file
-    path.write_text(json.dumps(approved.as_dict(), indent=2) + "\n", encoding="utf-8")
+    try:
+        _replace(path, json.dumps(approved.as_dict(), indent=2) + "\n")
+    except OSError as exc:
+        err.write(f"Cannot write the approval to {path}: {exc}\n")
+        return 2
     out.write(format_policies(approved))
     out.write(f"Wrote the approval to {path}\n")
     return 0
+
+
+def _replace(path: Path, text: str) -> None:
+    """Write ``text`` beside ``path``, then swap it in: never a half-written file."""
+    temp = path.with_name(f".{path.name}.approve.tmp")
+    try:
+        temp.write_text(text, encoding="utf-8")
+        os.replace(temp, path)
+    finally:
+        temp.unlink(missing_ok=True)
 
 
 def format_policies(policies: PolicySet) -> str:
