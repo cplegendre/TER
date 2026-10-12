@@ -49,6 +49,8 @@ if TYPE_CHECKING:
     from ..adapters.driving.control_cli import ControlServices
     from ..adapters.driving.policy_cli import PolicyServices
     from ..application.control import MeasuredSessions
+    from ..application.shadow import ShadowRun
+    from ..domain.policy_set import PolicySet
 
 __all__ = [
     "CapabilityRegistry",
@@ -356,7 +358,22 @@ def cli_services() -> CliServices:
     def policies() -> "PolicyServices":
         from ..adapters.driving.policy_cli import PolicyServices
 
-        return PolicyServices(make_policies, lambda: SystemClock().now().date())
+        from ..application.shadow import shadow_sessions
+
+        def shadow(
+            paths: Sequence[Path], policies: "PolicySet", ledger: Path, tokenizer: str
+        ) -> "ShadowRun":
+            # TER off, as for control measures: shadow mode replays a corpus
+            # and must not download a model.
+            return shadow_sessions(
+                paths,
+                lambda path: explain_transcript(path, tokenizer, "off"),
+                policies,
+                make_ledger(ledger),
+                SystemClock(),
+            )
+
+        return PolicyServices(make_policies, lambda: SystemClock().now().date(), shadow)
 
     return CliServices(
         policies=policies(),

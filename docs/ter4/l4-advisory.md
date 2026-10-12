@@ -6,7 +6,7 @@ never changes what the agent sees. That hook delivery is a later step (step
 5): today the hook still prints nothing, and approving a policy file lets an
 engine be built from it, nothing more. This page covers the parts that exist
 so far: the Intervention Engine (step 1), policy files with human approval
-(step 2) and the ledger (step 3). The build order and the remaining steps are in
+(step 2), the ledger (step 3) and shadow mode (step 4). The build order and the remaining steps are in
 [strategy.md](strategy.md#l4-advisory).
 
 ## The Intervention Engine
@@ -108,3 +108,28 @@ The `InterventionLedger.jsonl` capability keeps one append-only
 `<session>.ledger.jsonl` file per session, private to its owner. Recording
 appends a line without reading the file, so a hook's cost does not grow with
 the session. A line cut short by a crash is skipped, never raised.
+
+## Shadow mode
+
+Shadow mode replays recorded sessions through an approved policy file and
+writes every decision to a ledger, delivering nothing (TER-INT-017). Each
+session is explained as `python -m ter explain` does, its findings become
+detector signals, and a fresh engine judges them, so cooldowns count within
+a session. An unapproved or changed file replays nothing.
+
+```bash
+python -m ter policy shadow docs/examples/policies/l4-advisory.json ~/.claude/projects --ledger shadow-ledger --judge shadow-judge.csv
+```
+
+The summary gives each policy's decisions by outcome: advised, cooldown,
+below hysteresis, low confidence and so on. `--judge` writes the advice TER
+would have given to a CSV with an empty `verdict` column (waste, not waste
+or unsure) and the finding's title and subject, so a person can judge it.
+The CSV names files and session ids, so it stays on the developer's
+machine, created private to its owner. Each record carries the digest of
+the policy file that made it, so a run under a revised file writes new
+records beside the old ones, and a second run under the same file writes
+nothing new.
+
+Judging that CSV is how a policy earns live advice (step 5). It is also how
+the `regeneration` 70% cut gets the second session it needs.

@@ -200,8 +200,10 @@ def main(
         if result.status is HookStatus.IGNORED and result.reason:
             err.write(f"ter hook: event not recorded: {result.reason}\n")
         return 0
-    if args.command in ("observe", "explain", "a3", "context", "route") or (
-        args.command == "control" and args.control_command == "measure"
+    if (
+        args.command in ("observe", "explain", "a3", "context", "route")
+        or (args.command == "control" and args.control_command == "measure")
+        or (args.command == "policy" and args.policy_command == "shadow")
     ):
         known = TOKENIZERS if services.tokenizers is None else services.tokenizers()
         if args.tokenizer not in known:

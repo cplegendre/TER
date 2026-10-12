@@ -12,9 +12,11 @@ detector, its published rule and the policy, never prompt text, file
 content, or a finding's title or subject. (A signal id can name a path when
 one step touched several files.)
 
-A record's id is a digest of the decision (session, policy, signal id,
-revision and outcome), so replaying the same signals writes the same ids and
-a ledger keeps the first record for each id.
+A record's id is a digest of the decision (session, policy and the digest
+of the policy file that made it, signal id, revision and outcome), so
+replaying the same signals under the same policies writes the same ids, a
+revised policy writes new ones, and a ledger keeps the first record for each
+id.
 """
 
 from __future__ import annotations
@@ -125,11 +127,24 @@ def record_id(
     signal_id: str,
     revision: tuple[float, tuple[str, ...]],
     outcome: Outcome,
+    policy_version: str = "",
 ) -> str:
-    """The id of one decision: the same decision always gets the same id."""
+    """The id of one decision: the same decision always gets the same id.
+
+    ``policy_version`` is the digest of the policy file, so the same signal
+    judged under a revised file is a different decision.
+    """
     confidence, evidence = revision
     key = json.dumps(
-        [session_id, policy, signal_id, confidence, list(evidence), outcome.value]
+        [
+            session_id,
+            policy,
+            policy_version,
+            signal_id,
+            confidence,
+            list(evidence),
+            outcome.value,
+        ]
     )
     return "int-" + hashlib.sha256(key.encode("utf-8")).hexdigest()[:20]
 
@@ -161,6 +176,8 @@ class LedgerRecord:
     action: Action | None = None
     advice_kind: AdviceKind | None = None
     advice: str = ""
+    #: The digest of the policy file that made the decision, when known.
+    policy_version: str = ""
     observation: Observation | None = None
 
     def __post_init__(self) -> None:
@@ -187,14 +204,24 @@ class LedgerRecord:
 
     @classmethod
     def from_verdict(
-        cls, verdict: Verdict, session_id: str, recorded_at: datetime
+        cls,
+        verdict: Verdict,
+        session_id: str,
+        recorded_at: datetime,
+        policy_version: str = "",
     ) -> LedgerRecord:
-        """The record of one engine verdict."""
+        """The record of one engine verdict, under the policy file whose
+        digest is ``policy_version``."""
         signal = verdict.signal
         advice = verdict.advice
         return cls(
             id=record_id(
-                session_id, verdict.policy, signal.id, signal.revision, verdict.outcome
+                session_id,
+                verdict.policy,
+                signal.id,
+                signal.revision,
+                verdict.outcome,
+                policy_version,
             ),
             session_id=session_id,
             recorded_at=recorded_at,
@@ -212,6 +239,7 @@ class LedgerRecord:
             action=Action.ADVISE if verdict.advised else None,
             advice_kind=advice.kind if advice is not None else None,
             advice=advice.message if advice is not None else "",
+            policy_version=policy_version,
         )
 
     @property
@@ -237,6 +265,7 @@ class LedgerRecord:
             "session_id": self.session_id,
             "recorded_at": self.recorded_at.isoformat(),
             "policy": self.policy,
+            "policy_version": self.policy_version,
             "signal": {
                 "id": self.signal_id,
                 "detector": self.detector,
@@ -272,6 +301,7 @@ class LedgerRecord:
                 session_id=str(data["session_id"]),
                 recorded_at=datetime.fromisoformat(data["recorded_at"]),
                 policy=str(data["policy"]),
+                policy_version=str(data.get("policy_version") or ""),
                 signal_id=str(signal["id"]),
                 detector=str(signal["detector"]),
                 waste=str(signal["waste"]),

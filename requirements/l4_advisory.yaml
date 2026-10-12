@@ -189,6 +189,20 @@ requirements:
       Repeated warnings are their own form of waste.
     status: verified
 
+  - id: TER-INT-017
+    pattern: event-driven
+    text: >-
+      When TER replays recorded sessions in shadow mode, TER shall write
+      every decision the approved policies would have made to the ledger
+      without delivering any intervention.
+    level: L4
+    port: InterventionLedger
+    source_points: [91, 180]
+    rationale: >-
+      A policy is judged on real sessions, with every decision auditable,
+      before any advice reaches a developer.
+    status: verified
+
   - id: TER-ARC-008
     pattern: ubiquitous
     text: >-
