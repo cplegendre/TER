@@ -50,10 +50,10 @@ test. Counts from `requirements/l*.yaml` on this commit:
 | L1 Observed | 22 of 22 | 0 | 15 / 1 / 0 |
 | L2 Explained | 72 of 72 | 0 | 50 / 5 / 0 |
 | L3 Grounded | 35 of 35 | 0 | 25 / 23 / 0 |
-| L4 Advisory | 8 of 17 | 9 | 13 / 5 / 21 |
+| L4 Advisory | 9 of 18 | 9 | 13 / 5 / 21 |
 | L5 Corrective | 0 of 10 | 10 | 1 / 4 / 8 |
 | L6 Learning | 11 of 19 | 8 | 1 / 4 / 14 |
-| **All** | **174 of 201** | **27** | **115 / 43 / 43** of 201 |
+| **All** | **175 of 202** | **27** | **115 / 43 / 43** of 201 |
 
 The L6 requirements already verified are the ones that did not have to wait:
 a second harness (the GARE session source, TER-SRC-010 to TER-SRC-017) and
@@ -239,7 +239,10 @@ suppressed by cooldown and suppressed for ineligible categories.
    [l4-advisory.md](l4-advisory.md#the-ledger).
 4. Shadow mode: replay recorded sessions and write what TER *would* have
    advised, with no channel. Run it on the corpus and judge it before any
-   live advice.
+   live advice. **Done** (TER-INT-017): `python -m ter policy shadow`
+   (`ter.application.shadow`) writes every decision to a ledger and the
+   advice to a judging CSV. Judging that CSV on the owner's sessions is the
+   data step before step 5.
 5. `InterventionChannel` port and the advisory adapter; ceiling-aware
    `test_no_intervention.py` (TER-INT-002, TER-INT-003, TER-INT-014).
 6. Ledger follow-up and policy effectiveness (TER-INT-011, TER-INT-012).

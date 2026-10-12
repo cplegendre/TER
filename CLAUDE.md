@@ -53,6 +53,7 @@ python -m ter control limits m.json --out limits.json  #   natural limits (tunab
 python -m ter control chart m.json --limits limits.json --html control.html
 python -m ter policy check policies.json            # L4 policy file: valid? approved? (exit 1 until approved)
 python -m ter policy approve policies.json --by NAME # the human sign-off; any later edit voids it
+python -m ter policy shadow policies.json <sessions> --ledger DIR --judge j.csv  # L4 shadow mode: ledger only, nothing delivered
 ter a3 <session.jsonl> --limits limits.json --html a3.html  # A3 with the session placed against its limits
 ```
 
@@ -95,4 +96,4 @@ Python 3.11+: Follow standard conventions. Dataclasses for models, enums for dom
 
 `ter analyze` `ter report [--html FILE]` `ter a3` `ter explain` `ter visualize` `ter present` `ter compare` `ter list` `ter watch` `ter budget` `ter context {store|graph|optimize|delta|check}`
 
-TER 4 (`python -m ter`): `observe` `hook` `explain` `a3` `route` `context {bundle|report}` `control {measure|limits|chart}` `policy {check|approve}` `corpus`
+TER 4 (`python -m ter`): `observe` `hook` `explain` `a3` `route` `context {bundle|report}` `control {measure|limits|chart}` `policy {check|approve|shadow}` `corpus`
