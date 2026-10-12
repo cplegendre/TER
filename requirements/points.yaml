@@ -2731,49 +2731,49 @@ points:
       Record the signal that triggered each intervention.
     level: L4
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - The ledger records the triggering signal of each intervention.
     rules: [TER-INT-009]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-009'
-
+      - 'test: tests/unit/test_ter4_ledger.py::test_an_advised_verdict_records_signal_evidence_and_action'
+      - 'test: tests/contract/test_intervention_ledger.py::test_each_record_holds_signal_evidence_action_and_outcome'
   - id: P176
     text: >-
       Record the evidence supporting that signal.
     level: L4
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - The ledger records the evidence behind each signal.
     rules: [TER-INT-009]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-009'
-
+      - 'test: tests/unit/test_ter4_ledger.py::test_an_advised_verdict_records_signal_evidence_and_action'
+      - 'test: tests/unit/test_ter4_ledger.py::test_no_action_is_recorded_without_evidence'
   - id: P177
     text: >-
       Record the action TER proposed or performed.
     level: L4
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - The ledger records the action proposed or performed.
     rules: [TER-INT-009]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-009'
-
+      - 'test: tests/unit/test_ter4_ledger.py::test_a_suppressed_verdict_records_the_reason_and_no_action'
+      - 'test: tests/contract/test_intervention_ledger.py::test_each_record_holds_signal_evidence_action_and_outcome'
   - id: P178
     text: >-
       Record the subsequent outcome.
     level: L4
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - The ledger records the outcome after each intervention.
     rules: [TER-INT-009]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-009'
-
+      - 'test: tests/unit/test_ter4_ledger.py::test_the_outcome_is_recorded_with_the_intervention'
+      - 'test: tests/contract/test_intervention_ledger.py::test_an_outcome_is_attached_once'
   - id: P179
     text: >-
       Use intervention outcomes for future calibration.
@@ -2795,12 +2795,13 @@ points:
       record.
     level: L4
     kind: principle
-    status: not-started
+    status: partial
     definition_of_done:
       - No behaviour change is made without a ledger record.
     rules: [TER-INT-009]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-009'
+      - 'test: tests/contract/test_intervention_ledger.py::test_entries_come_back_in_record_order_field_for_field'
+      - 'planned: the advisory channel writes the ledger record before it delivers advice (L4 step 5)'
 
   - id: P181
     text: >-

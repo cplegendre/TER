@@ -102,3 +102,12 @@ def test_json_adapter_rejects_invalid_files(tmp_path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
     with pytest.raises(PolicyError, match="bad.json"):
         JsonInterventionPolicies().policies(path)
+
+
+@pytest.mark.req("TER-INT-008")
+def test_json_adapter_reads_a_file_saved_with_a_bom(tmp_path: Path) -> None:
+    # Windows editors and PowerShell 5's Set-Content write UTF-8 with a BOM.
+    path = tmp_path / "policies.json"
+    text = json.dumps(_policies(True).as_dict())
+    path.write_bytes(b"\xef\xbb\xbf" + text.encode("utf-8"))
+    assert JsonInterventionPolicies().policies(path) == _policies(True)

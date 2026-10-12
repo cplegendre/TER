@@ -42,7 +42,9 @@ class JsonInterventionPolicies:
         path = Path(ref).expanduser()
         try:
             document = json.loads(
-                path.read_text(encoding="utf-8"), object_pairs_hook=_unique_keys
+                # utf-8-sig: Windows editors and PowerShell 5 write a BOM.
+                path.read_text(encoding="utf-8-sig"),
+                object_pairs_hook=_unique_keys,
             )
         except PolicyError as exc:
             raise PolicyError(f"{path}: {exc}") from None

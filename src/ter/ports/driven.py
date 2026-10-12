@@ -13,6 +13,7 @@ from ..domain.events import Event, SessionTrace
 # argument); re-exported here as the driven port adapters implement.
 from ..domain.lean.intent import AlignmentScorer as AlignmentScorer
 from ..domain.lean.control import ControlLimits
+from ..domain.ledger import LedgerRecord, Observation
 from ..domain.policy_set import PolicySet
 from ..domain.outcome import OutcomeEvidence
 from ..domain.pricing import Rates
@@ -281,6 +282,38 @@ class RoutingProfiles(Protocol):
     def default(self) -> str: ...
 
     def profile(self, name: str) -> RoutingProfile: ...
+
+
+@runtime_checkable
+class InterventionLedger(Protocol):
+    """The intervention ledger: one record per engine decision (TER-INT-009,
+    points 175 to 178, 180), each delivered intervention's outcome attached
+    once it is observed.
+
+    Obligations, verified by ``tests/contract/test_intervention_ledger.py``:
+
+    * ``entries(session_id)`` returns recorded records in record order, equal
+      field for field to what was recorded, each with its observation if one
+      was attached;
+    * recording a record id again changes nothing: the first record stays;
+    * ``observe`` attaches an outcome to a delivered record once, and raises
+      ``ter.domain.ledger.LedgerError`` for an unknown record, a suppressed
+      one, or one already observed;
+    * sessions never leak into each other, an unknown session is empty, and
+      ``sessions()`` lists every session with a record, sorted.
+    """
+
+    name: str
+
+    def record(self, entry: LedgerRecord) -> None: ...
+
+    def observe(
+        self, session_id: str, record_id: str, observation: Observation
+    ) -> None: ...
+
+    def entries(self, session_id: str) -> tuple[LedgerRecord, ...]: ...
+
+    def sessions(self) -> tuple[str, ...]: ...
 
 
 @runtime_checkable

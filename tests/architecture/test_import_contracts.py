@@ -36,6 +36,7 @@ def test_the_intervention_engine_reads_only_signals() -> None:
     engine = contracts["intervention-reads-signals"]
     assert engine["source_modules"] == [
         "ter.domain.intervention",
+        "ter.domain.ledger",
         "ter.domain.policy_set",
     ]
     assert {"ter.domain.lean", "ter.domain.stream", "ter.domain.events"} <= set(
@@ -45,6 +46,7 @@ def test_the_intervention_engine_reads_only_signals() -> None:
     assert "ter.domain.lean" in analysis["source_modules"]
     assert analysis["forbidden_modules"] == [
         "ter.domain.intervention",
+        "ter.domain.ledger",
         "ter.domain.policy_set",
     ]
 
