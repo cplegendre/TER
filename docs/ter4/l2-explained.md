@@ -196,10 +196,10 @@ The owner judged a second sample, `judge-l4`: 87 confident findings over
 | `fragmented_edits` | 2 | 0 | 0 | none |
 | `insufficient_context` | 0 | 3 | 4 | edits of .md, .rst, .txt and .adoc files are not judged; a file named in an earlier shell command is carried context (0.55) |
 | `intent_drift` | 0 | 4 | 1 | harness-written user messages are not intent revisions (TER-ITN-008) |
-| `premature_implementation` | 0 | 4 | 2 | none: the detector already counts `cat`, `sed` and `grep` reads; cause not yet found, evidence requested |
+| `premature_implementation` | 0 | 4 | 2 | the 4 false rows read the file through the shell, but its name starts with a digit or a dot (`0050-etag-caching.feature`, `.gitignore`), which content words drop; file names now match in the same normalised form. The 2 unsure rows show no read of the file at all |
 | `regeneration` | 3 | 0 | 7 | own rewrite 0.80 only when at least 70% of the new file repeats the old one, else 0.60 (waste was 70% to 81% repeated, unsure 52% to 64%) |
 | `repeated_reasoning` | 1 | 0 | 2 | none |
-| `repeated_tool_call` | 0 | 4 | 0 | a bare `sleep` is not judged (the others were deliberate re-applies and red-then-green cycles) |
+| `repeated_tool_call` | 0 | 4 | 0 | a bare `sleep` is not judged, nor a call repeated after `git stash`, `checkout`, `restore` or `reset` put files back (isolating a change on a clean tree, red-then-green cycles) |
 | `unvalidated_implementation` | 0 | 8 | 2 | checks run by absolute or Windows path (`python.exe -m pytest`, `ruff.exe`) are recognised (five of the false ones) |
 
 The 10 Oct promotions did not hold: the four detectors promoted to 0.72

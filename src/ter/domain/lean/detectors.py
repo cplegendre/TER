@@ -22,7 +22,7 @@ from pathlib import PurePosixPath
 from typing import Protocol
 
 from ..events import EventId, EventKind, ToolKind
-from .facts import harness_output_path, looks_like_file_name
+from .facts import content_words, harness_output_path, looks_like_file_name
 from .grounding import RepositoryGrounding
 from .intent import IntentRelation, IntentTimeline, SubjectBasis
 from .model import (
@@ -232,6 +232,21 @@ def _basename(path: str) -> str:
     return PurePosixPath(path.replace("\\", "/")).name
 
 
+def _named(path: str, words: frozenset[str] | set[str]) -> bool:
+    """Whether ``words`` (content words of commands and outputs) name the file.
+
+    Content words cannot start with a digit or a dot, so ``cat
+    0050-etag.feature`` yields ``etag.feature`` and ``sed -n 1,9p
+    .gitignore`` yields ``gitignore``: the file's own name is read the same
+    way (judged 12 Oct 2026: such shell reads were missed).
+    """
+    base = _basename(path).lower()
+    if base in words:
+        return True
+    own = content_words(base)
+    return bool(own) and own <= words
+
+
 # ---------------------------------------------------------------------------
 # Detectors
 # ---------------------------------------------------------------------------
@@ -254,7 +269,9 @@ class RepeatedToolCall:
         "(new information: 17 of 17 such repeats judged on real sessions were "
         "not waste) or when the output differs. File reads and "
         "searches are left to repeated_exploration; a validation re-run after "
-        "edits is left to rework_cycle; a bare wait (sleep) is not judged."
+        "edits is left to rework_cycle; a bare wait (sleep), and a call "
+        "repeated after git stash, checkout, restore or reset put files "
+        "back, are not judged."
     )
 
     def detect(self, view: SessionView) -> Iterable[Finding]:
@@ -274,6 +291,11 @@ class RepeatedToolCall:
                 continue
             edited = bool(_edits_between(view, earlier.index, step.index))
             if step.is_validation and edited:
+                continue
+            if _reverted_between(view, earlier.index, step.index):
+                # Judged 12 Oct 2026: an edit re-applied after ``git stash``
+                # or ``git checkout`` (isolating a change, red-then-green)
+                # is deliberate.
                 continue
             if last_prompt > earlier.index:
                 # A new prompt is new information. Calibrated on real
@@ -372,6 +394,17 @@ class RepeatedExploration:
                 waste=view.pair(step),
                 subject=step.subject,
             )
+
+
+_REVERT = re.compile(r"(?:^|[;&|(]\s*)git\s+(?:stash|checkout|restore|reset)(?:\s|$)")
+
+
+def _reverted_between(view: SessionView, start: int, end: int) -> bool:
+    """Whether a shell call between two steps put files back (``git stash``)."""
+    return any(
+        s.is_request and s.command is not None and _REVERT.search(s.command)
+        for s in view.steps[start + 1 : end]
+    )
 
 
 def _waits(step: Step) -> bool:
@@ -591,7 +624,9 @@ class PrematureImplementation:
     confidence_rule: str = (
         "0.75 for an in-place edit of a file never read, written, named in an "
         "earlier shell command (cat, sed -n, head, grep …) or named in an "
-        "earlier search or shell output; 0.45 (uncertain) for writing a new "
+        "earlier search or shell output (names starting with a digit or a dot, "
+        "such as 0050-x.feature or .gitignore, included since 12 Oct 2026); "
+        "0.45 (uncertain) for writing a new "
         "file before any exploration at all in the session. One finding per "
         "file."
     )
@@ -619,8 +654,7 @@ class PrematureImplementation:
                 seen_names |= step.words
             if step.is_edit:
                 for path in step.paths:
-                    base = _basename(path).lower()
-                    if path in known or path in flagged or base in seen_names:
+                    if path in known or path in flagged or _named(path, seen_names):
                         continue
                     if step.tool_kind is ToolKind.FS_EDIT:
                         confidence = 0.75
@@ -898,6 +932,7 @@ class UnusedContext:
         base = _basename(path).lower()
         stem = base.rsplit(".", 1)[0]
         names = {base} | ({stem} if len(stem) >= 4 else set())
+        names |= content_words(base)
         names |= {i.lower() for i in read.identifiers}
         for later in view.steps[read.index + 1 :]:
             if (
@@ -1522,7 +1557,7 @@ class InsufficientContext:
         need: int,
         known: set[str],
     ) -> Finding:
-        carried = path in known or _basename(path).lower() in known
+        carried = path in known or _named(path, known)
         cited = [] if change.prompt is None else [change.prompt]
         return _finding(
             self,

@@ -882,7 +882,7 @@
   },
   "detectors": [
     {
-      "confidence_rule": "Within one prompt's turn: 0.90 when input and output are identical and nothing was edited in between; 0.85 for a validation re-run with no edit in between; 0.75 when edits happened in between but the output is still identical. 0.50 (uncertain) when an output was not observed. No finding when a new prompt arrived between the two calls (new information: 17 of 17 such repeats judged on real sessions were not waste) or when the output differs. File reads and searches are left to repeated_exploration; a validation re-run after edits is left to rework_cycle; a bare wait (sleep) is not judged.",
+      "confidence_rule": "Within one prompt's turn: 0.90 when input and output are identical and nothing was edited in between; 0.85 for a validation re-run with no edit in between; 0.75 when edits happened in between but the output is still identical. 0.50 (uncertain) when an output was not observed. No finding when a new prompt arrived between the two calls (new information: 17 of 17 such repeats judged on real sessions were not waste) or when the output differs. File reads and searches are left to repeated_exploration; a validation re-run after edits is left to rework_cycle; a bare wait (sleep), and a call repeated after git stash, checkout, restore or reset put files back, are not judged.",
       "id": "repeated_tool_call",
       "kind": "waste",
       "waste": "over_processing"
@@ -906,7 +906,7 @@
       "waste": "defects"
     },
     {
-      "confidence_rule": "0.75 for an in-place edit of a file never read, written, named in an earlier shell command (cat, sed -n, head, grep …) or named in an earlier search or shell output; 0.45 (uncertain) for writing a new file before any exploration at all in the session. One finding per file.",
+      "confidence_rule": "0.75 for an in-place edit of a file never read, written, named in an earlier shell command (cat, sed -n, head, grep …) or named in an earlier search or shell output (names starting with a digit or a dot, such as 0050-x.feature or .gitignore, included since 12 Oct 2026); 0.45 (uncertain) for writing a new file before any exploration at all in the session. One finding per file.",
       "id": "premature_implementation",
       "kind": "risk",
       "waste": "defects"

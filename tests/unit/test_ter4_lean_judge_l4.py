@@ -269,6 +269,32 @@ class TestRepeatedToolCallJudgeL4:
         s.bash("sleep 1", "")
         assert found(s, "repeated_tool_call") == []
 
+    @pytest.mark.parametrize(
+        "revert",
+        [
+            "git stash -u -m 'pre-existing work'",
+            "git diff > /tmp/x.patch && git checkout packages/gen",
+            "git restore src/a.py",
+        ],
+    )
+    def test_an_edit_re_applied_after_a_revert_is_not_judged(self, revert: str) -> None:
+        # Judged 12 Oct 2026: isolating a change on a clean tree, and
+        # red-then-green cycles, re-apply the same edit on purpose.
+        s = Script()
+        s.prompt("fix the course builder")
+        s.edit("src/a.py", "x = 1", "x = 2")
+        s.bash(revert, "")
+        s.edit("src/a.py", "x = 1", "x = 2")
+        assert found(s, "repeated_tool_call") == []
+
+    def test_boundary_an_edit_repeated_without_a_revert_is_judged(self) -> None:
+        s = Script()
+        s.prompt("fix the course builder")
+        s.edit("src/a.py", "x = 1", "x = 2")
+        s.bash("git diff", "")
+        s.edit("src/a.py", "x = 1", "x = 2")
+        assert len(found(s, "repeated_tool_call")) == 1
+
     def test_boundary_sleep_chained_with_a_command_is_judged(self) -> None:
         s = Script()
         s.prompt("check the server")
@@ -330,3 +356,49 @@ def test_a_file_read_through_the_shell_is_not_premature(command: str) -> None:
     s.bash(command, "def fetch(): ...")
     s.edit("src/a.py")
     assert found(s, "premature_implementation") == []
+
+
+# Judged 12 Oct 2026 (judge-l4-evidence): four false findings were files
+# whose names start with a digit or a dot, read through the shell first.
+@pytest.mark.req("TER-DET-005")
+@pytest.mark.parametrize(
+    ("command", "path"),
+    [
+        (
+            "cat -n tests/bdd/features/core/0050-etag-caching.feature",
+            "tests/bdd/features/core/0050-etag-caching.feature",
+        ),
+        (
+            "sed -n 20,45p tests/bdd/features/core/0051-resilience.feature",
+            "tests/bdd/features/core/0051-resilience.feature",
+        ),
+        ("sed -n 85,95p .gitignore", ".gitignore"),
+    ],
+)
+def test_digit_and_dot_names_read_through_the_shell_are_not_premature(
+    command: str, path: str
+) -> None:
+    s = Script()
+    s.prompt("update the feature")
+    s.bash(command, "Feature: resilience")
+    s.edit(path)
+    assert found(s, "premature_implementation") == []
+
+
+@pytest.mark.req("TER-DET-005")
+def test_boundary_a_digit_named_file_never_read_is_still_premature() -> None:
+    s = Script()
+    s.prompt("update the feature")
+    s.bash("cat tests/bdd/features/core/0050-etag-caching.feature", "Feature: etag")
+    s.edit("tests/bdd/features/core/0051-resilience.feature")
+    [f] = found(s, "premature_implementation")
+    assert f.confidence == 0.75
+
+
+@pytest.mark.req("TER-DET-004")
+def test_a_digit_named_file_named_later_is_used() -> None:
+    s = Script()
+    s.prompt("check the feature")
+    s.read("tests/0050-etag-caching.feature", "Feature: etag\n  Scenario: a\n")
+    s.say("0050-etag-caching.feature already covers the 304 case.")
+    assert found(s, "unused_context") == []

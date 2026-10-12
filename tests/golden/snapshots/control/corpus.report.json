@@ -1461,9 +1461,9 @@
       "signals": []
     }
   ],
-  "detectors": "8d3a03679e0d",
+  "detectors": "408ceeb0b5e1",
   "firing": 4,
-  "limits_detectors": "8d3a03679e0d",
+  "limits_detectors": "408ceeb0b5e1",
   "method": "average_moving_range",
   "schema": "ter.control-report/1",
   "sessions": 8,
