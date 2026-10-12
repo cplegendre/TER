@@ -201,9 +201,36 @@ Only detectors judged eligible are advised on (`fragmented_edits` and
 repeated failures, untested edits, WIP and context bloat (points 125 to
 130) wait for a detector judged eligible for them.
 
+## Control signals as triggers
+
+A policy can also name a control chart signal (TER-SPC-020,
+[control-charts.md](control-charts.md#firing)). Give the hook, or shadow
+mode, your control limits with `--limits`:
+
+```bash
+python -m ter hook --event-log ~/.ter/events --advise policies.json --limits limits.json
+python -m ter policy shadow policies.json sessions/ --ledger ledger --limits limits.json
+```
+
+At each turn the session is placed against the limits, as the A3 does.
+Each firing signal (unfavourable, on a ratio or count measure, never a
+token total) becomes a signal whose detector is its id, such as
+`control.rework_cycles.beyond_limits`. A policy answers it when it lists
+that id under `detectors`, and the id must also be in the eligibility list,
+like any detector. Its evidence is the session itself, its confidence is
+1.0 (an XmR rule is a published, deterministic test), and its rule is the
+detection rule. Only `beyond_limits` can apply to one session: the other
+rules need the sessions around it.
+
+Limits computed with another detector set are stale: a finding count no
+longer means what they measured, so their signals are not used, and the
+hook says so on stderr (shadow mode in its summary). A live session's
+counts only grow, so advice on a control signal that is still firing 10
+tool events later is recorded as ignored.
+
 ## Did the advice help?
 
-Every Stop with `--advise` first follows up the advice already given
+Every Stop with `--advise` also follows up the advice already given
 (TER-INT-011, `ter.domain.effectiveness`). Once 10 tool events have been
 observed after a piece of advice was delivered, its ledger record gets an
 outcome:
