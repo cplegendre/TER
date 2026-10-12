@@ -113,6 +113,49 @@ for context recall, TER-EVD-005) and the context CLI
 which appends `context.supplied` events to the event log. Every port has a
 contract suite in `tests/contract/` that real adapters and fakes both pass.
 
+## The control loop
+
+The hexagon is how TER is built; the control loop is what it does. Observe,
+Analyse, Decide, Intervene, Measure and Learn is TER's central control flow
+(TER-INT-013, points 171 and 172). The stages are named in
+`ter.domain.loop.Stage`, and `ter.application.loop.ControlLoop` runs one turn
+of them for a session. The live hook runs a turn at every `Stop`
+(`python -m ter hook --advise`, wired by `bootstrap.advise_from_log`), and
+`python -m ter policy shadow` runs one per recorded session.
+
+```mermaid
+flowchart LR
+    O["Observe<br/>EventLog"] --> A["Analyse<br/>EventIngest · Lean analysis"]
+    A --> D["Decide<br/>Intervention Engine · ledger"]
+    D --> I["Intervene<br/>InterventionChannel"]
+    I --> M["Measure<br/>follow-up after 10 tool events"]
+    M --> L["Learn<br/>policy effectiveness"]
+    L -. "a person recalibrates and re-approves" .-> D
+```
+
+1. **Observe**: read the session's events from the `EventLog` port.
+2. **Analyse**: fold them through a fresh `EventIngest`, as a recorded
+   session is explained; the findings become detector signals.
+3. **Decide**: the Intervention Engine judges each signal under the approved
+   policy file, and each verdict is a ledger record.
+4. **Intervene**: deliver the advice not given before through the
+   `InterventionChannel` (at L4, a message the developer sees).
+5. **Measure**: record the outcome of earlier advice once 10 tool events
+   have passed since it was delivered.
+6. **Learn**: score every policy from the ledger's outcomes and flag the
+   ones that do not improve them. At L4 that is a report for a person: TER
+   never changes a policy itself, and a person edits and re-approves the
+   file (TER-INT-015). Learn reads the whole ledger, so the hook leaves it
+   off and a person runs it with `python -m ter policy effectiveness`.
+
+Shadow mode is the loop without a channel: it runs up to Decide and
+delivers nothing, so there is nothing to measure. A failure before Intervene
+means no advice, since the hook fails open. A failure in Measure or Learn is
+kept on the turn, and the hook writes it to stderr, so it never costs advice
+already decided. L5 widens Intervene
+to opt-in corrective actions, and L6 closes Learn without a person in the
+middle ([strategy.md](strategy.md)).
+
 ## Strangler moves so far
 
 | TER 3 code | Now delegates to | Guarded by |

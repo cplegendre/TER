@@ -199,3 +199,20 @@ def test_the_ledger_goes_where_it_is_asked(tmp_path: Path) -> None:
     )
     assert code == 0 and set(json.loads(out)) == {ADVICE_FIELD}
     assert list(ledger.glob("*.ledger.jsonl")) and not (log / "ledger").exists()
+
+
+@pytest.mark.req("TER-INT-001", "TER-INT-013")
+def test_a_failed_follow_up_still_gives_the_advice_and_leaves_a_trace(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from ter.application import loop
+
+    def broken(*args: object) -> None:
+        raise OSError("ledger unreadable")
+
+    monkeypatch.setattr(loop, "follow_up_session", broken)
+    log = tmp_path / "events"
+    policies = _policies(tmp_path, approve=True)
+    code, out, err = _hook(_stop(log), log, "--advise", str(policies))
+    assert code == 0 and set(json.loads(out)) == {ADVICE_FIELD}
+    assert err == "ter hook: measure failed: OSError: ledger unreadable\n"

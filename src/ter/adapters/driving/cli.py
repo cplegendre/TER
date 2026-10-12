@@ -172,9 +172,12 @@ class CliServices:
     control: ControlServices | None = None
     #: L4 intervention policy files (``python -m ter policy``, TER-INT-008).
     policies: PolicyServices | None = None
-    #: L4 live advice: ``hook_advise(event_log, session_id, policies, ledger)``
-    #: gives the messages due to the developer (TER-INT-003).
-    hook_advise: Callable[[Path, str, Path, Path], tuple[str, ...]] | None = None
+    #: L4 live advice: ``hook_advise(event_log, session_id, policies, ledger,
+    #: warn)`` gives the messages due to the developer (TER-INT-003) and
+    #: passes a failed follow-up to ``warn``.
+    hook_advise: (
+        Callable[[Path, str, Path, Path, Callable[[str], None]], tuple[str, ...]] | None
+    ) = None
 
 
 def main(
@@ -196,7 +199,7 @@ def main(
             lambda: services.hook_ingest(log_dir),
             clock=services.hook_clock,
             record_to=args.record,
-            advise=_hook_advice(args, services, log_dir),
+            advise=_hook_advice(args, services, log_dir, err),
         )
         # Still exit 0 so the agent carries on; stderr leaves a trace
         # (Claude Code shows it in verbose mode and debug logs).
@@ -395,7 +398,7 @@ def _route(
 
 
 def _hook_advice(
-    args: argparse.Namespace, services: CliServices, log_dir: Path
+    args: argparse.Namespace, services: CliServices, log_dir: Path, err: IO[str]
 ) -> AdviseHook | None:
     """The advice step of ``ter hook --advise POLICIES``, or ``None`` without it."""
     policies: Path | None = args.advise
@@ -407,7 +410,11 @@ def _hook_advice(
     def advice(result: HookResult) -> tuple[str, ...]:
         if not result.session_id:
             return ()
-        return advise(log_dir, result.session_id, policies, ledger)
+        return advise(log_dir, result.session_id, policies, ledger, warn)
+
+    def warn(message: str) -> None:
+        # Advice was still given; stderr leaves a trace, as for the others.
+        err.write(f"ter hook: {message}\n")
 
     return advice
 

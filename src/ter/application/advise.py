@@ -4,16 +4,14 @@ The decisions are shadow mode's (:func:`decide`): a fresh Intervention
 Engine judges every detector signal of the session in the order they became
 known, and each verdict is one ledger record stamped with the policy file's
 digest. A record the ledger already holds is not written again, so asking
-again after more events writes and delivers only what is new. Live advice
-(:func:`advise_session`) hands each new advised record to an
-:class:`~ter.ports.driven.InterventionChannel` (TER-INT-003): advice the
-developer sees, never a change to the agent's input (TER-INT-002), always
-with the signal and evidence behind it (TER-INT-014).
+again after more events writes and delivers only what is new.
 
-Each live ask first follows up the advice already given (:func:`follow_up_session`,
-TER-INT-011): advice with :data:`~ter.domain.effectiveness.WINDOW` tool
+:func:`follow_up_session` records the outcome of advice already given
+(TER-INT-011): advice with :data:`~ter.domain.effectiveness.WINDOW` tool
 events after its delivery gets its response and before-after flow measures in
-the ledger. Shadow mode delivers nothing, so it follows nothing up.
+the ledger, and :func:`policy_effectiveness` scores each policy from those
+outcomes (TER-INT-012). The control loop (:mod:`ter.application.loop`) runs
+these as its Decide, Measure and Learn stages.
 """
 
 from __future__ import annotations
@@ -26,11 +24,10 @@ from ..domain.lean import LeanAnalysis
 from ..domain.lean.signals import detector_signals, tool_event_count
 from ..domain.maturity import Maturity
 from ..domain.policy_set import PolicySet
-from ..ports.driven import Clock, InterventionChannel, InterventionLedger
+from ..ports.driven import Clock, InterventionLedger
 
 __all__ = [
     "Decisions",
-    "advise_session",
     "decide",
     "follow_up_session",
     "policy_effectiveness",
@@ -110,36 +107,6 @@ def decide(
             if record.delivered:
                 interventions.append(Intervention(record, signal))
     return Decisions(session_id, tuple(records), tuple(interventions), tuple(written))
-
-
-def advise_session(
-    session_id: str,
-    analysis: LeanAnalysis,
-    policies: PolicySet,
-    ledger: InterventionLedger,
-    channel: InterventionChannel,
-    clock: Clock,
-    ceiling: Maturity = Maturity.ADVISORY,
-) -> Decisions:
-    """Decide on the session's signals and deliver the advice not given before.
-
-    The advice already given is followed up first. Each new advised record is
-    written to the ledger before it is delivered, so advice is never
-    delivered twice, even if delivery fails part way.
-    """
-    follow_up_session(session_id, analysis, policies, ledger, clock)
-    decisions = decide(
-        session_id,
-        analysis,
-        policies,
-        ledger,
-        clock,
-        ceiling,
-        delivered_at=tool_event_count(analysis),
-    )
-    for intervention in decisions.new_interventions:
-        channel.deliver(intervention)
-    return decisions
 
 
 def follow_up_session(

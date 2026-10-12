@@ -1,7 +1,9 @@
 """L4 use case: shadow mode (TER-INT-017).
 
 Replay recorded sessions through the approved policies and write what TER
-*would* have advised to the intervention ledger, delivering nothing. Each
+*would* have advised to the intervention ledger, delivering nothing: the
+control loop without a channel (:class:`~ter.application.loop.ControlLoop`),
+which stops after Decide. Each
 session is explained exactly as ``python -m ter explain`` does, its findings
 become detector signals, and a fresh Intervention Engine (cooldowns are per
 session) judges them in the order they became known. Every verdict, the
@@ -23,7 +25,7 @@ from pathlib import Path
 from ..domain.ledger import Intervention, LedgerRecord
 from ..domain.policy_set import PolicySet
 from ..ports.driven import Clock, InterventionLedger
-from .advise import decide
+from .loop import ControlLoop
 from .explain import ExplainedSession
 
 __all__ = ["ShadowAdvice", "ShadowRun", "shadow_sessions"]
@@ -67,6 +69,7 @@ def shadow_sessions(
     explained is recorded as a failure; the others are still replayed.
     """
     policies.require_approved()
+    loop = ControlLoop(policies, ledger, clock)  # no channel: shadow
     sessions: list[str] = []
     records: list[LedgerRecord] = []
     advice: list[ShadowAdvice] = []
@@ -80,7 +83,7 @@ def shadow_sessions(
             continue
         session_id = explained.trace.session_id or ref.stem
         sessions.append(session_id)
-        decisions = decide(session_id, explained.analysis, policies, ledger, clock)
+        decisions = loop.act(session_id, explained.analysis).decisions
         records.extend(decisions.records)
         advice.extend(decisions.interventions)
         written += len(decisions.written)

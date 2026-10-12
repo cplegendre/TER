@@ -162,12 +162,12 @@ These are the CI jobs, run locally by `dev.py`:
 python dev.py            # list the tasks
 python dev.py fast       # quick loop: stop at first failure, no model
 python dev.py fmt        # format and auto-fix lint
-python dev.py check      # the CI lint and test jobs: lint, coverage, L0-L3 gates
+python dev.py check      # the CI lint and test jobs: lint, coverage, L0-L4 gates
 ```
 
 `python dev.py lint` is the CI lint job (ruff, mypy, `lint-imports`,
 `ter-req lint --strict`, `ter-req points --check`); `python dev.py gates` runs
-the suite with `--req-trace` and then `ter-req trace` for each of L0 to L3.
+the suite with `--req-trace` and then `ter-req trace` for each of L0 to L4.
 Arguments after `test`, `fast` or `gates` go to pytest, so
 `python dev.py fast tests/unit` narrows the loop. `tests/docs/test_dev_tasks.py`
 fails if a `dev.py` command is missing from CI.

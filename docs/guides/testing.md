@@ -303,7 +303,7 @@ Run the same locally before pushing with `dev.py` (the
 
 ```bash
 python dev.py lint       # the lint job
-python dev.py gates      # the suite with --req-trace, then the L0-L3 gates
+python dev.py gates      # the suite with --req-trace, then the L0-L4 gates
 python dev.py check      # both
 ```
 
