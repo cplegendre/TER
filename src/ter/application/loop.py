@@ -146,7 +146,8 @@ class ControlLoop:
         stages: list[Stage],
     ) -> LoopTurn:
         events = tool_event_count(analysis)
-        control, stale = self.place(analysis)
+        placed, stale = self.place(analysis)
+        control = placed or ()
         decisions = self.decide(session_id, analysis, control)
         stages.append(Stage.DECIDE)
         if not self.live:
@@ -168,7 +169,7 @@ class ControlLoop:
             Stage.MEASURE,
             stages,
             errors,
-            lambda: self.measure(session_id, analysis, control),
+            lambda: self.measure(session_id, analysis, placed),
         )
         learned = (
             self._after(Stage.LEARN, stages, errors, self.learn) if self._learn else ()
@@ -198,16 +199,20 @@ class ControlLoop:
         """Analyse: fold the events into the session's Lean analysis."""
         return ingest_all(ingest(), events).explain(session_id)
 
-    def place(self, analysis: LeanAnalysis) -> tuple[tuple[Signal, ...], bool]:
+    def place(self, analysis: LeanAnalysis) -> tuple[tuple[Signal, ...] | None, bool]:
         """Part of Analyse: the session against its control limits.
 
-        Returns the firing control signals as signals (TER-SPC-020) and
-        whether the limits are stale. Without limits there are none.
+        Returns the firing control signals as signals (TER-SPC-020), or
+        ``None`` when they cannot be judged (no limits, or stale ones), and
+        whether the limits are stale. Live, the session is unfinished, so
+        only the measures it can be judged on mid-session are placed.
         """
         if self._limits is None:
-            return (), False
+            return None, False
         placed = session_control(analysis, self._limits)
-        return control_signals(placed, tool_event_count(analysis)), placed.stale
+        if placed.stale:
+            return None, True
+        return control_signals(placed, analysis, live=self.live), False
 
     def decide(
         self,
@@ -247,9 +252,12 @@ class ControlLoop:
         self,
         session_id: str,
         analysis: LeanAnalysis,
-        control: tuple[Signal, ...] = (),
+        control: tuple[Signal, ...] | None = None,
     ) -> tuple[LedgerRecord, ...]:
-        """Measure: record the outcome of earlier advice now observable."""
+        """Measure: record the outcome of earlier advice now observable.
+
+        Advice on a control signal waits while ``control`` is ``None``.
+        """
         return follow_up_session(
             session_id, analysis, self._policies, self._ledger, self._clock, control
         )

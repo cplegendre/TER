@@ -2192,7 +2192,7 @@ points:
     rules: [TER-INT-005, TER-RTE-003]
     verification:
       - 'test: tests/unit/test_ter4_routing.py::TestKeepTheProfile'
-      - 'planned: recommendations delivered as interventions at L4 (TER-INT-005)'
+      - 'planned: recommendations delivered as corrective interventions at L5 (TER-INT-005)'
 
   - id: P139
     text: >-

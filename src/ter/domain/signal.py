@@ -10,7 +10,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-__all__ = ["Signal"]
+__all__ = ["CONTROL_PREFIX", "Signal", "is_control"]
+
+#: Every control chart signal id starts with this (``control.<measure>.<rule>``).
+CONTROL_PREFIX = "control."
+
+
+def is_control(detector: str) -> bool:
+    """True for a control chart signal id rather than a detector name."""
+    return detector.startswith(CONTROL_PREFIX)
 
 
 @dataclass(frozen=True)

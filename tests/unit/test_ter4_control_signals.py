@@ -3,11 +3,12 @@
 A session placed against its control limits gives a firing control signal
 for each measure outside a limit the way it gets worse. A policy that names
 that signal's id (``control.<measure>.<rule>``) answers it like any detector
-signal, with the sessions that form the pattern as its evidence.
+signal, with the events of the findings behind its measure as evidence.
 """
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, date, datetime
 from typing import Any
 
@@ -30,10 +31,11 @@ from ter.domain.lean.control import (
     MeasureLimits,
     NaturalLimits,
     control_measure,
+    LIVE_MEASURES,
     detector_fingerprint,
     session_control,
 )
-from ter.domain.lean.signals import CONTROL_KIND, control_signals
+from ter.domain.lean.signals import CONTROL_KIND, control_signals, detector_signals
 from ter.domain.policy_set import PolicySet
 
 AT = datetime(2026, 10, 12, 22, 0, tzinfo=UTC)
@@ -107,16 +109,25 @@ def policies(eligible: tuple[str, ...] = (REWORK,)) -> PolicySet:
 
 class TestControlSignals:
     @pytest.mark.req("TER-SPC-020")
-    def test_a_firing_control_signal_becomes_a_signal_citing_its_sessions(
+    def test_a_firing_control_signal_cites_the_events_behind_its_measure(
         self,
     ) -> None:
         analysis = rework_session()
-        [signal] = control_signals(
-            session_control(analysis, rework_beyond(analysis)), 7
-        )
+        control = session_control(analysis, rework_beyond(analysis))
+        [signal] = control_signals(control, analysis)
+        rework = [
+            f for f in analysis.findings if f.id in control.behind["rework_cycles"]
+        ]
+        cited = {e for f in rework for e in f.evidence}
         assert signal.detector == REWORK and signal.id == f"{REWORK}:s"
-        assert signal.kind == CONTROL_KIND and signal.evidence == ("s",)
-        assert signal.confidence == 1.0 and signal.position == 7
+        assert signal.kind == CONTROL_KIND and set(signal.evidence) == cited
+        assert signal.confidence == 1.0
+        # Positioned at its last cited event, like a finding.
+        assert signal.position == max(
+            s.position
+            for s in detector_signals(analysis)
+            if s.id in {f.id for f in rework}
+        )
         assert signal.rule == ControlRule.BEYOND_LIMITS.description
         assert signal.subject == "rework_cycles"
         assert "above its limit 0.5" in signal.title
@@ -131,7 +142,7 @@ class TestControlSignals:
         control = session_control(analysis, below)
         [placed] = control.placements
         assert placed.signal is not None and not placed.signal.unfavourable
-        assert control_signals(control, 7) == ()
+        assert control_signals(control, analysis) == ()
 
     @pytest.mark.req("TER-SPC-020", "TER-INT-007")
     def test_a_token_total_never_becomes_one(self) -> None:
@@ -143,14 +154,42 @@ class TestControlSignals:
         control = session_control(analysis, tokens)
         [placed] = control.placements
         assert placed.signal is not None and not placed.signal.fires
-        assert control_signals(control, 7) == ()
+        assert control_signals(control, analysis) == ()
 
     @pytest.mark.req("TER-SPC-020", "TER-SPC-007")
     def test_stale_limits_give_none(self) -> None:
         analysis = rework_session()
         control = session_control(analysis, rework_beyond(analysis, "other"))
         assert control.stale and control.firing
-        assert control_signals(control, 7) == ()
+        assert control_signals(control, analysis) == ()
+
+    @pytest.mark.req("TER-SPC-020")
+    def test_live_only_counts_are_placed(self) -> None:
+        analysis = rework_session()
+        share = limits(
+            detector_fingerprint(analysis),
+            measure_limits("avoidable_share", 0.0, 0.001, 0.003, None),
+            measure_limits("rework_cycles", 0.0, 0.2, 0.5, None),
+        )
+        control = session_control(analysis, share)
+        assert {s.measure for s in control.firing} == {
+            "avoidable_share",
+            "rework_cycles",
+        }
+        finished = control_signals(control, analysis)
+        assert {s.subject for s in finished} == {"avoidable_share", "rework_cycles"}
+        # An unfinished session is judged on counts only (LIVE_MEASURES).
+        assert "rework_cycles" in LIVE_MEASURES
+        assert "avoidable_share" not in LIVE_MEASURES
+        live = control_signals(control, analysis, live=True)
+        assert [s.subject for s in live] == ["rework_cycles"]
+
+    @pytest.mark.req("TER-SPC-020", "TER-INT-007")
+    def test_a_measure_with_no_finding_behind_it_gives_none(self) -> None:
+        analysis = rework_session()
+        control = session_control(analysis, rework_beyond(analysis))
+        empty = replace(control, behind={})
+        assert empty.firing and control_signals(empty, analysis) == ()
 
 
 class TestPolicyTriggers:
@@ -169,11 +208,12 @@ class TestPolicyTriggers:
         [advice] = channel.interventions
         assert advice.record.policy == "rework-above-limit"
         assert advice.record.detector == REWORK
-        assert advice.record.evidence == ("s",)
+        [signal] = turn.control
+        assert advice.record.evidence == signal.evidence
         [message] = channel.delivered()
         assert "TER warning (rework-above-limit)" in message
         assert f"({REWORK}, confidence 1.00" in message
-        assert message.endswith("Evidence: s")
+        assert signal.evidence[0] in message.splitlines()[-1]
         assert [s.detector for s in turn.control] == [REWORK]
 
     @pytest.mark.req("TER-SPC-020", "TER-INT-010")
@@ -291,6 +331,35 @@ def test_control_advice_still_firing_after_its_window_was_ignored() -> None:
     assert observed.id == given.record.id
     assert observed.observation is not None
     assert observed.observation.response.value == "ignored"
+
+
+@pytest.mark.req("TER-SPC-020", "TER-INT-011")
+def test_control_advice_waits_for_a_turn_with_limits() -> None:
+    from ter import bootstrap
+    from ter.adapters.driven.in_memory import InMemoryEventLog
+
+    log, ledger = InMemoryEventLog(), InMemoryInterventionLedger()
+    session = _live(log, 8)
+    bounds = _confident_beyond(log, session)
+
+    def turn(with_limits: ControlLimits | None) -> Any:
+        loop = ControlLoop(
+            _confident_policies(),
+            ledger,
+            FixedClock(AT),
+            InMemoryInterventionChannel(),
+            limits=with_limits,
+        )
+        return loop.turn(session, log, lambda: bootstrap.make_ingest("regex"))
+
+    [given] = turn(bounds).delivered
+    _live(log, 12, start=8)
+    # Past its window, but nothing here can judge it: it is not accepted.
+    assert turn(None).observed == ()
+    stale = replace(bounds, detectors="0" * 12)
+    assert turn(stale).observed == ()
+    [observed] = turn(bounds).observed
+    assert observed.id == given.record.id
 
 
 @pytest.mark.req("TER-SPC-020")

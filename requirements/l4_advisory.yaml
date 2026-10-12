@@ -195,7 +195,8 @@ requirements:
     text: >-
       When a firing control signal matches an approved policy that names
       its signal id, the Intervention Engine shall treat the signal as a
-      structured detector signal citing its sessions as evidence.
+      structured detector signal citing as evidence the events of the
+      findings behind its measure.
     level: L4
     source_points: [162, 201]
     rationale: >-

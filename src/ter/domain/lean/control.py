@@ -66,6 +66,7 @@ from .model import ActivityClass, Finding, FindingKind, LeanWaste, ShellIntent
 from .wip import WipKind
 
 __all__ = [
+    "LIVE_MEASURES",
     "CONTROL_LIMITS_SCHEMA",
     "CONTROL_MEASURES",
     "CONTROL_MEASURES_SCHEMA",
@@ -373,6 +374,21 @@ CONTROL_MEASURES: tuple[ControlMeasure, ...] = (
         Direction.HIGHER_IS_WORSE,
         lambda a: a.scorecard.agent_seconds,
     ),
+)
+
+#: The measures a live, unfinished session can be placed on: counts of what
+#: has happened so far, read against their upper limit. Shares, flow and the
+#: ``*_at_end`` measures describe a finished session; mid-session they are
+#: often outside a limit only because the work is not done yet (an edit not
+#: yet tested), so live advice never rests on them.
+LIVE_MEASURES: frozenset[str] = frozenset(
+    {
+        "confident_findings",
+        "uncertain_findings",
+        "rework_cycles",
+        "risk_findings",
+        "wip_peak",
+    }
 )
 
 _BY_KEY: dict[str, ControlMeasure] = {m.key: m for m in CONTROL_MEASURES}

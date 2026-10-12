@@ -23,7 +23,7 @@ from ..domain.effectiveness import PolicyEffectiveness, effectiveness, follow_up
 from ..domain.ledger import Intervention, LedgerRecord
 from ..domain.lean import LeanAnalysis
 from ..domain.lean.signals import detector_signals, tool_event_count
-from ..domain.signal import Signal
+from ..domain.signal import Signal, is_control
 from ..domain.maturity import Maturity
 from ..domain.policy_set import PolicySet
 from ..ports.driven import Clock, InterventionLedger
@@ -121,16 +121,18 @@ def follow_up_session(
     policies: PolicySet,
     ledger: InterventionLedger,
     clock: Clock,
-    control: Sequence[Signal] = (),
+    control: Sequence[Signal] | None = None,
 ) -> tuple[LedgerRecord, ...]:
     """Record the outcome of every delivered intervention now observable.
 
     ``control`` holds the session's firing control signals now: advice on a
-    control signal still firing after its window was ignored.
+    control signal whose findings grew after it was delivered was ignored.
+    ``None`` means they cannot be judged now (no limits, or stale ones), so
+    advice on a control signal waits rather than look accepted.
 
     Returns the records observed this time, with their outcomes.
     """
-    signals = (*detector_signals(analysis), *control)
+    signals = (*detector_signals(analysis), *(control or ()))
     tool_events = tool_event_count(analysis)
     # A record made under another policy file is measured on its own
     # detector only: the current file may answer different detectors.
@@ -138,6 +140,8 @@ def follow_up_session(
     detectors = {p.id: p.detectors for p in policies.policies}
     observed: list[LedgerRecord] = []
     for record in ledger.entries(session_id):
+        if control is None and is_control(record.detector):
+            continue  # its limits are not here to judge it
         observation = follow_up(
             record,
             signals,
