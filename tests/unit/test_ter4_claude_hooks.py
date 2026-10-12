@@ -16,8 +16,10 @@ from ter.adapters.driven.in_memory import FixedClock, InMemoryEventLog
 from ter.adapters.driven.tokenizers import RegexTokenizer
 from ter.adapters.driving.claude_hooks import (
     HOOK_OUTPUT,
+    HookResult,
     HookStatus,
     handle_hook,
+    hook_output,
     run_hook,
     translate,
 )
@@ -218,6 +220,54 @@ class TestRunHook:
         result = run_hook(Exploding(), out, ingest())
         assert result.status is HookStatus.IGNORED
         assert out.getvalue() == HOOK_OUTPUT + "\n"
+
+    @pytest.mark.req("TER-INT-002")
+    def test_advice_after_a_stop_is_a_message_to_the_developer(self) -> None:
+        out = io.StringIO()
+        seen: list[str | None] = []
+
+        def advise(result: HookResult) -> tuple[str, ...]:
+            seen.append(result.session_id)
+            return ("first", "second")
+
+        result = run_hook(
+            io.StringIO(json.dumps(load("stop"))), out, ingest(), advise=advise
+        )
+        assert seen == [result.session_id]
+        assert result.advice == ("first", "second")
+        assert json.loads(out.getvalue()) == {"systemMessage": "first\n\nsecond"}
+
+    @pytest.mark.req("TER-INT-002")
+    def test_no_advice_is_asked_for_outside_a_stop(self) -> None:
+        def advise(result: HookResult) -> tuple[str, ...]:
+            raise AssertionError("asked for advice")
+
+        out = io.StringIO()
+        result = run_hook(
+            io.StringIO(json.dumps(load("user_prompt_submit"))),
+            out,
+            ingest(),
+            advise=advise,
+        )
+        assert result.advice == () and result.advice_error == ""
+        assert out.getvalue() == HOOK_OUTPUT + "\n"
+
+    @pytest.mark.req("TER-INT-002")
+    def test_advice_that_fails_leaves_the_output_neutral(self) -> None:
+        def advise(result: HookResult) -> tuple[str, ...]:
+            raise OSError("ledger is read-only")
+
+        out = io.StringIO()
+        result = run_hook(
+            io.StringIO(json.dumps(load("stop"))), out, ingest(), advise=advise
+        )
+        assert result.status is HookStatus.RECORDED
+        assert result.advice_error == "OSError: ledger is read-only"
+        assert out.getvalue() == HOOK_OUTPUT + "\n"
+
+    @pytest.mark.req("TER-INT-002")
+    def test_no_advice_prints_the_neutral_output(self) -> None:
+        assert hook_output(()) == HOOK_OUTPUT
 
 
 @pytest.mark.req("TER-OBS-003")

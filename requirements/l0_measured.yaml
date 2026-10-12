@@ -86,10 +86,12 @@ requirements:
     source_points: [121, 122]
     rationale: >-
       An installation that only observes never acts on the session; the
-      ceiling is a runtime guarantee, not a convention. No build yet has an
-      intervention capability, so tests/architecture/test_no_intervention.py
-      checks both places one could leak: every hook run answers {} with exit
-      code 0, and no source module names a Claude Code hook response field.
+      ceiling is a runtime guarantee, not a convention. The hook speaks only
+      with --advise and an approved policy file (L4 Advisory), so
+      tests/architecture/test_no_intervention.py checks both places one could
+      leak: every hook run without it answers {} with exit code 0, and no
+      source module names a Claude Code hook response field except the hook
+      entry point's one advice field.
     status: verified
 
   - id: TER-REQ-001

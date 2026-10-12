@@ -31,9 +31,11 @@ from types import MappingProxyType
 from typing import Any
 
 from .intervention import Action, AdviceKind, Outcome, Verdict
+from .signal import Signal
 
 __all__ = [
     "LEDGER_SCHEMA",
+    "Intervention",
     "LedgerError",
     "LedgerRecord",
     "Observation",
@@ -332,3 +334,44 @@ def _number(value: Any, what: str) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise LedgerError(f"{what} must be a number")
     return float(value)
+
+
+#: Evidence ids a message names before it counts the rest.
+_EVIDENCE_SHOWN = 4
+
+
+@dataclass(frozen=True)
+class Intervention:
+    """One piece of advice to deliver: an advised record and its signal.
+
+    The record is what the ledger keeps; the signal adds the finding's title
+    and subject, which the developer sees but the ledger never holds.
+    """
+
+    record: LedgerRecord
+    signal: Signal
+
+    def __post_init__(self) -> None:
+        if not self.record.delivered:
+            raise LedgerError(
+                f"record {self.record.id} was not advised: nothing to deliver"
+            )
+        if self.record.signal_id != self.signal.id:
+            raise LedgerError(
+                f"record {self.record.id} is about {self.record.signal_id}, "
+                f"not {self.signal.id}"
+            )
+
+    def message(self) -> str:
+        """The advice with the signal and evidence behind it (TER-INT-014)."""
+        record = self.record
+        kind = record.advice_kind.value if record.advice_kind else "advice"
+        shown = ", ".join(record.evidence[:_EVIDENCE_SHOWN])
+        more = len(record.evidence) - _EVIDENCE_SHOWN
+        evidence = shown + (f" and {more} more" if more > 0 else "")
+        return (
+            f"TER {kind} ({record.policy}): {record.advice}\n"
+            f"Why: {self.signal.title} ({record.detector}, confidence "
+            f"{record.confidence:.2f}: {record.rule})\n"
+            f"Evidence: {evidence}"
+        )

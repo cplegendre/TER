@@ -1,13 +1,12 @@
-# L4 Advisory: policies and approval
+# L4 Advisory: policies, approval and live advice
 
 L4 turns confident, judged detector findings into advice for the developer.
-The advice will appear as a message from the hook TER already runs, and it
-never changes what the agent sees. That hook delivery is a later step (step
-5): today the hook still prints nothing, and approving a policy file lets an
-engine be built from it, nothing more. This page covers the parts that exist
-so far: the Intervention Engine (step 1), policy files with human approval
-(step 2), the ledger (step 3) and shadow mode (step 4). The build order and the remaining steps are in
-[strategy.md](strategy.md#l4-advisory).
+The advice appears as a message from the hook TER already runs, at the end
+of a turn, and it never changes what the agent sees. This page covers the
+parts that exist so far: the Intervention Engine (step 1), policy files with
+human approval (step 2), the ledger (step 3), shadow mode (step 4) and live
+advice through the hook (step 5). The build order and the remaining steps
+are in [strategy.md](strategy.md#l4-advisory).
 
 ## The Intervention Engine
 
@@ -142,3 +141,50 @@ nothing new.
 
 Judging that CSV is how a policy earns live advice (step 5). It is also how
 the `regeneration` 70% cut gets the second session it needs.
+
+## Live advice
+
+With `--advise` and an approved policy file, the hook gives advice at the
+end of each turn (the `Stop` hook):
+
+```bash
+python -m ter hook --event-log ~/.ter/events --advise docs/examples/policies/l4-advisory.json --ledger ~/.ter/ledger
+```
+
+`--ledger` defaults to `ledger` inside the event log directory. On `Stop`
+the hook replays the session's event log, explains it, and decides on its
+signals exactly as shadow mode does (`ter.application.advise`). Every
+decision is written to the ledger; the advice not given before is printed
+as the hook's `systemMessage`, which Claude Code shows the developer and
+never adds to the model's context (TER-INT-002). The same advice is never
+given twice, because a decision the ledger already holds is not written or
+delivered again (TER-INT-003). Every other hook event, and every hook
+without `--advise`, still prints `{}`.
+
+Each message shows the advice with the signal and evidence behind it
+(TER-INT-014):
+
+```text
+TER warning (reuse-reads): Claude re-read a file, or re-ran a search, with no edit in between. The answer is already in its context; a note in CLAUDE.md to reuse earlier reads and search results avoids the repeat.
+Why: Re-read src/app.py (repeated_exploration, confidence 0.85: 0.85 when the same read or search (same arguments) returned identical output and the file was not edited in between; ...)
+Evidence: 1b87a23bd9056e34, 2b5db1c78a6dc335, 524b6ec125634e52, c30726a9604bad2f
+```
+
+That is the advice the sample session `sample_sessions/example_session.jsonl`
+gets (the confidence rule is shortened here). At most four evidence event
+ids are shown, then a count of the rest; the ledger keeps them all.
+
+The hook fails open. An unapproved or changed policy file, an unreadable
+log or a ledger that cannot be written gives no advice: the hook prints
+`{}`, exits 0, and leaves a `ter hook: no advice given: ...` line on stderr.
+Advice is delivered through the `InterventionChannel` port
+(`MessageChannel` renders it as text for the hook), with a contract suite in
+`tests/contract/test_intervention_channel.py`.
+`tests/architecture/test_no_intervention.py` keeps the ceiling: without
+`--advise` every hook answers `{}`, and `systemMessage` is the only hook
+response field any TER module names, in the hook entry point alone.
+
+Only detectors judged eligible are advised on (`fragmented_edits` and
+`repeated_exploration` today), so warnings on context growth, drift,
+repeated failures, untested edits, WIP and context bloat (points 125 to
+130) wait for a detector judged eligible for them.

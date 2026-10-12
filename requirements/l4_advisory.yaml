@@ -13,7 +13,7 @@ requirements:
     source_points: [123]
     rationale: >-
       Advice is the first and least disruptive active-control level.
-    status: planned
+    status: verified
 
   - id: TER-INT-003
     pattern: event-driven
@@ -26,7 +26,7 @@ requirements:
     rationale: >-
       Each advisory warning is a policy over a detector signal, not bespoke
       code.
-    status: planned
+    status: verified
 
   - id: TER-INT-004
     pattern: optional
@@ -165,7 +165,7 @@ requirements:
     source_points: [174]
     rationale: >-
       Every intervention is explainable to the agent and the developer.
-    status: planned
+    status: verified
 
   - id: TER-INT-015
     pattern: unwanted
