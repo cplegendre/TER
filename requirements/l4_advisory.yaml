@@ -129,7 +129,7 @@ requirements:
     rationale: >-
       Issue #43: acceptance and flow change are the raw material for
       evaluating interventions.
-    status: planned
+    status: verified
 
   - id: TER-INT-012
     pattern: ubiquitous
@@ -142,7 +142,7 @@ requirements:
     source_points: [169, 170, 179]
     rationale: >-
       Interventions that do not help are removed or recalibrated.
-    status: planned
+    status: verified
 
   - id: TER-INT-013
     pattern: ubiquitous

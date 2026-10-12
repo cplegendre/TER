@@ -237,6 +237,7 @@ type = "forbidden"
 # the engine sees ter.domain.intervention.Signal values, never the events,
 # steps or findings the Analysis Engine works on.
 source_modules = [
+    "ter.domain.effectiveness",
     "ter.domain.intervention",
     "ter.domain.ledger",
     "ter.domain.policy_set",
@@ -250,6 +251,7 @@ type = "forbidden"
 # Both engines share only ter.domain.signal.Signal.
 source_modules = ["ter.domain.lean", "ter.domain.stream", "ter.domain.signal"]
 forbidden_modules = [
+    "ter.domain.effectiveness",
     "ter.domain.intervention",
     "ter.domain.ledger",
     "ter.domain.policy_set",

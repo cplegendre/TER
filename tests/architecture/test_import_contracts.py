@@ -35,6 +35,7 @@ def test_the_intervention_engine_reads_only_signals() -> None:
     contracts = {c["id"]: c for c in config["tool"]["importlinter"]["contracts"]}
     engine = contracts["intervention-reads-signals"]
     assert engine["source_modules"] == [
+        "ter.domain.effectiveness",
         "ter.domain.intervention",
         "ter.domain.ledger",
         "ter.domain.policy_set",
@@ -45,6 +46,7 @@ def test_the_intervention_engine_reads_only_signals() -> None:
     analysis = contracts["analysis-knows-no-intervention"]
     assert "ter.domain.lean" in analysis["source_modules"]
     assert analysis["forbidden_modules"] == [
+        "ter.domain.effectiveness",
         "ter.domain.intervention",
         "ter.domain.ledger",
         "ter.domain.policy_set",

@@ -72,7 +72,7 @@ on real sessions, what is still unproven, and how L4 to L6 will be built.
 | L1 | Observed | Event stream as the core boundary, Claude Code hooks (Stop and SubagentStop included), hook recorder, live = batch | Met; CI gate; hook ids checked on real recordings | 22 of 22 | 15 / 1 / 0 |
 | L2 | Explained | Lean model, waste detectors, evidence graph, scorecard, A3, outcome verdict, redacted corpus import | Met; CI gate; detectors calibrated on real sessions | 72 of 72 | 50 / 5 / 0 |
 | L3 | Grounded | Repository evidence (symbols, imports, tests, call edges, Git), change surface, architecture contracts, context bundles, advisory routing | Met; gated in CI | 35 of 35 | 25 / 23 / 0 |
-| L4 | Advisory | Intervention engine, declarative policies, ledger | In progress: engine, guards, policy files with approval, the ledger, shadow mode and live advice through the hook built | 12 of 18 | 16 / 5 / 18 |
+| L4 | Advisory | Intervention engine, declarative policies, ledger | In progress: engine, guards, policy files with approval, the ledger, shadow mode, live advice through the hook and its follow-up built | 14 of 18 | 16 / 10 / 13 |
 | L5 | Corrective | Calibration, benchmarks, opt-in corrective actions | Not started | 0 of 10 | 1 / 4 / 8 |
 | L6 | Learning | Closed loop, second harness, research datasets | Second harness (GARE) and stack comparison built | 11 of 19 | 1 / 4 / 14 |
 

@@ -55,6 +55,7 @@ python -m ter policy check policies.json            # L4 policy file: valid? app
 python -m ter policy approve policies.json --by NAME # the human sign-off; any later edit voids it
 python -m ter policy shadow policies.json <sessions> --ledger DIR --judge j.csv  # L4 shadow mode: ledger only, nothing delivered
 python -m ter hook --event-log DIR --advise policies.json [--ledger DIR]  # L4 live advice on Stop (systemMessage only)
+python -m ter policy effectiveness --ledger DIR [--json FILE]  # L4: did the advice help? flags policies to recalibrate
 ter a3 <session.jsonl> --limits limits.json --html a3.html  # A3 with the session placed against its limits
 ```
 

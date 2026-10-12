@@ -436,6 +436,7 @@ def cli_services() -> CliServices:
             lambda: SystemClock().now().date(),
             shadow,
             session_folder_files,
+            make_ledger,
         )
 
     return CliServices(
