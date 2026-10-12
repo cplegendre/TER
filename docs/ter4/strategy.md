@@ -46,14 +46,14 @@ test. Counts from `requirements/l*.yaml` on this commit:
 
 | Level | Requirements verified | Planned | Vision points done / partial / not started |
 |---|---:|---:|---:|
-| L0 Measured | 25 of 25 | 0 | 10 / 1 / 0 |
+| L0 Measured | 26 of 26 | 0 | 10 / 1 / 0 |
 | L1 Observed | 22 of 22 | 0 | 15 / 1 / 0 |
-| L2 Explained | 54 of 54 | 0 | 49 / 5 / 0 |
-| L3 Grounded | 34 of 34 | 0 | 25 / 23 / 0 |
-| L4 Advisory | 0 of 16 | 16 | 0 / 5 / 34 |
+| L2 Explained | 71 of 71 | 0 | 49 / 6 / 0 |
+| L3 Grounded | 35 of 35 | 0 | 25 / 23 / 0 |
+| L4 Advisory | 4 of 17 | 13 | 6 / 4 / 29 |
 | L5 Corrective | 0 of 10 | 10 | 1 / 4 / 8 |
 | L6 Learning | 11 of 19 | 8 | 1 / 4 / 14 |
-| **All** | **146 of 180** | **34** | **101 / 43 / 56** of 200 |
+| **All** | **169 of 200** | **31** | **107 / 43 / 51** of 201 |
 
 The L6 requirements already verified are the ones that did not have to wait:
 a second harness (the GARE session source, TER-SRC-010 to TER-SRC-017) and
@@ -167,9 +167,10 @@ that decision, build them last and only behind a ceiling of L5.
   `regeneration` and `repeated_exploration` findings first. Every
   `unrelated_modification` finding is uncertain and so ineligible by rule.
 - A choice of **delivery channel** that is visible to the developer and not
-  to the model (a terminal or status line message, `ter watch`, a hook's
-  user-facing message), checked against the Claude Code hook fields that
-  `test_no_intervention.py` lists.
+  to the model, checked against the Claude Code hook fields that
+  `test_no_intervention.py` lists. **Decided (owner, 12 Oct 2026): a hook
+  message to the developer**, from the hook TER already runs, rather than a
+  status line or `ter watch`.
 
 ### Exit gate
 
@@ -212,6 +213,9 @@ suppressed by cooldown and suppressed for ineligible categories.
 1. Domain: signal, policy and ledger-record values; pure policy matching
    with the evidence, eligibility and cooldown guards (TER-INT-006,
    TER-INT-007, TER-INT-010, TER-INT-016). Incremental equals batch.
+   **Done** for signals, policies and guards (`ter.domain.intervention`,
+   `ter.domain.lean.signals`, the `intervention-reads-signals` import
+   contract); ledger-record values come with step 3.
 2. Policy files: a JSON policy reader as a capability, with an approval
    record (TER-INT-008, TER-ARC-008, TER-INT-015).
 3. `InterventionLedger` port, JSONL adapter, fake and contract suite

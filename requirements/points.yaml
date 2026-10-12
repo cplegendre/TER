@@ -1462,7 +1462,8 @@ points:
     rules: [TER-INT-010]
     verification:
       - 'test: tests/unit/test_ter4_lean_properties.py::test_findings_are_traceable_and_bounded'
-      - 'planned: precision floor per category before interventions (TER-INT-010)'
+      - 'test: tests/unit/test_ter4_intervention.py::test_a_detector_not_marked_eligible_is_never_advised'
+      - 'test: tests/unit/test_ter4_intervention.py::test_an_uncertain_signal_is_never_advised_even_if_the_policy_allows'
       - 'planned: real-data verification in issue #41'
 
   - id: P092
@@ -1943,7 +1944,7 @@ points:
       Separate observation from intervention.
     level: L4
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Observation and intervention live in separate engines with no import
@@ -1951,7 +1952,8 @@ points:
     rules: [TER-INT-006, TER-INT-001]
     verification:
       - 'test: tests/architecture/test_no_intervention.py'
-      - 'planned: passing tests tagged req for TER-INT-006'
+      - 'test: tests/architecture/test_import_contracts.py::test_the_intervention_engine_reads_only_signals'
+      - 'test: tests/unit/test_ter4_intervention.py::test_batch_equals_incremental_in_order_of_position'
 
   - id: P122
     text: >-
@@ -2185,7 +2187,7 @@ points:
       been exceeded.
     level: L4
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         No policy can trigger on token count alone; policy validation
@@ -2193,19 +2195,20 @@ points:
     rules: [TER-INT-007, TER-RPT-005]
     verification:
       - 'test: tests/unit/test_ter4_lean_analysis.py::test_countermeasures_are_derived_from_findings'
-      - 'planned: policy validation rejects token-count-only policies (TER-INT-007)'
+      - 'test: tests/unit/test_ter4_intervention.py::test_no_policy_can_fire_on_a_token_count_alone'
 
   - id: P140
     text: >-
       Require contextual evidence before intervention.
     level: L4
     kind: principle
-    status: not-started
+    status: done
     definition_of_done:
       - Every intervention cites contextual evidence.
     rules: [TER-INT-007]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-007'
+      - 'test: tests/unit/test_ter4_intervention.py::test_a_signal_citing_no_event_is_never_advised'
+      - 'test: tests/unit/test_ter4_intervention.py::test_boundary_a_policy_may_ask_for_more_evidence'
 
   - id: P141
     text: >-
@@ -2511,14 +2514,15 @@ points:
       Introduce an Intervention Engine separate from the Analysis Engine.
     level: L4
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         An Intervention Engine exists as a separate module from the Analysis
         Engine.
     rules: [TER-INT-006]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-006'
+      - 'test: tests/architecture/test_import_contracts.py::test_the_intervention_engine_reads_only_signals'
+      - 'test: tests/unit/test_ter4_intervention.py::test_detector_signals_carry_evidence_rule_and_tool_event_position'
 
   - id: P162
     text: >-
@@ -2533,7 +2537,7 @@ points:
         heuristics.
     rules: [TER-INT-006, TER-SPC-006, TER-SPC-020]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-006'
+      - 'test: tests/unit/test_ter4_intervention.py::test_detector_signals_carry_evidence_rule_and_tool_event_position'
       - 'test: tests/unit/test_ter4_control.py::TestFiring'
       - 'planned: passing tests tagged req for TER-SPC-020'
 
@@ -2569,26 +2573,28 @@ points:
       Prevent repeated warnings from becoming their own form of waste.
     level: L4
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Repeated warnings from one policy are suppressed during its
         cooldown.
     rules: [TER-INT-016]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-016'
+      - 'test: tests/unit/test_ter4_intervention.py::test_a_policy_is_silent_during_its_cooldown'
+      - 'test: tests/unit/test_ter4_intervention.py::test_boundary_the_cooldown_ends_after_its_tool_events'
 
   - id: P166
     text: >-
       Add intervention cooldown and hysteresis mechanisms.
     level: L4
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - Cooldown and hysteresis are configurable per policy.
     rules: [TER-INT-016]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-016'
+      - 'test: tests/unit/test_ter4_intervention.py::test_hysteresis_waits_for_enough_matching_signals'
+      - 'test: tests/unit/test_ter4_intervention.py::test_policies_keep_separate_cooldowns'
 
   - id: P167
     text: >-
