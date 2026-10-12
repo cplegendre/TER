@@ -207,8 +207,11 @@ were 0 waste of 30 decided here, so they are uncertain again at 0.55 to 0.65 wit
 tightened rules, still counted as waste until verified (ADR 0006) and never
 a trigger for intervention. Confidence did not separate true from false on
 this sample. Only `fragmented_edits`, `repeated_exploration` and
-`regeneration` at 70% or more repeated have judged samples with no false
-positives, so only they are candidates for L4. The sample is thin: 8 of 12
+`regeneration` at 70% or more repeated have no judged false positives, so
+only they are candidates for L4. For `regeneration` that rests on one
+session: the 70% cut was set from the same 10 rows it is judged on (3 waste
+above it, 7 unsure below), so it is a proposal until another session
+confirms it. The sample is thin: 8 of 12
 detectors drew their rows from one or two sessions, and there was one judge.
 
 ## Exploration drivers

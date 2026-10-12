@@ -166,7 +166,9 @@ that decision, build them last and only behind a ceiling of L5.
   positives. After the second judged sample (judge-l4, 12 Oct 2026: 87
   confident findings, 6 waste, 53 not waste, 28 unsure) that is
   `fragmented_edits` (17 of 17 waste over both samples), `repeated_exploration`
-  (10 of 10) and `regeneration` at 70% or more repeated (3 of 3). The four
+  (10 of 10) and `regeneration` at 70% or more repeated (3 of 3, one session; the cut was
+  set from those rows, so it is a proposal until another session confirms
+  it). The four
   detectors promoted on 10 Oct were 0 waste of 30 decided and are uncertain
   again, so they are ineligible by rule, as is every `unrelated_modification`
   finding ([l2-explained.md](l2-explained.md)).
