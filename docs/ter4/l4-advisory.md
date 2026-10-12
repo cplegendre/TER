@@ -50,7 +50,11 @@ The draft for the three eligible detectors is
 
 Their eligibility rests on the two judged samples: `fragmented_edits` was 17
 of 17 waste, `repeated_exploration` 10 of 10, and `regeneration` at 70% or
-more repeated 3 of 3 ([l2-explained.md](l2-explained.md)).
+more repeated 3 of 3 ([l2-explained.md](l2-explained.md)). The
+`regeneration` rows come from one session, and the 70% cut was set from
+those same rows (7 unsure rows sat at 52% to 64%), so that policy is a
+proposal until another session confirms it. Shadow mode (step 4) is where
+that check happens, before any advice reaches a developer.
 
 Policies load through the capability registry as `InterventionPolicies.json`
 (TER-ARC-008), so a capability pack can add another source.
