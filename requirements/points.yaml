@@ -2617,7 +2617,7 @@ points:
       interventions.
     level: L4
     kind: capability
-    status: not-started
+    status: partial
     issue: 43
     real_data: true
     definition_of_done:
@@ -2626,7 +2626,9 @@ points:
         or rejected.
     rules: [TER-INT-011]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-011'
+      - 'test: tests/unit/test_ter4_effectiveness.py::TestFollowUp::test_no_repeat_after_the_advice_is_accepted'
+      - 'test: tests/unit/test_ter4_effectiveness.py::TestFollowUp::test_a_repeat_after_the_advice_is_ignored'
+      - 'test: tests/unit/test_ter4_advise.py::test_a_later_stop_records_the_outcome_of_earlier_advice'
       - 'planned: real-data verification in issue #43'
 
   - id: P168
@@ -2634,14 +2636,15 @@ points:
       Measure whether accepted interventions improve subsequent flow.
     level: L4
     kind: capability
-    status: not-started
+    status: partial
     issue: 43
     real_data: true
     definition_of_done:
       - The ledger records the flow change after each accepted intervention.
     rules: [TER-INT-011]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-011'
+      - 'test: tests/unit/test_ter4_effectiveness.py::TestFollowUp::test_no_repeat_after_the_advice_is_accepted'
+      - 'test: tests/unit/test_ter4_effectiveness.py::TestFollowUp::test_a_short_session_start_is_measured_per_tool_event'
       - 'planned: real-data verification in issue #43'
 
   - id: P169
@@ -2649,14 +2652,15 @@ points:
       Automatically evaluate intervention effectiveness.
     level: L4
     kind: capability
-    status: not-started
+    status: partial
     issue: 43
     real_data: true
     definition_of_done:
       - Policy effectiveness is computed automatically from the ledger.
     rules: [TER-INT-012]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-012'
+      - 'test: tests/unit/test_ter4_effectiveness.py::TestEffectiveness'
+      - 'test: tests/unit/test_ter4_advise.py::test_policy_effectiveness_reads_the_live_ledger'
       - 'planned: real-data verification in issue #43'
 
   - id: P170
@@ -2665,7 +2669,7 @@ points:
       outcomes.
     level: L4
     kind: capability
-    status: not-started
+    status: partial
     issue: 43
     real_data: true
     definition_of_done:
@@ -2674,7 +2678,9 @@ points:
         recalibration.
     rules: [TER-INT-012, TER-INT-020]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-012, TER-INT-020'
+      - 'test: tests/unit/test_ter4_effectiveness.py::TestEffectiveness::test_mostly_ignored_advice_is_flagged'
+      - 'test: tests/unit/test_ter4_effectiveness.py::TestEffectiveness::test_repeats_rising_after_the_advice_is_flagged'
+      - 'planned: passing tests tagged req for TER-INT-020 (L6 suspension)'
       - 'planned: real-data verification in issue #43'
 
   - id: P171
@@ -2784,14 +2790,15 @@ points:
       Use intervention outcomes for future calibration.
     level: L4
     kind: capability
-    status: not-started
+    status: partial
     issue: 43
     real_data: true
     definition_of_done:
       - Ledger outcomes feed calibration of thresholds and policies.
     rules: [TER-INT-012]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-012'
+      - 'test: tests/unit/test_ter4_effectiveness.py::TestEffectiveness::test_each_policy_file_is_scored_on_its_own'
+      - 'test: tests/unit/test_ter4_advise.py::test_policy_effectiveness_reads_the_live_ledger'
       - 'planned: real-data verification in issue #43'
 
   - id: P180

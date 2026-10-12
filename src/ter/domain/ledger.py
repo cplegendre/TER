@@ -180,6 +180,9 @@ class LedgerRecord:
     advice: str = ""
     #: The digest of the policy file that made the decision, when known.
     policy_version: str = ""
+    #: The tool event count when the advice was delivered live; ``None``
+    #: when it was not delivered then (shadow mode, or a suppression).
+    delivered_at: int | None = None
     observation: Observation | None = None
 
     def __post_init__(self) -> None:
@@ -199,6 +202,13 @@ class LedgerRecord:
                 )
             if self.advice_kind is None or not self.advice.strip():
                 raise LedgerError(f"record {self.id}: advice needs its kind and text")
+        if self.delivered_at is not None and (
+            self.action is None or self.delivered_at < 0
+        ):
+            raise LedgerError(
+                f"record {self.id}: only a delivered intervention has a "
+                "delivery position, and it is >= 0"
+            )
         if self.observation is not None and self.action is None:
             raise LedgerError(
                 f"record {self.id}: only a delivered intervention has an outcome"
@@ -211,9 +221,11 @@ class LedgerRecord:
         session_id: str,
         recorded_at: datetime,
         policy_version: str = "",
+        delivered_at: int | None = None,
     ) -> LedgerRecord:
         """The record of one engine verdict, under the policy file whose
-        digest is ``policy_version``."""
+        digest is ``policy_version``. ``delivered_at`` is the tool event
+        count when advice is delivered live; it is kept only for advice."""
         signal = verdict.signal
         advice = verdict.advice
         return cls(
@@ -242,6 +254,7 @@ class LedgerRecord:
             advice_kind=advice.kind if advice is not None else None,
             advice=advice.message if advice is not None else "",
             policy_version=policy_version,
+            delivered_at=delivered_at if verdict.advised else None,
         )
 
     @property
@@ -262,6 +275,12 @@ class LedgerRecord:
 
     def as_dict(self) -> dict[str, Any]:
         """The record without its observation, as written to a ledger."""
+        data = self._fields()
+        if self.delivered_at is not None:
+            data["delivered_at"] = self.delivered_at
+        return data
+
+    def _fields(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "session_id": self.session_id,
@@ -317,6 +336,9 @@ class LedgerRecord:
                 action=None if action is None else Action(action),
                 advice_kind=None if advice is None else AdviceKind(advice["kind"]),
                 advice="" if advice is None else str(advice["message"]),
+                delivered_at=None
+                if data.get("delivered_at") is None
+                else _int(data["delivered_at"], "delivered_at"),
             )
         except (KeyError, TypeError, ValueError) as exc:
             if isinstance(exc, LedgerError):

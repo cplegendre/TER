@@ -13,7 +13,7 @@ from __future__ import annotations
 from ..signal import Signal
 from .analysis import LeanAnalysis
 
-__all__ = ["detector_signals"]
+__all__ = ["detector_signals", "tool_event_count"]
 
 
 def detector_signals(analysis: LeanAnalysis) -> tuple[Signal, ...]:
@@ -41,3 +41,8 @@ def detector_signals(analysis: LeanAnalysis) -> tuple[Signal, ...]:
         for f in analysis.findings
     ]
     return tuple(sorted(signals, key=lambda s: (s.position, s.id)))
+
+
+def tool_event_count(analysis: LeanAnalysis) -> int:
+    """The number of tool events observed: the clock signal positions use."""
+    return sum(1 for step in analysis.steps if step.is_request)

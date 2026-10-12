@@ -4,8 +4,9 @@ L4 turns confident, judged detector findings into advice for the developer.
 The advice appears as a message from the hook TER already runs, at the end
 of a turn, and it never changes what the agent sees. This page covers the
 parts that exist so far: the Intervention Engine (step 1), policy files with
-human approval (step 2), the ledger (step 3), shadow mode (step 4) and live
-advice through the hook (step 5). The build order and the remaining steps
+human approval (step 2), the ledger (step 3), shadow mode (step 4), live
+advice through the hook (step 5) and the follow-up that says whether the
+advice helped (step 6). The build order and the remaining steps
 are in [strategy.md](strategy.md#l4-advisory).
 
 ## The Intervention Engine
@@ -197,3 +198,39 @@ Only detectors judged eligible are advised on (`fragmented_edits` and
 `repeated_exploration` today), so warnings on context growth, drift,
 repeated failures, untested edits, WIP and context bloat (points 125 to
 130) wait for a detector judged eligible for them.
+
+## Did the advice help?
+
+Every Stop with `--advise` first follows up the advice already given
+(TER-INT-011, `ter.domain.effectiveness`). Once 10 tool events have been
+observed after a piece of advice was delivered, its ledger record gets an
+outcome:
+
+| Field | Meaning |
+|---|---|
+| `response` | `accepted` when no confident signal of the policy's detectors came back in the 10 tool events after the advice and the advised finding did not grow after it (more round trips on the same file extend one finding); `ignored` otherwise. `rejected` is only ever a developer's word, never inferred |
+| `before`, `after` | Flow measures over the 10 tool events before the delivery and the 10 after, per tool event: `repeats_per_tool_event` (confident signals of the policy's detectors, the advised one excluded) and `waste_per_tool_event` (every waste signal, uncertain ones included, per ADR 0006) |
+| `tool_events` | How many tool events after the delivery it was observed |
+
+Live records keep `delivered_at`, the tool event count at the Stop that
+delivered them, so the window starts when the developer saw the advice, not
+when the finding appeared. Shadow mode delivers nothing, so its records
+have no `delivered_at` and are never followed up or scored, even in a ledger
+shared with live advice. A record made under an earlier policy file is
+measured on its own detector only, since the current file may answer
+different ones.
+
+`python -m ter policy effectiveness` scores each policy from those outcomes
+(TER-INT-012):
+
+```bash
+python -m ter policy effectiveness --ledger ~/.ter/ledger --json effectiveness.json
+```
+
+Each policy, per policy file, shows how much of its advice was accepted and
+its mean repeats per tool event before and after. With fewer than 5 observed
+outcomes it is `unproven`. It `improves` when at least half its advice was
+accepted and repeats did not rise after it; otherwise it is
+`no_improvement` and listed under "Recalibrate or remove" (point 170).
+Suspending such a policy automatically is L6 (TER-INT-020).
+

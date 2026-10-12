@@ -12,6 +12,7 @@ import time
 from dataclasses import replace
 from datetime import UTC, date, datetime
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -210,3 +211,124 @@ def test_advice_on_a_long_session_stays_well_inside_the_hook_timeout(
     assert len(JsonlEventLog(log).events(session)) == 3000
     assert advice  # a repeated read after each cooldown
     assert elapsed < 15.0, f"{elapsed:.2f} s"
+
+
+def _live_session(tmp_path: Path, calls: int, start: int = 0) -> str:
+    """A live event log of reads repeated between shell calls, as the hook
+    records it; returns the session id."""
+    from ter.adapters.driven.event_log import JsonlEventLog
+    from ter.adapters.driving.claude_hooks import handle_hook
+    from ter.application import RecordEvent
+
+    hooks = REPO / "tests" / "fixtures" / "hooks"
+    names = ("post_tool_use_bash", "post_tool_use_read")
+    templates = [json.loads((hooks / f"{n}.json").read_text()) for n in names]
+    recorder = RecordEvent(
+        bootstrap.make_tokenizer("regex"), JsonlEventLog(tmp_path / "events")
+    )
+    for n in range(start, start + calls):
+        handle_hook(dict(templates[n % 2], tool_use_id=f"t{n}"), recorder)
+    return str(templates[0]["session_id"])
+
+
+def _approved_file(tmp_path: Path) -> Path:
+    policies = tmp_path / "policies.json"
+    policies.write_text(json.dumps(approved().as_dict()), encoding="utf-8")
+    return policies
+
+
+@pytest.mark.req("TER-INT-011")
+def test_a_later_stop_records_the_outcome_of_earlier_advice(tmp_path: Path) -> None:
+    from ter.adapters.driven.intervention_ledger import JsonlInterventionLedger
+
+    policies, ledger = _approved_file(tmp_path), tmp_path / "ledger"
+    session = _live_session(tmp_path, 8)
+    assert bootstrap.advise_from_log(tmp_path / "events", session, policies, ledger)
+    [given] = [
+        e for e in JsonlInterventionLedger(ledger).entries(session) if e.delivered
+    ]
+    assert given.delivered_at == 8 and given.observation is None
+
+    _live_session(tmp_path, 6, start=8)  # 6 more tool events: too soon
+    bootstrap.advise_from_log(tmp_path / "events", session, policies, ledger)
+    entries = {e.id: e for e in JsonlInterventionLedger(ledger).entries(session)}
+    assert entries[given.id].observation is None
+
+    _live_session(tmp_path, 6, start=14)  # 12 after the advice
+    bootstrap.advise_from_log(tmp_path / "events", session, policies, ledger)
+    entries = {e.id: e for e in JsonlInterventionLedger(ledger).entries(session)}
+    observation = entries[given.id].observation
+    assert observation is not None and observation.tool_events == 12
+    # The same file kept being re-read: the advice was ignored.
+    assert observation.response.value == "ignored"
+    assert observation.after["repeats_per_tool_event"] > 0
+
+
+@pytest.mark.req("TER-INT-012")
+def test_policy_effectiveness_reads_the_live_ledger(tmp_path: Path) -> None:
+    import io
+
+    from ter.adapters.driving.cli import main
+
+    policies, ledger = _approved_file(tmp_path), tmp_path / "ledger"
+    session = _live_session(tmp_path, 8)
+    bootstrap.advise_from_log(tmp_path / "events", session, policies, ledger)
+    _live_session(tmp_path, 12, start=8)
+    bootstrap.advise_from_log(tmp_path / "events", session, policies, ledger)
+
+    out, err = io.StringIO(), io.StringIO()
+    report = tmp_path / "effectiveness.json"
+    code = main(
+        ["policy", "effectiveness", "--ledger", str(ledger), "--json", str(report)],
+        bootstrap.cli_services(),
+        stdout=out,
+        stderr=err,
+    )
+    assert (code, err.getvalue()) == (0, "")
+    assert "reuse-reads (" in out.getvalue() and ": unproven" in out.getvalue()
+    data = json.loads(report.read_text(encoding="utf-8"))
+    assert data["schema"] == "ter.policy-effectiveness/1"
+    [row] = [p for p in data["policies"] if p["policy"] == "reuse-reads"]
+    assert row["observed"] >= 1 and row["effect"] == "unproven"
+
+
+@pytest.mark.req("TER-INT-012")
+def test_policy_effectiveness_needs_a_ledger_folder(tmp_path: Path) -> None:
+    import io
+
+    from ter.adapters.driving.cli import main
+
+    out, err = io.StringIO(), io.StringIO()
+    code = main(
+        ["policy", "effectiveness", "--ledger", str(tmp_path / "missing")],
+        bootstrap.cli_services(),
+        stdout=out,
+        stderr=err,
+    )
+    assert code == 2 and "No such ledger folder" in err.getvalue()
+
+
+@pytest.mark.req("TER-INT-011")
+def test_advice_under_another_policy_file_is_measured_on_its_own_detector(
+    analysis: LeanAnalysis, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from ter.application import advise
+
+    ledger = InMemoryInterventionLedger()
+    advise_session(
+        SID, analysis, approved(), ledger, InMemoryInterventionChannel(), FixedClock(AT)
+    )
+    [given] = [e for e in ledger.entries(SID) if e.delivered]
+    ledger.record(replace(given, id="int-old", policy_version="sha256:old"))
+    seen: dict[str, frozenset[str]] = {}
+
+    def spy(
+        record: Any, signals: Any, tool_events: int, detectors: Any, at: Any
+    ) -> None:
+        seen[record.id] = frozenset(detectors)
+
+    monkeypatch.setattr(advise, "follow_up", spy)
+    advise.follow_up_session(SID, analysis, approved(), ledger, FixedClock(AT))
+    current = next(p for p in approved().policies if p.id == "reuse-reads")
+    assert seen[given.id] == current.detectors
+    assert seen["int-old"] == frozenset()  # the record's own detector only

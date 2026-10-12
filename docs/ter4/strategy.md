@@ -50,10 +50,10 @@ test. Counts from `requirements/l*.yaml` on this commit:
 | L1 Observed | 22 of 22 | 0 | 15 / 1 / 0 |
 | L2 Explained | 72 of 72 | 0 | 50 / 5 / 0 |
 | L3 Grounded | 35 of 35 | 0 | 25 / 23 / 0 |
-| L4 Advisory | 12 of 18 | 6 | 16 / 5 / 18 |
+| L4 Advisory | 14 of 18 | 4 | 16 / 10 / 13 |
 | L5 Corrective | 0 of 10 | 10 | 1 / 4 / 8 |
 | L6 Learning | 11 of 19 | 8 | 1 / 4 / 14 |
-| **All** | **178 of 202** | **24** | **118 / 43 / 40** of 201 |
+| **All** | **180 of 202** | **22** | **118 / 48 / 35** of 201 |
 
 The L6 requirements already verified are the ones that did not have to wait:
 a second harness (the GARE session source, TER-SRC-010 to TER-SRC-017) and
@@ -252,6 +252,13 @@ suppressed by cooldown and suppressed for ineligible categories.
    not. The `InterventionChannel` port has a message adapter, a fake and a
    contract suite. See [l4-advisory.md](l4-advisory.md#live-advice).
 6. Ledger follow-up and policy effectiveness (TER-INT-011, TER-INT-012).
+   **Done**: each live Stop records the outcome of advice 10 tool events
+   old (response inferred from whether its waste came back, repeats and
+   waste per tool event before and after), and `python -m ter policy
+   effectiveness` scores each policy and flags the ones that do not improve
+   outcomes. Points 167 to 170 and 179 stay partial until real advice has
+   been followed up (issue #43). See
+   [l4-advisory.md](l4-advisory.md#did-the-advice-help).
 7. The control loop wired in bootstrap (TER-INT-013); raise CI to
    `--gate L4`.
 

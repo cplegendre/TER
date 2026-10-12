@@ -9,20 +9,32 @@ again after more events writes and delivers only what is new. Live advice
 :class:`~ter.ports.driven.InterventionChannel` (TER-INT-003): advice the
 developer sees, never a change to the agent's input (TER-INT-002), always
 with the signal and evidence behind it (TER-INT-014).
+
+Each live ask first follows up the advice already given (:func:`follow_up_session`,
+TER-INT-011): advice with :data:`~ter.domain.effectiveness.WINDOW` tool
+events after its delivery gets its response and before-after flow measures in
+the ledger. Shadow mode delivers nothing, so it follows nothing up.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
+from ..domain.effectiveness import PolicyEffectiveness, effectiveness, follow_up
 from ..domain.ledger import Intervention, LedgerRecord
 from ..domain.lean import LeanAnalysis
-from ..domain.lean.signals import detector_signals
+from ..domain.lean.signals import detector_signals, tool_event_count
 from ..domain.maturity import Maturity
 from ..domain.policy_set import PolicySet
 from ..ports.driven import Clock, InterventionChannel, InterventionLedger
 
-__all__ = ["Decisions", "advise_session", "decide"]
+__all__ = [
+    "Decisions",
+    "advise_session",
+    "decide",
+    "follow_up_session",
+    "policy_effectiveness",
+]
 
 
 @dataclass(frozen=True)
@@ -51,8 +63,12 @@ def decide(
     ledger: InterventionLedger,
     clock: Clock,
     ceiling: Maturity = Maturity.ADVISORY,
+    delivered_at: int | None = None,
 ) -> Decisions:
     """Judge every signal of ``analysis`` and record the decisions.
+
+    ``delivered_at`` is the tool event count when the advice is delivered
+    live; advised records keep it, so their follow-up counts from there.
 
     The policies must be approved (TER-INT-015). The engine is fresh, so
     cooldowns count within the session, and the same signals under the same
@@ -80,7 +96,7 @@ def decide(
     for signal in detector_signals(analysis):
         for verdict in engine.apply(signal):
             record = LedgerRecord.from_verdict(
-                verdict, session_id, clock.now(), version
+                verdict, session_id, clock.now(), version, delivered_at
             )
             if record.id not in known and record.delivered:
                 if (record.policy, record.signal_id) in given:
@@ -107,10 +123,61 @@ def advise_session(
 ) -> Decisions:
     """Decide on the session's signals and deliver the advice not given before.
 
-    Each new advised record is written to the ledger before it is delivered,
-    so advice is never delivered twice, even if delivery fails part way.
+    The advice already given is followed up first. Each new advised record is
+    written to the ledger before it is delivered, so advice is never
+    delivered twice, even if delivery fails part way.
     """
-    decisions = decide(session_id, analysis, policies, ledger, clock, ceiling)
+    follow_up_session(session_id, analysis, policies, ledger, clock)
+    decisions = decide(
+        session_id,
+        analysis,
+        policies,
+        ledger,
+        clock,
+        ceiling,
+        delivered_at=tool_event_count(analysis),
+    )
     for intervention in decisions.new_interventions:
         channel.deliver(intervention)
     return decisions
+
+
+def follow_up_session(
+    session_id: str,
+    analysis: LeanAnalysis,
+    policies: PolicySet,
+    ledger: InterventionLedger,
+    clock: Clock,
+) -> tuple[LedgerRecord, ...]:
+    """Record the outcome of every delivered intervention now observable.
+
+    Returns the records observed this time, with their outcomes.
+    """
+    signals = detector_signals(analysis)
+    tool_events = tool_event_count(analysis)
+    # A record made under another policy file is measured on its own
+    # detector only: the current file may answer different detectors.
+    version = policies.digest()
+    detectors = {p.id: p.detectors for p in policies.policies}
+    observed: list[LedgerRecord] = []
+    for record in ledger.entries(session_id):
+        observation = follow_up(
+            record,
+            signals,
+            tool_events,
+            detectors.get(record.policy, frozenset())
+            if record.policy_version == version
+            else frozenset(),
+            clock.now(),
+        )
+        if observation is not None:
+            ledger.observe(session_id, record.id, observation)
+            observed.append(record.observed(observation))
+    return tuple(observed)
+
+
+def policy_effectiveness(ledger: InterventionLedger) -> tuple[PolicyEffectiveness, ...]:
+    """Each policy's effectiveness over every session in ``ledger`` (TER-INT-012)."""
+    return effectiveness(
+        record for session in ledger.sessions() for record in ledger.entries(session)
+    )

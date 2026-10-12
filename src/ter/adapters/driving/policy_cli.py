@@ -5,6 +5,7 @@ Commands::
     python -m ter policy check FILE [--source NAME]
     python -m ter policy approve FILE --by NAME [--note TEXT] [--date YYYY-MM-DD]
     python -m ter policy shadow FILE SESSIONS... --ledger DIR [--judge CSV]
+    python -m ter policy effectiveness --ledger DIR [--json FILE]
 
 ``check`` validates a ``ter.intervention-policies/1`` file and says whether
 it may be applied: exit 0 when it is approved in its current form, 1 when it
@@ -19,6 +20,11 @@ every decision to the intervention ledger in ``DIR``, delivering nothing
 (TER-INT-017). ``--judge`` writes the advice it would have given to a CSV
 with an empty verdict column, for a person to judge. The CSV names files
 and session ids, so it is for the developer's own machine, never a commit.
+
+``effectiveness`` scores each policy from the outcomes the live hook
+recorded in a ledger (TER-INT-012): how much of its advice was accepted, the
+repeats per tool event before and after it, and whether it improves
+outcomes, does not (flagged for recalibration), or is unproven so far.
 """
 
 from __future__ import annotations
@@ -34,10 +40,11 @@ from pathlib import Path
 from typing import IO, TYPE_CHECKING
 
 from ...domain.capabilities import CapabilityError
+from ...domain.effectiveness import MIN_OBSERVED, WINDOW, PolicyEffectiveness
 from ...domain.intervention import PolicyError
 from ...domain.ledger import LedgerError
 from ...domain.policy_set import ApprovalState, PolicySet
-from ...ports.driven import InterventionPolicies
+from ...ports.driven import InterventionLedger, InterventionPolicies
 
 if TYPE_CHECKING:
     from ...application.shadow import ShadowRun
@@ -45,6 +52,7 @@ if TYPE_CHECKING:
 __all__ = [
     "PolicyServices",
     "add_policy_parser",
+    "format_effectiveness",
     "format_policies",
     "format_shadow",
     "run_policy",
@@ -64,6 +72,8 @@ class PolicyServices:
     #: ``run_files(folder)``: the files of the one session exported to the
     #: folder (a GARE run), or none.
     run_files: Callable[[Path], Sequence[Path]] = lambda _: ()
+    #: ``ledger(dir)``: the intervention ledger kept in ``dir``.
+    ledger: Callable[[Path], InterventionLedger] | None = None
 
 
 def add_policy_parser(
@@ -108,6 +118,20 @@ def add_policy_parser(
         help="write the advice to judge to CSV (stays on your machine)",
     )
     shadow.add_argument("--tokenizer", default="regex", help="tokenizer (regex)")
+    score = sub.add_parser(
+        "effectiveness",
+        help="score each policy from the outcomes of its live advice in a ledger",
+    )
+    score.add_argument(
+        "--ledger",
+        type=Path,
+        required=True,
+        metavar="DIR",
+        help="the ledger `ter hook --advise` writes",
+    )
+    score.add_argument(
+        "--json", type=Path, metavar="FILE", help="also write the scores as JSON"
+    )
 
 
 def run_policy(
@@ -119,6 +143,8 @@ def run_policy(
     if services is None:
         err.write("intervention policies are not available in this installation\n")
         return 2
+    if args.policy_command == "effectiveness":
+        return _effectiveness(args, services, out, err)
     source = args.source if args.policy_command == "check" else "json"
     if args.policy_command == "shadow" and services.shadow is None:
         err.write("shadow mode is not available in this installation\n")
@@ -201,6 +227,87 @@ def _shadow(
         err.write("No session could be replayed\n")
         return 1
     return 1 if run.failures else 0
+
+
+def _effectiveness(
+    args: argparse.Namespace, services: PolicyServices, out: IO[str], err: IO[str]
+) -> int:
+    from ...application.advise import policy_effectiveness
+
+    ledger = Path(args.ledger).expanduser()
+    if services.ledger is None:
+        err.write("the intervention ledger is not available in this installation\n")
+        return 2
+    if not ledger.is_dir():
+        err.write(f"No such ledger folder: {ledger}\n")
+        return 2
+    try:
+        scores = policy_effectiveness(services.ledger(ledger))
+    except (OSError, LedgerError, CapabilityError) as exc:
+        err.write(f"Cannot read the ledger in {ledger}: {exc}\n")
+        return 2
+    out.write(format_effectiveness(scores, ledger))
+    if args.json is not None:
+        target = Path(args.json).expanduser()
+        try:
+            target.write_text(
+                json.dumps(
+                    {
+                        "schema": "ter.policy-effectiveness/1",
+                        "window": WINDOW,
+                        "min_observed": MIN_OBSERVED,
+                        "policies": [_score_dict(s) for s in scores],
+                    },
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+        except OSError as exc:
+            err.write(f"Cannot write {target}: {exc}\n")
+            return 2
+        out.write(f"Wrote {target}\n")
+    return 0
+
+
+def _score_dict(score: PolicyEffectiveness) -> dict[str, object]:
+    return {
+        "policy": score.policy,
+        "policy_version": score.policy_version,
+        "advised": score.advised,
+        "observed": score.observed,
+        "accepted": score.accepted,
+        "ignored": score.ignored,
+        "rejected": score.rejected,
+        "repeats_before": score.repeats_before,
+        "repeats_after": score.repeats_after,
+        "effect": score.effect.value,
+        "recalibrate": score.recalibrate,
+    }
+
+
+def format_effectiveness(scores: Sequence[PolicyEffectiveness], ledger: Path) -> str:
+    """Each policy's effectiveness, flagged ones called out (TER-INT-012)."""
+    lines = [f"Policy effectiveness from {ledger}:"]
+    if not scores:
+        lines.append("  no advice has been delivered yet")
+    for score in scores:
+        version = score.policy_version.removeprefix("sha256:")[:8] or "unversioned"
+        lines.append(
+            f"  {score.policy} ({version}): {score.advised} advised, "
+            f"{score.observed} observed ({score.accepted} accepted, "
+            f"{score.ignored} ignored, {score.rejected} rejected): "
+            f"{score.effect.value}"
+        )
+        lines.append(f"    {score.why}")
+    flagged = [s.policy for s in scores if s.recalibrate]
+    if flagged:
+        lines.append("Recalibrate or remove: " + ", ".join(sorted(set(flagged))))
+    lines.append(
+        f"An outcome is recorded {WINDOW} tool events after the advice; "
+        f"{MIN_OBSERVED} outcomes are needed to judge a policy."
+    )
+    return "\n".join(lines) + "\n"
 
 
 def format_shadow(run: "ShadowRun", ledger: Path) -> str:
