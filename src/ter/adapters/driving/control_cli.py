@@ -61,6 +61,8 @@ class ControlServices:
     #: ``measure(paths, tokenizer)``: explain and measure each session.
     measure: Callable[[Sequence[Path], str], "MeasuredSessions"]
     chart: "ChartSessions"
+    #: ``is_session(folder)``: the folder is one session (a GARE run export).
+    is_session: Callable[[Path], bool] = lambda _: False
 
 
 def add_control_parser(
@@ -125,20 +127,35 @@ def add_control_parser(
     chart.add_argument("--title", default="Control charts")
 
 
-def session_files(sources: Sequence[Path]) -> Iterator[Path]:
-    """Every session transcript under ``sources``, in path order.
+def session_files(
+    sources: Sequence[Path], is_session: Callable[[Path], bool] = lambda _: False
+) -> Iterator[Path]:
+    """Every session under ``sources``, in path order.
 
     A corpus folder is read from its ``sessions/``; subagent transcripts are
-    part of their parent session and are skipped.
+    part of their parent session and are skipped. A folder ``is_session``
+    accepts (a GARE run export) is one session: it is yielded whole, never
+    split into its files.
     """
     for source in sources:
-        if source.is_file():
+        if source.is_file() or is_session(source):
             yield source
             continue
         root = source / "sessions" if (source / "sessions").is_dir() else source
-        for path in sorted(root.rglob("*.jsonl")):
-            if "subagents" not in path.relative_to(root).parts:
-                yield path
+        runs: list[Path] = []
+        for folder in sorted(p for p in root.rglob("*") if p.is_dir()):
+            inside = folder.relative_to(root).parts
+            if "subagents" in inside or any(folder.is_relative_to(r) for r in runs):
+                continue
+            if is_session(folder):
+                runs.append(folder)
+        transcripts = [
+            path
+            for path in root.rglob("*.jsonl")
+            if "subagents" not in path.relative_to(root).parts
+            and not any(path.is_relative_to(r) for r in runs)
+        ]
+        yield from sorted(transcripts + runs)
 
 
 def _write(path: Path, text: str) -> None:
@@ -189,7 +206,7 @@ def _measure(args: argparse.Namespace, services: ControlServices, err: IO[str]) 
     if missing:
         err.write(f"No such session file or folder: {missing[0]}\n")
         return 2
-    paths = list(session_files(args.sources))
+    paths = list(session_files(args.sources, services.is_session))
     if not paths:
         err.write("No session transcripts (.jsonl) found\n")
         return 2

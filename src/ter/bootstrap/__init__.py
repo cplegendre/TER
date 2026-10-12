@@ -68,6 +68,7 @@ __all__ = [
     "make_recorder",
     "make_ter_scorer",
     "make_tokenizer",
+    "is_session_folder",
     "session_source_for",
 ]
 
@@ -162,13 +163,9 @@ def make_ter_scorer(mode: str) -> TerScorer | None:
     return scorer
 
 
-def session_source_for(path: Path) -> SessionSource:
-    """The agent adapter for a reference, from the ``SessionSource`` capabilities.
-
-    A source that can tell its own files apart declares a static
-    ``accepts(ref)``; the first, by name, that accepts ``path`` reads it (a
-    GARE export, say). Anything else is a Claude Code transcript.
-    """
+def _claimed_by(path: Path) -> SessionSource | None:
+    """The first non-Claude-Code ``SessionSource``, by name, whose static
+    ``accepts(ref)`` takes ``path`` (a GARE export, say); ``None`` when none does."""
     registry = default_registry()
     for cap in registry.capabilities("SessionSource"):
         if cap.name == "claude-code":
@@ -182,9 +179,28 @@ def session_source_for(path: Path) -> SessionSource:
             continue
         assert isinstance(source, SessionSource)  # checked by the registry
         return source
-    source = registry.create("SessionSource", "claude-code")
+    return None
+
+
+def session_source_for(path: Path) -> SessionSource:
+    """The agent adapter for a reference, from the ``SessionSource`` capabilities.
+
+    A source that can tell its own files apart declares a static
+    ``accepts(ref)``; the first, by name, that accepts ``path`` reads it (a
+    GARE export, say). Anything else is a Claude Code transcript.
+    """
+    claimed = _claimed_by(path)
+    if claimed is not None:
+        return claimed
+    source = default_registry().create("SessionSource", "claude-code")
     assert isinstance(source, SessionSource)
     return source
+
+
+def is_session_folder(path: Path) -> bool:
+    """True when ``path`` is a folder a ``SessionSource`` reads as one session
+    (a GARE run export), so a corpus walk keeps it whole."""
+    return path.is_dir() and _claimed_by(path) is not None
 
 
 def make_ingest(tokenizer: str = "regex") -> EventIngest:
@@ -351,7 +367,9 @@ def cli_services() -> CliServices:
                 paths, lambda path: explain_transcript(path, tokenizer, "off")
             )
 
-        return ControlServices(measure, ChartSessions(JsonControlLimits()))
+        return ControlServices(
+            measure, ChartSessions(JsonControlLimits()), is_session_folder
+        )
 
     from .context import context_services
 
@@ -373,7 +391,12 @@ def cli_services() -> CliServices:
                 SystemClock(),
             )
 
-        return PolicyServices(make_policies, lambda: SystemClock().now().date(), shadow)
+        return PolicyServices(
+            make_policies,
+            lambda: SystemClock().now().date(),
+            shadow,
+            is_session_folder,
+        )
 
     return CliServices(
         policies=policies(),

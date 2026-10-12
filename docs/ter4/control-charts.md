@@ -26,7 +26,9 @@ python -m ter control chart measures.json --limits limits.json --html control.ht
 
 `measure` reads session files, folders of them, or a corpus written by
 `python -m ter corpus import` (its `sessions/` folder; subagent transcripts
-belong to their parent session and are skipped). It exits 1 when a session
+belong to their parent session and are skipped). A GARE run export folder
+(`explain.json` beside its usage export) is one session, wherever it sits in
+the folders given. It exits 1 when a session
 could not be read, after measuring the rest.
 
 ## The arithmetic

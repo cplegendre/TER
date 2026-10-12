@@ -121,6 +121,9 @@ a session. An unapproved or changed file replays nothing.
 python -m ter policy shadow docs/examples/policies/l4-advisory.json ~/.claude/projects --ledger shadow-ledger --judge shadow-judge.csv
 ```
 
+Sessions are found as `control measure` finds them: files, folders, or a
+corpus, with a GARE run export folder replayed as one session.
+
 The summary gives each policy's decisions by outcome: advised, cooldown,
 below hysteresis, low confidence and so on. `--judge` writes the advice TER
 would have given to a CSV with an empty `verdict` column (waste, not waste

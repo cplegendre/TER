@@ -283,3 +283,26 @@ def test_cli_shadow_reports_a_ledger_error_without_a_traceback(
         ["policy", "shadow", str(policies), str(SESSION), "--ledger", str(tmp_path)]
     )
     assert code == 2 and "ledger is read-only" in err
+
+
+def test_cli_shadow_replays_a_gare_run_folder_as_one_session(tmp_path: Path) -> None:
+    from dataclasses import replace
+
+    services = bootstrap.cli_services()
+    assert services.policies is not None and services.policies.shadow is not None
+    shadow = services.policies.shadow
+    replayed: list[Path] = []
+
+    def spy(paths: Any, policies: PolicySet, ledger: Path, tokenizer: str) -> Any:
+        replayed.extend(paths)
+        return shadow(paths, policies, ledger, tokenizer)
+
+    wired = replace(services, policies=replace(services.policies, shadow=spy))
+    policies = policy_file(tmp_path, approve=True)
+    run_dir = REPO / "tests" / "fixtures" / "gare" / "failover-run"
+    argv = ["policy", "shadow", str(policies), str(run_dir)]
+    out, err = io.StringIO(), io.StringIO()
+    code = main(argv + ["--ledger", str(tmp_path / "l")], wired, stdout=out, stderr=err)
+    assert code == 0, err.getvalue()
+    # The whole export (explain.json included), not the usage file alone.
+    assert replayed == [run_dir]

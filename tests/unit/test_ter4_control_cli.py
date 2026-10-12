@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import json
+from collections.abc import Sequence
 from pathlib import Path
 
 import pytest
@@ -11,6 +12,7 @@ import pytest
 from ter import bootstrap
 from ter.adapters.driving.cli import main
 from ter.adapters.driving.control_cli import session_files
+from ter.application.control import MeasuredSessions
 
 REPO = Path(__file__).resolve().parents[2]
 GOLDEN = REPO / "tests" / "golden" / "sessions"
@@ -225,6 +227,46 @@ def test_session_files_reads_a_corpus_and_skips_subagents(tmp_path: Path) -> Non
     (sessions / "abc" / "subagents" / "agent-1.jsonl").write_text("", encoding="utf-8")
     (tmp_path / "manifest.json").write_text("{}", encoding="utf-8")
     assert [p.name for p in session_files([tmp_path])] == ["abc.jsonl"]
+
+
+GARE_RUN = REPO / "tests" / "fixtures" / "gare" / "failover-run"
+
+
+def test_session_files_keeps_a_gare_run_folder_whole(tmp_path: Path) -> None:
+    import shutil
+
+    run_dir = tmp_path / "corpus" / "runs" / "r1"
+    shutil.copytree(GARE_RUN, run_dir)
+    (tmp_path / "corpus" / "abc.jsonl").write_text("", encoding="utf-8")
+    found = list(session_files([tmp_path / "corpus"], bootstrap.is_session_folder))
+    assert found == [tmp_path / "corpus" / "abc.jsonl", run_dir]
+    # Named directly, the run is one session too, not its two files.
+    assert list(session_files([run_dir], bootstrap.is_session_folder)) == [run_dir]
+    # Without the check, the usage export would be read on its own.
+    assert [p.name for p in session_files([run_dir])] == ["gare-ter-usage.jsonl"]
+
+
+def test_control_measure_reads_a_gare_run_folder_as_one_session(
+    tmp_path: Path,
+) -> None:
+    from dataclasses import replace
+
+    services = bootstrap.cli_services()
+    assert services.control is not None
+    measured: list[Path] = []
+
+    def spy(paths: Sequence[Path], tokenizer: str) -> MeasuredSessions:
+        measured.extend(paths)
+        assert services.control is not None
+        return services.control.measure(paths, tokenizer)
+
+    wired = replace(services, control=replace(services.control, measure=spy))
+    out, err = io.StringIO(), io.StringIO()
+    argv = ["control", "measure", str(GARE_RUN), "--out", str(tmp_path / "m.json")]
+    code = main(argv, wired, stdout=out, stderr=err)
+    assert code == 0, err.getvalue()
+    # The whole export (explain.json included), not the usage file alone.
+    assert measured == [GARE_RUN]
 
 
 @pytest.mark.req("TER-SPC-005")
