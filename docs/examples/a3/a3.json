@@ -375,7 +375,7 @@
       "stack": null
     }
   },
-  "problem": "33% of the 1,714 tokens the agent generated went to avoidable work across 11 finding(s); 1 of those finding(s), covering 112 tokens, are uncertain and count as waste until verified; flow efficiency is 67% of tokens and 66% of agent time; 2 risk(s) to the outcome were flagged.",
+  "problem": "33% of the 1,714 tokens the agent generated went to avoidable work across 11 finding(s); 3 of those finding(s), covering 142 tokens, are uncertain and count as waste until verified; flow efficiency is 67% of tokens and 66% of agent time; 2 risk(s) to the outcome were flagged.",
   "current_state": {
     "value_stream": [
       {
@@ -394,8 +394,8 @@
         "tokens": 96,
         "context_tokens": 289,
         "seconds": 40.0,
-        "avoidable_tokens": 63,
-        "uncertain_tokens": 0,
+        "avoidable_tokens": 33,
+        "uncertain_tokens": 30,
         "findings": [
           "repeated_exploration:e9694576d58786d9",
           "unused_context:03a77c3e0e5309f9",
@@ -487,21 +487,21 @@
       "activity_tokens": {
         "value_adding": 931,
         "necessary_non_value_adding": 219,
-        "avoidable": 452,
-        "uncertain": 112
+        "avoidable": 422,
+        "uncertain": 142
       },
       "activity_seconds": {
         "value_adding": 68.533,
         "necessary_non_value_adding": 52.0,
-        "avoidable": 55.467,
-        "uncertain": 8.0
+        "avoidable": 39.467,
+        "uncertain": 24.0
       },
       "waste_tokens": 564,
       "waste_context_tokens": 406,
       "waste_seconds": 63.467,
-      "uncertain_waste_tokens": 112,
+      "uncertain_waste_tokens": 142,
       "findings": 11,
-      "uncertain_findings": 1,
+      "uncertain_findings": 3,
       "risks": 2,
       "iterations": 1,
       "rework_cycles": 1,
@@ -576,7 +576,7 @@
           {
             "key": "avoidable_share",
             "label": "Avoidable share of generated tokens",
-            "value": 0.2637,
+            "value": 0.2462,
             "unit": "ratio",
             "note": ""
           }
@@ -726,7 +726,7 @@
           {
             "key": "uncertain_findings",
             "label": "Uncertain findings",
-            "value": 1,
+            "value": 3,
             "unit": "count",
             "note": ""
           },
@@ -1361,30 +1361,6 @@
       "seconds": 4.0
     },
     {
-      "id": "unused_context:03a77c3e0e5309f9",
-      "detector": "unused_context",
-      "waste": "inventory",
-      "kind": "waste",
-      "activity_class": "avoidable",
-      "confidence": 0.72,
-      "uncertain": false,
-      "title": "Read src/config.py and never used it",
-      "explanation": "Nothing the agent did after reading src/config.py names the file or any of the 3 name(s) it defines. Its 23 tokens stayed in the context as inventory.",
-      "evidence": [
-        "03a77c3e0e5309f9",
-        "fe581d72968ca0aa"
-      ],
-      "waste_events": [
-        "03a77c3e0e5309f9",
-        "fe581d72968ca0aa"
-      ],
-      "share": 1.0,
-      "subject": "src/config.py",
-      "tokens": 15,
-      "context_tokens": 23,
-      "seconds": 8.0
-    },
-    {
       "id": "repeated_exploration:97a61aa5686a1d21",
       "detector": "repeated_exploration",
       "waste": "motion",
@@ -1409,6 +1385,34 @@
       "tokens": 18,
       "context_tokens": 16,
       "seconds": 4.0
+    },
+    {
+      "id": "fragmented_edits:8725c670d4b5a9d1",
+      "detector": "fragmented_edits",
+      "waste": "motion",
+      "kind": "waste",
+      "activity_class": "avoidable",
+      "confidence": 0.7,
+      "uncertain": false,
+      "title": "3 edits to src/client.py over 3 round trips",
+      "explanation": "3 consecutive edits to src/client.py took 3 round trips, each waiting for the previous result. Edits planned together can be sent in one turn as parallel Edit calls.",
+      "evidence": [
+        "d90d01e79e21ef90",
+        "a5f2e0514e2dd48f",
+        "d845ea705372943a",
+        "8725c670d4b5a9d1",
+        "ed37e7b7aa06f8c2",
+        "9bc14c06b0e2bbe7"
+      ],
+      "waste_events": [
+        "8725c670d4b5a9d1",
+        "9bc14c06b0e2bbe7"
+      ],
+      "share": 1.0,
+      "subject": "src/client.py",
+      "tokens": 0,
+      "context_tokens": 22,
+      "seconds": 0.0
     }
   ],
   "findings": [
@@ -1548,8 +1552,8 @@
       "waste": "inventory",
       "kind": "waste",
       "activity_class": "avoidable",
-      "confidence": 0.72,
-      "uncertain": false,
+      "confidence": 0.55,
+      "uncertain": true,
       "title": "Read src/config.py and never used it",
       "explanation": "Nothing the agent did after reading src/config.py names the file or any of the 3 name(s) it defines. Its 23 tokens stayed in the context as inventory.",
       "evidence": [
@@ -1598,8 +1602,8 @@
       "waste": "inventory",
       "kind": "waste",
       "activity_class": "avoidable",
-      "confidence": 0.72,
-      "uncertain": false,
+      "confidence": 0.55,
+      "uncertain": true,
       "title": "Read src/auth.py and never used it",
       "explanation": "Nothing the agent did after reading src/auth.py names the file or any of the 1 name(s) it defines. Its 12 tokens stayed in the context as inventory.",
       "evidence": [
@@ -1860,31 +1864,6 @@
       ]
     },
     {
-      "detector": "unused_context",
-      "waste": "inventory",
-      "title": "Read with a purpose",
-      "rationale": "2 finding(s), 30 generated tokens: Read src/config.py and never used it; Read src/auth.py and never used it.",
-      "addresses": [
-        "unused_context:03a77c3e0e5309f9",
-        "unused_context:9f33b23afee80524"
-      ],
-      "uncertain": false,
-      "actions": [
-        {
-          "kind": "claude_md",
-          "text": "Ask the agent to justify reads, and give it a map so it needs fewer.",
-          "snippet": "- Before opening a file, name what you expect to learn from it; skip files the task and the code you have read do not point to.",
-          "language": "markdown"
-        },
-        {
-          "kind": "practice",
-          "text": "Verify first: `src/config.py`, `src/auth.py` may have been read to rule something out. If they are never relevant to this kind of task, say so in CLAUDE.md, or run /compact after exploration so unused context stops being carried.",
-          "snippet": null,
-          "language": null
-        }
-      ]
-    },
-    {
       "detector": "repeated_reasoning",
       "waste": "over_processing",
       "title": "Act on a decision instead of restating it",
@@ -1942,6 +1921,31 @@
           "text": "Ask for one round trip per coherent change.",
           "snippet": "- Plan the whole change to a file before editing it, then send its Edit calls together in one turn (parallel tool calls) rather than one hunk per turn, waiting for each result (fragmented: `src/client.py`).",
           "language": "markdown"
+        }
+      ]
+    },
+    {
+      "detector": "unused_context",
+      "waste": "inventory",
+      "title": "Read with a purpose",
+      "rationale": "2 finding(s), 30 generated tokens: Read src/config.py and never used it; Read src/auth.py and never used it. All below the confidence threshold: counted as waste until verified; verify before acting.",
+      "addresses": [
+        "unused_context:03a77c3e0e5309f9",
+        "unused_context:9f33b23afee80524"
+      ],
+      "uncertain": true,
+      "actions": [
+        {
+          "kind": "claude_md",
+          "text": "Ask the agent to justify reads, and give it a map so it needs fewer.",
+          "snippet": "- Before opening a file, name what you expect to learn from it; skip files the task and the code you have read do not point to.",
+          "language": "markdown"
+        },
+        {
+          "kind": "practice",
+          "text": "Verify first: `src/config.py`, `src/auth.py` may have been read to rule something out. If they are never relevant to this kind of task, say so in CLAUDE.md, or run /compact after exploration so unused context stops being carried.",
+          "snippet": null,
+          "language": null
         }
       ]
     },
@@ -2033,7 +2037,7 @@
     },
     {
       "metric": "Avoidable share of generated tokens",
-      "current": "26%",
+      "current": "25%",
       "target": "lower",
       "how": "scorecard.activity_tokens.avoidable"
     }
@@ -2043,7 +2047,7 @@
       "id": "repeated_tool_call",
       "waste": "over_processing",
       "kind": "waste",
-      "confidence_rule": "Within one prompt's turn: 0.90 when input and output are identical and nothing was edited in between; 0.85 for a validation re-run with no edit in between; 0.75 when edits happened in between but the output is still identical. 0.50 (uncertain) when an output was not observed. No finding when a new prompt arrived between the two calls (new information: 17 of 17 such repeats judged on real sessions were not waste) or when the output differs. File reads and searches are left to repeated_exploration; a validation re-run after edits is left to rework_cycle."
+      "confidence_rule": "Within one prompt's turn: 0.90 when input and output are identical and nothing was edited in between; 0.85 for a validation re-run with no edit in between; 0.75 when edits happened in between but the output is still identical. 0.50 (uncertain) when an output was not observed. No finding when a new prompt arrived between the two calls (new information: 17 of 17 such repeats judged on real sessions were not waste) or when the output differs. File reads and searches are left to repeated_exploration; a validation re-run after edits is left to rework_cycle; a bare wait (sleep) is not judged."
     },
     {
       "id": "repeated_exploration",
@@ -2085,13 +2089,13 @@
       "id": "unused_context",
       "waste": "inventory",
       "kind": "waste",
-      "confidence_rule": "Judged only once the agent has responded after the read. A read counts as used when a later reasoning, response or tool call names the file, or names something the file defines, or edits it. Otherwise 0.72. Calibrated on real sessions: 10 of 10 judged findings were waste (10 Oct 2026), so it counts at 0.72, the 95% lower bound of that sample. Reading to rule something out is legitimate, so a larger sample or repository evidence (L3) may lower it again."
+      "confidence_rule": "Judged only once the agent has responded after the read. A read counts as used when a later reasoning, response or tool call names the file, or names something the file defines, or edits it. Otherwise 0.55 (uncertain). Not judged: reads of a tool output the harness saved (tool-results, task output files), which are the tail of an earlier call; images and PDFs, which are seen rather than quoted. Judged samples disagree: 10 of 10 waste (10 Oct 2026), then 0 of 9 (12 Oct 2026, mostly saved tool outputs), so it stays uncertain until the tightened rule is judged."
     },
     {
       "id": "unnecessary_handoff",
       "waste": "handoffs",
       "kind": "waste",
-      "confidence_rule": "A later tool call by the agent itself shares at least 3 content words with the handoff's task and covers at least half of the task's words. Confidence 0.45 + 0.40 × coverage, at least 0.72 and capped at 0.85. Calibrated on real sessions: 10 of 10 judged findings were waste (10 Oct 2026); 0.72 is the 95% lower bound of that sample. The handoff (and its waiting time) is the waste; the agent's own call is kept."
+      "confidence_rule": "A later read, search, fetch or shell call by the agent itself, before the next prompt, shares at least 3 content words with the handoff's task and covers at least half of the task's words. Writes and edits (saving what the subagent found) and orchestration calls are not the task done again; a new prompt (a forked subagent's own task, a background agent's notification) is new information. Confidence 0.45 + 0.40 × coverage, capped at 0.65 (uncertain): judged samples disagree, 10 of 10 waste (10 Oct 2026), then 0 of 9 (12 Oct 2026). The handoff (and its waiting time) is the waste; the agent's own call is kept."
     },
     {
       "id": "repeated_reasoning",
@@ -2103,7 +2107,7 @@
       "id": "regeneration",
       "waste": "overproduction",
       "kind": "waste",
-      "confidence_rule": "A whole-file write of a file the agent had itself written, keeping at least 80% of its lines: 0.80. A whole-file write of a file it had read (3+ lines), keeping at least 60% of them: 0.60 (uncertain; small files are often rewritten on purpose). No finding when under 30% of the new file repeats existing content: that rewrite is mostly new work. The retained share of the write is waste."
+      "confidence_rule": "A whole-file write of a file the agent had itself written, keeping at least 80% of its lines: 0.80 when at least 70% of the new file repeats the old one, 0.60 (uncertain) below that (judged 12 Oct 2026: 70% to 81% repeated was waste, 52% to 64% unsure). A whole-file write of a file it had read (3+ lines), keeping at least 60% of them: 0.60 (uncertain; small files are often rewritten on purpose). No finding when under 30% of the new file repeats existing content: that rewrite is mostly new work. The retained share of the write is waste."
     },
     {
       "id": "intent_drift",
@@ -2115,19 +2119,19 @@
       "id": "excessive_context",
       "waste": "inventory",
       "kind": "waste",
-      "confidence_rule": "Per task (prompt), counting distinct context items (file reads, searches, fetches, handoffs, exploring shell commands) before the first edit: a finding when they exceed per_file (3) × files the task changes + slack (3). Items past the band that are not reads of a changed file are the waste. Confidence 0.72. Calibrated on real sessions: 10 of 10 judged findings were waste (10 Oct 2026); 0.72 is the 95% lower bound of that sample."
+      "confidence_rule": "Per task (prompt), counting distinct context items (file reads, searches, fetches, handoffs, exploring shell commands) before the first edit: a finding when they exceed per_file (3) × files the task changes + slack (3), by at least 2 (one item over was never waste, judged 12 Oct 2026). Items past the band that are not reads of a changed file are the waste. Confidence 0.55 + 0.02 per item over the band, capped at 0.65 (uncertain): judged samples disagree, 10 of 10 waste (10 Oct 2026), then 0 of 3 with 7 unsure (12 Oct 2026)."
     },
     {
       "id": "insufficient_context",
       "waste": "defects",
       "kind": "risk",
-      "confidence_rule": "Per task (prompt): when the task first edits its n-th distinct file in place (Edit, not a new-file Write), it must have acquired at least min_per_file (1) × n distinct context items (reads, searches, fetches, handoffs, exploring shell). The first edit below that bound is the finding: 0.70 when that file was never read or written earlier in the session; 0.55 (uncertain) when it was, since context carried from an earlier task may suffice. A risk: it claims no cost."
+      "confidence_rule": "Per task (prompt): when the task first edits its n-th distinct file in place (Edit, not a new-file Write), it must have acquired at least min_per_file (1) × n distinct context items (reads, searches, fetches, handoffs, exploring shell). The first edit below that bound is the finding: 0.70 when that file was never read, written or named in a shell command earlier in the session; 0.55 (uncertain) when it was, since context carried from an earlier task may suffice. Edits of notes and documents (.md, .rst, .txt, .adoc) need no code context and are not judged (judged 12 Oct 2026: memory-note edits). A risk: it claims no cost."
     },
     {
       "id": "unused_traversal",
       "waste": "motion",
       "kind": "waste",
-      "confidence_rule": "Judged only once the agent has responded after it. A search (Grep, Glob) or traversing shell command (ls, find, tree, rg, grep) whose output lists file names, none of which a later event reads, edits or names: 0.72. Calibrated on real sessions: 10 of 10 judged findings were waste (10 Oct 2026); 0.72 is the 95% lower bound of that sample. Empty or unobserved output and repeats of an earlier traversal (left to repeated_exploration) are not findings."
+      "confidence_rule": "Judged only once the agent has responded after it. A search (Grep, Glob) or traversing shell command (ls, find, tree, rg, grep) whose output lists file names (words with a known file suffix), none of which a later event reads, edits or names: 0.55 (uncertain). Not findings: empty or unobserved output; a command run more than once (a progress poll, or a repeat left to repeated_exploration); a shell command that probes the home, system or temporary folders. Judged samples disagree: 10 of 10 waste (10 Oct 2026), then 0 of 9 (12 Oct 2026: polls, probes, existence checks, code read as file names), so it stays uncertain until the tightened rule is judged."
     },
     {
       "id": "failed_route",
@@ -2320,7 +2324,7 @@
         "tokens": 23,
         "carried_turns": 21,
         "finding": "unused_context:03a77c3e0e5309f9",
-        "uncertain": false
+        "uncertain": true
       },
       {
         "event_id": "9fae12173e948688",
@@ -2329,7 +2333,7 @@
         "tokens": 12,
         "carried_turns": 20,
         "finding": "unused_context:9f33b23afee80524",
-        "uncertain": false
+        "uncertain": true
       }
     ],
     "reread": [
@@ -2366,19 +2370,19 @@
     "schema": "ter.session-control/1",
     "method": "average_moving_range",
     "computed_on": "2026-10-10",
-    "detectors": "f8fa44bdc8e3",
-    "limits_detectors": "f8fa44bdc8e3",
+    "detectors": "8d3a03679e0d",
+    "limits_detectors": "8d3a03679e0d",
     "stale": false,
     "signals": 6,
     "firing": 4,
     "measures": [
       {
         "measure": "avoidable_share",
-        "value": 0.263711,
-        "centre": 0.143652,
-        "ucl": 0.545661,
+        "value": 0.246208,
+        "centre": 0.114844,
+        "ucl": 0.572004,
         "lcl": null,
-        "sigmas": 0.896,
+        "sigmas": 0.862,
         "signal": null,
         "label": "Avoidable share of generated tokens",
         "fires": true,
@@ -2458,11 +2462,11 @@
       },
       {
         "measure": "confident_findings",
-        "value": 10.0,
-        "centre": 1.625,
-        "ucl": 8.085,
+        "value": 8.0,
+        "centre": 1.25,
+        "ucl": 6.95,
         "lcl": null,
-        "sigmas": 3.89,
+        "sigmas": 3.553,
         "signal": {
           "id": "control.confident_findings.beyond_limits",
           "measure": "confident_findings",
@@ -2470,8 +2474,8 @@
           "rule_text": "One session outside a control limit.",
           "side": "above",
           "session": "example-a3-showcase",
-          "value": 10.0,
-          "limit": 8.085,
+          "value": 8.0,
+          "limit": 6.95,
           "evidence": [
             "example-a3-showcase"
           ],
@@ -2487,9 +2491,7 @@
           "regeneration:b14ccb694e3bb58a",
           "repeated_exploration:e9694576d58786d9",
           "intent_drift:00f9c141d73bdd7d",
-          "unused_context:03a77c3e0e5309f9",
           "repeated_exploration:97a61aa5686a1d21",
-          "unused_context:9f33b23afee80524",
           "fragmented_edits:8725c670d4b5a9d1",
           "fragmented_edits:c6821a19c717c4c1",
           "repeated_reasoning:e5307926b2c5c5a9"
@@ -2497,11 +2499,11 @@
       },
       {
         "measure": "uncertain_findings",
-        "value": 1.0,
-        "centre": 0.125,
-        "ucl": 0.505,
+        "value": 3.0,
+        "centre": 0.5,
+        "ucl": 1.64,
         "lcl": null,
-        "sigmas": 6.909,
+        "sigmas": 6.58,
         "signal": {
           "id": "control.uncertain_findings.beyond_limits",
           "measure": "uncertain_findings",
@@ -2509,8 +2511,8 @@
           "rule_text": "One session outside a control limit.",
           "side": "above",
           "session": "example-a3-showcase",
-          "value": 1.0,
-          "limit": 0.505,
+          "value": 3.0,
+          "limit": 1.64,
           "evidence": [
             "example-a3-showcase"
           ],
@@ -2522,7 +2524,9 @@
         "fires": true,
         "checked": true,
         "findings": [
-          "intent_drift:a7e2a8af05c06d52"
+          "intent_drift:a7e2a8af05c06d52",
+          "unused_context:03a77c3e0e5309f9",
+          "unused_context:9f33b23afee80524"
         ]
       },
       {

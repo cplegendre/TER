@@ -14,6 +14,7 @@ To add a detector, implement :class:`WasteDetector` and register it in a
 from __future__ import annotations
 
 import re
+from collections import Counter
 from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass, field
 import posixpath
@@ -21,6 +22,7 @@ from pathlib import PurePosixPath
 from typing import Protocol
 
 from ..events import EventId, EventKind, ToolKind
+from .facts import harness_output_path, looks_like_file_name
 from .grounding import RepositoryGrounding
 from .intent import IntentRelation, IntentTimeline, SubjectBasis
 from .model import (
@@ -41,7 +43,7 @@ __all__ = [
     "DECISION_NOVELTY",
     "DOC_EDITS_WORTH_A_CHECK",
     "REGENERATED_SHARE",
-    "JUDGED_CONFIDENCE",
+    "DISPUTED_CONFIDENCE",
     "RESTATED_NOVELTY",
     "DEFAULT_REGISTRY",
     "ContextBand",
@@ -72,6 +74,10 @@ __all__ = [
 _EXPLORE_KINDS = frozenset({ToolKind.FS_READ, ToolKind.FS_SEARCH})
 _CHANGE_KINDS = frozenset({ToolKind.FS_EDIT, ToolKind.FS_WRITE})
 _DOC_SUFFIXES = frozenset({".md", ".rst", ".txt", ".adoc"})
+#: Calls that can redo a delegated task: looking things up and running them.
+_REDO_KINDS = frozenset(
+    {ToolKind.FS_READ, ToolKind.FS_SEARCH, ToolKind.NET_FETCH, ToolKind.EXEC_SHELL}
+)
 
 #: A reasoning span adds a decision when more than this share of its content
 #: words are new: in neither the prompt nor the earlier reasoning it is
@@ -89,9 +95,19 @@ DOC_EDITS_WORTH_A_CHECK = 3
 #: A whole-file rewrite is regeneration only when at least this share of the
 #: new file repeats existing content (less is mostly new work).
 REGENERATED_SHARE = 0.30
-#: Confidence of a detector whose judged sample was 10 of 10 waste: the 95%
-#: Wilson lower bound of that sample (first judged sample, 10 Oct 2026).
-JUDGED_CONFIDENCE = 0.72
+#: Confidence of a detector whose judged samples disagree: 10 of 10 findings
+#: were waste on 10 Oct 2026, then 0 of 9 on 12 Oct 2026 (judge-l4). Its
+#: findings count as waste until verified (ADR 0006) but are uncertain, so
+#: they never trigger an intervention, until a sample of the tightened rule
+#: is judged.
+DISPUTED_CONFIDENCE = 0.55
+#: A whole-file rewrite of the agent's own file is confident regeneration
+#: only when at least this share of the new file repeats the old one (judged
+#: 12 Oct 2026: 70% to 81% repeated was waste, 52% to 64% unsure).
+CONFIDENT_REGENERATION = 0.70
+#: Image and document reads: their content is seen, not quoted, so no later
+#: words can show their use.
+_VISUAL_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".gif", ".webp", ".pdf"})
 
 
 @dataclass(frozen=True)
@@ -238,7 +254,7 @@ class RepeatedToolCall:
         "(new information: 17 of 17 such repeats judged on real sessions were "
         "not waste) or when the output differs. File reads and "
         "searches are left to repeated_exploration; a validation re-run after "
-        "edits is left to rework_cycle."
+        "edits is left to rework_cycle; a bare wait (sleep) is not judged."
     )
 
     def detect(self, view: SessionView) -> Iterable[Finding]:
@@ -250,7 +266,7 @@ class RepeatedToolCall:
             if not step.is_request:
                 continue
             key = step.call_key
-            if key is None or step.tool_kind in _EXPLORE_KINDS:
+            if key is None or step.tool_kind in _EXPLORE_KINDS or _waits(step):
                 continue
             earlier = last.get(key)
             last[key] = step
@@ -356,6 +372,14 @@ class RepeatedExploration:
                 waste=view.pair(step),
                 subject=step.subject,
             )
+
+
+def _waits(step: Step) -> bool:
+    """A shell call that only waits (``sleep 1``): repeating it is the point."""
+    return step.command is not None and _SLEEP.match(step.command) is not None
+
+
+_SLEEP = re.compile(r"(?:sleep|timeout\s+/t)\s+\S+\s*$", re.IGNORECASE)
 
 
 def validation_cycles(view: SessionView) -> tuple[ValidationCycle, ...]:
@@ -812,11 +836,13 @@ class UnusedContext:
     confidence_rule: str = (
         "Judged only once the agent has responded after the read. A read counts "
         "as used when a later reasoning, response or tool call names the file, "
-        "or names something the file defines, or edits it. Otherwise 0.72. "
-        "Calibrated on real sessions: 10 of 10 judged findings were waste "
-        "(10 Oct 2026), so it counts at 0.72, the 95% lower bound of that "
-        "sample. Reading to rule something out is legitimate, so a larger "
-        "sample or repository evidence (L3) may lower it again."
+        "or names something the file defines, or edits it. Otherwise 0.55 "
+        "(uncertain). Not judged: reads of a tool output the harness saved "
+        "(tool-results, task output files), which are the tail of an earlier "
+        "call; images and PDFs, which are seen rather than quoted. Judged "
+        "samples disagree: 10 of 10 waste (10 Oct 2026), then 0 of 9 (12 Oct "
+        "2026, mostly saved tool outputs), so it stays uncertain until the "
+        "tightened rule is judged."
     )
 
     def detect(self, view: SessionView) -> Iterable[Finding]:
@@ -833,6 +859,8 @@ class UnusedContext:
             if path in judged or step.index > last_response:
                 continue
             judged.add(path)
+            if not self._judgeable(path):
+                continue
             if self._used(view, step, path):
                 continue
             request = (
@@ -843,7 +871,7 @@ class UnusedContext:
             yield _finding(
                 self,
                 view,
-                confidence=JUDGED_CONFIDENCE,
+                confidence=DISPUTED_CONFIDENCE,
                 title=f"Read {_short(path)} and never used it",
                 explanation=(
                     f"Nothing the agent did after reading {path} names the file"
@@ -858,6 +886,12 @@ class UnusedContext:
                 waste=(request, step),
                 subject=path,
             )
+
+    @staticmethod
+    def _judgeable(path: str) -> bool:
+        if harness_output_path(path):
+            return False
+        return PurePosixPath(_basename(path).lower()).suffix not in _VISUAL_SUFFIXES
 
     @staticmethod
     def _used(view: SessionView, read: Step, path: str) -> bool:
@@ -890,13 +924,16 @@ class UnnecessaryHandoff:
     kind: FindingKind = FindingKind.WASTE
     summary: str = "A subagent handoff whose task the agent then did itself."
     confidence_rule: str = (
-        "A later tool call by the agent itself shares at least 3 content words "
-        "with the handoff's task and covers at least half of the task's words. "
-        "Confidence 0.45 + 0.40 × coverage, at least 0.72 and capped at 0.85. "
-        "Calibrated on real sessions: 10 of 10 judged findings were waste "
-        "(10 Oct 2026); 0.72 is the 95% lower bound of that sample. The "
-        "handoff (and its waiting time) is the waste; the agent's own call is "
-        "kept."
+        "A later read, search, fetch or shell call by the agent itself, before "
+        "the next prompt, shares at least 3 content words with the handoff's "
+        "task and covers at least half of the task's words. Writes and edits "
+        "(saving what the subagent found) and orchestration calls are not the "
+        "task done again; a new prompt (a forked subagent's own task, a "
+        "background agent's notification) is new information. Confidence "
+        "0.45 + 0.40 × coverage, capped at 0.65 (uncertain): judged samples "
+        "disagree, 10 of 10 waste (10 Oct 2026), then 0 of 9 (12 Oct 2026). "
+        "The handoff (and its waiting time) is the waste; the agent's own "
+        "call is kept."
     )
 
     def detect(self, view: SessionView) -> Iterable[Finding]:
@@ -905,7 +942,13 @@ class UnnecessaryHandoff:
                 continue
             best: tuple[float, Step] | None = None
             for later in view.steps[handoff.index + 1 :]:
-                if not later.is_request or later.tool_kind is ToolKind.AGENT_HANDOFF:
+                if later.kind is EventKind.PROMPT:
+                    # Judged 12 Oct 2026: forked subagent transcripts inherit
+                    # the parent's handoffs, then do the forked task after
+                    # its prompt; parents act on a background agent's
+                    # notification. Neither is the task done twice.
+                    break
+                if not later.is_request or later.tool_kind not in _REDO_KINDS:
                     continue
                 # Coverage of the delegated task, not overlap with the
                 # smaller set: a short command (``sed -n … analysis.py``, a
@@ -928,7 +971,7 @@ class UnnecessaryHandoff:
             yield _finding(
                 self,
                 view,
-                confidence=min(0.85, max(JUDGED_CONFIDENCE, 0.45 + 0.4 * score)),
+                confidence=min(0.65, 0.45 + 0.4 * score),
                 title=f"Delegated {_short(handoff.subject)}, then did it directly",
                 explanation=(
                     f"The agent handed '{_short(handoff.subject)}' to a subagent, then ran "
@@ -1021,7 +1064,9 @@ class Regeneration:
     summary: str = "A whole-file write that mostly regenerates content already there."
     confidence_rule: str = (
         "A whole-file write of a file the agent had itself written, keeping at "
-        "least 80% of its lines: 0.80. A whole-file write of a file it had read "
+        "least 80% of its lines: 0.80 when at least 70% of the new file repeats "
+        "the old one, 0.60 (uncertain) below that (judged 12 Oct 2026: 70% to "
+        "81% repeated was waste, 52% to 64% unsure). A whole-file write of a file it had read "
         "(3+ lines), keeping at least 60% of them: 0.60 (uncertain; small files "
         "are often rewritten on purpose). No finding when under 30% of the new "
         "file repeats existing content: that rewrite is mostly new work. The "
@@ -1050,8 +1095,18 @@ class Regeneration:
                     continue
                 kept = len(prior_write.lines & new) / len(prior_write.lines)
                 if kept >= 0.8:
+                    confidence = (
+                        0.8
+                        if _repeated(prior_write, step) >= CONFIDENT_REGENERATION
+                        else 0.6
+                    )
                     yield self._found(
-                        view, step, prior_write, kept, 0.8, "it had written itself"
+                        view,
+                        step,
+                        prior_write,
+                        kept,
+                        confidence,
+                        "it had written itself",
                     )
                 continue
             if prior_read is not None and len(prior_read.lines) >= 3:
@@ -1346,10 +1401,11 @@ class ExcessiveContext:
         "Per task (prompt), counting distinct context items (file reads, "
         "searches, fetches, handoffs, exploring shell commands) before the first "
         "edit: a finding when they exceed per_file (3) × files the task changes "
-        "+ slack (3). Items past the band that are not reads of a changed file "
-        "are the waste. Confidence 0.72. Calibrated on real sessions: 10 of "
-        "10 judged findings were waste (10 Oct 2026); 0.72 is the 95% lower "
-        "bound of that sample."
+        "+ slack (3), by at least 2 (one item over was never waste, judged 12 "
+        "Oct 2026). Items past the band that are not reads of a changed file "
+        "are the waste. Confidence 0.55 + 0.02 per item over the band, capped "
+        "at 0.65 (uncertain): judged samples disagree, 10 of 10 waste (10 Oct "
+        "2026), then 0 of 3 with 7 unsure (12 Oct 2026)."
     )
 
     def detect(self, view: SessionView) -> Iterable[Finding]:
@@ -1358,7 +1414,7 @@ class ExcessiveContext:
             before = change.items_before(first.index)
             changed = change.changed
             upper = self.band.upper(len(changed))
-            if len(before) <= upper:
+            if len(before) - upper < 2:
                 continue
             excess = [
                 s
@@ -1370,7 +1426,7 @@ class ExcessiveContext:
             yield _finding(
                 self,
                 view,
-                confidence=JUDGED_CONFIDENCE,
+                confidence=min(0.65, DISPUTED_CONFIDENCE + 0.02 * over),
                 title=f"{len(before)} context items before changing {len(changed)} file(s)",
                 explanation=(
                     f"The task acquired {len(before)} distinct context items before its "
@@ -1406,9 +1462,12 @@ class InsufficientContext:
         "place (Edit, not a new-file Write), it must have acquired at least "
         "min_per_file (1) × n distinct context items (reads, searches, fetches, "
         "handoffs, exploring shell). The first edit below that bound is the "
-        "finding: 0.70 when that file was never read or written earlier in the "
-        "session; 0.55 (uncertain) when it was, since context carried from an "
-        "earlier task may suffice. A risk: it claims no cost."
+        "finding: 0.70 when that file was never read, written or named in a "
+        "shell command earlier in the session; 0.55 (uncertain) when it was, "
+        "since context carried from an earlier task may suffice. Edits of "
+        "notes and documents (.md, .rst, .txt, .adoc) need no code context and "
+        "are not judged (judged 12 Oct 2026: memory-note edits). A risk: it "
+        "claims no cost."
     )
 
     def detect(self, view: SessionView) -> Iterable[Finding]:
@@ -1428,7 +1487,12 @@ class InsufficientContext:
                 and step.is_request
                 and step.tool_kind is ToolKind.FS_EDIT
             ):
-                new = [p for p in step.paths if p not in in_place]
+                new = [
+                    p
+                    for p in step.paths
+                    if p not in in_place
+                    and PurePosixPath(_basename(p).lower()).suffix not in _DOC_SUFFIXES
+                ]
                 in_place.extend(new)
                 acquired = current.items_before(step.index)
                 need = self.band.min_per_file * len(in_place)
@@ -1437,6 +1501,10 @@ class InsufficientContext:
                     yield self._found(
                         view, current, step, new[0], acquired, need, known
                     )
+            if step.is_request and step.tool_kind is ToolKind.EXEC_SHELL:
+                # A file read through the shell (``cat f``) before the task
+                # is carried context too (judged 12 Oct 2026).
+                known.update(step.words)
             if step.is_request and step.tool_kind in (
                 ToolKind.FS_READ,
                 ToolKind.FS_EDIT,
@@ -1454,7 +1522,7 @@ class InsufficientContext:
         need: int,
         known: set[str],
     ) -> Finding:
-        carried = path in known
+        carried = path in known or _basename(path).lower() in known
         cited = [] if change.prompt is None else [change.prompt]
         return _finding(
             self,
@@ -1488,8 +1556,18 @@ _TRAVERSAL = re.compile(
 
 
 def _file_names(words: frozenset[str]) -> frozenset[str]:
-    """Words that look like file names (``a.py``, ``readme.md``)."""
-    return frozenset(w for w in words if "." in w.strip("."))
+    """Words that name files (``a.py``, ``readme.md``), not code (``r.ok``)."""
+    return frozenset(w for w in words if looks_like_file_name(w))
+
+
+#: Shell targets outside the work: the home folder itself and its dot
+#: folders (``~/.claude``), system and temporary folders. Listing them
+#: probes the environment (judged 12 Oct 2026).
+_PROBE_TARGET = re.compile(
+    r"(?:^|\s)['\"]?(?:(?:~|\$HOME)(?:/\.|\s|$)|%\w+%"
+    r"|/(?:usr|etc|opt|proc|sys|tmp|var|bin|lib)(?:/|\s|$)"
+    r"|[A-Za-z]:[/\\]Users[/\\][^/\\\s]+[/\\](?:AppData|\.))"
+)
 
 
 def _path_words(step: Step) -> frozenset[str]:
@@ -1510,25 +1588,30 @@ class UnusedTraversal:
     confidence_rule: str = (
         "Judged only once the agent has responded after it. A search (Grep, "
         "Glob) or traversing shell command (ls, find, tree, rg, grep) whose "
-        "output lists file names, none of which a later event reads, edits or "
-        "names: 0.72. Calibrated on real sessions: 10 of 10 judged findings "
-        "were waste (10 Oct 2026); 0.72 is the 95% lower bound of that "
-        "sample. Empty or unobserved output "
-        "and repeats of an earlier traversal (left to repeated_exploration) are "
-        "not findings."
+        "output lists file names (words with a known file suffix), none of "
+        "which a later event reads, edits or names: 0.55 (uncertain). Not "
+        "findings: empty or unobserved output; a command run more than once "
+        "(a progress poll, or a repeat left to repeated_exploration); a shell "
+        "command that probes the home, system or temporary folders. Judged "
+        "samples disagree: 10 of 10 waste (10 Oct 2026), then 0 of 9 (12 Oct "
+        "2026: polls, probes, existence checks, code read as file names), so "
+        "it stays uncertain until the tightened rule is judged."
     )
 
     def detect(self, view: SessionView) -> Iterable[Finding]:
         last_response = max(
             (s.index for s in view.steps if s.kind is EventKind.RESPONSE), default=-1
         )
-        seen: set[str] = set()
+        runs = Counter(
+            s.call_key
+            for s in view.requests()
+            if s.call_key is not None and self._traverses(s)
+        )
         for step in view.requests():
             if not self._traverses(step) or step.call_key is None:
                 continue
-            if step.call_key in seen:
+            if runs[step.call_key] > 1:
                 continue
-            seen.add(step.call_key)
             result = view.completion_of.get(step.index)
             if result is None or result.index > last_response:
                 continue
@@ -1539,7 +1622,7 @@ class UnusedTraversal:
             yield _finding(
                 self,
                 view,
-                confidence=JUDGED_CONFIDENCE,
+                confidence=DISPUTED_CONFIDENCE,
                 title=f"Traversal {_short(step.subject)} led nowhere",
                 explanation=(
                     f"{step.native_name} listed {len(listed)} file name(s) ({shown}) "
@@ -1559,6 +1642,7 @@ class UnusedTraversal:
             step.tool_kind is ToolKind.EXEC_SHELL
             and step.command is not None
             and _TRAVERSAL.match(step.command) is not None
+            and _PROBE_TARGET.search(step.command) is None
         )
 
     @staticmethod

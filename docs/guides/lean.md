@@ -105,8 +105,8 @@ flow state, used by the flow efficiency measure below.
 | Defects | Risk findings (`unvalidated_implementation`, `premature_implementation`) | measured as risk, no cost claimed |
 | Waiting | *waiting* flow state, attributed through handoff and failed-route findings | measured; escalation after a successful call needs L3 |
 | Over-processing | Four detectors listed above | measured |
-| Motion | `repeated_exploration`, `fragmented_edits`; `unused_traversal` (0.72 since the 10 Oct judged sample) | measured |
-| Inventory | `unused_context`, `excessive_context` (0.72 since the 10 Oct judged sample) | measured |
+| Motion | `repeated_exploration`, `fragmented_edits`; `unused_traversal` (0.55, uncertain: the 12 Oct judged sample found none waste) | measured |
+| Inventory | `unused_context`, `excessive_context` (0.55 to 0.65, uncertain: the 12 Oct judged sample found none waste) | measured |
 | Pull | `unused_context` (context no later action pulled) and peak open hypotheses | measured as proxies at L2 |
 | WIP | Unresolved hypotheses, tasks, edits and failures after every event (`LeanAnalysis.wip`) | measured |
 | Queues | Peak edits awaiting validation and peak open tasks (`wip.peak_by_kind`) | measured as proxies; real queues need L4 |
@@ -127,13 +127,13 @@ publishes its `confidence_rule` in plain language, and each finding lists the
 | `premature_implementation` | defects (risk) | an in-place edit of a file never read, written or named (0.75) | the file was read or named first |
 | `excessive_planning` | over-processing | four or more planning steps with no action between, and a step after the second restates the plan | an action comes within the first four planning steps, or every later step adds a decision (more than 25% new words, or a new to-do list) |
 | `fragmented_edits` | motion | three or more consecutive edits to one file | edits touch different files, or any other tool call comes between them |
-| `unused_context` | inventory | nothing after a read names the file or what it defines (0.72, from 10 of 10 judged waste) | a later event names the file or its symbols |
+| `unused_context` | inventory | nothing after a read names the file or what it defines (0.55, uncertain: 10 of 10 judged waste on 10 Oct, 0 of 9 on 12 Oct) | a later event names the file or its symbols |
 | `unnecessary_handoff` | handoffs | the agent redoes a delegated task itself (shared key words) | the agent's later calls are about something else |
 | `repeated_reasoning` | over-processing | reasoning restates earlier reasoning for the same prompt with at most 20% new words | anything was edited between, the block adds new content, or a new word comes from a tool result seen since (new evidence) |
 | `regeneration` | overproduction | a whole-file write keeps most of an existing file (0.80 for the agent's own write, 0.60 for a file just read) | the file is new, the write changes most of it, or under 30% of the new file repeats old content |
-| `excessive_context` | inventory | a task acquires more distinct context items before its first edit than 3 per changed file plus 3 (0.72, from 10 of 10 judged waste) | the context stays within the band |
+| `excessive_context` | inventory | a task acquires more distinct context items before its first edit than 3 per changed file plus 3, by at least 2 (0.55 to 0.65, uncertain: 10 of 10 judged waste on 10 Oct, 0 of 3 on 12 Oct) | the context stays within the band |
 | `insufficient_context` | defects (risk) | a task edits its n-th file in place with fewer than n context items (0.70; 0.55 when an earlier task read the file) | each file edited in place has a context item in the task |
-| `unused_traversal` | motion | a search or `ls`/`find` lists files nothing later reads, edits or names (0.72, from 10 of 10 judged waste) | a listed file is used later, or the output lists none |
+| `unused_traversal` | motion | a search or `ls`/`find` lists files nothing later reads, edits or names (0.55, uncertain: 10 of 10 judged waste on 10 Oct, 0 of 9 on 12 Oct) | a listed file is used later, or the output lists none |
 | `failed_route` | waiting | a model call fails over (`route.failover`) and another route does the work (0.80) | no route fails |
 | `unearned_escalation` | waiting | a recorded escalation (`route.escalated`) after a completed answer, and the escalated call reads no new file, runs no new check and produces no new tool output (0.80) | the escalated call adds such evidence, or no answer preceded it |
 
@@ -276,8 +276,9 @@ which is tracked in GitHub issues #34 to #46 (see the
 ## Limits
 
 - Session evidence alone cannot tell whether a read mattered. "Unused
-  context" counts at 0.72 from a judged sample of 10; a larger sample or
-  repository evidence may lower it.
+  context" is uncertain (0.55): a judged sample of 10 found it all waste,
+  a second found none of 9, so it counts as waste until verified and never
+  triggers an intervention.
 - `ter.event` carries no error flag; validation outcomes come from output
   text, and unknown outcomes form no cycle.
 - Hook-recorded sessions carry no reasoning or responses, so the planning,

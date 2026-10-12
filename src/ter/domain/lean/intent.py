@@ -35,7 +35,7 @@ from enum import StrEnum
 from typing import Protocol, runtime_checkable
 
 from ..events import Actor, Event, EventId, EventKind, ToolKind
-from .facts import STOPWORDS, defined_identifiers, overlap
+from .facts import STOPWORDS, defined_identifiers, injected_prompt, overlap
 from .model import Step
 
 __all__ = [
@@ -484,6 +484,10 @@ class IntentLog:
     @staticmethod
     def _read(event: Event) -> _Read | None:
         if event.kind is EventKind.PROMPT:
+            # A notification, slash-command wrapper or interruption marker
+            # the harness wrote states no intent.
+            if injected_prompt(event.text):
+                return None
             return _read_prompt(event.text)
         if event.actor is not Actor.ASSISTANT or not event.kind.is_generated:
             return None

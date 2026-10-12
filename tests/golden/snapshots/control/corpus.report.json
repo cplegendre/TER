@@ -8,15 +8,15 @@
         "fires": true,
         "label": "Avoidable share of generated tokens",
         "natural": {
-          "centre": 0.143652,
+          "centre": 0.114844,
           "lcl": null,
           "method": "average_moving_range",
-          "moving_range": 0.151131,
-          "mr_ucl": 0.493896,
+          "moving_range": 0.171865,
+          "mr_ucl": 0.561654,
           "provisional": true,
           "sessions": 8,
-          "sigma": 0.133981,
-          "ucl": 0.545661
+          "sigma": 0.152362,
+          "ucl": 0.572004
         },
         "rules": [
           "beyond_limits",
@@ -32,56 +32,56 @@
           "index": 0,
           "moving_range": null,
           "session": "sample-session-001",
-          "sigmas": -0.65,
+          "sigmas": -0.382,
           "value": 0.056604
         },
         {
           "index": 1,
-          "moving_range": 0.151291,
+          "moving_range": 0.072344,
           "session": "golden-explore",
-          "sigmas": 0.479,
-          "value": 0.207895
+          "sigmas": 0.093,
+          "value": 0.128947
         },
         {
           "index": 2,
-          "moving_range": 0.05638,
+          "moving_range": 0.128947,
           "session": "golden-handoff",
-          "sigmas": 0.059,
-          "value": 0.151515
+          "sigmas": -0.754,
+          "value": 0.0
         },
         {
           "index": 3,
-          "moving_range": 0.080808,
+          "moving_range": 0.232323,
           "session": "golden-rework",
-          "sigmas": 0.662,
+          "sigmas": 0.771,
           "value": 0.232323
         },
         {
           "index": 4,
           "moving_range": 0.028959,
           "session": "golden-shift",
-          "sigmas": 0.878,
+          "sigmas": 0.961,
           "value": 0.261283
         },
         {
           "index": 5,
           "moving_range": 0.261283,
           "session": "golden-iterate",
-          "sigmas": -1.072,
+          "sigmas": -0.754,
           "value": 0.0
         },
         {
           "index": 6,
           "moving_range": 0.239598,
           "session": "golden-lean-mix",
-          "sigmas": 0.716,
+          "sigmas": 0.819,
           "value": 0.239598
         },
         {
           "index": 7,
           "moving_range": 0.239598,
           "session": "session-test-001",
-          "sigmas": -1.072,
+          "sigmas": -0.754,
           "value": 0.0
         }
       ],
@@ -617,15 +617,15 @@
         "fires": true,
         "label": "Confident waste findings",
         "natural": {
-          "centre": 1.625,
+          "centre": 1.25,
           "lcl": null,
           "method": "average_moving_range",
-          "moving_range": 2.428571,
-          "mr_ucl": 7.936571,
+          "moving_range": 2.142857,
+          "mr_ucl": 7.002857,
           "provisional": true,
           "sessions": 8,
-          "sigma": 2.152989,
-          "ucl": 8.085
+          "sigma": 1.899696,
+          "ucl": 6.95
         },
         "rules": [
           "beyond_limits",
@@ -641,56 +641,56 @@
           "index": 0,
           "moving_range": null,
           "session": "sample-session-001",
-          "sigmas": -0.29,
+          "sigmas": -0.132,
           "value": 1.0
         },
         {
           "index": 1,
-          "moving_range": 4.0,
+          "moving_range": 2.0,
           "session": "golden-explore",
-          "sigmas": 1.568,
-          "value": 5.0
+          "sigmas": 0.921,
+          "value": 3.0
         },
         {
           "index": 2,
-          "moving_range": 4.0,
+          "moving_range": 3.0,
           "session": "golden-handoff",
-          "sigmas": -0.29,
-          "value": 1.0
+          "sigmas": -0.658,
+          "value": 0.0
         },
         {
           "index": 3,
-          "moving_range": 0.0,
+          "moving_range": 1.0,
           "session": "golden-rework",
-          "sigmas": -0.29,
+          "sigmas": -0.132,
           "value": 1.0
         },
         {
           "index": 4,
           "moving_range": 0.0,
           "session": "golden-shift",
-          "sigmas": -0.29,
+          "sigmas": -0.132,
           "value": 1.0
         },
         {
           "index": 5,
           "moving_range": 1.0,
           "session": "golden-iterate",
-          "sigmas": -0.755,
+          "sigmas": -0.658,
           "value": 0.0
         },
         {
           "index": 6,
           "moving_range": 4.0,
           "session": "golden-lean-mix",
-          "sigmas": 1.103,
+          "sigmas": 1.448,
           "value": 4.0
         },
         {
           "index": 7,
           "moving_range": 4.0,
           "session": "session-test-001",
-          "sigmas": -0.755,
+          "sigmas": -0.658,
           "value": 0.0
         }
       ],
@@ -704,15 +704,15 @@
         "fires": true,
         "label": "Uncertain findings (waste until verified)",
         "natural": {
-          "centre": 0.125,
+          "centre": 0.5,
           "lcl": null,
           "method": "average_moving_range",
-          "moving_range": 0.142857,
-          "mr_ucl": 0.466857,
+          "moving_range": 0.428571,
+          "mr_ucl": 1.400571,
           "provisional": true,
           "sessions": 8,
-          "sigma": 0.126646,
-          "ucl": 0.505
+          "sigma": 0.379939,
+          "ucl": 1.64
         },
         "rules": [
           "beyond_limits",
@@ -728,75 +728,75 @@
           "index": 0,
           "moving_range": null,
           "session": "sample-session-001",
-          "sigmas": 6.909,
+          "sigmas": 1.316,
           "value": 1.0
         },
         {
           "index": 1,
           "moving_range": 1.0,
           "session": "golden-explore",
-          "sigmas": -0.987,
-          "value": 0.0
+          "sigmas": 3.948,
+          "value": 2.0
         },
         {
           "index": 2,
-          "moving_range": 0.0,
+          "moving_range": 1.0,
           "session": "golden-handoff",
-          "sigmas": -0.987,
-          "value": 0.0
+          "sigmas": 1.316,
+          "value": 1.0
         },
         {
           "index": 3,
-          "moving_range": 0.0,
+          "moving_range": 1.0,
           "session": "golden-rework",
-          "sigmas": -0.987,
+          "sigmas": -1.316,
           "value": 0.0
         },
         {
           "index": 4,
           "moving_range": 0.0,
           "session": "golden-shift",
-          "sigmas": -0.987,
+          "sigmas": -1.316,
           "value": 0.0
         },
         {
           "index": 5,
           "moving_range": 0.0,
           "session": "golden-iterate",
-          "sigmas": -0.987,
+          "sigmas": -1.316,
           "value": 0.0
         },
         {
           "index": 6,
           "moving_range": 0.0,
           "session": "golden-lean-mix",
-          "sigmas": -0.987,
+          "sigmas": -1.316,
           "value": 0.0
         },
         {
           "index": 7,
           "moving_range": 0.0,
           "session": "session-test-001",
-          "sigmas": -0.987,
+          "sigmas": -1.316,
           "value": 0.0
         }
       ],
       "signals": [
         {
           "evidence": [
-            "sample-session-001"
+            "golden-explore"
           ],
           "fires": true,
           "id": "control.uncertain_findings.beyond_limits",
-          "limit": 0.505,
+          "limit": 1.64,
           "measure": "uncertain_findings",
           "rule": "beyond_limits",
           "rule_text": "One session outside a control limit.",
-          "session": "sample-session-001",
+          "session": "golden-explore",
           "side": "above",
           "tuned": false,
           "unfavourable": true,
-          "value": 1.0
+          "value": 2.0
         }
       ]
     },
@@ -1461,9 +1461,9 @@
       "signals": []
     }
   ],
-  "detectors": "f8fa44bdc8e3",
+  "detectors": "8d3a03679e0d",
   "firing": 4,
-  "limits_detectors": "f8fa44bdc8e3",
+  "limits_detectors": "8d3a03679e0d",
   "method": "average_moving_range",
   "schema": "ter.control-report/1",
   "sessions": 8,

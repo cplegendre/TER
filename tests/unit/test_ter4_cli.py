@@ -181,3 +181,24 @@ def test_python_dash_m_ter(tmp_path: Path) -> None:
     )
     assert observed.returncode == 0, observed.stderr
     assert "exec.shell 1" in observed.stdout
+
+
+# --- Windows pipes: UTF-8 output whatever the code page (12 Oct 2026) -------
+
+
+def test_a_cp1252_stream_is_switched_to_utf8() -> None:
+    raw = io.BytesIO()
+    piped = io.TextIOWrapper(raw, encoding="cp1252")
+    with pytest.raises(UnicodeEncodeError):
+        piped.write("−")
+    bootstrap.utf8_stdio(piped)
+    piped.write("waste − 12 → A3")
+    piped.flush()
+    assert raw.getvalue().decode("utf-8") == "waste − 12 → A3"
+
+
+def test_boundary_streams_that_cannot_be_reconfigured_are_left_alone() -> None:
+    buffer = io.StringIO()
+    bootstrap.utf8_stdio(buffer, object())
+    buffer.write("−")
+    assert buffer.getvalue() == "−"

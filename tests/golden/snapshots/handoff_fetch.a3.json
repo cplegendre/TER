@@ -31,7 +31,7 @@
             "label": "Avoidable share of generated tokens",
             "note": "",
             "unit": "ratio",
-            "value": 0.1515
+            "value": 0.0
           }
         ],
         "question": "How much of the resource became value?"
@@ -181,7 +181,7 @@
             "label": "Uncertain findings",
             "note": "",
             "unit": "count",
-            "value": 0
+            "value": 1
           },
           {
             "key": "unvalidated_edits_at_end",
@@ -230,15 +230,15 @@
     ],
     "scorecard": {
       "activity_seconds": {
-        "avoidable": 6.0,
+        "avoidable": 0.0,
         "necessary_non_value_adding": 18.0,
-        "uncertain": 0.0,
+        "uncertain": 6.0,
         "value_adding": 9.0
       },
       "activity_tokens": {
-        "avoidable": 30,
+        "avoidable": 0,
         "necessary_non_value_adding": 88,
-        "uncertain": 0,
+        "uncertain": 30,
         "value_adding": 80
       },
       "agent_seconds": 33.0,
@@ -305,8 +305,8 @@
         "method": "TER 3, offline (regex-v1 tokens, lexical-hash-384 embeddings)",
         "value": 0.7
       },
-      "uncertain_findings": 0,
-      "uncertain_waste_tokens": 0,
+      "uncertain_findings": 1,
+      "uncertain_waste_tokens": 30,
       "validation_runs": 0,
       "validations_failed": 0,
       "validations_passed": 0,
@@ -586,30 +586,6 @@
         {
           "kind": "claude_md",
           "language": "markdown",
-          "snippet": "- Use a subagent only for broad searches or independent parallel work. Do small lookups directly, and rely on a subagent's result instead of redoing it.",
-          "text": "Say when subagents are worth their round trip."
-        },
-        {
-          "kind": "setting",
-          "language": "json",
-          "snippet": "{\n  \"permissions\": {\n    \"deny\": [\n      \"Task\"\n    ]\n  }\n}",
-          "text": "For small, focused tasks, turn off delegation (delegated then redone: `Research requests changelog`)."
-        }
-      ],
-      "addresses": [
-        "unnecessary_handoff:f0c1b3c8cc1fe9e8"
-      ],
-      "detector": "unnecessary_handoff",
-      "rationale": "1 finding(s), 30 generated tokens: Delegated Research requests changelog, then did it directly.",
-      "title": "Delegate only what will not be redone",
-      "uncertain": false,
-      "waste": "handoffs"
-    },
-    {
-      "actions": [
-        {
-          "kind": "claude_md",
-          "language": "markdown",
           "snippet": "## Validation\n- Test command: <fill in the project's test command>\n- After changing code, run the test command and report its result before saying the task is done; say so explicitly if it cannot be run.",
           "text": "Make validation part of done, and name the check to run."
         },
@@ -628,6 +604,30 @@
       "title": "Validate every change before reporting it",
       "uncertain": false,
       "waste": "defects"
+    },
+    {
+      "actions": [
+        {
+          "kind": "claude_md",
+          "language": "markdown",
+          "snippet": "- Use a subagent only for broad searches or independent parallel work. Do small lookups directly, and rely on a subagent's result instead of redoing it.",
+          "text": "Say when subagents are worth their round trip."
+        },
+        {
+          "kind": "setting",
+          "language": "json",
+          "snippet": "{\n  \"permissions\": {\n    \"deny\": [\n      \"Task\"\n    ]\n  }\n}",
+          "text": "For small, focused tasks, turn off delegation (delegated then redone: `Research requests changelog`)."
+        }
+      ],
+      "addresses": [
+        "unnecessary_handoff:f0c1b3c8cc1fe9e8"
+      ],
+      "detector": "unnecessary_handoff",
+      "rationale": "1 finding(s), 30 generated tokens: Delegated Research requests changelog, then did it directly. All below the confidence threshold: counted as waste until verified; verify before acting.",
+      "title": "Delegate only what will not be redone",
+      "uncertain": true,
+      "waste": "handoffs"
     }
   ],
   "current_state": {
@@ -643,7 +643,7 @@
         "uncertain_tokens": 0
       },
       {
-        "avoidable_tokens": 30,
+        "avoidable_tokens": 0,
         "context_tokens": 62,
         "findings": [
           "unnecessary_handoff:f0c1b3c8cc1fe9e8"
@@ -652,7 +652,7 @@
         "stage": "explore",
         "steps": 3,
         "tokens": 78,
-        "uncertain_tokens": 0
+        "uncertain_tokens": 30
       },
       {
         "avoidable_tokens": 0,
@@ -702,7 +702,7 @@
   },
   "detectors": [
     {
-      "confidence_rule": "Within one prompt's turn: 0.90 when input and output are identical and nothing was edited in between; 0.85 for a validation re-run with no edit in between; 0.75 when edits happened in between but the output is still identical. 0.50 (uncertain) when an output was not observed. No finding when a new prompt arrived between the two calls (new information: 17 of 17 such repeats judged on real sessions were not waste) or when the output differs. File reads and searches are left to repeated_exploration; a validation re-run after edits is left to rework_cycle.",
+      "confidence_rule": "Within one prompt's turn: 0.90 when input and output are identical and nothing was edited in between; 0.85 for a validation re-run with no edit in between; 0.75 when edits happened in between but the output is still identical. 0.50 (uncertain) when an output was not observed. No finding when a new prompt arrived between the two calls (new information: 17 of 17 such repeats judged on real sessions were not waste) or when the output differs. File reads and searches are left to repeated_exploration; a validation re-run after edits is left to rework_cycle; a bare wait (sleep) is not judged.",
       "id": "repeated_tool_call",
       "kind": "waste",
       "waste": "over_processing"
@@ -744,13 +744,13 @@
       "waste": "motion"
     },
     {
-      "confidence_rule": "Judged only once the agent has responded after the read. A read counts as used when a later reasoning, response or tool call names the file, or names something the file defines, or edits it. Otherwise 0.72. Calibrated on real sessions: 10 of 10 judged findings were waste (10 Oct 2026), so it counts at 0.72, the 95% lower bound of that sample. Reading to rule something out is legitimate, so a larger sample or repository evidence (L3) may lower it again.",
+      "confidence_rule": "Judged only once the agent has responded after the read. A read counts as used when a later reasoning, response or tool call names the file, or names something the file defines, or edits it. Otherwise 0.55 (uncertain). Not judged: reads of a tool output the harness saved (tool-results, task output files), which are the tail of an earlier call; images and PDFs, which are seen rather than quoted. Judged samples disagree: 10 of 10 waste (10 Oct 2026), then 0 of 9 (12 Oct 2026, mostly saved tool outputs), so it stays uncertain until the tightened rule is judged.",
       "id": "unused_context",
       "kind": "waste",
       "waste": "inventory"
     },
     {
-      "confidence_rule": "A later tool call by the agent itself shares at least 3 content words with the handoff's task and covers at least half of the task's words. Confidence 0.45 + 0.40 × coverage, at least 0.72 and capped at 0.85. Calibrated on real sessions: 10 of 10 judged findings were waste (10 Oct 2026); 0.72 is the 95% lower bound of that sample. The handoff (and its waiting time) is the waste; the agent's own call is kept.",
+      "confidence_rule": "A later read, search, fetch or shell call by the agent itself, before the next prompt, shares at least 3 content words with the handoff's task and covers at least half of the task's words. Writes and edits (saving what the subagent found) and orchestration calls are not the task done again; a new prompt (a forked subagent's own task, a background agent's notification) is new information. Confidence 0.45 + 0.40 × coverage, capped at 0.65 (uncertain): judged samples disagree, 10 of 10 waste (10 Oct 2026), then 0 of 9 (12 Oct 2026). The handoff (and its waiting time) is the waste; the agent's own call is kept.",
       "id": "unnecessary_handoff",
       "kind": "waste",
       "waste": "handoffs"
@@ -762,7 +762,7 @@
       "waste": "over_processing"
     },
     {
-      "confidence_rule": "A whole-file write of a file the agent had itself written, keeping at least 80% of its lines: 0.80. A whole-file write of a file it had read (3+ lines), keeping at least 60% of them: 0.60 (uncertain; small files are often rewritten on purpose). No finding when under 30% of the new file repeats existing content: that rewrite is mostly new work. The retained share of the write is waste.",
+      "confidence_rule": "A whole-file write of a file the agent had itself written, keeping at least 80% of its lines: 0.80 when at least 70% of the new file repeats the old one, 0.60 (uncertain) below that (judged 12 Oct 2026: 70% to 81% repeated was waste, 52% to 64% unsure). A whole-file write of a file it had read (3+ lines), keeping at least 60% of them: 0.60 (uncertain; small files are often rewritten on purpose). No finding when under 30% of the new file repeats existing content: that rewrite is mostly new work. The retained share of the write is waste.",
       "id": "regeneration",
       "kind": "waste",
       "waste": "overproduction"
@@ -774,19 +774,19 @@
       "waste": "overproduction"
     },
     {
-      "confidence_rule": "Per task (prompt), counting distinct context items (file reads, searches, fetches, handoffs, exploring shell commands) before the first edit: a finding when they exceed per_file (3) × files the task changes + slack (3). Items past the band that are not reads of a changed file are the waste. Confidence 0.72. Calibrated on real sessions: 10 of 10 judged findings were waste (10 Oct 2026); 0.72 is the 95% lower bound of that sample.",
+      "confidence_rule": "Per task (prompt), counting distinct context items (file reads, searches, fetches, handoffs, exploring shell commands) before the first edit: a finding when they exceed per_file (3) × files the task changes + slack (3), by at least 2 (one item over was never waste, judged 12 Oct 2026). Items past the band that are not reads of a changed file are the waste. Confidence 0.55 + 0.02 per item over the band, capped at 0.65 (uncertain): judged samples disagree, 10 of 10 waste (10 Oct 2026), then 0 of 3 with 7 unsure (12 Oct 2026).",
       "id": "excessive_context",
       "kind": "waste",
       "waste": "inventory"
     },
     {
-      "confidence_rule": "Per task (prompt): when the task first edits its n-th distinct file in place (Edit, not a new-file Write), it must have acquired at least min_per_file (1) × n distinct context items (reads, searches, fetches, handoffs, exploring shell). The first edit below that bound is the finding: 0.70 when that file was never read or written earlier in the session; 0.55 (uncertain) when it was, since context carried from an earlier task may suffice. A risk: it claims no cost.",
+      "confidence_rule": "Per task (prompt): when the task first edits its n-th distinct file in place (Edit, not a new-file Write), it must have acquired at least min_per_file (1) × n distinct context items (reads, searches, fetches, handoffs, exploring shell). The first edit below that bound is the finding: 0.70 when that file was never read, written or named in a shell command earlier in the session; 0.55 (uncertain) when it was, since context carried from an earlier task may suffice. Edits of notes and documents (.md, .rst, .txt, .adoc) need no code context and are not judged (judged 12 Oct 2026: memory-note edits). A risk: it claims no cost.",
       "id": "insufficient_context",
       "kind": "risk",
       "waste": "defects"
     },
     {
-      "confidence_rule": "Judged only once the agent has responded after it. A search (Grep, Glob) or traversing shell command (ls, find, tree, rg, grep) whose output lists file names, none of which a later event reads, edits or names: 0.72. Calibrated on real sessions: 10 of 10 judged findings were waste (10 Oct 2026); 0.72 is the 95% lower bound of that sample. Empty or unobserved output and repeats of an earlier traversal (left to repeated_exploration) are not findings.",
+      "confidence_rule": "Judged only once the agent has responded after it. A search (Grep, Glob) or traversing shell command (ls, find, tree, rg, grep) whose output lists file names (words with a known file suffix), none of which a later event reads, edits or names: 0.55 (uncertain). Not findings: empty or unobserved output; a command run more than once (a progress poll, or a repeat left to repeated_exploration); a shell command that probes the home, system or temporary folders. Judged samples disagree: 10 of 10 waste (10 Oct 2026), then 0 of 9 (12 Oct 2026: polls, probes, existence checks, code read as file names), so it stays uncertain until the tightened rule is judged.",
       "id": "unused_traversal",
       "kind": "waste",
       "waste": "motion"
@@ -807,7 +807,7 @@
   "findings": [
     {
       "activity_class": "avoidable",
-      "confidence": 0.72,
+      "confidence": 0.65,
       "context_tokens": 24,
       "detector": "unnecessary_handoff",
       "evidence": [
@@ -824,7 +824,7 @@
       "subject": "Research requests changelog",
       "title": "Delegated Research requests changelog, then did it directly",
       "tokens": 30,
-      "uncertain": false,
+      "uncertain": true,
       "waste": "handoffs",
       "waste_events": [
         "f0c1b3c8cc1fe9e8",
@@ -874,7 +874,7 @@
       "target": "higher"
     },
     {
-      "current": "15%",
+      "current": "0%",
       "how": "scorecard.activity_tokens.avoidable",
       "metric": "Avoidable share of generated tokens",
       "target": "lower"
@@ -1042,34 +1042,8 @@
       ]
     }
   ],
-  "problem": "15% of the 198 tokens the agent generated went to avoidable work across 1 finding(s); flow efficiency is 85% of tokens and 82% of agent time; 1 risk(s) to the outcome were flagged.",
+  "problem": "15% of the 198 tokens the agent generated went to avoidable work across 1 finding(s); 1 of those finding(s), covering 30 tokens, are uncertain and count as waste until verified; flow efficiency is 85% of tokens and 82% of agent time; 1 risk(s) to the outcome were flagged.",
   "root_causes": [
-    {
-      "activity_class": "avoidable",
-      "confidence": 0.72,
-      "context_tokens": 24,
-      "detector": "unnecessary_handoff",
-      "evidence": [
-        "f0c1b3c8cc1fe9e8",
-        "a586b42e4b8dcab6",
-        "e240461726e1d3cd",
-        "666b4eb5df4422bc"
-      ],
-      "explanation": "The agent handed 'Research requests changelog' to a subagent, then ran WebFetch on the same subject (https://example.invalid/requests/changelog), sharing 4 key words. The handoff added a round trip the agent did not rely on.",
-      "id": "unnecessary_handoff:f0c1b3c8cc1fe9e8",
-      "kind": "waste",
-      "seconds": 6.0,
-      "share": 1.0,
-      "subject": "Research requests changelog",
-      "title": "Delegated Research requests changelog, then did it directly",
-      "tokens": 30,
-      "uncertain": false,
-      "waste": "handoffs",
-      "waste_events": [
-        "f0c1b3c8cc1fe9e8",
-        "a586b42e4b8dcab6"
-      ]
-    },
     {
       "activity_class": "avoidable",
       "confidence": 0.85,
@@ -1091,6 +1065,32 @@
       "uncertain": false,
       "waste": "defects",
       "waste_events": []
+    },
+    {
+      "activity_class": "avoidable",
+      "confidence": 0.65,
+      "context_tokens": 24,
+      "detector": "unnecessary_handoff",
+      "evidence": [
+        "f0c1b3c8cc1fe9e8",
+        "a586b42e4b8dcab6",
+        "e240461726e1d3cd",
+        "666b4eb5df4422bc"
+      ],
+      "explanation": "The agent handed 'Research requests changelog' to a subagent, then ran WebFetch on the same subject (https://example.invalid/requests/changelog), sharing 4 key words. The handoff added a round trip the agent did not rely on.",
+      "id": "unnecessary_handoff:f0c1b3c8cc1fe9e8",
+      "kind": "waste",
+      "seconds": 6.0,
+      "share": 1.0,
+      "subject": "Research requests changelog",
+      "title": "Delegated Research requests changelog, then did it directly",
+      "tokens": 30,
+      "uncertain": true,
+      "waste": "handoffs",
+      "waste_events": [
+        "f0c1b3c8cc1fe9e8",
+        "a586b42e4b8dcab6"
+      ]
     }
   ],
   "schema": "ter.a3/0.1",

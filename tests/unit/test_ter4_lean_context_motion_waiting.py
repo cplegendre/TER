@@ -47,12 +47,13 @@ class TestExcessiveContext:
     def test_context_above_the_band_is_inventory(self) -> None:
         s = Script()
         s.prompt("fix the bug in src/a.py")
-        reads = [s.read(f"src/m{i}.py")[0] for i in range(7)]
+        reads = [s.read(f"src/m{i}.py")[0] for i in range(8)]
         edit, _ = s.edit("src/a.py")
         [f] = found(s, "excessive_context")
-        # Band for one changed file: 3 x 1 + 3 = 6 items; 7 is one over.
+        # Band for one changed file: 3 x 1 + 3 = 6 items; 8 is two over.
         assert f.waste is LeanWaste.INVENTORY and f.kind is FindingKind.WASTE
-        assert not f.uncertain and f.confidence == 0.72  # judged 10 of 10
+        # Judged samples disagree (10 of 10, then 0 of 3): uncertain.
+        assert f.uncertain and f.confidence == 0.59
         assert reads[6].id in f.waste_events and reads[5].id not in f.waste_events
         assert edit.id in f.evidence and f.id.endswith(edit.id)
 
@@ -76,12 +77,25 @@ class TestExcessiveContext:
     def test_reads_of_changed_files_are_never_claimed(self) -> None:
         s = Script()
         s.prompt("fix the bug")
-        for i in range(6):
+        for i in range(9):
             s.read(f"src/m{i}.py")
         own, _ = s.read("src/a.py")
+        other, _ = s.read("src/b.py")
         s.edit("src/a.py")
+        s.edit("src/b.py")
+        # Band 3 x 2 + 3 = 9; the 2 items over it are reads of files the
+        # task changes.
         [f] = found(s, "excessive_context")
-        assert own.id in f.evidence and f.waste_events == ()
+        assert {own.id, other.id} <= set(f.evidence) and f.waste_events == ()
+
+    def test_boundary_one_item_over_the_band_is_not_a_finding(self) -> None:
+        # Judged 12 Oct 2026: findings one item over the band were not waste.
+        s = Script()
+        s.prompt("fix the bug in src/a.py")
+        for i in range(7):
+            s.read(f"src/m{i}.py")
+        s.edit("src/a.py")
+        assert found(s, "excessive_context") == []
 
     def test_rereads_and_ranges_count_once(self) -> None:
         s = Script()
@@ -97,6 +111,7 @@ class TestExcessiveContext:
         s.prompt("fix the bug")
         s.read("src/m0.py")
         s.read("src/m1.py")
+        s.read("src/m2.py")
         s.edit("src/a.py")
         tight = DetectorRegistry(
             [ExcessiveContext(band=ContextBand(per_file=1, slack=0))]
@@ -188,7 +203,7 @@ class TestUnusedTraversal:
         s.say("Added retries to net.py.")
         [f] = found(s, "unused_traversal")
         assert f.waste is LeanWaste.MOTION and f.kind is FindingKind.WASTE
-        assert not f.uncertain and f.confidence == 0.72  # judged 10 of 10
+        assert f.uncertain and f.confidence == 0.55  # judged samples disagree
         assert result is not None
         assert f.waste_events == (search.id, result.id)
 
@@ -235,7 +250,7 @@ class TestUnusedTraversal:
         s.search("retry", "src/old.py:1:retry")
         s.search("retry", "src/old.py:1:retry")
         s.say("done")
-        assert len(found(s, "unused_traversal")) == 1
+        assert found(s, "unused_traversal") == []
         assert len(found(s, "repeated_exploration")) == 1
 
 

@@ -48,8 +48,9 @@ productive agent behaviour (point 91).
 
 ## Consequences
 
-- Session-only evidence limits some detectors: "unused context" was
-  uncertain until a judged sample (ADR 0006) promoted it.
+- Session-only evidence limits some detectors: "unused context" is
+  uncertain; a judged sample (ADR 0006) promoted it and a second sample
+  returned it to uncertain.
 - Validation outcomes are read from tool output text, because the
   `ter.event/0.1` contract carries no error flag. Unknown outcomes form no
   cycle rather than a guessed one. Adding an `is_error` field to the

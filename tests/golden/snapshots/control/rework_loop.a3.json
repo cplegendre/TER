@@ -1,19 +1,19 @@
 {
   "computed_on": "2026-10-10",
-  "detectors": "f8fa44bdc8e3",
+  "detectors": "8d3a03679e0d",
   "firing": 1,
-  "limits_detectors": "f8fa44bdc8e3",
+  "limits_detectors": "8d3a03679e0d",
   "measures": [
     {
-      "centre": 0.143652,
+      "centre": 0.114844,
       "checked": true,
       "fires": true,
       "label": "Avoidable share of generated tokens",
       "lcl": null,
       "measure": "avoidable_share",
-      "sigmas": 0.662,
+      "sigmas": 0.771,
       "signal": null,
-      "ucl": 0.545661,
+      "ucl": 0.572004,
       "value": 0.232323
     },
     {
@@ -89,27 +89,27 @@
       "value": 0.8049
     },
     {
-      "centre": 1.625,
+      "centre": 1.25,
       "checked": true,
       "fires": true,
       "label": "Confident waste findings",
       "lcl": null,
       "measure": "confident_findings",
-      "sigmas": -0.29,
+      "sigmas": -0.132,
       "signal": null,
-      "ucl": 8.085,
+      "ucl": 6.95,
       "value": 1.0
     },
     {
-      "centre": 0.125,
+      "centre": 0.5,
       "checked": true,
       "fires": true,
       "label": "Uncertain findings (waste until verified)",
       "lcl": null,
       "measure": "uncertain_findings",
-      "sigmas": -0.987,
+      "sigmas": -1.316,
       "signal": null,
-      "ucl": 0.505,
+      "ucl": 1.64,
       "value": 0.0
     },
     {

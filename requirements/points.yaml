@@ -378,6 +378,7 @@ points:
     rules: [TER-DET-003]
     verification:
       - 'test: tests/unit/test_ter4_lean_context_motion_waiting.py::TestExcessiveContext'
+      - 'test: tests/unit/test_ter4_lean_judge_l4.py::TestInsufficientContextJudgeL4'
 
   - id: P022
     text: >-
@@ -478,6 +479,7 @@ points:
     verification:
       - 'test: tests/unit/test_ter4_lean_context_motion_waiting.py::TestUnusedTraversal'
       - 'test: tests/unit/test_ter4_lean_detectors.py::TestFragmentedEdits'
+      - 'test: tests/unit/test_ter4_lean_judge_l4.py::TestUnusedTraversalJudgeL4'
 
   - id: P029
     text: >-
@@ -493,6 +495,7 @@ points:
     verification:
       - 'test: tests/unit/test_ter4_lean_detectors.py::TestUnnecessaryHandoff'
       - 'test: tests/unit/test_ter4_lean_context_motion_waiting.py::TestFailedRoute'
+      - 'test: tests/unit/test_ter4_lean_judge_l4.py::TestUnnecessaryHandoffJudgeL4'
 
   - id: P030
     text: >-
@@ -736,9 +739,10 @@ points:
       - >-
         Each session has one intent record in ter.domain, persisted with the
         session state.
-    rules: [TER-ITN-001]
+    rules: [TER-ITN-001, TER-ITN-008]
     verification:
       - 'test: tests/unit/test_ter4_lean_intent.py::test_every_prompt_updates_the_one_intent_record'
+      - 'test: tests/unit/test_ter4_lean_judge_l4.py::test_an_injected_message_is_not_an_intent_revision'
       - 'test: tests/unit/test_ter4_lean_intent.py::test_the_intent_record_is_kept_with_the_session_state_and_redelivery_is_idempotent'
 
   - id: P046
@@ -778,11 +782,12 @@ points:
       - >-
         Departures without a recorded intent change are labelled drift;
         departures after one are not, shown by tests.
-    rules: [TER-ITN-003, TER-ITN-006, TER-ITN-007]
+    rules: [TER-ITN-003, TER-ITN-006, TER-ITN-007, TER-ITN-008]
     verification:
       - 'test: tests/unit/test_ter4_lean_intent.py::TestIntentDrift'
       - 'test: tests/unit/test_ter4_lean_intent.py::TestDriftInCreatedFiles'
       - 'test: tests/unit/test_ter4_evidence_usage.py::TestExplorationDrift'
+      - 'test: tests/unit/test_ter4_lean_judge_l4.py::test_an_injected_message_is_not_an_intent_revision'
       - 'planned: calibrate exploration_drift on judged real sessions with their repository at the start commit (D4), as unrelated_modification was'
 
   - id: P049
@@ -1464,7 +1469,8 @@ points:
       - 'test: tests/unit/test_ter4_lean_properties.py::test_findings_are_traceable_and_bounded'
       - 'test: tests/unit/test_ter4_intervention.py::test_a_detector_not_marked_eligible_is_never_advised'
       - 'test: tests/unit/test_ter4_intervention.py::test_an_uncertain_signal_is_never_advised_even_if_the_policy_allows'
-      - 'planned: real-data verification in issue #41'
+      - 'test: tests/unit/test_ter4_lean_judge_l4.py::TestUnusedContextJudgeL4::test_boundary_an_unused_source_read_is_uncertain_waste'
+      - 'planned: real-data verification in issue #41. Second judged sample (judge-l4, 12 Oct 2026): the four detectors promoted on 10 Oct were 0 waste of 30 decided and are uncertain again; only fragmented_edits, repeated_exploration and regeneration at 70% or more repeated have judged samples with no false positives'
 
   - id: P092
     text: >-
