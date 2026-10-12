@@ -88,7 +88,7 @@ requirements:
     source_points: [163, 164]
     rationale: >-
       Declarative policies are reviewable and keep humans in control.
-    status: planned
+    status: verified
 
   - id: TER-INT-009
     pattern: event-driven
@@ -176,7 +176,7 @@ requirements:
     source_points: [173]
     rationale: >-
       Humans keep control over intervention policy.
-    status: planned
+    status: verified
 
   - id: TER-INT-016
     pattern: state-driven
@@ -199,7 +199,7 @@ requirements:
     rationale: >-
       The L4 part of TER-ARC-002: policies are plugins like analysers,
       detectors and agent adapters, but no policy exists before L4.
-    status: planned
+    status: verified
 
   - id: TER-SPC-020
     pattern: event-driven

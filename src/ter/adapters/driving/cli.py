@@ -20,6 +20,7 @@ Commands::
     python -m ter capabilities                # adapters per port, and problems
     python -m ter context bundle|report ...   # L3 context bundles (context_cli)
     python -m ter control measure|limits|chart ...  # control charts (control_cli)
+    python -m ter policy check|approve FILE ...  # L4 policy files (policy_cli)
     python -m ter corpus import SRC... --out DIR [--labels CSV]
                                 [--max-tool-output N] [--keep-tool NAME]
                                 [--quote-files]
@@ -53,6 +54,7 @@ from ...ports.driving import EventIngest
 from .claude_hooks import HookStatus, run_hook
 from .context_cli import ContextServices, add_context_parser, run_context
 from .control_cli import ControlServices, add_control_parser, run_control
+from .policy_cli import PolicyServices, add_policy_parser, run_policy
 
 if TYPE_CHECKING:
     from ..driven.claude_code.corpus import CorpusImport
@@ -167,6 +169,8 @@ class CliServices:
     route_transcript: RouteTranscript | None = None
     #: Control charts over sessions (``python -m ter control``, point 201).
     control: ControlServices | None = None
+    #: L4 intervention policy files (``python -m ter policy``, TER-INT-008).
+    policies: PolicyServices | None = None
 
 
 def main(
@@ -221,6 +225,8 @@ def main(
         return run_context(args, services.context, out, err)
     if args.command == "control":
         return run_control(args, services.control, out, err)
+    if args.command == "policy":
+        return run_policy(args, services.policies, out, err)
     return _observe(args, services, out, err)
 
 
@@ -664,6 +670,7 @@ def _parser(default_log_dir: Path, out: IO[str]) -> argparse.ArgumentParser:
 
     add_context_parser(commands, default_log_dir, TOKENIZER_HELP, REPO_ENGINE_HELP)
     add_control_parser(commands, TOKENIZER_HELP)
+    add_policy_parser(commands)
     route = commands.add_parser(
         "route",
         help="L3: classify each task and choose a model role for it (advisory)",

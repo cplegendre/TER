@@ -34,6 +34,7 @@ from ..domain.capabilities import Capability, CapabilityProblem, UnknownCapabili
 from ..domain.stream import StreamReport
 from ..ports.driven import (
     ArchitectureContracts,
+    InterventionPolicies,
     OutcomeSource,
     SessionSource,
     TerScorer,
@@ -45,6 +46,7 @@ if TYPE_CHECKING:
     from ..adapters.driven.claude_code.corpus import CorpusImport
     from ..adapters.driving.claude_hooks.check import HookCheck
     from ..adapters.driving.control_cli import ControlServices
+    from ..adapters.driving.policy_cli import PolicyServices
     from ..application.control import MeasuredSessions
 
 __all__ = [
@@ -58,6 +60,7 @@ __all__ = [
     "make_contracts",
     "make_ingest",
     "make_outcome_source",
+    "make_policies",
     "make_recorder",
     "make_ter_scorer",
     "make_tokenizer",
@@ -101,6 +104,15 @@ def make_outcome_source(name: str = "junit") -> OutcomeSource:
     """An ``OutcomeSource.<name>`` capability; ``junit`` reads JUnit XML results."""
     source = default_registry().create("OutcomeSource", name)
     assert isinstance(source, OutcomeSource)  # checked by the registry
+    return source
+
+
+def make_policies(name: str = "json") -> InterventionPolicies:
+    """An ``InterventionPolicies.<name>`` capability (TER-ARC-008): ``json``
+    reads ``ter.intervention-policies/1`` files. Policies load through the
+    capability registry like every other adapter, so a pack can add a source."""
+    source = default_registry().create("InterventionPolicies", name)
+    assert isinstance(source, InterventionPolicies)  # checked by the registry
     return source
 
 
@@ -331,7 +343,13 @@ def cli_services() -> CliServices:
 
     from .context import context_services
 
+    def policies() -> "PolicyServices":
+        from ..adapters.driving.policy_cli import PolicyServices
+
+        return PolicyServices(make_policies, lambda: SystemClock().now().date())
+
     return CliServices(
+        policies=policies(),
         control=control(),
         context=context_services(session_source_for, make_tokenizer),
         hooks_check=hooks_check,

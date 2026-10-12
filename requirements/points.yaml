@@ -2555,12 +2555,13 @@ points:
       Define intervention policies declaratively.
     level: L4
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - Intervention policies are declarative files.
     rules: [TER-INT-008]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-008'
+      - 'test: tests/unit/test_ter4_policy_set.py::test_a_policy_file_states_evidence_confidence_cooldown_and_actions'
+      - 'test: tests/contract/test_intervention_policies.py'
 
   - id: P164
     text: >-
@@ -2568,14 +2569,15 @@ points:
       thresholds, cooldowns, and permitted actions.
     level: L4
     kind: capability
-    status: not-started
+    status: done
     definition_of_done:
       - >-
         Policies state evidence requirements, confidence thresholds,
         cooldowns and permitted actions.
     rules: [TER-INT-008]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-008'
+      - 'test: tests/unit/test_ter4_policy_set.py::test_a_policy_file_states_evidence_confidence_cooldown_and_actions'
+      - 'test: tests/unit/test_ter4_policy_set.py::test_a_corrective_action_is_refused_at_l4'
 
   - id: P165
     text: >-
@@ -2703,12 +2705,14 @@ points:
       Preserve human control over intervention policy.
     level: L4
     kind: principle
-    status: not-started
+    status: done
     definition_of_done:
       - Policy changes apply only from human-approved policy files.
     rules: [TER-INT-015]
     verification:
-      - 'planned: passing tests tagged req for TER-INT-015'
+      - 'test: tests/unit/test_ter4_policy_set.py::test_a_changed_policy_does_not_apply_until_approved_again'
+      - 'test: tests/unit/test_ter4_policy_set.py::test_cli_check_then_approve_then_check'
+      - 'test: tests/contract/test_intervention_policies.py::test_never_approves_on_its_own'
 
   - id: P174
     text: >-
@@ -3108,7 +3112,7 @@ points:
       engines, policies, and agent adapters are plugins.
     level: L2
     kind: principle
-    status: partial
+    status: done
     definition_of_done:
       - >-
         Analysers, detectors, repository engines, policies and adapters
@@ -3125,7 +3129,7 @@ points:
       - 'test: tests/unit/test_ter4_lean_analysis.py::test_detectors_are_plugins'
       - 'test: tests/unit/test_ter4_repository_evidence.py::TestRepositoryEnginesArePlugins'
       - 'test: tests/contract/test_repository_evidence.py'
-      - 'planned: intervention policies load as plugins at L4 (TER-ARC-008)'
+      - 'test: tests/unit/test_ter4_policy_set.py::test_policy_files_load_through_the_capability_registry'
       - 'test: tests/architecture/test_import_contracts.py::test_core_never_imports_external_capability_packages'
 
   - id: P198

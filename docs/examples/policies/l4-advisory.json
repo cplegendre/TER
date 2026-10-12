@@ -1,0 +1,64 @@
+{
+  "schema": "ter.intervention-policies/1",
+  "eligibility": {
+    "detectors": [
+      "fragmented_edits",
+      "regeneration",
+      "repeated_exploration"
+    ],
+    "basis": "Judged real sessions: judge-l2 (10 Oct 2026, 122 findings) and judge-l4 (12 Oct 2026, 87 findings). fragmented_edits 17 of 17 waste, repeated_exploration 10 of 10, regeneration at 70% or more repeated 3 of 3; no known false positives."
+  },
+  "policies": [
+    {
+      "id": "batch-edits",
+      "detectors": [
+        "fragmented_edits"
+      ],
+      "advice": {
+        "kind": "recommendation",
+        "message": "Claude is editing the same file in many small round trips. Asking it to plan the change and make it in one edit (or parallel edits) saves the extra turns."
+      },
+      "min_evidence": 2,
+      "min_confidence": 0.7,
+      "min_signals": 1,
+      "cooldown_tool_events": 20,
+      "actions": [
+        "advise"
+      ]
+    },
+    {
+      "id": "reuse-reads",
+      "detectors": [
+        "repeated_exploration"
+      ],
+      "advice": {
+        "kind": "warning",
+        "message": "Claude re-read a file, or re-ran a search, with no edit in between. The answer is already in its context; a note in CLAUDE.md to reuse earlier reads and search results avoids the repeat."
+      },
+      "min_evidence": 2,
+      "min_confidence": 0.7,
+      "min_signals": 1,
+      "cooldown_tool_events": 10,
+      "actions": [
+        "advise"
+      ]
+    },
+    {
+      "id": "edit-not-rewrite",
+      "detectors": [
+        "regeneration"
+      ],
+      "advice": {
+        "kind": "recommendation",
+        "message": "Claude rewrote a whole file that mostly repeats what was there. An in-place edit produces only the change and keeps the diff reviewable."
+      },
+      "min_evidence": 2,
+      "min_confidence": 0.8,
+      "min_signals": 1,
+      "cooldown_tool_events": 20,
+      "actions": [
+        "advise"
+      ]
+    }
+  ]
+}

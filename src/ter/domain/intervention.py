@@ -41,6 +41,7 @@ from .signal import Signal
 
 __all__ = [
     "ADVICE_CONFIDENCE",
+    "Action",
     "Advice",
     "AdviceKind",
     "Eligibility",
@@ -68,6 +69,17 @@ class AdviceKind(StrEnum):
 
     WARNING = "warning"
     RECOMMENDATION = "recommendation"
+
+
+class Action(StrEnum):
+    """What a policy may do when it fires (TER-INT-008, point 164).
+
+    L4 Advisory permits advice only. Corrective actions (rewriting context,
+    re-routing, blocking a tool call) are L5 and have no member here, so a
+    policy cannot name one before that level exists.
+    """
+
+    ADVISE = "advise"
 
 
 class Outcome(StrEnum):
@@ -99,6 +111,7 @@ class Policy:
     ``min_confidence`` is raised to :data:`ADVICE_CONFIDENCE` if set lower.
     ``min_signals`` is the hysteresis: matching signals needed since the last
     firing. ``cooldown_tool_events`` silences the policy after it fires.
+    ``actions`` are what it is permitted to do; at L4 only :attr:`Action.ADVISE`.
     """
 
     id: str
@@ -108,6 +121,7 @@ class Policy:
     min_confidence: float = ADVICE_CONFIDENCE
     min_signals: int = 1
     cooldown_tool_events: int = 10
+    actions: frozenset[Action] = frozenset({Action.ADVISE})
 
     def __post_init__(self) -> None:
         if not self.id:
@@ -127,6 +141,10 @@ class Policy:
             raise PolicyError(f"policy {self.id}: cooldown_tool_events must be >= 0")
         if not self.advice.message.strip():
             raise PolicyError(f"policy {self.id} gives no advice")
+        if Action.ADVISE not in self.actions:
+            raise PolicyError(
+                f"policy {self.id} does not permit advice, the only action at L4"
+            )
 
     @property
     def confidence_floor(self) -> float:
