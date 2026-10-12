@@ -34,13 +34,19 @@ def test_the_intervention_engine_reads_only_signals() -> None:
     config = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
     contracts = {c["id"]: c for c in config["tool"]["importlinter"]["contracts"]}
     engine = contracts["intervention-reads-signals"]
-    assert engine["source_modules"] == ["ter.domain.intervention"]
+    assert engine["source_modules"] == [
+        "ter.domain.intervention",
+        "ter.domain.policy_set",
+    ]
     assert {"ter.domain.lean", "ter.domain.stream", "ter.domain.events"} <= set(
         engine["forbidden_modules"]
     )
     analysis = contracts["analysis-knows-no-intervention"]
     assert "ter.domain.lean" in analysis["source_modules"]
-    assert analysis["forbidden_modules"] == ["ter.domain.intervention"]
+    assert analysis["forbidden_modules"] == [
+        "ter.domain.intervention",
+        "ter.domain.policy_set",
+    ]
 
 
 @pytest.mark.req("TER-ARC-001")

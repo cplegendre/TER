@@ -13,7 +13,9 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from ...domain.events import Event, SessionTrace
+from ...domain.intervention import PolicyError
 from ...domain.lean.control import ControlLimits, ControlLimitsError
+from ...domain.policy_set import PolicySet
 from ...domain.outcome import OutcomeEvidence, OutcomeFormatError
 from ...domain.pricing import PriceEntry, PriceSchedule, Rates
 from ...domain.routing import RoutingProfile, RoutingProfileError
@@ -293,3 +295,19 @@ class InMemoryControlLimits:
             return self._documents[str(ref)]
         except KeyError:
             raise ControlLimitsError(f"{ref}: no such limits document") from None
+
+
+class InMemoryInterventionPolicies:
+    """A :class:`~ter.ports.driven.InterventionPolicies` serving policy sets
+    built in code, keyed by ref, with the real adapter's semantics."""
+
+    name = "in-memory"
+
+    def __init__(self, documents: Mapping[str, PolicySet]) -> None:
+        self._documents = dict(documents)
+
+    def policies(self, ref: str | Path) -> PolicySet:
+        try:
+            return self._documents[str(ref)]
+        except KeyError:
+            raise PolicyError(f"{ref}: no such policy file") from None

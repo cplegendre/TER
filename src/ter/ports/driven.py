@@ -13,6 +13,7 @@ from ..domain.events import Event, SessionTrace
 # argument); re-exported here as the driven port adapters implement.
 from ..domain.lean.intent import AlignmentScorer as AlignmentScorer
 from ..domain.lean.control import ControlLimits
+from ..domain.policy_set import PolicySet
 from ..domain.outcome import OutcomeEvidence
 from ..domain.pricing import Rates
 from ..domain.routing import RoutingProfile
@@ -280,6 +281,29 @@ class RoutingProfiles(Protocol):
     def default(self) -> str: ...
 
     def profile(self, name: str) -> RoutingProfile: ...
+
+
+@runtime_checkable
+class InterventionPolicies(Protocol):
+    """Supplies an intervention policy file (``ter.intervention-policies/1``):
+    declarative policies, the eligibility list and the human approval record
+    (TER-INT-008, TER-INT-015, points 163, 164, 173).
+
+    Obligations, verified by ``tests/contract/test_intervention_policies.py``:
+
+    * ``policies(ref)`` returns equal policy sets on every call for the same
+      ref, approval record included;
+    * a ref it cannot find, or a document that is not a valid policy file,
+      raises ``ter.domain.intervention.PolicyError``; it never returns some
+      of the policies;
+    * it never approves: a file without an approval record, or changed since
+      it was approved, is returned as such, and ``PolicySet.engine`` refuses
+      it.
+    """
+
+    name: str
+
+    def policies(self, ref: str | Path) -> PolicySet: ...
 
 
 @runtime_checkable

@@ -48,6 +48,7 @@ ter-req = "ter.adapters.driving.req_cli:main"
 "ControlLimitsSource.json" = "ter.adapters.driven.control_limits:JsonControlLimits"
 "Embedder.hashing" = "ter.adapters.driven.embedders:HashingEmbedder"
 "EventLog.jsonl" = "ter.adapters.driven.event_log:JsonlEventLog"
+"InterventionPolicies.json" = "ter.adapters.driven.intervention_policies:JsonInterventionPolicies"
 "OutcomeSource.junit" = "ter.adapters.driven.junit:JUnitOutcomeSource"
 "PriceBook.json" = "ter.adapters.driven.pricing:JsonPriceBook"
 "RepositoryEvidence.git" = "ter.adapters.driven.repository:GitRepositoryEvidence"
@@ -233,7 +234,7 @@ type = "forbidden"
 # Observation and intervention are separate engines (points 121, 161, 162):
 # the engine sees ter.domain.intervention.Signal values, never the events,
 # steps or findings the Analysis Engine works on.
-source_modules = ["ter.domain.intervention"]
+source_modules = ["ter.domain.intervention", "ter.domain.policy_set"]
 forbidden_modules = ["ter.domain.lean", "ter.domain.stream", "ter.domain.events"]
 
 [[tool.importlinter.contracts]]
@@ -242,7 +243,7 @@ name = "The Analysis Engine never imports the Intervention Engine (P121)"
 type = "forbidden"
 # Both engines share only ter.domain.signal.Signal.
 source_modules = ["ter.domain.lean", "ter.domain.stream", "ter.domain.signal"]
-forbidden_modules = ["ter.domain.intervention"]
+forbidden_modules = ["ter.domain.intervention", "ter.domain.policy_set"]
 
 [[tool.importlinter.contracts]]
 id = "independent-adapters"

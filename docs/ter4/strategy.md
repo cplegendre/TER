@@ -48,12 +48,12 @@ test. Counts from `requirements/l*.yaml` on this commit:
 |---|---:|---:|---:|
 | L0 Measured | 26 of 26 | 0 | 10 / 1 / 0 |
 | L1 Observed | 22 of 22 | 0 | 15 / 1 / 0 |
-| L2 Explained | 72 of 72 | 0 | 49 / 6 / 0 |
+| L2 Explained | 72 of 72 | 0 | 50 / 5 / 0 |
 | L3 Grounded | 35 of 35 | 0 | 25 / 23 / 0 |
-| L4 Advisory | 4 of 17 | 13 | 6 / 4 / 29 |
+| L4 Advisory | 7 of 17 | 10 | 9 / 4 / 26 |
 | L5 Corrective | 0 of 10 | 10 | 1 / 4 / 8 |
 | L6 Learning | 11 of 19 | 8 | 1 / 4 / 14 |
-| **All** | **170 of 201** | **31** | **107 / 43 / 51** of 201 |
+| **All** | **173 of 201** | **28** | **111 / 42 / 48** of 201 |
 
 The L6 requirements already verified are the ones that did not have to wait:
 a second harness (the GARE session source, TER-SRC-010 to TER-SRC-017) and
@@ -221,7 +221,13 @@ suppressed by cooldown and suppressed for ineligible categories.
    `ter.domain.lean.signals`, the shared `ter.domain.signal`, and import
    contracts in both directions); ledger-record values come with step 3.
 2. Policy files: a JSON policy reader as a capability, with an approval
-   record (TER-INT-008, TER-ARC-008, TER-INT-015).
+   record (TER-INT-008, TER-ARC-008, TER-INT-015). **Done**:
+   `ter.domain.policy_set` (`ter.intervention-policies/1`, digest-pinned
+   approval), the `InterventionPolicies` port with its JSON adapter, fake and
+   contract suite, `python -m ter policy check|approve`, and a draft file for
+   the three eligible detectors in
+   [docs/examples/policies/l4-advisory.json](../examples/policies/l4-advisory.json),
+   shipped unapproved. See [l4-advisory.md](l4-advisory.md).
 3. `InterventionLedger` port, JSONL adapter, fake and contract suite
    (TER-INT-009).
 4. Shadow mode: replay recorded sessions and write what TER *would* have

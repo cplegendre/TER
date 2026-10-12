@@ -65,6 +65,7 @@ BUILTIN_CAPABILITIES: dict[str, str] = {
     "ControlLimitsSource.json": "ter.adapters.driven.control_limits:JsonControlLimits",
     "Embedder.hashing": "ter.adapters.driven.embedders:HashingEmbedder",
     "EventLog.jsonl": "ter.adapters.driven.event_log:JsonlEventLog",
+    "InterventionPolicies.json": "ter.adapters.driven.intervention_policies:JsonInterventionPolicies",
     "OutcomeSource.junit": "ter.adapters.driven.junit:JUnitOutcomeSource",
     "PriceBook.json": "ter.adapters.driven.pricing:JsonPriceBook",
     "RepositoryEvidence.git": "ter.adapters.driven.repository:GitRepositoryEvidence",
