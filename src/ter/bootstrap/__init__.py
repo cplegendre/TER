@@ -68,6 +68,7 @@ __all__ = [
     "make_recorder",
     "make_ter_scorer",
     "make_tokenizer",
+    "session_folder_files",
     "session_source_for",
 ]
 
@@ -185,6 +186,25 @@ def session_source_for(path: Path) -> SessionSource:
     source = registry.create("SessionSource", "claude-code")
     assert isinstance(source, SessionSource)
     return source
+
+
+def session_folder_files(folder: Path) -> tuple[Path, ...]:
+    """The files of the one session exported to ``folder`` (a GARE run), or none.
+
+    A source that reads a whole folder as one session declares a static
+    ``run_files(folder)``; a corpus walk passes such a folder whole and skips
+    only these files, so other transcripts beside them are still found.
+    """
+    registry = default_registry()
+    for cap in registry.capabilities("SessionSource"):
+        try:
+            run_files = getattr(registry.factory(cap.port, cap.name), "run_files", None)
+            files = tuple(run_files(folder)) if callable(run_files) else ()
+        except Exception:  # a broken plugin must not stop Claude Code transcripts
+            continue
+        if files:
+            return files
+    return ()
 
 
 def make_ingest(tokenizer: str = "regex") -> EventIngest:
@@ -351,7 +371,9 @@ def cli_services() -> CliServices:
                 paths, lambda path: explain_transcript(path, tokenizer, "off")
             )
 
-        return ControlServices(measure, ChartSessions(JsonControlLimits()))
+        return ControlServices(
+            measure, ChartSessions(JsonControlLimits()), session_folder_files
+        )
 
     from .context import context_services
 
@@ -373,7 +395,12 @@ def cli_services() -> CliServices:
                 SystemClock(),
             )
 
-        return PolicyServices(make_policies, lambda: SystemClock().now().date(), shadow)
+        return PolicyServices(
+            make_policies,
+            lambda: SystemClock().now().date(),
+            shadow,
+            session_folder_files,
+        )
 
     return CliServices(
         policies=policies(),
