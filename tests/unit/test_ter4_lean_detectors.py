@@ -194,12 +194,19 @@ class TestRepeatedExploration:
         assert f.confidence == 0.55 and f.uncertain
         assert "no text" in f.explanation
 
-    def test_boundary_one_text_less_side_is_enough(self) -> None:
+    def test_boundary_text_then_no_text_is_a_changed_result(self) -> None:
         s = Script()
         s.read("src/a.py", "x = 1")
         s.read("src/a.py", "")
+        assert found(s, "repeated_exploration") == []
+
+    def test_an_empty_search_repeated_stays_confident(self) -> None:
+        # Only reads return images; a search with no text is still compared.
+        s = Script()
+        s.search("argparse", "")
+        s.search("argparse", "")
         [f] = found(s, "repeated_exploration")
-        assert f.uncertain
+        assert f.confidence == 0.85
 
     def test_a_text_reread_with_a_shell_call_between_stays_confident(self) -> None:
         # Identical text shows the shell call left the file as it was.

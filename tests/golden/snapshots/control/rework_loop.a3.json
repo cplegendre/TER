@@ -1,8 +1,8 @@
 {
   "computed_on": "2026-10-10",
-  "detectors": "ebeaf71592ee",
+  "detectors": "880e3c8b143c",
   "firing": 1,
-  "limits_detectors": "ebeaf71592ee",
+  "limits_detectors": "880e3c8b143c",
   "measures": [
     {
       "centre": 0.114844,

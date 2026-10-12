@@ -362,8 +362,9 @@ class RepeatedExploration:
     confidence_rule: str = (
         "0.85 when the same read or search (same arguments) returned identical "
         "output and the file was not edited in between; 0.55 (uncertain) when "
-        "either output was not observed, or held no text (an image read, whose "
-        "pixels the transcript does not compare). A read after an edit of that "
+        "either output was not observed, or a read returned no text both times "
+        "(an image, whose pixels the transcript does not compare). A read after "
+        "an edit of that "
         "file, a read of a different range, or a changed output is not a finding."
     )
 
@@ -387,14 +388,17 @@ class RepeatedExploration:
             if before is None or after is None:
                 confidence = 0.55
                 note = "One of the two results was not observed."
-            elif _EMPTY_OUTPUT in (before.output_hash, after.output_hash):
+            elif before.output_hash != after.output_hash:
+                continue
+            elif (
+                step.tool_kind is ToolKind.FS_READ
+                and after.output_hash == _EMPTY_OUTPUT
+            ):
                 # An image read returns no text: equal hashes prove nothing,
                 # and a render or script may have redrawn it (shadow judge,
                 # 12 Oct 2026: three re-read screenshots, all not waste).
                 confidence = 0.55
-                note = "One of the two results held no text to compare (an image)."
-            elif before.output_hash != after.output_hash:
-                continue
+                note = "Both reads returned no text to compare (an image)."
             else:
                 confidence = 0.85
                 note = "The output was identical and the agent had not changed it."

@@ -1,6 +1,6 @@
 {
   "computed_on": "2026-10-10",
-  "detectors": "ebeaf71592ee",
+  "detectors": "880e3c8b143c",
   "measures": {
     "agent_seconds": {
       "basis": "seconds",
