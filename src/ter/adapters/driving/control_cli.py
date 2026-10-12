@@ -61,8 +61,9 @@ class ControlServices:
     #: ``measure(paths, tokenizer)``: explain and measure each session.
     measure: Callable[[Sequence[Path], str], "MeasuredSessions"]
     chart: "ChartSessions"
-    #: ``is_session(folder)``: the folder is one session (a GARE run export).
-    is_session: Callable[[Path], bool] = lambda _: False
+    #: ``run_files(folder)``: the files of the one session exported to the
+    #: folder (a GARE run), or none.
+    run_files: Callable[[Path], Sequence[Path]] = lambda _: ()
 
 
 def add_control_parser(
@@ -128,32 +129,34 @@ def add_control_parser(
 
 
 def session_files(
-    sources: Sequence[Path], is_session: Callable[[Path], bool] = lambda _: False
+    sources: Sequence[Path], run_files: Callable[[Path], Sequence[Path]] = lambda _: ()
 ) -> Iterator[Path]:
     """Every session under ``sources``, in path order.
 
     A corpus folder is read from its ``sessions/``; subagent transcripts are
-    part of their parent session and are skipped. A folder ``is_session``
-    accepts (a GARE run export) is one session: it is yielded whole, never
-    split into its files.
+    part of their parent session and are skipped. A folder ``run_files``
+    claims (a GARE run export) is one session: it is yielded whole and its own
+    files are not read again, but other transcripts beside or below it are.
     """
     for source in sources:
-        if source.is_file() or is_session(source):
+        if source.is_file():
             yield source
             continue
         root = source / "sessions" if (source / "sessions").is_dir() else source
         runs: list[Path] = []
-        for folder in sorted(p for p in root.rglob("*") if p.is_dir()):
-            inside = folder.relative_to(root).parts
-            if "subagents" in inside or any(folder.is_relative_to(r) for r in runs):
+        claimed: set[Path] = set()
+        folders = [root, *(p for p in root.rglob("*") if p.is_dir())]
+        for folder in folders:
+            if "subagents" in folder.relative_to(root).parts:
                 continue
-            if is_session(folder):
+            files = run_files(folder)
+            if files:
                 runs.append(folder)
+                claimed.update(files)
         transcripts = [
             path
             for path in root.rglob("*.jsonl")
-            if "subagents" not in path.relative_to(root).parts
-            and not any(path.is_relative_to(r) for r in runs)
+            if "subagents" not in path.relative_to(root).parts and path not in claimed
         ]
         yield from sorted(transcripts + runs)
 
@@ -206,7 +209,7 @@ def _measure(args: argparse.Namespace, services: ControlServices, err: IO[str]) 
     if missing:
         err.write(f"No such session file or folder: {missing[0]}\n")
         return 2
-    paths = list(session_files(args.sources, services.is_session))
+    paths = list(session_files(args.sources, services.run_files))
     if not paths:
         err.write("No session transcripts (.jsonl) found\n")
         return 2

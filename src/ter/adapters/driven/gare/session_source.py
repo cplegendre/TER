@@ -144,6 +144,26 @@ class GareRunSource:
             return _explain_shape(_load_json(path))
         return False
 
+    @staticmethod
+    def run_files(folder: str | Path) -> tuple[Path, ...]:
+        """The files of the run exported to ``folder``, or none.
+
+        A folder is a run when it holds a valid ``explain.json``; its files
+        are that and the usage exports beside it. Anything else in the folder
+        (a Claude Code transcript, a subfolder) is not the run's. Only the
+        small ``explain.json`` is read unless the folder is a run, so walking
+        an ordinary corpus costs no extra transcript reads.
+        """
+        path = Path(folder)
+        explain = path / EXPLAIN_FILE
+        try:
+            if not (explain.is_file() and _explain_shape(_load_json(explain))):
+                return ()
+        except OSError:
+            return ()
+        usage = [p for p in sorted(path.glob("*.jsonl")) if _is_usage_file(p)]
+        return (explain, *usage)
+
     def read(self, ref: str | Path) -> SessionTrace:
         path = Path(ref)
         if not path.exists():

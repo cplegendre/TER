@@ -238,12 +238,60 @@ def test_session_files_keeps_a_gare_run_folder_whole(tmp_path: Path) -> None:
     run_dir = tmp_path / "corpus" / "runs" / "r1"
     shutil.copytree(GARE_RUN, run_dir)
     (tmp_path / "corpus" / "abc.jsonl").write_text("", encoding="utf-8")
-    found = list(session_files([tmp_path / "corpus"], bootstrap.is_session_folder))
+    walk = bootstrap.session_folder_files
+    found = list(session_files([tmp_path / "corpus"], walk))
     assert found == [tmp_path / "corpus" / "abc.jsonl", run_dir]
     # Named directly, the run is one session too, not its two files.
-    assert list(session_files([run_dir], bootstrap.is_session_folder)) == [run_dir]
+    assert list(session_files([run_dir], walk)) == [run_dir]
     # Without the check, the usage export would be read on its own.
     assert [p.name for p in session_files([run_dir])] == ["gare-ter-usage.jsonl"]
+
+
+def test_session_files_still_finds_transcripts_beside_a_gare_run(
+    tmp_path: Path,
+) -> None:
+    import shutil
+
+    run_dir = tmp_path / "mixed"
+    shutil.copytree(GARE_RUN, run_dir)
+    (run_dir / "claude.jsonl").write_text("", encoding="utf-8")
+    (run_dir / "nested").mkdir()
+    (run_dir / "nested" / "deeper.jsonl").write_text("", encoding="utf-8")
+    found = list(session_files([run_dir], bootstrap.session_folder_files))
+    assert found == [
+        run_dir,
+        run_dir / "claude.jsonl",
+        run_dir / "nested" / "deeper.jsonl",
+    ]
+
+
+def test_a_folder_with_a_broken_explain_file_is_not_a_run(tmp_path: Path) -> None:
+    (tmp_path / "explain.json").write_text("{not json", encoding="utf-8")
+    (tmp_path / "abc.jsonl").write_text("", encoding="utf-8")
+    assert bootstrap.session_folder_files(tmp_path) == ()
+    found = list(session_files([tmp_path], bootstrap.session_folder_files))
+    assert found == [tmp_path / "abc.jsonl"]
+
+
+def test_walking_an_ordinary_corpus_reads_no_transcript(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from ter.adapters.driven.gare import session_source
+
+    for n in range(3):
+        folder = tmp_path / f"p{n}"
+        folder.mkdir()
+        (folder / "s.jsonl").write_text('{"type": "user"}\n', encoding="utf-8")
+    scanned: list[Path] = []
+    real = session_source._is_usage_file
+
+    def spy(path: Path) -> bool:
+        scanned.append(path)
+        return real(path)
+
+    monkeypatch.setattr(session_source, "_is_usage_file", spy)
+    found = list(session_files([tmp_path], bootstrap.session_folder_files))
+    assert len(found) == 3 and scanned == []
 
 
 def test_control_measure_reads_a_gare_run_folder_as_one_session(

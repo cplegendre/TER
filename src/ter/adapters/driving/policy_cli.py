@@ -61,8 +61,9 @@ class PolicyServices:
     #: ``shadow(sessions, policies, ledger_dir, tokenizer)``: replay sessions
     #: through approved policies into a ledger (TER-INT-017).
     shadow: Callable[[Sequence[Path], PolicySet, Path, str], "ShadowRun"] | None = None
-    #: ``is_session(folder)``: the folder is one session (a GARE run export).
-    is_session: Callable[[Path], bool] = lambda _: False
+    #: ``run_files(folder)``: the files of the one session exported to the
+    #: folder (a GARE run), or none.
+    run_files: Callable[[Path], Sequence[Path]] = lambda _: ()
 
 
 def add_policy_parser(
@@ -174,7 +175,7 @@ def _shadow(
     if missing:
         err.write(f"No such session file or folder: {missing[0]}\n")
         return 2
-    paths = list(session_files(args.sources, services.is_session))
+    paths = list(session_files(args.sources, services.run_files))
     if not paths:
         err.write("No session transcripts (.jsonl) found\n")
         return 2

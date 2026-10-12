@@ -68,7 +68,7 @@ __all__ = [
     "make_recorder",
     "make_ter_scorer",
     "make_tokenizer",
-    "is_session_folder",
+    "session_folder_files",
     "session_source_for",
 ]
 
@@ -163,9 +163,13 @@ def make_ter_scorer(mode: str) -> TerScorer | None:
     return scorer
 
 
-def _claimed_by(path: Path) -> SessionSource | None:
-    """The first non-Claude-Code ``SessionSource``, by name, whose static
-    ``accepts(ref)`` takes ``path`` (a GARE export, say); ``None`` when none does."""
+def session_source_for(path: Path) -> SessionSource:
+    """The agent adapter for a reference, from the ``SessionSource`` capabilities.
+
+    A source that can tell its own files apart declares a static
+    ``accepts(ref)``; the first, by name, that accepts ``path`` reads it (a
+    GARE export, say). Anything else is a Claude Code transcript.
+    """
     registry = default_registry()
     for cap in registry.capabilities("SessionSource"):
         if cap.name == "claude-code":
@@ -179,28 +183,28 @@ def _claimed_by(path: Path) -> SessionSource | None:
             continue
         assert isinstance(source, SessionSource)  # checked by the registry
         return source
-    return None
-
-
-def session_source_for(path: Path) -> SessionSource:
-    """The agent adapter for a reference, from the ``SessionSource`` capabilities.
-
-    A source that can tell its own files apart declares a static
-    ``accepts(ref)``; the first, by name, that accepts ``path`` reads it (a
-    GARE export, say). Anything else is a Claude Code transcript.
-    """
-    claimed = _claimed_by(path)
-    if claimed is not None:
-        return claimed
-    source = default_registry().create("SessionSource", "claude-code")
+    source = registry.create("SessionSource", "claude-code")
     assert isinstance(source, SessionSource)
     return source
 
 
-def is_session_folder(path: Path) -> bool:
-    """True when ``path`` is a folder a ``SessionSource`` reads as one session
-    (a GARE run export), so a corpus walk keeps it whole."""
-    return path.is_dir() and _claimed_by(path) is not None
+def session_folder_files(folder: Path) -> tuple[Path, ...]:
+    """The files of the one session exported to ``folder`` (a GARE run), or none.
+
+    A source that reads a whole folder as one session declares a static
+    ``run_files(folder)``; a corpus walk passes such a folder whole and skips
+    only these files, so other transcripts beside them are still found.
+    """
+    registry = default_registry()
+    for cap in registry.capabilities("SessionSource"):
+        try:
+            run_files = getattr(registry.factory(cap.port, cap.name), "run_files", None)
+            files = tuple(run_files(folder)) if callable(run_files) else ()
+        except Exception:  # a broken plugin must not stop Claude Code transcripts
+            continue
+        if files:
+            return files
+    return ()
 
 
 def make_ingest(tokenizer: str = "regex") -> EventIngest:
@@ -368,7 +372,7 @@ def cli_services() -> CliServices:
             )
 
         return ControlServices(
-            measure, ChartSessions(JsonControlLimits()), is_session_folder
+            measure, ChartSessions(JsonControlLimits()), session_folder_files
         )
 
     from .context import context_services
@@ -395,7 +399,7 @@ def cli_services() -> CliServices:
             make_policies,
             lambda: SystemClock().now().date(),
             shadow,
-            is_session_folder,
+            session_folder_files,
         )
 
     return CliServices(
