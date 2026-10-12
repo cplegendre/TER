@@ -924,7 +924,7 @@ escalations, their outcome change, cost and latency.
 Limits: the router reads a recorded session after the fact, so its
 escalations are what *should* have happened, not what did; decisions are not
 yet shown in the A3 (P146 partial); and the recommendation is not delivered
-to a live session before L4 (P138, TER-INT-005).
+to a live session: that is a corrective action, at L5 (P138, TER-INT-005).
 
 ## Call edges, more contracts and recorded measures
 

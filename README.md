@@ -61,8 +61,8 @@ flowchart LR
 ### Maturity levels
 
 TER 4 is delivered in seven levels. A level is claimed only when every
-requirement at that level is verified by a passing test. **L0 to L3 are met:
-TER 4 is at L3 Grounded**, and L4 Advisory is next. The
+requirement at that level is verified by a passing test. **L0 to L4 are met:
+TER 4 is at L4 Advisory**, and L5 Corrective is next. The
 [strategy and maturity roadmap](docs/ter4/strategy.md) says what was checked
 on real sessions, what is still unproven, and how L4 to L6 will be built.
 
@@ -72,8 +72,8 @@ on real sessions, what is still unproven, and how L4 to L6 will be built.
 | L1 | Observed | Event stream as the core boundary, Claude Code hooks (Stop and SubagentStop included), hook recorder, live = batch | Met; CI gate; hook ids checked on real recordings | 22 of 22 | 15 / 1 / 0 |
 | L2 | Explained | Lean model, waste detectors, evidence graph, scorecard, A3, outcome verdict, redacted corpus import | Met; CI gate; detectors calibrated on real sessions | 72 of 72 | 50 / 5 / 0 |
 | L3 | Grounded | Repository evidence (symbols, imports, tests, call edges, Git), change surface, architecture contracts, context bundles, advisory routing | Met; gated in CI | 35 of 35 | 25 / 23 / 0 |
-| L4 | Advisory | Intervention engine, declarative policies, ledger | In progress: engine, guards, policy files with approval, the ledger, shadow mode, live advice through the hook, its follow-up and the control loop built | 15 of 18 | 18 / 10 / 11 |
-| L5 | Corrective | Calibration, benchmarks, opt-in corrective actions | Not started | 0 of 10 | 1 / 4 / 8 |
+| L4 | Advisory | Intervention engine, declarative policies, ledger, live advice through the hook, its follow-up, the control loop, control-chart triggers | Met; CI gate; advice awaits real use | 16 of 16 | 19 / 8 / 4 |
+| L5 | Corrective | Calibration, benchmarks, opt-in corrective actions | Not started | 0 of 12 | 1 / 5 / 15 |
 | L6 | Learning | Closed loop, second harness, research datasets | Second harness (GARE) and stack comparison built | 11 of 19 | 1 / 4 / 14 |
 
 Points that need real session data stay partial until real sessions confirm
@@ -306,7 +306,7 @@ The TER 3 pipeline is described in [docs/architecture.md](docs/architecture.md).
   corpus (286 sessions), hook recordings and 52 sessions with their
   repositories were checked on 9 October 2026; annotation, benchmarks and
   critical-evidence lists are still to come
-  ([what was checked and what remains](docs/ter4/strategy.md#where-ter-is-now-l0-to-l3-met)).
+  ([what was checked and what remains](docs/ter4/strategy.md#where-ter-is-now-l0-to-l4-met)).
 
 ## Development
 
