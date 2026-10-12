@@ -5,7 +5,9 @@ Replay recorded sessions through the approved policies and write what TER
 session is explained exactly as ``python -m ter explain`` does, its findings
 become detector signals, and a fresh Intervention Engine (cooldowns are per
 session) judges them in the order they became known. Every verdict, the
-advice and every suppression with its reason, is one ledger record.
+advice and every suppression with its reason, is one ledger record, stamped
+with the policy file's digest; a record the ledger already holds is not
+written again.
 
 Shadow mode is where a policy is judged on real sessions before any advice
 reaches a developer: the advised records are what a person reviews.
@@ -44,11 +46,14 @@ class ShadowAdvice:
 class ShadowRun:
     #: Every session replayed, in order.
     sessions: tuple[str, ...]
-    #: Every ledger record written, in order.
+    #: Every decision made, in order.
     records: tuple[LedgerRecord, ...]
     advice: tuple[ShadowAdvice, ...]
     #: ``(session ref, error)`` for every session that could not be explained.
     failures: tuple[tuple[str, str], ...]
+    #: Decisions the ledger did not already hold: a replay under the same
+    #: approved policies writes none.
+    written: int = 0
 
     def outcomes(self) -> Counter[tuple[str, str]]:
         """Records per (policy, outcome)."""
@@ -73,6 +78,8 @@ def shadow_sessions(
     records: list[LedgerRecord] = []
     advice: list[ShadowAdvice] = []
     failures: list[tuple[str, str]] = []
+    version = policies.digest()
+    written = 0
     for ref in refs:
         try:
             explained = explain(ref)
@@ -82,11 +89,19 @@ def shadow_sessions(
         session_id = explained.trace.session_id or ref.stem
         sessions.append(session_id)
         engine = policies.engine()
+        known = {e.id for e in ledger.entries(session_id)}
         for signal in detector_signals(explained.analysis):
             for verdict in engine.apply(signal):
-                record = LedgerRecord.from_verdict(verdict, session_id, clock.now())
-                ledger.record(record)
+                record = LedgerRecord.from_verdict(
+                    verdict, session_id, clock.now(), version
+                )
+                if record.id not in known:
+                    ledger.record(record)
+                    known.add(record.id)
+                    written += 1
                 records.append(record)
                 if record.delivered:
                     advice.append(ShadowAdvice(record, signal))
-    return ShadowRun(tuple(sessions), tuple(records), tuple(advice), tuple(failures))
+    return ShadowRun(
+        tuple(sessions), tuple(records), tuple(advice), tuple(failures), written
+    )

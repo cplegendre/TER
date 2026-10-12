@@ -175,3 +175,111 @@ def test_cli_shadow_reports_missing_sessions(tmp_path: Path) -> None:
         ["policy", "shadow", str(policies), str(empty), "--ledger", "x"]
     )
     assert code == 2 and "No session transcripts" in err
+
+
+@pytest.mark.req("TER-INT-017")
+def test_a_replay_into_the_same_ledger_writes_nothing_new(tmp_path: Path) -> None:
+    ledger = JsonlInterventionLedger(tmp_path)
+    first = shadow_sessions([SESSION], explain, approved(), ledger, FixedClock(AT))
+    lines = ledger.path_for("sample-session-001").read_text(encoding="utf-8")
+    again = shadow_sessions([SESSION], explain, approved(), ledger, FixedClock(AT))
+    assert (first.written, again.written) == (2, 0)
+    assert len(again.records) == 2
+    assert ledger.path_for("sample-session-001").read_text(encoding="utf-8") == lines
+
+
+@pytest.mark.req("TER-INT-017", "TER-INT-009")
+def test_a_revised_policy_file_writes_new_records_beside_the_old() -> None:
+    ledger = InMemoryInterventionLedger()
+    before = shadow_sessions([SESSION], explain, approved(), ledger, FixedClock(AT))
+    doc = json.loads(EXAMPLE.read_text(encoding="utf-8"))
+    for policy in doc["policies"]:
+        if policy["id"] == "reuse-reads":
+            policy["advice"]["message"] = "Reuse what you already read."
+    revised = PolicySet.from_mapping(doc).approve("Leigh", date(2026, 10, 13))
+    after = shadow_sessions([SESSION], explain, revised, ledger, FixedClock(AT))
+    assert after.written == 2
+    entries = ledger.entries("sample-session-001")
+    assert len(entries) == 4
+    assert {e.policy_version for e in entries} == {
+        approved().digest(),
+        revised.digest(),
+    }
+    assert after.advice[0].record.advice == "Reuse what you already read."
+
+
+@pytest.mark.parametrize(
+    ("text", "cell"),
+    [
+        ("=HYPERLINK(1)", "'=HYPERLINK(1)"),
+        ("+1", "'+1"),
+        ("-rf", "'-rf"),
+        ("@x", "'@x"),
+        ("src/a.py", "src/a.py"),
+        ("", ""),
+    ],
+)
+def test_judging_cells_never_run_as_formulas(text: str, cell: str) -> None:
+    from ter.adapters.driving.policy_cli import _cell
+
+    assert _cell(text) == cell
+
+
+def test_cli_shadow_writes_a_private_csv_in_a_new_folder(tmp_path: Path) -> None:
+    import os
+    import stat
+
+    policies = policy_file(tmp_path, approve=True)
+    judge = tmp_path / "new" / "deeper" / "judge.csv"
+    code, _, err = run_cli(
+        [
+            "policy",
+            "shadow",
+            str(policies),
+            str(SESSION),
+            "--ledger",
+            str(tmp_path / "ledger"),
+            "--judge",
+            str(judge),
+        ]
+    )
+    assert code == 0, err
+    assert judge.read_text(encoding="utf-8").startswith("verdict,note,session")
+    if os.name == "posix":
+        assert stat.S_IMODE(judge.stat().st_mode) == 0o600
+
+
+def test_cli_shadow_rejects_an_unknown_tokenizer_before_replaying(
+    tmp_path: Path,
+) -> None:
+    policies = policy_file(tmp_path, approve=True)
+    code, _, err = run_cli(
+        [
+            "policy",
+            "shadow",
+            str(policies),
+            str(SESSION),
+            "--ledger",
+            str(tmp_path / "ledger"),
+            "--tokenizer",
+            "nope",
+        ]
+    )
+    assert code == 2 and "Unknown tokenizer 'nope'" in err
+    assert not (tmp_path / "ledger").exists()
+
+
+def test_cli_shadow_reports_a_ledger_error_without_a_traceback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from ter.domain.ledger import LedgerError
+
+    def broken(self: object, entry: object) -> None:
+        raise LedgerError("ledger is read-only")
+
+    monkeypatch.setattr(JsonlInterventionLedger, "record", broken)
+    policies = policy_file(tmp_path, approve=True)
+    code, _, err = run_cli(
+        ["policy", "shadow", str(policies), str(SESSION), "--ledger", str(tmp_path)]
+    )
+    assert code == 2 and "ledger is read-only" in err

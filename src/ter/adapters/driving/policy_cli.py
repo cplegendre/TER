@@ -35,6 +35,7 @@ from typing import IO, TYPE_CHECKING
 
 from ...domain.capabilities import CapabilityError
 from ...domain.intervention import PolicyError
+from ...domain.ledger import LedgerError
 from ...domain.policy_set import ApprovalState, PolicySet
 from ...ports.driven import InterventionPolicies
 
@@ -179,7 +180,7 @@ def _shadow(
     ledger = Path(args.ledger).expanduser()
     try:
         run = services.shadow(paths, policies, ledger, args.tokenizer)
-    except OSError as exc:
+    except (OSError, LedgerError, CapabilityError, PolicyError) as exc:
         err.write(f"Cannot write the ledger in {ledger}: {exc}\n")
         return 2
     out.write(format_shadow(run, ledger))
@@ -203,7 +204,7 @@ def format_shadow(run: "ShadowRun", ledger: Path) -> str:
     """What shadow mode would have done, per policy and outcome."""
     lines = [
         f"Shadow mode: {len(run.sessions)} session(s), {len(run.records)} "
-        f"decision(s) written to {ledger}. Nothing was delivered."
+        f"decision(s), {run.written} new in {ledger}. Nothing was delivered."
     ]
     outcomes = run.outcomes()
     for policy in sorted({p for p, _ in outcomes}):
@@ -233,9 +234,24 @@ _JUDGE_COLUMNS = (
 )
 
 
+def _cell(text: str) -> str:
+    """A cell a spreadsheet shows as text, never runs as a formula."""
+    return "'" + text if text[:1] in ("=", "+", "-", "@", "\t", "\r") else text
+
+
 def _write_judge_csv(path: Path, run: "ShadowRun") -> None:
-    """The advice to judge: verdict is waste, not waste or unsure."""
-    with open(path, "w", encoding="utf-8", newline="") as handle:
+    """The advice to judge: verdict is waste, not waste or unsure.
+
+    The file names sessions and files, so it is created private to its owner
+    (0600 on POSIX), as the ledger is.
+    """
+    if path.parent != Path():
+        path.parent.mkdir(parents=True, exist_ok=True)
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_BINARY", 0)
+    fd = os.open(path, flags, 0o600)
+    if os.name == "posix":
+        os.fchmod(fd, 0o600)
+    with open(fd, "w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
         writer.writerow(_JUDGE_COLUMNS)
         for item in run.advice:
@@ -244,14 +260,14 @@ def _write_judge_csv(path: Path, run: "ShadowRun") -> None:
                 (
                     "",
                     "",
-                    r.session_id,
+                    _cell(r.session_id),
                     r.policy,
                     r.detector,
                     f"{r.confidence:.2f}",
-                    s.title,
-                    s.subject,
-                    " ".join(r.evidence),
-                    r.advice,
+                    _cell(s.title),
+                    _cell(s.subject),
+                    _cell(" ".join(r.evidence)),
+                    _cell(r.advice),
                     r.id,
                 )
             )

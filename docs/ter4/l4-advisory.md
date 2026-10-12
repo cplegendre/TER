@@ -126,9 +126,10 @@ below hysteresis, low confidence and so on. `--judge` writes the advice TER
 would have given to a CSV with an empty `verdict` column (waste, not waste
 or unsure) and the finding's title and subject, so a person can judge it.
 The CSV names files and session ids, so it stays on the developer's
-machine. Use a fresh ledger folder for each run: a ledger keeps the first
-record for each decision, so a second run with the same signals adds
-nothing.
+machine, created private to its owner. Each record carries the digest of
+the policy file that made it, so a run under a revised file writes new
+records beside the old ones, and a second run under the same file writes
+nothing new.
 
 Judging that CSV is how a policy earns live advice (step 5). It is also how
 the `regeneration` 70% cut gets the second session it needs.
