@@ -125,7 +125,7 @@ class TestContextInventory:
         assert inv.unused_tokens == item.tokens
         # Cited by the unused_context finding, promoted by the judged sample.
         assert item.finding is not None and item.finding.startswith("unused_context:")
-        assert not item.uncertain
+        assert item.uncertain  # judged samples disagree: counted until verified
         assert item.request_id is not None
 
     def test_reads_after_the_first_are_reread_tokens(self) -> None:

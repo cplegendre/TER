@@ -41,3 +41,14 @@ The owner's rule: **uncertain = waste until verified.**
 
 - Waste totals rise and flow efficiency falls on sessions with uncertain
   findings; the golden snapshots show the change.
+
+## Note (12 Oct 2026)
+
+The second judged sample (`judge-l4`, 87 confident findings over 286
+sessions, see [l2-explained.md](../ter4/l2-explained.md#second-judged-sample-12-oct-2026))
+reversed the four promotions of 10 Oct: `unused_context`, `unused_traversal`,
+`unnecessary_handoff` and `excessive_context` were 0 of 37 waste. As point 4
+allows, their rules were tightened and they are uncertain again, at 0.55 to
+0.65 (`DISPUTED_CONFIDENCE`). `JUDGED_CONFIDENCE` was removed. The decision
+itself is unchanged: they still count as waste until verified and never
+trigger an intervention.

@@ -33,7 +33,7 @@ A level is two things at once ([architecture](architecture.md#maturity-levels)):
 |---|---|---|---|
 | L0 | Measured | TER 3 scores reproduced inside the hexagon: event contract, scoring, dated prices | Golden TER 3 scores unchanged; user tokens never scored; dependencies point inward; no intervention below L4 |
 | L1 | Observed | The `ter.event` stream is the core boundary; Claude Code hooks feed it live; live analysis equals batch | Hook append under 50 ms p95; redelivery changes nothing; incremental = batch on every corpus session; hook ids equal transcript ids |
-| L2 | Explained | Lean model: activity classes, value stream, waste detectors with evidence and published confidence rules, scorecard, A3 | Every finding cites events; uncertain findings never counted; iteration is not rework; A3 countermeasures come from findings only |
+| L2 | Explained | Lean model: activity classes, value stream, waste detectors with evidence and published confidence rules, scorecard, A3 | Every finding cites events; uncertain findings counted until verified, never a trigger; iteration is not rework; A3 countermeasures come from findings only |
 | L3 | Grounded | Repository evidence behind the analysis: symbols, imports, tests, call edges, Git, change surface, architecture contracts, context bundles, advisory routing | Evidence only through the `RepositoryEvidence` port; deterministic engines; change surface and boundary findings; bundle precision and recall; routing by role only |
 | L4 | Advisory | An intervention engine applies declarative policies to detector signals and advises the developer; every intervention is written to a ledger | Advice changes no agent input; no advice without evidence; cooldowns; every intervention ledgered with its outcome |
 | L5 | Corrective | Calibration on labelled data and benchmarks decides which waste categories may be corrected, and corrective actions are opt-in | Annotations, agreement and per-category precision and recall with confidence intervals; benchmark comparisons with confidence intervals |
@@ -48,12 +48,12 @@ test. Counts from `requirements/l*.yaml` on this commit:
 |---|---:|---:|---:|
 | L0 Measured | 26 of 26 | 0 | 10 / 1 / 0 |
 | L1 Observed | 22 of 22 | 0 | 15 / 1 / 0 |
-| L2 Explained | 71 of 71 | 0 | 49 / 6 / 0 |
+| L2 Explained | 72 of 72 | 0 | 49 / 6 / 0 |
 | L3 Grounded | 35 of 35 | 0 | 25 / 23 / 0 |
 | L4 Advisory | 4 of 17 | 13 | 6 / 4 / 29 |
 | L5 Corrective | 0 of 10 | 10 | 1 / 4 / 8 |
 | L6 Learning | 11 of 19 | 8 | 1 / 4 / 14 |
-| **All** | **169 of 200** | **31** | **107 / 43 / 51** of 201 |
+| **All** | **170 of 201** | **31** | **107 / 43 / 51** of 201 |
 
 The L6 requirements already verified are the ones that did not have to wait:
 a second harness (the GARE session source, TER-SRC-010 to TER-SRC-017) and
@@ -163,9 +163,13 @@ that decision, build them last and only behind a ceiling of L5.
 - L3 gate in CI (`--gate L3`): done.
 - An **eligibility list** for TER-INT-010: only waste categories whose
   confident findings were judged on real sessions with no known false
-  positives. Today that means judging the open `fragmented_edits`,
-  `regeneration` and `repeated_exploration` findings first. Every
-  `unrelated_modification` finding is uncertain and so ineligible by rule.
+  positives. After the second judged sample (judge-l4, 12 Oct 2026: 87
+  confident findings, 6 waste, 53 not waste, 28 unsure) that is
+  `fragmented_edits` (17 of 17 waste over both samples), `repeated_exploration`
+  (10 of 10) and `regeneration` at 70% or more repeated (3 of 3). The four
+  detectors promoted on 10 Oct were 0 waste of 30 decided and are uncertain
+  again, so they are ineligible by rule, as is every `unrelated_modification`
+  finding ([l2-explained.md](l2-explained.md)).
 - A choice of **delivery channel** that is visible to the developer and not
   to the model, checked against the Claude Code hook fields that
   `test_no_intervention.py` lists. **Decided (owner, 12 Oct 2026): a hook
@@ -386,9 +390,10 @@ Tracker: #47.
 - **Batch equals incremental.** Analysis is a fold over `ter.event`, O(1)
   amortised and idempotent by event id; the intervention engine is a fold
   too ([l1-observed.md](l1-observed.md)).
-- **Never count, or act on, uncertain findings.** Below 0.70 a finding is a
-  pointer for review: not counted as avoidable, not eligible for advice,
-  never corrected ([ADR 0004](../decisions/0004-lean-waste-model.md)).
+- **Never act on uncertain findings.** Below 0.70 a finding counts as waste
+  until verified ([ADR 0006](../decisions/0006-uncertain-waste-counts-until-verified.md))
+  but is not eligible for advice and never corrected
+  ([ADR 0004](../decisions/0004-lean-waste-model.md)).
 - **Real data before `done`.** Synthetic tests prove rules; a point that
   needs real data stays `partial` until real sessions confirm it
   ([points.md](points.md)).

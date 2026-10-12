@@ -1,5 +1,5 @@
 {
-  "detectors": "f8fa44bdc8e3",
+  "detectors": "eeb33ec1b38d",
   "measures": {
     "agent_seconds": "Agent time",
     "avoidable_share": "Avoidable share of generated tokens",
@@ -47,8 +47,8 @@
       "started_at": "2026-03-02T09:00:03+00:00",
       "values": {
         "agent_seconds": 57.0,
-        "avoidable_share": 0.207895,
-        "confident_findings": 5.0,
+        "avoidable_share": 0.128947,
+        "confident_findings": 3.0,
         "edits_validated_share": 1.0,
         "flow_efficiency_time": 0.578947,
         "flow_efficiency_tokens": 0.792105,
@@ -56,7 +56,7 @@
         "rework_cycles": 0.0,
         "risk_findings": 0.0,
         "ter": 0.6491,
-        "uncertain_findings": 0.0,
+        "uncertain_findings": 2.0,
         "unresolved_failures_at_end": 0.0,
         "unvalidated_edits_at_end": 0.0,
         "unverified_waste_share": 0.207895,
@@ -69,8 +69,8 @@
       "started_at": "2026-03-02T09:00:03+00:00",
       "values": {
         "agent_seconds": 33.0,
-        "avoidable_share": 0.151515,
-        "confident_findings": 1.0,
+        "avoidable_share": 0.0,
+        "confident_findings": 0.0,
         "edits_validated_share": 0.0,
         "flow_efficiency_time": 0.818182,
         "flow_efficiency_tokens": 0.848485,
@@ -78,7 +78,7 @@
         "rework_cycles": 0.0,
         "risk_findings": 1.0,
         "ter": 0.7,
-        "uncertain_findings": 0.0,
+        "uncertain_findings": 1.0,
         "unresolved_failures_at_end": 0.0,
         "unvalidated_edits_at_end": 1.0,
         "unverified_waste_share": 0.151515,

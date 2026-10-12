@@ -369,6 +369,21 @@ requirements:
       are still judged.
     status: verified
 
+  - id: TER-ITN-008
+    pattern: unwanted
+    text: >-
+      If a user message was written by the harness (a background task's
+      notification, a slash command's wrapper or output, an interruption
+      marker), then TER shall not record it as an intent revision.
+    level: L2
+    source_points: [45, 48]
+    rationale: >-
+      On the owner's second judged sample (judge-l4, 12 Oct 2026) such
+      messages were stored as intent revisions, and drift was then scored
+      against a notification's words. They state no developer intent; the
+      intent in force stays the last one the developer wrote.
+    status: verified
+
   - id: TER-LEN-001
     pattern: ubiquitous
     text: >-

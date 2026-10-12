@@ -7,7 +7,7 @@ from ter4_lean_builder import FAIL, FAIL_OTHER, PASS, Script
 
 from ter.adapters.driven.tokenizers import RegexTokenizer
 from ter.domain import ToolKind
-from ter.domain.lean.detectors import JUDGED_CONFIDENCE
+from ter.domain.lean.detectors import DISPUTED_CONFIDENCE
 from ter.domain.lean import (
     CycleVerdict,
     Finding,
@@ -632,8 +632,9 @@ class TestUnusedContext:
         s.say("Added the flag in cli.py.")
         [f] = found(s, "unused_context")
         assert f.subject == "src/utils.py" and f.waste is LeanWaste.INVENTORY
-        # Promoted by the first judged sample (10 of 10 waste).
-        assert not f.uncertain and f.confidence == JUDGED_CONFIDENCE == 0.72
+        # Judged samples disagree (10 of 10 waste, then 0 of 9): uncertain,
+        # still counted as waste until verified (ADR 0006).
+        assert f.uncertain and f.confidence == DISPUTED_CONFIDENCE == 0.55
 
     def test_identifier_use_counts(self) -> None:
         s = Script()
@@ -648,7 +649,7 @@ class TestUnusedContext:
         s.read("notes.txt", "just some notes")
         s.say("done")
         [f] = found(s, "unused_context")
-        assert f.confidence == JUDGED_CONFIDENCE
+        assert f.confidence == DISPUTED_CONFIDENCE
 
     def test_not_judged_before_a_response(self) -> None:
         s = Script()
@@ -677,7 +678,7 @@ class TestUnnecessaryHandoff:
         )
         [f] = found(s, "unnecessary_handoff")
         assert f.waste is LeanWaste.HANDOFFS and task.id in f.waste_events
-        assert 0.7 <= f.confidence <= 0.85
+        assert f.uncertain and f.confidence == 0.65
 
     def test_unrelated_follow_up_is_fine(self) -> None:
         s = Script()
@@ -705,12 +706,13 @@ class TestUnnecessaryHandoff:
     def test_boundary_half_of_the_task_covered_counts_at_the_judged_floor(
         self,
     ) -> None:
-        # 0.45 + 0.40 × 0.5 = 0.65, raised to the judged sample's 0.72.
+        # 0.45 + 0.40 × 0.5 = 0.65: uncertain, since the judged samples
+        # disagree (10 of 10 waste on 10 Oct, 0 of 9 on 12 Oct 2026).
         s = Script()
         s.task("Fetch release notes", "alpha beta gamma")
         s.bash("curl https://x.invalid/notes/release/fetch", "notes")
         [f] = found(s, "unnecessary_handoff")
-        assert not f.uncertain and f.confidence == JUDGED_CONFIDENCE
+        assert f.uncertain and f.confidence == 0.65
 
     def test_boundary_less_than_half_of_the_task_is_fine(self) -> None:
         s = Script()
@@ -822,7 +824,25 @@ class TestRegeneration:
         s.write("src/r.py", old)
         s.write("src/r.py", old + "".join(f"more {i}\n" for i in range(7)))
         [f] = found(s, "regeneration")  # 3 of 10 lines: 30% repeated
-        assert f.share == pytest.approx(0.3) and f.confidence == 0.8
+        assert f.share == pytest.approx(0.3) and f.uncertain and f.confidence == 0.6
+
+    # Judged 12 Oct 2026 (judge-l4): rewrites repeating 70% to 81% of the old
+    # file were waste; 52% to 64% were unsure.
+    def test_boundary_own_rewrite_is_confident_from_70_percent_repeated(
+        self,
+    ) -> None:
+        old = "".join(f"line {i}\n" for i in range(7))
+        s = Script()
+        s.write("src/r.py", old)
+        s.write("src/r.py", old + "".join(f"new {i}\n" for i in range(3)))
+        [f] = found(s, "regeneration")  # 7 of 10 lines: 70% repeated
+        assert f.share == pytest.approx(0.7) and not f.uncertain
+        assert f.confidence == 0.8
+        s = Script()
+        s.write("src/r.py", old)
+        s.write("src/r.py", old + "".join(f"new {i}\n" for i in range(4)))
+        [f] = found(s, "regeneration")  # 7 of 11 lines: 64% repeated
+        assert f.uncertain and f.confidence == 0.6
 
     def test_substantial_rewrite_is_fine(self) -> None:
         s = Script()

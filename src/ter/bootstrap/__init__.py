@@ -8,6 +8,7 @@ module decides which capabilities are switched on.
 from __future__ import annotations
 
 import os
+import sys
 from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -53,6 +54,7 @@ __all__ = [
     "default_event_log_dir",
     "detector_registry",
     "main",
+    "utf8_stdio",
     "make_contracts",
     "make_ingest",
     "make_outcome_source",
@@ -347,5 +349,26 @@ def cli_services() -> CliServices:
     )
 
 
+def utf8_stdio(*streams: object) -> None:
+    """Write UTF-8 to standard output and error whatever the platform says.
+
+    On Windows a piped stream defaults to the ANSI code page (cp1252), which
+    cannot encode the report's symbols (``−``, ``→``): ``python -m ter
+    explain --json | ...`` crashed with UnicodeEncodeError (12 Oct 2026).
+    A stream that is already UTF-8, or cannot be reconfigured, is left as it
+    is.
+    """
+    for stream in streams or (sys.stdout, sys.stderr):
+        encoding = str(getattr(stream, "encoding", "") or "")
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None or encoding.lower().replace("-", "") == "utf8":
+            continue
+        try:
+            reconfigure(encoding="utf-8")
+        except (OSError, ValueError):
+            continue
+
+
 def main(argv: Sequence[str] | None = None) -> int:
+    utf8_stdio()
     return cli_main(argv, cli_services())

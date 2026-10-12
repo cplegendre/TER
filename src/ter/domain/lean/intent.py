@@ -35,7 +35,7 @@ from enum import StrEnum
 from typing import Protocol, runtime_checkable
 
 from ..events import Actor, Event, EventId, EventKind, ToolKind
-from .facts import STOPWORDS, defined_identifiers, overlap
+from .facts import STOPWORDS, defined_identifiers, injected_prompt, overlap
 from .model import Step
 
 __all__ = [
@@ -484,6 +484,10 @@ class IntentLog:
     @staticmethod
     def _read(event: Event) -> _Read | None:
         if event.kind is EventKind.PROMPT:
+            # A notification, slash-command wrapper or interruption marker
+            # the harness wrote states no intent.
+            if injected_prompt(event.text):
+                return None
             return _read_prompt(event.text)
         if event.actor is not Actor.ASSISTANT or not event.kind.is_generated:
             return None
@@ -563,6 +567,7 @@ def _periods(
     alignments: Sequence[Alignment],
     steps: Sequence[Step],
     config: IntentConfig,
+    stated: frozenset[int],
 ) -> tuple[LowAlignmentPeriod, ...]:
     out: list[LowAlignmentPeriod] = []
     run: list[Alignment] = []
@@ -580,7 +585,10 @@ def _periods(
     by_index = {a.index: a for a in alignments}
     for step in steps:
         if step.kind is EventKind.PROMPT:
-            close()
+            # Only a prompt that stated intent ends a period: a harness
+            # notification arriving mid-drift does not (TER-ITN-008).
+            if step.index in stated:
+                close()
             continue
         a = by_index.get(step.index)
         if a is None or a.band is AlignmentBand.UNKNOWN:
@@ -634,7 +642,16 @@ def build_intent(
         record=IntentRecord(tuple(revisions)),
         changes=tuple(changes),
         alignments=tuple(alignments),
-        periods=_periods(alignments, steps, config),
+        periods=_periods(
+            alignments,
+            steps,
+            config,
+            frozenset(
+                s.index
+                for s, r in zip(steps, reads, strict=True)
+                if s.kind is EventKind.PROMPT and r is not None
+            ),
+        ),
         scorer=scorer.name,
         rule=scorer.rule,
         config=config,
