@@ -4,8 +4,9 @@
 giving a high-level overview of TER: its intent, the Lean framing, the
 engineering practices behind TER 4, the per-run A3, waste detection, L3
 Grounded (repository evidence, change surface, context bundles, advisory
-routing), what real sessions taught us, the GARE integration and the road
-to L4 and beyond. Speaker notes sit under
+routing), L4 Advisory (live advice, policies, ledger, the control loop),
+what real sessions taught us, the GARE integration and the road to L5 and
+L6. Speaker notes sit under
 each slide as HTML comments.
 
 It is a [Marp](https://marp.app/) deck: plain Markdown with Marp front

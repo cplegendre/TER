@@ -295,8 +295,10 @@ transcript's id: TER-OBS-007 is verified on real data.
   `tests/unit/test_ter4_claude_hooks.py`). The hook entry point avoids
   importing the transcript reader and numpy.
 - **Idempotent.** A redelivered event (same id) changes nothing (TER-OBS-004).
-- **Passive.** While the maturity ceiling is L1, the hook returns an empty
-  response (TER-OBS-008). Advisory interventions are L4 work.
+- **Passive by default.** Without `--advise`, the hook returns an empty
+  response (TER-OBS-008). With `--advise` and an approved policy file, the
+  `Stop` hook may add advice for you, never for the agent: see
+  [Turning on live advice](#turning-on-live-advice-l4).
 
 Known limits: a prompt whose transcript record the hook cannot find yet is
 keyed by its text and the second it was received (hooks carry no prompt id),
@@ -440,8 +442,50 @@ else lets the session continue.
 - Compare the A3 follow-up metric on the next comparable session. If the
   waste did not fall, remove the hook.
 - A hook that blocks often without improving flow efficiency is itself
-  waiting and rework. Evidence-based, auditable interventions with cooldowns
-  are the L4 roadmap (points P161 to P180).
+  waiting and rework. TER's own advice is evidence-based, auditable and
+  rate-limited by cooldowns instead: see
+  [Turning on live advice](#turning-on-live-advice-l4).
+
+## Turning on live advice (L4)
+
+The same hook can tell you, at the end of a turn, when a confident and
+judged waste pattern shows up, with the evidence behind it. The advice is a
+`systemMessage` you see; the agent never reads it (TER-INT-002). Turn it on
+in this order:
+
+1. Check and approve a policy file. Only you approve it; any later edit
+   voids the approval.
+
+   ```bash
+   python -m ter policy check policies.json
+   python -m ter policy approve policies.json --by NAME
+   ```
+
+2. Run it in shadow mode over recorded sessions and judge what it would
+   have said, before anything is delivered:
+
+   ```bash
+   python -m ter policy shadow policies.json sessions/ --ledger shadow-ledger --judge judge.csv
+   ```
+
+3. Add `--advise` (and a ledger) to the `Stop` hook's command in your
+   settings file. `--limits` also lets policies name control-chart signals:
+
+   ```bash
+   python -m ter hook --event-log ~/.ter/events --advise policies.json --ledger ~/.ter/advice-ledger --limits limits.json
+   ```
+
+4. After a week or so, ask whether the advice helped:
+
+   ```bash
+   python -m ter policy effectiveness --ledger ~/.ter/advice-ledger
+   ```
+
+Each piece of advice is given once per policy file and recorded in the
+ledger with what happened in the next 10 tool events. Policies the advice
+did not help are flagged for you to recalibrate or remove; TER never changes
+a policy itself. The full reference is
+[docs/ter4/l4-advisory.md](../ter4/l4-advisory.md).
 
 ## Troubleshooting
 

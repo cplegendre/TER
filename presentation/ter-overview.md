@@ -513,14 +513,14 @@ An architecture test checks that no ter module spells a model id in a string lit
 
 ![w:900](img/maturity.svg)
 
-A level is claimed only when **every** requirement at that level is verified by a passing test. **TER 4 is at L3 Grounded**: CI gates L0, L1, L2 and L3, so main cannot slip back. The level is also a runtime ceiling: below L4, TER delivers no intervention at all.
+A level is claimed only when **every** requirement at that level is verified by a passing test. **TER 4 is at L4 Advisory**: CI gates L0 to L4, so main cannot slip back. The level is also a runtime ceiling: at L4, TER advises the developer and never changes what the agent reads.
 
 | | L0 | L1 | L2 | L3 | L4 | L5 | L6 |
 |---|---|---|---|---|---|---|---|
-| Requirements verified | 25/25 | 22/22 | 54/54 | **34/34** | 0/16 | 0/10 | 11/19 |
+| Requirements verified | 26/26 | 22/22 | 72/72 | 35/35 | **16/16** | 0/12 | 11/19 |
 
 <!--
-Counts from requirements/l*.yaml on main, 146 of 180 in all. The L6 requirements already
+Counts from requirements/l*.yaml on main, 182 of 202 in all. The L6 requirements already
 verified are the ones that did not have to wait: the GARE second harness and the stack
 comparison. The ceiling is ter.domain.Maturity.permits, checked by
 tests/architecture/test_no_intervention.py (TER-INT-001).
@@ -537,11 +537,11 @@ tests/architecture/test_no_intervention.py (TER-INT-001).
 
 ```bash
 ter-req lint --tests tests
-ter-req trace --results req-trace.json --gate L3
+ter-req trace --results req-trace.json --gate L4
 ter-req points --check
 ```
 
-**Today:** 146 of 180 requirements verified; 101 points done, 43 partial, 56 not started.
+**Today:** 182 of 202 requirements verified; 121 points done, 47 partial, 33 not started.
 
 <!--
 Requirements and points move in the same PR as the code. A point is done only when its rules
@@ -633,22 +633,23 @@ so failover is still unproven.
 
 ---
 
-## Next: L4 Advisory
+## L4 Advisory: met
 
-TER tells the developer, **during** the session, what it sees and why, with the evidence. It changes nothing the agent reads, and records every piece of advice and what followed.
+TER tells the developer, **during** the session, what it sees and why, with the evidence. It never changes what the agent reads.
 
-- **Intervention engine** reading only structured detector signals, never raw events.
-- **Declarative policies**: evidence required, confidence threshold, cooldown, permitted action; approved by a human.
-- **Guards**: no advice on token counts alone, below 0.70, in a cooldown, or for a waste category not yet judged on real data.
-- **Ledger**: one record per intervention, then the developer's response and flow before and after.
+- **Intervention engine** reading only structured signals: findings and control-chart signals.
+- **Policies** approved by a human; any edit voids the approval.
+- **Guards**: no advice on token counts alone, below 0.70, in a cooldown, or for an unjudged detector.
+- **Ledger and follow-up**: was the advice heeded, and did waste fall in the next 10 tool events?
+- **Control loop**: Observe, Analyse, Decide, Intervene, Measure, Learn. TER flags policies to recalibrate, never changes one.
 
-**Shadow mode first**: replay recorded sessions, write what TER *would* have advised, judge it, and only then turn advice on.
+**Shadow mode came first**: only `batch-edits` and `reuse-reads` earned live advice.
 
 <!--
-Exit gate: all 16 L4 requirements verified, --gate L4 in CI, and test_no_intervention made
-ceiling-aware: at L4 hooks may show user-facing messages, never additionalContext, a
-decision or continue. Data needed from Leigh: verdicts on open confident findings, hook
-recordings with advice on, a week or two of sessions with advice and whether it helped.
+Exit gate met: all 16 L4 requirements verified, --gate L4 in CI. Corrective interventions
+(TER-INT-004, TER-INT-005) moved to L5, because they change what the agent reads. What real
+use still has to show: a week or two of sessions with advice on, and policy effectiveness
+from that ledger.
 -->
 
 ---
@@ -658,8 +659,8 @@ recordings with advice on, a week or two of sessions with advice and whether it 
 | Level | Adds | Status |
 |---|---|---|
 | **L3 Grounded** | Repository evidence, change surface, contracts, context bundles, advisory routing | **Met**, gated in CI |
-| **L4 Advisory** | Intervention engine, declarative policies, an intervention ledger | Next |
-| **L5 Corrective** | Annotation, agreement, precision and recall with confidence intervals, benchmarks, opt-in corrections | Planned |
+| **L4 Advisory** | Intervention engine, declarative policies, an intervention ledger, the control loop | **Met**, gated in CI |
+| **L5 Corrective** | Annotation, agreement, precision and recall with confidence intervals, benchmarks, opt-in corrections | Next |
 | **L6 Learning** | Self-suspending policies, controlled experiments, research datasets | Second harness and stack comparison built |
 
 Each level moves from describing waste to preventing it, and none acts on a session before the levels below it are shown right on real data.

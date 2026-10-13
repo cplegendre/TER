@@ -2,12 +2,17 @@
 
 L4 turns confident, judged detector findings into advice for the developer.
 The advice appears as a message from the hook TER already runs, at the end
-of a turn, and it never changes what the agent sees. This page covers the
-parts that exist so far: the Intervention Engine (step 1), policy files with
-human approval (step 2), the ledger (step 3), shadow mode (step 4), live
-advice through the hook (step 5) and the follow-up that says whether the
-advice helped (step 6). The build order and the remaining steps
-are in [strategy.md](strategy.md#l4-advisory).
+of a turn, and it never changes what the agent sees. **L4 Advisory is met**:
+all 16 of its requirements are verified by tests and CI runs
+`ter-req trace --gate L4`. This page covers what was built: the Intervention
+Engine (step 1), policy files with human approval (step 2), the ledger
+(step 3), shadow mode (step 4), live advice through the hook (step 5), the
+follow-up that says whether the advice helped (step 6), the control loop
+that runs them in order (step 7,
+[architecture.md](architecture.md#the-control-loop)) and control-chart
+signals as triggers (step 8). The build order, and what real use still has
+to show, are in [strategy.md](strategy.md#l4-advisory); corrective
+interventions that change what the agent sees are L5 work.
 
 ## The Intervention Engine
 
@@ -272,4 +277,3 @@ outcomes it is `unproven`. It `improves` when at least half its advice was
 accepted and repeats did not rise after it; otherwise it is
 `no_improvement` and listed under "Recalibrate or remove" (point 170).
 Suspending such a policy automatically is L6 (TER-INT-020).
-

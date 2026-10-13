@@ -11,7 +11,7 @@ command shown in a shell block must exist with the options it uses.
 | [Testing](testing.md) | run the suite, understand each test layer and gate, or write a new test end to end |
 | [Lean](lean.md) | learn how TER models an agent session as a value stream and what each waste detector looks for |
 | [The per-run report and the A3](a3-report.md) | read or produce the HTML report and the A3, and apply its countermeasures |
-| [Hooks](hooks.md) | capture live sessions with Claude Code hooks, or install the hooks the A3 recommends |
+| [Hooks](hooks.md) | capture live sessions with Claude Code hooks, turn on live advice (L4), or install the hooks the A3 recommends |
 | [EARS requirements](ears.md) | write a requirement, tag a test with it, and pass the trace gates |
 | [Vision points and definition of done](definition-of-done.md) | find a point, decide whether it is done, and record it honestly |
 | [Contributing](contributing.md) | set up, work through a change and push it past every gate |
