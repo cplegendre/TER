@@ -1,7 +1,7 @@
 # Control charts
 
 Point P201, requirements TER-SPC-001 to TER-SPC-013 (L2) and TER-SPC-020
-(L4, planned).
+(L4, verified).
 
 Lean separates **routine variation**, the noise every session of a stable
 way of working shows, from **special causes** worth a look. TER charts each

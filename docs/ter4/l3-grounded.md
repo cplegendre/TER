@@ -14,10 +14,10 @@ repository's architecture contracts, [context bundles](#context-bundles),
 [evidence usage, outcome value, drift and the evidence graph](#evidence-usage-outcome-value-drift-and-the-evidence-graph),
 [advisory model routing](#model-routing-advisory), and
 [call edges, more contracts and recorded measures](#call-edges-more-contracts-and-recorded-measures).
-All 34 L3 requirements are verified by tests, so **L3 Grounded is met**
+All 35 L3 requirements are verified by tests, so **L3 Grounded is met**
 (with L0 to L2). The vision points that need real sessions stay `partial`
 until they are checked on a judged corpus; what was checked on 9 October
-2026, what is still unproven and the road to L4 are in
+2026, what is still unproven and the road beyond L3 are in
 [strategy.md](strategy.md).
 
 ## Requirements
