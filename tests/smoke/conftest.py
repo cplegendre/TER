@@ -59,7 +59,8 @@ class Cli:
             env["PYTHONPATH"] = str(REPO / "src")
         self.env = env
 
-    def _script(self, name: str) -> str:
+    def script(self, name: str) -> str:
+        """The path of an installed console script."""
         suffix = ".exe" if os.name == "nt" else ""
         return str(self.bin / f"{name}{suffix}")
 
@@ -67,7 +68,7 @@ class Cli:
     def python(self) -> str:
         if not self.installed:
             return sys.executable
-        return self._script("python")
+        return self.script("python")
 
     def run(self, argv: list[str], stdin: str | None = None) -> Result:
         done = subprocess.run(
@@ -85,14 +86,14 @@ class Cli:
 
     def ter(self, *args: str, stdin: str | None = None) -> Result:
         """The TER 3 ``ter`` console script."""
-        return self.run([self._script("ter"), *args], stdin)
+        return self.run([self.script("ter"), *args], stdin)
 
     def ter4(self, *args: str, stdin: str | None = None) -> Result:
         """TER 4: ``python -m ter``."""
         return self.run([self.python, "-m", "ter", *args], stdin)
 
     def ter_req(self, *args: str) -> Result:
-        return self.run([self._script("ter-req"), *args])
+        return self.run([self.script("ter-req"), *args])
 
 
 @pytest.fixture(scope="module")

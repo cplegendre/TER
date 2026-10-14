@@ -8,20 +8,24 @@ where it is not, they must refuse with the install command, never crash.
 from __future__ import annotations
 
 import json
+import subprocess
 from functools import cache
 from pathlib import Path
 
 import pytest
 
-from .conftest import FIXTURE, SAMPLE, Cli, Result
+from .conftest import FIXTURE, HOOKS, REPO, SAMPLE, Cli, Result
+
+BENCHMARK = REPO / "benchmarks" / "example_annotations.jsonl"
+CANDIDATE = REPO / "benchmarks" / "example_annotations_candidate.jsonl"
+#: How long ``ter watch`` must keep following a session to count as working.
+WATCH_SECONDS = 20
 
 pytestmark = pytest.mark.smoke
 
 
 @cache
 def _has_embeddings(python: str) -> bool:
-    import subprocess
-
     probe = subprocess.run(
         [python, "-c", "import sentence_transformers"], capture_output=True, check=False
     )
@@ -88,11 +92,73 @@ def test_context_optimize_with_a_budget(cli: Cli) -> None:
 
 
 @pytest.mark.req("TER-TST-006")
-@pytest.mark.parametrize("command", ["benchmark", "benchmark-compare", "hook", "watch"])
-def test_help_of_commands_that_need_labelled_data(cli: Cli, command: str) -> None:
-    # These read labelled predictions, a live hook stream or a terminal; their
-    # behaviour is covered in tests/unit, the smoke test proves they load.
-    assert "usage:" in cli.ter(command, "--help").ok().out
+def test_benchmark_scores_labelled_predictions(cli: Cli) -> None:
+    report = json.loads(
+        cli.ter(
+            "benchmark", str(BENCHMARK), "--format", "json", "--bootstrap-samples", "50"
+        )
+        .ok()
+        .out
+    )
+    assert report["binary"]["support"] == 6
+    assert 0.0 <= report["binary"]["f1"] <= 1.0
+
+
+@pytest.mark.req("TER-TST-006")
+def test_benchmark_compare_reports_the_delta(cli: Cli) -> None:
+    report = json.loads(
+        cli.ter("benchmark-compare", str(BENCHMARK), str(CANDIDATE), "--format", "json")
+        .ok()
+        .out
+    )
+    assert report["baseline_records"] == report["candidate_records"] == 6
+    accuracy = report["accuracy"]
+    assert accuracy["delta"] == pytest.approx(
+        accuracy["candidate"] - accuracy["baseline"]
+    )
+
+
+@pytest.mark.req("TER-TST-006")
+def test_hook_monitor_answers_claude_code(cli: Cli) -> None:
+    payload = (HOOKS / "post_tool_use_read.json").read_text(encoding="utf-8")
+    result = cli.ter("hook", "monitor", stdin=payload).ok()
+    assert isinstance(json.loads(result.out), dict)
+
+
+@pytest.mark.req("TER-TST-007")
+@pytest.mark.parametrize("stdin", ["", "{not json"], ids=["empty", "torn"])
+def test_hook_monitor_never_blocks_on_a_bad_payload(cli: Cli, stdin: str) -> None:
+    # Exit 2 would block the tool call in Claude Code; any other failure is
+    # shown to the user and the agent carries on.
+    result = cli.ter("hook", "monitor", stdin=stdin)
+    assert result.code != 2, result.err
+    assert "Traceback" not in result.err, result.err
+
+
+@pytest.mark.req("TER-TST-006")
+def test_watch_follows_a_session(cli: Cli, workdir: Path) -> None:
+    argv = [cli.script("ter"), "watch", str(SAMPLE), "--stream", "--format", "json"]
+    with subprocess.Popen(
+        argv,
+        cwd=workdir,
+        env=cli.env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+    ) as watch:
+        try:
+            out, err = watch.communicate(timeout=WATCH_SECONDS)
+        except subprocess.TimeoutExpired:
+            # Still following the session: watching works until stopped.
+            watch.kill()
+            out, err = watch.communicate()
+            assert _has_embeddings(cli.python), err
+            assert "Traceback" not in err, err
+            return
+    # It stopped by itself: only right without the embedding model.
+    _works_or_asks_for_embeddings(cli, "watch", Result(watch.returncode, out, err))
+    assert watch.returncode == 1, out
 
 
 @pytest.mark.req("TER-TST-007")

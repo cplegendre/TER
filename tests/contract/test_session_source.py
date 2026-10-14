@@ -15,7 +15,7 @@ import pytest
 from ter.adapters.driven.claude_code import ClaudeCodeJsonlSource
 from ter.adapters.driven.gare import GareRunSource
 from ter.adapters.driven.in_memory import InMemorySessionSource
-from ter.domain import Actor, EventKind
+from ter.domain import Actor, EventKind, SessionFormatError
 from ter.ports import SessionSource
 
 from golden.corpus import CORPUS
@@ -126,3 +126,30 @@ def test_unknown_reference_raises_file_not_found(
     adapter, _ = source
     with pytest.raises(FileNotFoundError):
         adapter.read(str(tmp_path / "missing.jsonl"))
+
+
+@pytest.mark.req("TER-TST-007")
+@pytest.mark.parametrize(
+    "content",
+    [b"not json\n", b'{"type": "user"\n', b"\xff\xfe{}\n", b""],
+    ids=["text", "torn", "not-utf8", "empty"],
+)
+def test_a_file_that_is_not_a_session_raises_a_format_error(
+    content: bytes, tmp_path: Path
+) -> None:
+    path = tmp_path / "bad.jsonl"
+    path.write_bytes(content)
+    with pytest.raises(SessionFormatError):
+        ClaudeCodeJsonlSource().read(path)
+
+
+@pytest.mark.req("TER-TST-007")
+@pytest.mark.parametrize(
+    "explain", ["{}", "not json", '{"run": {}, "events": [], "tasks": []}']
+)
+def test_a_folder_that_is_not_a_gare_run_raises_a_format_error(
+    explain: str, tmp_path: Path
+) -> None:
+    (tmp_path / "explain.json").write_text(explain, encoding="utf-8")
+    with pytest.raises(SessionFormatError):
+        GareRunSource().read(tmp_path)

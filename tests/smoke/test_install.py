@@ -30,18 +30,18 @@ TER4_COMMANDS = {
 TER3_COMMANDS = {
     "a3": "test_ter3.py::test_a3_and_explain",
     "analyze": "test_ter3.py::test_analysis_commands",
-    "benchmark": "test_ter3.py::test_help_of_commands_that_need_labelled_data",
-    "benchmark-compare": "test_ter3.py::test_help_of_commands_that_need_labelled_data",
+    "benchmark": "test_ter3.py::test_benchmark_scores_labelled_predictions",
+    "benchmark-compare": "test_ter3.py::test_benchmark_compare_reports_the_delta",
     "budget": "test_ter3.py::test_budget_json",
     "compare": "test_ter3.py::test_analysis_commands",
     "context": "test_ter3.py::test_context_store_round_trip",
     "explain": "test_ter3.py::test_a3_and_explain",
-    "hook": "test_ter3.py::test_help_of_commands_that_need_labelled_data",
+    "hook": "test_ter3.py::test_hook_monitor_answers_claude_code",
     "list": "test_ter3.py::test_list_runs_without_sessions",
     "present": "test_ter3.py::test_analysis_commands",
     "report": "test_ter3.py::test_analysis_commands",
     "visualize": "test_ter3.py::test_analysis_commands",
-    "watch": "test_ter3.py::test_help_of_commands_that_need_labelled_data",
+    "watch": "test_ter3.py::test_watch_follows_a_session",
 }
 
 

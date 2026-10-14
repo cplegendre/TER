@@ -40,6 +40,12 @@ READABLE_SCHEMA_VERSIONS = frozenset(
     }
 )
 
+
+class SessionFormatError(ValueError):
+    """A session source cannot read the file it was given as a session: not
+    JSONL, not UTF-8, empty, or not a run of the format it reads."""
+
+
 #: Stable, content-derived identity of an event. The same source record always
 #: yields the same id, which makes replay idempotent and findings citable.
 EventId = NewType("EventId", str)

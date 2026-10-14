@@ -87,19 +87,25 @@ def test_a_missing_session_is_refused(cli: Cli, command: str) -> None:
 @pytest.mark.req("TER-TST-007")
 @pytest.mark.parametrize("command", ["observe", "explain", "a3", "route"])
 @pytest.mark.parametrize(
-    "content",
-    ["not json\n", '{"type": "user"\n', "\x00\x01binary", ""],
-    ids=["text", "torn", "binary", "empty"],
+    ("content", "why"),
+    [
+        (b"not json\n", "Invalid JSON on line 1"),
+        (b'{"type": "user"\n', "Invalid JSON on line 1"),
+        (b"\x00\x01binary", "Invalid JSON on line 1"),
+        (b"\xff\xfe{}\n", "can't decode"),
+        (b"", "Session file is empty"),
+    ],
+    ids=["text", "torn", "binary", "not-utf8", "empty"],
 )
-def test_a_malformed_session_is_refused_or_read(
-    cli: Cli, workdir: Path, command: str, content: str
+def test_a_malformed_session_is_refused(
+    cli: Cli, workdir: Path, command: str, content: bytes, why: str
 ) -> None:
-    path = workdir / f"bad-{abs(hash(content))}.jsonl"
-    path.write_text(content, encoding="utf-8")
+    path = workdir / f"bad-{content.hex()[:16] or 'empty'}.jsonl"
+    path.write_bytes(content)
     result = cli.ter4(command, str(path))
-    assert "Traceback" not in result.err, result.err
-    if result.code != 0:
-        _refused(result.code, result.err)
+    _refused(result.code, result.err)
+    assert result.code == 2, result.err
+    assert f"Cannot read session {path}" in result.err and why in result.err
 
 
 @pytest.mark.req("TER-TST-007")
@@ -109,3 +115,4 @@ def test_a_folder_that_is_not_a_gare_run_is_refused(cli: Cli, workdir: Path) -> 
     (run / "explain.json").write_text("{}")
     result = cli.ter4("explain", str(run))
     _refused(result.code, result.err)
+    assert result.code == 2 and "is not `gare explain --json` output" in result.err

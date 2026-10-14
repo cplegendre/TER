@@ -41,7 +41,12 @@ from typing import IO, TYPE_CHECKING, Protocol
 from ...application.explain import ExplainedSession
 from ...application.route import RoutedSession
 from ...domain.capabilities import Capability, CapabilityError, CapabilityProblem
-from ...domain.events import EVENT_SCHEMA_VERSION, TEXT_LIMITS, describe_limit
+from ...domain.events import (
+    EVENT_SCHEMA_VERSION,
+    TEXT_LIMITS,
+    SessionFormatError,
+    describe_limit,
+)
 from ...domain.lean import LeanAnalysis, SoftwareValueEfficiency
 from ...domain.lean.control import ControlLimits, ControlLimitsError, SessionControl
 from ...domain.lean.surface import EditPlacement
@@ -306,7 +311,7 @@ def _explain(
     except (RepositoryEvidenceError, CapabilityError) as exc:
         err.write(f"Cannot read repository {repo}: {exc}\n")
         return 2
-    except ValueError as exc:
+    except SessionFormatError as exc:
         # The session source's own refusal: not JSONL, not a GARE run.
         err.write(f"Cannot read session {args.path}: {exc}\n")
         return 2
@@ -399,7 +404,7 @@ def _route(
     except (RepositoryEvidenceError, CapabilityError) as exc:
         err.write(f"Cannot read repository {repo}: {exc}\n")
         return 2
-    except ValueError as exc:
+    except SessionFormatError as exc:
         err.write(f"Cannot read session {args.path}: {exc}\n")
         return 2
     if args.json:
@@ -592,7 +597,7 @@ def _observe(
             return 2
         try:
             report = services.analyse_transcript(args.path, args.tokenizer)
-        except ValueError as exc:
+        except SessionFormatError as exc:
             err.write(f"Cannot read session {args.path}: {exc}\n")
             return 2
     else:
