@@ -18,6 +18,7 @@ tests/golden/          # Golden snapshots freezing TER 3 scores (TER_UPDATE_GOLD
 tests/contract/        # One suite per port; real adapters and fakes must both pass
 tests/schema/          # JSON Schema contracts: writers conform, readers accept what the schema allows
 tests/smoke/           # Every CLI subcommand end to end in fresh processes (TER_SMOKE_BIN=<venv>/bin runs an install)
+tests/resilience/      # Fuzzers (mutated real documents) and fault injection for every reader and append-only file
 tests/architecture/    # Import-contract fitness tests
 tests/requirements/    # EARS catalogue lint, trace and ter-req tooling tests
 tests/docs/            # Doc checks: relative links, command examples, points index
@@ -37,6 +38,8 @@ sample_sessions/       # Sample JSONL files for testing
 python dev.py check                       # The CI lint and test jobs (lint, coverage, L0-L4 gates); `python dev.py` lists tasks
 python dev.py fast                        # Quick loop: -x, last failures first, no embedding model
 python dev.py smoke                       # Every command end to end (CI also runs it against the built wheel)
+python dev.py fuzz                        # The resilience fuzzers at 20x their CI examples
+pytest --test-order-seed=N                # Tests run shuffled; the header names the seed to rerun an order
 pytest                                    # Run all tests
 pytest tests/unit/test_fragment_store.py  # Run specific module tests
 ruff check src/                           # Lint
@@ -78,6 +81,7 @@ Python 3.11+: Follow standard conventions. Dataclasses for models, enums for dom
 - New `ter` code is strictly typed (mypy overrides in pyproject.toml).
 - Analysis is a fold over `ter.event`: `AnalysisEngine.apply` must stay O(1) amortised and idempotent by event id, and batch must equal incremental (`docs/ter4/l1-observed.md`).
 - Hook entry points fail open: never raise out of `ter.adapters.driving.claude_hooks`.
+- Readers of outside input refuse bad input with their own error (`SessionFormatError`, `PolicyError`, `ControlLimitsError`) or skip and count a bad log line; never an `AttributeError`/`TypeError` from a field of the wrong type. A change to a reader runs `python dev.py fuzz`, and a fuzzer-found input is pinned in `tests/resilience/test_regressions.py`.
 - Run TER 4 tools with `PYTHONPATH=src` when the venv's editable install may point at another checkout.
 - Lean model (L2): detectors are plugins in `ter.domain.lean.detectors` (register in `DEFAULT_REGISTRY`, add a countermeasure and a follow-up measure, add unit tests with positive, negative and boundary cases). Every finding cites evidence event ids and a published `confidence_rule`; below 0.70 it is uncertain: labelled, counted as waste until verified (ADR 0006), never a trigger for intervention. Thresholds are structural, never token counts; iteration that converges is never rework. See `docs/ter4/l2-explained.md` and ADR 0004.
 - Control charts (P201): XmR limits and rules in `ter.domain.lean.control`, limits files through the `ControlLimitsSource` port, page in `reports/control.py`. Only unfavourable signals on ratio or count measures fire; token totals never do. See `docs/ter4/control-charts.md`.

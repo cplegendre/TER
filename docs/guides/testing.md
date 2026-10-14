@@ -288,11 +288,70 @@ scripts beside the current interpreter run with `src` first.
 | `test_ter4_hooks.py` | TER-TST-006, TER-TST-008 | hook payloads become schema-valid events; advice on Stop is only a `systemMessage`; a broken payload or an unwritable log still exits 0 with `{}` |
 | `test_ter3.py` | TER-TST-006, TER-TST-007 | TER 3's `ter`: commands that need the embedding model work when the extra is installed and otherwise refuse with the install command |
 
-The first run of this suite found two bugs no unit test had: a file that was
-not a session crashed `observe`, `explain`, `a3` and `route` with a
-traceback, and `ter context store|graph|delta|check` recursed until Python
-gave up (the unit tests called the handlers directly, never through the
-dispatcher).
+The first runs of this suite found three bugs no unit test had: a file that
+was not a session crashed `observe`, `explain`, `a3` and `route` with a
+traceback, and `ter context store|graph|delta|check` and `ter watch` (with
+the embeddings extra) recursed until Python gave up. The unit tests called
+the handlers directly, never through the dispatcher.
+
+## Resilience: fuzzing and fault injection
+
+`tests/resilience` attacks every reader of input TER does not control, and
+every file a dying process can leave half written.
+
+The fuzzers (Hypothesis) start from real documents: corpus sessions, a GARE
+run, the hook payload fixtures, the shipped policy file, the frozen control
+limits and measures, an event log and a ledger written by a shadow run. They
+remove, retype, stringify or replace a few values, tear and duplicate lines,
+and mix in arbitrary JSON and bytes. A mutated real document gets past the
+first checks and reaches the field that is wrong, which pure random JSON
+rarely does. Each property names what a reader may do with bad input:
+
+| Module | Requirement | Property |
+|---|---|---|
+| `test_fuzz_sources.py` | TER-TST-009 | a session source returns a well-formed trace (unique ids, contiguous sequences) or raises `SessionFormatError`, nothing else |
+| `test_fuzz_hooks.py` | TER-TST-010 | a payload of the wrong shape is refused with a stated reason, never by an exception the fail-open entry point caught; the hook always prints a JSON object |
+| `test_fuzz_documents.py` | TER-TST-011, TER-TST-013 | policy, limits and measures files are read or refused with their format's own error; a damaged event log or ledger is read line by line, and what was read can still be analysed |
+| `test_faults.py` | TER-TST-013, TER-TST-014 | a write cut short loses only its own record and the next write starts a fresh line; a short `os.write` still writes the whole record; a full disk, a read-only log or an unreadable policy file leaves the hook answering `{}`, and advice the ledger could not record is not shown |
+| `test_regressions.py` | TER-TST-009, TER-TST-013 | every input the fuzzers found, pinned as a plain test |
+
+CI runs each fuzzer with a few hundred examples. Before changing a reader,
+run them harder:
+
+```bash
+python dev.py fuzz                            # 20x the examples
+python -m pytest tests/resilience --fuzz-scale=100 -q
+```
+
+A failing example is printed as a test case; pin it in
+`test_regressions.py` with the fix, so it stays fixed without depending on
+Hypothesis finding it again.
+
+The first run found:
+- a record repeated with its uuid gave duplicate event ids;
+- records with a `null` or text `message`, a non-text role, block type or
+  id, a text tool input or text token counts crashed the TER 3 loader;
+- event log records with a list as call id or a text sequence decoded into
+  events that crashed the analysis;
+- a short write was never finished.
+
+## Test order
+
+Tests run in a random order (TER-TST-012): modules are shuffled, then the
+classes in a module, then the tests in a class, so module and class
+fixtures are still set up once. The run header names the seed:
+
+```text
+test order: random, seed 903883 (rerun with --test-order-seed=903883)
+```
+
+A test that passes in file order but fails shuffled leans on state another
+test left behind. Rerun the failing order with `--test-order-seed=N` (or
+`TER_TEST_ORDER_SEED=N`), and use `--test-order=declared` to compare with
+file order. `--ff` and `--nf` keep their own order, so `python dev.py fast`
+still runs the last failures first; the header then says the run is not
+shuffled. The ordering lives in the root `conftest.py`, with no plugin to
+install.
 
 ## Equivalence tests
 
