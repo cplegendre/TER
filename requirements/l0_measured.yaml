@@ -470,3 +470,30 @@ requirements:
       A test that passes only after another one has run hides shared
       state; the reported seed reproduces the failing order.
     status: verified
+
+  - id: TER-SBM-001
+    pattern: ubiquitous
+    text: >-
+      The package build shall write a CycloneDX software bill of materials
+      that lists every distribution an install of the wheel holds, each with
+      its exact version, its package URL and its declared licence.
+    level: L0
+    source_points: [203]
+    rationale: >-
+      Anyone running TER can see what it brings onto their machine and check
+      it against vulnerability and licence databases; a dependency with no
+      declared licence is reviewed before it ships.
+    status: verified
+
+  - id: TER-SBM-002
+    pattern: event-driven
+    text: >-
+      When CI builds the package, the CI pipeline shall write the software
+      bill of materials of the install it smoke-tested, check it against
+      that install and publish it as an artifact of the run.
+    level: L0
+    source_points: [203]
+    rationale: >-
+      The SBOM others inspect describes the wheel CI built and tested, not a
+      developer's environment.
+    status: verified

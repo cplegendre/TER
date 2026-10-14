@@ -3305,3 +3305,30 @@ points:
       - 'test: tests/resilience/test_fuzz_sources.py'
       - 'test: tests/resilience/test_faults.py'
       - 'planned: mutation score ratchet, BDD scenarios from EARS requirements'
+
+  - id: P203
+    text: >-
+      Publish a software bill of materials for TER, so anyone can inspect
+      what installing it brings onto their machine.
+    level: L0
+    kind: capability
+    status: done
+    origin:
+      source: TER project
+      ref: "Testing harness thread, 14 Oct 2026"
+      author: Leigh Griffin
+    definition_of_done:
+      - >-
+        Every CI run writes a CycloneDX SBOM of the wheel it built, listing
+        each installed distribution with its exact version, package URL and
+        licence, and publishes it as the run's sbom artifact.
+      - >-
+        The SBOM is checked against the install CI smoke-tested: a missing,
+        extra or mis-versioned distribution, a missing or undeclared licence
+        not on the reviewed list, or a dependency outside its range fails.
+    rules:
+      - TER-SBM-001
+      - TER-SBM-002
+    verification:
+      - 'test: tests/sbom/test_sbom.py'
+      - 'ci: Check the SBOM'

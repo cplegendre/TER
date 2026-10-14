@@ -105,6 +105,10 @@ def _fuzz(extra: list[str]) -> list[Command]:
     return [py("pytest", "tests/resilience", "-q", "--fuzz-scale=20", *extra)]
 
 
+def _sbom(extra: list[str]) -> list[Command]:
+    return [[sys.executable, "scripts/sbom.py", *extra]]
+
+
 def _golden(extra: list[str]) -> list[Command]:
     return [py("pytest", "tests/golden", "-q", *extra)]
 
@@ -138,6 +142,10 @@ TASKS: dict[str, Task] = {
     "fuzz": Task(
         "the resilience fuzzers with 20x their CI examples (run before changing a reader)",
         _fuzz,
+    ),
+    "sbom": Task(
+        "write the CycloneDX SBOM of the built wheel to dist/ter.cdx.json (as CI)",
+        _sbom,
     ),
     "golden": Task(
         "golden snapshots; TER_UPDATE_GOLDEN=1 rewrites them on purpose", _golden

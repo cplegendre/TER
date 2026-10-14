@@ -335,6 +335,36 @@ The first run found:
   events that crashed the analysis;
 - a short write was never finished.
 
+## Software bill of materials
+
+`scripts/sbom.py` writes a CycloneDX 1.6 SBOM of an environment holding the
+wheel and no pip of its own: each distribution's exact version, package URL,
+declared licence and what depends on it. It then checks the SBOM against
+that environment and exits 1 on any mismatch. CI's package job runs it on
+the environment it smoke-tested, so the SBOM names the versions that were
+tested, and publishes it as the `sbom` artifact of every run (TER-SBM-001,
+TER-SBM-002). The check names:
+
+- a distribution installed but not listed (direct or transitive), or listed
+  but not installed, or listed at another version;
+- build or test tooling (pip, setuptools, pytest);
+- a component without a `pkg:pypi` package URL or a licence, or with a
+  licence its own metadata does not declare. A distribution whose licence
+  the SBOM cannot carry is on `LICENCE_NOT_IN_SBOM` with the reason, a list
+  that only shrinks, so a new one is reviewed before it ships;
+- a dependency outside its range in `pyproject.toml`, a graph entry that is
+  not a component, or a component nothing TER installs depends on.
+
+`tests/sbom` holds the check to each of those on small documents, with no
+network. With `TER_SBOM` and `TER_SBOM_ENV` set (CI sets them), it also
+checks the published SBOM against the tested environment.
+
+`python dev.py sbom` writes the same file to `dist/ter.cdx.json` from this
+checkout; it needs network access to install the dependencies and the SBOM
+tool, which runs in an environment of its own. The SBOM is a build output,
+not a committed file: the dependencies are ranges, so the versions it names
+are the ones that resolved on the day it was built.
+
 ## Test order
 
 Tests run in a random order (TER-TST-012): modules are shuffled, then the
@@ -444,6 +474,7 @@ requirements; defensive fallbacks and presentation paths may sit lower.
 | | Traceability gates (3.11 only) | `ter-req trace --results req-trace.json --gate L0` (then L1, L2, L3) |
 | Package | Build and smoke-test package | `python -m build`, `twine check`, install the wheel in a clean venv, `ter --help`, the schemas ship |
 | | Smoke-test the installed wheel | `TER_SMOKE_BIN=/tmp/ter-wheel-test/bin python -m pytest tests/smoke -q` |
+| | SBOM of the tested install | `python scripts/sbom.py --env /tmp/ter-wheel-test`, `TER_SBOM=dist/ter.cdx.json TER_SBOM_ENV=/tmp/ter-wheel-test python -m pytest tests/sbom -q`, upload as the `sbom` artifact |
 
 Run the same locally before pushing with `dev.py` (the
 [contributing guide](contributing.md) lists every task):

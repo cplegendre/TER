@@ -316,6 +316,12 @@ python dev.py fast       # quick loop
 python dev.py check      # the CI lint and test jobs
 ```
 
+Every CI run publishes a CycloneDX software bill of materials of the wheel it
+built: download the `sbom` artifact from any run on the
+[Actions tab](https://github.com/lgriffin/TER/actions), or write one with
+`python dev.py sbom`. The [testing guide](docs/guides/testing.md#software-bill-of-materials)
+says what it lists and how it is checked.
+
 Branch coverage is enforced at 90%. The [testing guide](docs/guides/testing.md)
 explains every gate CI runs, and the [contributing guide](docs/guides/contributing.md)
 the commit and PR conventions (vision point ids, requirement ids, golden
