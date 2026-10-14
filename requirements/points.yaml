@@ -3323,8 +3323,9 @@ points:
         each installed distribution with its exact version, package URL and
         licence, and publishes it as the run's sbom artifact.
       - >-
-        Tests fail when a runtime dependency is missing, outside its declared
-        range or without a licence that is not on the reviewed list.
+        The SBOM is checked against the install CI smoke-tested: a missing,
+        extra or mis-versioned distribution, a missing or undeclared licence
+        not on the reviewed list, or a dependency outside its range fails.
     rules:
       - TER-SBM-001
       - TER-SBM-002

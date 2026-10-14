@@ -489,8 +489,8 @@ requirements:
     pattern: event-driven
     text: >-
       When CI builds the package, the CI pipeline shall write the software
-      bill of materials of the built wheel, check it and publish it as an
-      artifact of the run.
+      bill of materials of the install it smoke-tested, check it against
+      that install and publish it as an artifact of the run.
     level: L0
     source_points: [203]
     rationale: >-

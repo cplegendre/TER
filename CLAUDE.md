@@ -19,7 +19,7 @@ tests/contract/        # One suite per port; real adapters and fakes must both p
 tests/schema/          # JSON Schema contracts: writers conform, readers accept what the schema allows
 tests/smoke/           # Every CLI subcommand end to end in fresh processes (TER_SMOKE_BIN=<venv>/bin runs an install)
 tests/resilience/      # Fuzzers (mutated real documents) and fault injection for every reader and append-only file
-tests/sbom/            # The CycloneDX SBOM of the built wheel (TER_SBOM=<file> checks CI's; scripts/sbom.py writes it)
+tests/sbom/            # The SBOM check (scripts/sbom.py problems); TER_SBOM + TER_SBOM_ENV check CI's against the tested install
 tests/architecture/    # Import-contract fitness tests
 tests/requirements/    # EARS catalogue lint, trace and ter-req tooling tests
 tests/docs/            # Doc checks: relative links, command examples, points index

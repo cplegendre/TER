@@ -106,8 +106,9 @@ jobs:
         run: python -m twine check dist/*
       - name: Install wheel in clean environment
         run: |
-          python -m venv /tmp/ter-wheel-test
-          /tmp/ter-wheel-test/bin/pip install dist/*.whl
+          # No pip of its own, so the SBOM below lists only what TER installs.
+          python -m venv --without-pip /tmp/ter-wheel-test
+          python -m pip --python /tmp/ter-wheel-test/bin/python install dist/*.whl
           /tmp/ter-wheel-test/bin/ter --version
           /tmp/ter-wheel-test/bin/ter --help
           /tmp/ter-wheel-test/bin/python -c "import ter_calculator; assert ter_calculator.__version__ == '3.0.0'"
@@ -122,13 +123,14 @@ jobs:
         env:
           TER_SMOKE_BIN: /tmp/ter-wheel-test/bin
         run: python -m pytest tests/smoke -q
-      - name: Write the SBOM of the built wheel
-        # Every distribution installing the wheel installs, at the version
-        # resolved today, with its package URL and licence (TER-SBM-001).
-        run: python scripts/sbom.py --wheel dist/*.whl --out dist/ter.cdx.json
+      - name: Write the SBOM of the tested install
+        # Every distribution in the environment the smoke tests ran, with its
+        # version, package URL and licence, checked against it (TER-SBM-001).
+        run: python scripts/sbom.py --env /tmp/ter-wheel-test --out dist/ter.cdx.json
       - name: Check the SBOM
         env:
           TER_SBOM: dist/ter.cdx.json
+          TER_SBOM_ENV: /tmp/ter-wheel-test
         run: python -m pytest tests/sbom -q
       - name: Upload the SBOM
         uses: actions/upload-artifact@v4
