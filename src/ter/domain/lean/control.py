@@ -1416,6 +1416,8 @@ class MeasuresDocument:
                 f"got {data.get('schema')!r}"
             )
         detectors = data.get("detectors")
+        if detectors == [] and data.get("sessions") == []:
+            return cls(())  # no session measured: no fingerprint to name
         if not isinstance(detectors, str) or not detectors:
             raise ControlLimitsError(
                 "detectors must name one detector fingerprint; re-measure "
