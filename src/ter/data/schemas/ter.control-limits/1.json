@@ -1,0 +1,234 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:ter:schema:ter.control-limits/1",
+  "title": "ter.control-limits/1",
+  "description": "Natural process limits per control measure, with a developer's tuning (point 201, TER-SPC-001 to TER-SPC-005). Written by ter.domain.lean.control.ControlLimits.as_dict, read by ControlLimits.from_mapping. Arithmetic rules the schema cannot state (limits in order, inside each measure's bounds) are the reader's (ControlLimitsError).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "computed_on",
+    "method",
+    "detectors",
+    "sessions",
+    "rules",
+    "measures"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ter.control-limits/1"
+    },
+    "computed_on": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "method": {
+      "$ref": "#/definitions/method"
+    },
+    "detectors": {
+      "description": "The fingerprint of the detectors and confidence rules the baseline ran; limits from another set are stale.",
+      "type": "string",
+      "minLength": 1
+    },
+    "sessions": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "rules": {
+      "description": "Each published detection rule and what it means.",
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/definitions/rule"
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "measures": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/definitions/measure_key"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/measure"
+      }
+    }
+  },
+  "definitions": {
+    "number": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "method": {
+      "type": "string",
+      "x-ter-enum": "ter.domain.lean.control:LimitMethod",
+      "enum": [
+        "average_moving_range",
+        "median_moving_range"
+      ]
+    },
+    "rule": {
+      "type": "string",
+      "x-ter-enum": "ter.domain.lean.control:ControlRule",
+      "enum": [
+        "beyond_limits",
+        "two_of_three",
+        "four_of_five",
+        "run_of_eight"
+      ]
+    },
+    "measure_key": {
+      "type": "string",
+      "x-ter-enum": "ter.domain.lean.control:CONTROL_MEASURES#key",
+      "enum": [
+        "avoidable_share",
+        "unverified_waste_share",
+        "value_adding_share",
+        "flow_efficiency_tokens",
+        "flow_efficiency_time",
+        "edits_validated_share",
+        "ter",
+        "confident_findings",
+        "uncertain_findings",
+        "rework_cycles",
+        "risk_findings",
+        "wip_peak",
+        "unvalidated_edits_at_end",
+        "unresolved_failures_at_end",
+        "generated_tokens",
+        "agent_seconds"
+      ]
+    },
+    "measure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "label",
+        "basis",
+        "direction",
+        "fires",
+        "enabled",
+        "rules",
+        "natural",
+        "tuned"
+      ],
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "basis": {
+          "type": "string",
+          "x-ter-enum": "ter.domain.lean.control:Basis",
+          "enum": [
+            "ratio",
+            "count",
+            "tokens",
+            "seconds"
+          ]
+        },
+        "direction": {
+          "type": "string",
+          "x-ter-enum": "ter.domain.lean.control:Direction",
+          "enum": [
+            "higher_is_worse",
+            "lower_is_worse"
+          ]
+        },
+        "fires": {
+          "description": "Only ratio and count measures may fire; token totals never do (TER-INT-007).",
+          "type": "boolean"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rule"
+          }
+        },
+        "natural": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "centre",
+            "ucl",
+            "lcl",
+            "sigma",
+            "moving_range",
+            "mr_ucl",
+            "sessions",
+            "provisional",
+            "method"
+          ],
+          "properties": {
+            "centre": {
+              "type": "number"
+            },
+            "ucl": {
+              "$ref": "#/definitions/number"
+            },
+            "lcl": {
+              "$ref": "#/definitions/number"
+            },
+            "sigma": {
+              "type": "number",
+              "minimum": 0
+            },
+            "moving_range": {
+              "type": "number",
+              "minimum": 0
+            },
+            "mr_ucl": {
+              "type": "number",
+              "minimum": 0
+            },
+            "sessions": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "provisional": {
+              "type": "boolean"
+            },
+            "method": {
+              "$ref": "#/definitions/method"
+            }
+          }
+        },
+        "tuned": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "ucl",
+                "lcl",
+                "reason"
+              ],
+              "properties": {
+                "ucl": {
+                  "$ref": "#/definitions/number"
+                },
+                "lcl": {
+                  "$ref": "#/definitions/number"
+                },
+                "reason": {
+                  "description": "Why the action limit differs from what the process does.",
+                  "type": "string",
+                  "pattern": "\\S"
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

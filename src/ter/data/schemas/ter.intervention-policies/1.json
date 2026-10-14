@@ -1,0 +1,167 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:ter:schema:ter.intervention-policies/1",
+  "title": "ter.intervention-policies/1",
+  "description": "An L4 policy file: advisory policies, the detectors eligible to trigger them, and the human approval of this exact content (TER-INT-008, TER-INT-015). Read by ter.domain.policy_set.PolicySet.from_mapping, written by its as_dict. Rules the schema cannot state, such as unique policy ids, are the reader's (PolicyError).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "eligibility",
+    "policies"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ter.intervention-policies/1"
+    },
+    "eligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "detectors",
+        "basis"
+      ],
+      "properties": {
+        "detectors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "basis": {
+          "type": "string"
+        }
+      },
+      "description": "Detectors eligible to trigger advice (TER-INT-010); a non-empty list needs the judged sample behind it as its basis.",
+      "if": {
+        "properties": {
+          "detectors": {
+            "minItems": 1
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "basis": {
+            "$ref": "#/definitions/text"
+          }
+        }
+      }
+    },
+    "policies": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/policy"
+      }
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approved_by",
+        "approved_on",
+        "digest"
+      ],
+      "properties": {
+        "approved_by": {
+          "$ref": "#/definitions/text"
+        },
+        "approved_on": {
+          "type": "string",
+          "format": "date"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "text": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "detectors",
+        "advice",
+        "min_evidence",
+        "min_confidence",
+        "min_signals",
+        "cooldown_tool_events",
+        "actions"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "detectors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "advice": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "message"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "x-ter-enum": "ter.domain.intervention:AdviceKind",
+              "enum": [
+                "warning",
+                "recommendation"
+              ]
+            },
+            "message": {
+              "$ref": "#/definitions/text"
+            }
+          }
+        },
+        "min_evidence": {
+          "description": "Cited events a signal needs; at least 1, so no policy fires on a token count alone (TER-INT-007).",
+          "type": "integer",
+          "minimum": 1
+        },
+        "min_confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "min_signals": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cooldown_tool_events": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "actions": {
+          "description": "L4 Advisory permits advice only (it must be listed); corrective actions belong to L5.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "x-ter-enum": "ter.domain.intervention:Action",
+            "enum": [
+              "advise"
+            ]
+          },
+          "minItems": 1
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,275 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:ter:schema:ter.intervention-ledger/1",
+  "title": "ter.intervention-ledger/1",
+  "description": "One line of an intervention ledger (TER-INT-009): a record of one decision about one signal under one policy, or an observation of what followed a delivered intervention (TER-INT-011). Written by ter.adapters.driven.intervention_ledger.JsonlInterventionLedger. Lines cite event ids and published rules, never session content.",
+  "oneOf": [
+    {
+      "$ref": "#/definitions/record"
+    },
+    {
+      "$ref": "#/definitions/observation"
+    }
+  ],
+  "definitions": {
+    "text": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "datetime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "measures": {
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "type",
+        "id",
+        "session_id",
+        "recorded_at",
+        "policy",
+        "policy_version",
+        "signal",
+        "evidence",
+        "outcome",
+        "reason",
+        "action",
+        "advice"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ter.intervention-ledger/1"
+        },
+        "type": {
+          "const": "record"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recorded_at": {
+          "$ref": "#/definitions/datetime"
+        },
+        "policy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "policy_version": {
+          "description": "The sha256 digest of the policy file that made the decision; empty when unknown.",
+          "type": "string"
+        },
+        "signal": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "detector",
+            "waste",
+            "kind",
+            "confidence",
+            "rule",
+            "position"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "detector": {
+              "type": "string",
+              "minLength": 1
+            },
+            "waste": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string"
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "rule": {
+              "type": "string"
+            },
+            "position": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "outcome": {
+          "type": "string",
+          "x-ter-enum": "ter.domain.intervention:Outcome",
+          "enum": [
+            "advised",
+            "below_ceiling",
+            "no_evidence",
+            "ineligible",
+            "low_confidence",
+            "below_hysteresis",
+            "cooldown"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "action": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-ter-enum": "ter.domain.intervention:Action",
+          "enum": [
+            "advise",
+            null
+          ]
+        },
+        "advice": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "message"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "x-ter-enum": "ter.domain.intervention:AdviceKind",
+                  "enum": [
+                    "warning",
+                    "recommendation"
+                  ]
+                },
+                "message": {
+                  "$ref": "#/definitions/text"
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "delivered_at": {
+          "description": "The tool event count when advice was delivered live; absent in shadow mode and for suppressions.",
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "advised"
+          }
+        }
+      },
+      "then": {
+        "description": "An action is recorded exactly when the policy advised, with its evidence and advice (TER-INT-007).",
+        "properties": {
+          "action": {
+            "const": "advise"
+          },
+          "advice": {
+            "type": "object"
+          },
+          "evidence": {
+            "minItems": 1
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "action": {
+            "const": null
+          },
+          "advice": {
+            "const": null
+          }
+        },
+        "not": {
+          "required": [
+            "delivered_at"
+          ]
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "type",
+        "session_id",
+        "record",
+        "response",
+        "observed_at",
+        "tool_events",
+        "before",
+        "after"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ter.intervention-ledger/1"
+        },
+        "type": {
+          "const": "observation"
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "record": {
+          "type": "string",
+          "minLength": 1
+        },
+        "response": {
+          "type": "string",
+          "x-ter-enum": "ter.domain.ledger:Response",
+          "enum": [
+            "accepted",
+            "ignored",
+            "rejected"
+          ]
+        },
+        "observed_at": {
+          "$ref": "#/definitions/datetime"
+        },
+        "tool_events": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "before": {
+          "$ref": "#/definitions/measures"
+        },
+        "after": {
+          "$ref": "#/definitions/measures"
+        }
+      }
+    }
+  }
+}
