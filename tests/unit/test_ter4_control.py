@@ -569,12 +569,25 @@ class TestMeasures:
         assert again.rows[0].value("wip_peak") == 3.0
         assert again.rows[1].started_at is None
 
+    def test_an_empty_measures_document_round_trips(self) -> None:
+        doc = MeasuresDocument(()).as_dict()
+        assert doc["detectors"] == [] and doc["sessions"] == []
+        assert MeasuresDocument.from_mapping(json.loads(json.dumps(doc))).rows == ()
+
     @pytest.mark.parametrize(
         ("doc", "message"),
         [
             ({"schema": "x"}, "schema"),
             (
                 {"schema": "ter.control-measures/1", "detectors": ["a", "b"]},
+                "one detector",
+            ),
+            (
+                {
+                    "schema": "ter.control-measures/1",
+                    "detectors": [],
+                    "sessions": [{"session": "s", "values": {}}],
+                },
                 "one detector",
             ),
             (
