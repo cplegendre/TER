@@ -406,3 +406,29 @@ requirements:
       A schema that accepts anything proves nothing; each field of a
       written document is checked to be pinned.
     status: verified
+
+  - id: TER-TST-006
+    pattern: ubiquitous
+    text: >-
+      The smoke suite shall run every subcommand of TER's console scripts
+      end to end in a fresh process, against the built wheel in CI.
+    level: L0
+    source_points: [202]
+    rationale: >-
+      Unit tests call functions; users call commands. Only a run of the
+      installed scripts catches a dispatch bug, a file left out of the
+      wheel or an import that works only from a checkout.
+    status: verified
+
+  - id: TER-TST-007
+    pattern: unwanted
+    text: >-
+      If a command is given an input file that is missing or malformed,
+      then TER shall exit with a non-zero status and a reason on standard
+      error, without a traceback.
+    level: L0
+    source_points: [202]
+    rationale: >-
+      A traceback tells a developer nothing about their file; the reason
+      and the exit status are what scripts and people act on.
+    status: verified

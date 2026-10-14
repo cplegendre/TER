@@ -163,6 +163,7 @@ python dev.py            # list the tasks
 python dev.py fast       # quick loop: stop at first failure, no model
 python dev.py fmt        # format and auto-fix lint
 python dev.py check      # the CI lint and test jobs: lint, coverage, L0-L4 gates
+python dev.py smoke      # every command end to end (CI also runs it on the wheel)
 ```
 
 `python dev.py lint` is the CI lint job (ruff, mypy, `lint-imports`,

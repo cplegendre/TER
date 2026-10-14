@@ -81,7 +81,7 @@ def test_a_narrower_ci_selection_is_not_the_same_command() -> None:
     assert _same_command(["ter-req", "trace"], ["ter-req", "trace", "--summary", "X"])
 
 
-@pytest.mark.parametrize("task", ["lint", "l0", "gates"])
+@pytest.mark.parametrize("task", ["lint", "l0", "gates", "smoke"])
 def test_every_command_a_ci_task_runs_is_a_ci_step(task: str) -> None:
     runs = _ci_runs()
     for command in dev.TASKS[task].steps([]):

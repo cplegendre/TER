@@ -331,3 +331,16 @@ requirements:
       notifications and messages from other agents in the same queue are
       harness context, not intent.
     status: verified
+
+  - id: TER-TST-008
+    pattern: unwanted
+    text: >-
+      If the hook adapter receives a hook payload it cannot read, or cannot
+      write its event log, then the hook adapter shall exit with status 0
+      and an empty hook response.
+    level: L1
+    source_points: [202]
+    rationale: >-
+      Hooks fail open: a broken payload or a full disk must never stop the
+      agent the developer is working with.
+    status: verified

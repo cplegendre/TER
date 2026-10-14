@@ -17,6 +17,7 @@ tests/integration/     # Integration tests
 tests/golden/          # Golden snapshots freezing TER 3 scores (TER_UPDATE_GOLDEN=1 to regenerate)
 tests/contract/        # One suite per port; real adapters and fakes must both pass
 tests/schema/          # JSON Schema contracts: writers conform, readers accept what the schema allows
+tests/smoke/           # Every CLI subcommand end to end in fresh processes (TER_SMOKE_BIN=<venv>/bin runs an install)
 tests/architecture/    # Import-contract fitness tests
 tests/requirements/    # EARS catalogue lint, trace and ter-req tooling tests
 tests/docs/            # Doc checks: relative links, command examples, points index
@@ -35,6 +36,7 @@ sample_sessions/       # Sample JSONL files for testing
 ```bash
 python dev.py check                       # The CI lint and test jobs (lint, coverage, L0-L4 gates); `python dev.py` lists tasks
 python dev.py fast                        # Quick loop: -x, last failures first, no embedding model
+python dev.py smoke                       # Every command end to end (CI also runs it against the built wheel)
 pytest                                    # Run all tests
 pytest tests/unit/test_fragment_store.py  # Run specific module tests
 ruff check src/                           # Lint

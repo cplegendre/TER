@@ -48,6 +48,15 @@ def test_observe_json_is_the_report_dict() -> None:
     assert data["tokenizer"] == "regex-v1"
 
 
+@pytest.mark.req("TER-TST-007")
+@pytest.mark.parametrize("command", ["observe", "explain", "a3", "route"])
+def test_a_file_that_is_not_a_session_is_refused(tmp_path: Path, command: str) -> None:
+    bad = tmp_path / "bad.jsonl"
+    bad.write_text("not json\n", encoding="utf-8")
+    code, _, err = run([command, str(bad)])
+    assert code == 2 and f"Cannot read session {bad}" in err
+
+
 def test_observe_missing_file_and_no_target(tmp_path: Path) -> None:
     code, _, err = run(["observe", str(tmp_path / "nope.jsonl")])
     assert code == 2 and "No such session file" in err

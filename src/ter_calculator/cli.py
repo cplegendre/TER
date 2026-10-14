@@ -5,6 +5,8 @@ from __future__ import annotations
 import argparse
 import io
 import sys
+from collections.abc import Callable
+from typing import Any
 
 from . import __version__
 
@@ -679,6 +681,21 @@ def _resolve_session_path(args) -> str | None:
     return implementation(args)
 
 
+#: The command module's own handlers while ``_cmd_context`` has routed its
+#: dispatch through the wrappers below; a wrapper then calls the original,
+#: not itself.
+_CONTEXT_ORIGINALS: dict[str, Callable[[Any], int]] = {}
+
+
+def _context_handler(name: str) -> Callable[[Any], int]:
+    from .commands import context as command
+
+    handler: Callable[[Any], int] = _CONTEXT_ORIGINALS.get(name) or getattr(
+        command, name
+    )
+    return handler
+
+
 def _cmd_context(args) -> int:
     from .commands import context as command
 
@@ -692,41 +709,33 @@ def _cmd_context(args) -> int:
     ):
         originals[name] = getattr(command, name)
         setattr(command, name, globals()[name])
+    _CONTEXT_ORIGINALS.update(originals)
     try:
         return command._cmd_context(args)
     finally:
+        _CONTEXT_ORIGINALS.clear()
         for name, value in originals.items():
             setattr(command, name, value)
 
 
 def _cmd_context_store(args) -> int:
-    from .commands.context import _cmd_context_store as implementation
-
-    return implementation(args)
+    return _context_handler("_cmd_context_store")(args)
 
 
 def _cmd_context_graph(args) -> int:
-    from .commands.context import _cmd_context_graph as implementation
-
-    return implementation(args)
+    return _context_handler("_cmd_context_graph")(args)
 
 
 def _cmd_context_optimize(args) -> int:
-    from .commands.context import _cmd_context_optimize as implementation
-
-    return implementation(args)
+    return _context_handler("_cmd_context_optimize")(args)
 
 
 def _cmd_context_delta(args) -> int:
-    from .commands.context import _cmd_context_delta as implementation
-
-    return implementation(args)
+    return _context_handler("_cmd_context_delta")(args)
 
 
 def _cmd_context_check(args) -> int:
-    from .commands.context import _cmd_context_check as implementation
-
-    return implementation(args)
+    return _context_handler("_cmd_context_check")(args)
 
 
 def _cmd_visualize(args) -> int:
