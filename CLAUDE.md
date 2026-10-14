@@ -1,6 +1,6 @@
 ﻿# TER Development Guidelines
 
-Last updated: 2026-05-15
+Last updated: 2026-10-14
 
 ## Active Technologies
 
@@ -16,6 +16,7 @@ tests/features/        # BDD feature files and step definitions
 tests/integration/     # Integration tests
 tests/golden/          # Golden snapshots freezing TER 3 scores (TER_UPDATE_GOLDEN=1 to regenerate)
 tests/contract/        # One suite per port; real adapters and fakes must both pass
+tests/schema/          # JSON Schema contracts: writers conform, readers accept what the schema allows
 tests/architecture/    # Import-contract fitness tests
 tests/requirements/    # EARS catalogue lint, trace and ter-req tooling tests
 tests/docs/            # Doc checks: relative links, command examples, points index
@@ -67,6 +68,7 @@ Python 3.11+: Follow standard conventions. Dataclasses for models, enums for dom
 
 - Dependencies point inward: bootstrap → adapters → application → ports → domain. `ter.domain` never imports `ter_calculator`, vendor SDKs or IO modules.
 - TER scoring arithmetic lives in `ter.domain.scoring`; `ter_calculator.compute` delegates to it.
+- Every versioned document format (`ter.<name>/<version>`) ships a JSON Schema in `src/ter/data/schemas/<name>/<version>.json`; a new field or enum value updates the schema in the same change (`tests/schema`, TER-TST-001..005). Formats without one yet are on `PENDING` in `tests/schema/test_catalogue.py`, which only shrinks.
 - Model prices are data in `src/ter/data/price_book.json`, read through the `PriceBook` port (ADR 0003). Never hard-code rates.
 - Scoring changes must show up as a golden snapshot diff, committed on purpose.
 - Tag tests with `@pytest.mark.req("TER-XXX-NNN")` for the requirement they verify. Every behaviour is an EARS requirement in `requirements/*.yaml` (see `docs/ter4/requirements.md`); new ones start `status: planned` and become `verified` once a passing test cites them.

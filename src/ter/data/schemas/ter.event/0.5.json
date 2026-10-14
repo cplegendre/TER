@@ -1,0 +1,232 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:ter:schema:ter.event/0.5",
+  "title": "ter.event/0.5",
+  "description": "One normalised event of an agent session, as an event log writes it (one JSON object per line). Written by ter.adapters.driven.event_log.codec.event_to_record; read by event_from_record.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "session_id",
+    "sequence",
+    "kind",
+    "actor",
+    "text",
+    "timestamp",
+    "parent_id",
+    "provenance",
+    "tool",
+    "usage"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ter.event/0.5"
+    },
+    "id": {
+      "$ref": "#/definitions/event_id"
+    },
+    "session_id": {
+      "type": "string"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "kind": {
+      "type": "string",
+      "x-ter-enum": "ter.domain.events:EventKind",
+      "enum": [
+        "intent.stated",
+        "reasoning",
+        "response",
+        "tool.requested",
+        "tool.completed",
+        "task.completed",
+        "subagent.completed",
+        "route.selected",
+        "route.failover",
+        "attempt.started",
+        "verification.completed",
+        "outcome.recorded",
+        "context.supplied",
+        "route.escalated",
+        "metric.recorded",
+        "verdict.recorded"
+      ]
+    },
+    "actor": {
+      "type": "string",
+      "x-ter-enum": "ter.domain.events:Actor",
+      "enum": [
+        "user",
+        "assistant",
+        "tool",
+        "system"
+      ]
+    },
+    "text": {
+      "type": "string"
+    },
+    "timestamp": {
+      "description": "ISO 8601, as Python's datetime.isoformat writes it; null when the source has no time.",
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "parent_id": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/event_id"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "record_id",
+        "lines",
+        "block_index",
+        "fingerprint"
+      ],
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "record_id": {
+          "type": "string"
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "block_index": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "fingerprint": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "tool": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "native_name",
+            "kind",
+            "call_id",
+            "arguments"
+          ],
+          "properties": {
+            "native_name": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string",
+              "x-ter-enum": "ter.domain.events:ToolKind",
+              "enum": [
+                "fs.read",
+                "fs.search",
+                "fs.edit",
+                "fs.write",
+                "exec.shell",
+                "net.fetch",
+                "agent.handoff",
+                "plan.todo",
+                "other"
+              ]
+            },
+            "call_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "arguments": {
+              "type": "object"
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "usage": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "input_tokens",
+            "output_tokens",
+            "cache_creation_tokens",
+            "cache_read_tokens",
+            "model",
+            "cache_reported"
+          ],
+          "properties": {
+            "input_tokens": {
+              "$ref": "#/definitions/tokens"
+            },
+            "output_tokens": {
+              "$ref": "#/definitions/tokens"
+            },
+            "cache_creation_tokens": {
+              "$ref": "#/definitions/tokens"
+            },
+            "cache_read_tokens": {
+              "$ref": "#/definitions/tokens"
+            },
+            "model": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "cache_reported": {
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "event_id": {
+      "description": "A content-derived id: 16 lower-case hex characters for ids TER derives; adapters may carry a source's own id.",
+      "type": "string",
+      "minLength": 1
+    },
+    "tokens": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

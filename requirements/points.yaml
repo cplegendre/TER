@@ -3252,3 +3252,42 @@ points:
       - "branch: data/control-baseline at 6d662ab, re-measured on 10 Oct 2026 with detectors 3fa548c8ac26 (PR #78): 56 signals, 38 would fire; the owner confirmed a judged sample of s-732ac23e71c6's 55 uncertain intent_drift findings, all added-words edits in files the session created: 6 waste, 46 not waste, 3 unsure"
       - "branch: data/control-baseline at d0a6aa4, re-measured on 10 Oct 2026 with detectors f8fa44bdc8e3 (PR #80): 52 signals, 41 would fire; s-732ac23e71c6 is still 5 measures outside a limit and 3 firing (confident findings, uncertain findings, WIP peak), with 22 intent_drift findings (was 136) and 18 uncertain waste findings (was 132), all added-words edits of files that do not count as created (first touch not a write, or its result reported an existing file)"
       - 'test: tests/unit/test_ter4_control_signals.py'
+
+  - id: P202
+    text: >-
+      Give TER a production-grade test harness, so the system can evolve
+      safely: schema contracts for every document it writes, smoke tests of
+      the installed package, fuzzing and fault injection, a mutation score
+      that CI keeps from falling, BDD scenarios drawn from the EARS
+      requirements and a test-first workflow.
+    level: L0
+    kind: capability
+    status: partial
+    origin:
+      source: TER project
+      ref: "Testing harness thread, 14 Oct 2026"
+      author: Leigh Griffin
+    definition_of_done:
+      - >-
+        Every versioned document format ships a JSON Schema that its writers
+        and readers are held to, and a format without one fails CI unless it
+        is on the pending list.
+      - >-
+        Every CLI command runs end to end from the built wheel in CI, and
+        session inputs, hook payloads and failing ports are fuzzed or
+        injected without an unhandled exception.
+      - >-
+        A mutation score over the pure domain never drops below its
+        committed baseline in CI, and TER 4 requirements have BDD scenarios
+        that cite their ids and count in the trace gate.
+    rules:
+      - TER-TST-001
+      - TER-TST-002
+      - TER-TST-003
+      - TER-TST-004
+      - TER-TST-005
+    verification:
+      - 'test: tests/schema/test_catalogue.py'
+      - 'test: tests/schema/test_writers.py'
+      - 'test: tests/schema/test_readers.py'
+      - 'planned: smoke suite from the built wheel, fuzzing and fault injection, mutation score ratchet, BDD scenarios from EARS requirements'

@@ -337,3 +337,72 @@ requirements:
       routes; those markers belong in the neutral stream but are not agent
       output, so they are never scored.
     status: verified
+
+  # The test harness (P202): every versioned document format has a JSON
+  # Schema that its writers and readers are held to (tests/schema).
+  - id: TER-TST-001
+    pattern: event-driven
+    text: >-
+      When TER source code names a versioned document format, the schema
+      check shall fail unless a JSON Schema for that format ships in the
+      package or the format is on the pending list.
+    level: L0
+    source_points: [202]
+    rationale: >-
+      Files TER writes outlive the process that wrote them (event logs,
+      ledgers, policy and limits files); a published schema lets any tool
+      check one, and the pending list makes the remaining gap visible and
+      lets it only shrink.
+    status: verified
+
+  - id: TER-TST-002
+    pattern: ubiquitous
+    text: >-
+      TER shall write only documents that conform to the JSON Schema that
+      their schema field names.
+    level: L0
+    source_points: [202]
+    rationale: >-
+      A writer that drifts from its published contract breaks every reader
+      downstream; conformance is checked on real output and on generated
+      domain values.
+    status: verified
+
+  - id: TER-TST-003
+    pattern: event-driven
+    text: >-
+      When TER reads a document that conforms to its JSON Schema, TER shall
+      read it or refuse it with the format's own error, never an unhandled
+      exception.
+    level: L0
+    source_points: [202]
+    rationale: >-
+      A schema is only a contract when the reader accepts what it allows;
+      generated documents prove the two agree, and rules a schema cannot
+      state (unique ids, limit order) fail with a reason.
+    status: verified
+
+  - id: TER-TST-004
+    pattern: ubiquitous
+    text: >-
+      TER shall keep every enumeration in a JSON Schema equal to the domain
+      enumeration it copies.
+    level: L0
+    source_points: [202]
+    rationale: >-
+      Enumerations are where schemas and code drift first: a new event kind,
+      outcome or measure must reach the schema in the same change.
+    status: verified
+
+  - id: TER-TST-005
+    pattern: unwanted
+    text: >-
+      If a document lacks a field its format requires or carries a field
+      its format does not define, then the JSON Schema shall reject the
+      document.
+    level: L0
+    source_points: [202]
+    rationale: >-
+      A schema that accepts anything proves nothing; each field of a
+      written document is checked to be pinned.
+    status: verified

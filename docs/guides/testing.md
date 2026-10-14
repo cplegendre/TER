@@ -15,10 +15,11 @@ flowchart TB
     GO["Golden snapshots<br/>tests/golden"]
     EQ["Equivalence<br/>tests/equivalence"]
     C["Contract suites<br/>tests/contract"]
+    S["Schema contracts<br/>tests/schema"]
     I["Integration and BDD<br/>tests/integration · tests/features"]
     P["Property tests<br/>hypothesis, in tests/unit"]
     U["Unit tests<br/>tests/unit · tests/requirements · tests/docs"]
-    G --- A --- GO --- EQ --- C --- I --- P --- U
+    G --- A --- GO --- EQ --- C --- S --- I --- P --- U
 ```
 
 | Layer | Where | Roughly how many | What it proves |
@@ -28,6 +29,7 @@ flowchart TB
 | BDD | `tests/features/**/*.feature` with steps in `tests/features/steps/*_steps.py` | 200 | TER 3 user stories in Gherkin (pytest-bdd) |
 | Integration | `tests/integration/test_cli.py` | 12 | The `ter` CLI end to end on real files |
 | Contract | `tests/contract/` | 100 | Every adapter of a port, real and fake, meets the same obligations |
+| Schema | `tests/schema/` | 50 | Every versioned document format has a JSON Schema; writers conform, readers accept what it allows |
 | Equivalence | `tests/equivalence/test_live_static.py` | 24 | Live, event-by-event analysis equals batch analysis |
 | Golden | `tests/golden/` | 110 | TER 3 scores, event streams, reports, Lean findings and A3s are frozen |
 | Architecture | `tests/architecture/` | 2 | The import-linter contracts hold |
@@ -206,6 +208,55 @@ def test_unknown_model_raises(book: PriceBook) -> None:
 When you add an adapter, add its factory to the fixture's `params`. When you
 add an obligation to a port, write it in the port's docstring and as a test
 here.
+
+## Schema contracts
+
+Every file TER writes and later reads (event logs, ledgers, policy files,
+control limits and measures) names its format in a `schema` field, such as
+`ter.intervention-policies/1`. The JSON Schema (draft-07) for each format
+ships in the package under `src/ter/data/schemas/<name>/<version>.json`, so a
+tool in any language can check a file before TER reads it. This is TER's
+answer to schema libraries such as zod: the schema is published data, and
+`tests/schema` holds the Python writers and readers to it from both sides.
+
+| Test module | Requirement | What it proves |
+|---|---|---|
+| `test_catalogue.py` | TER-TST-001, TER-TST-004 | every `ter.*/N` id in `src/ter` ships a schema or is on the `PENDING` list (which only shrinks); each schema is valid and canonically formatted; every enumeration equals the domain enumeration it names in `x-ter-enum` |
+| `test_writers.py` | TER-TST-002, TER-TST-005 | real output conforms: events of every golden and GARE session, the frozen control limits and measures, a draft and an approved policy file, a shadow-run ledger with an observation. Dropping any field or adding an unknown one is rejected |
+| `test_readers.py` | TER-TST-003, TER-TST-002 | hypothesis-jsonschema generates documents from each schema; the reader reads them (events and ledger lines round-trip exactly) or refuses them with its own error for a rule the schema cannot state, and what it reads it writes back conforming |
+
+```python
+@given(documents("ter.event/0.5"))
+def test_any_conforming_event_record_round_trips_exactly(record: Any) -> None:
+    event = event_from_record(record)
+    assert event_to_record(event) == record
+```
+
+An enumeration copies a domain one and says which:
+
+```json
+"outcome": {
+  "type": "string",
+  "x-ter-enum": "ter.domain.intervention:Outcome",
+  "enum": ["advised", "below_ceiling", "no_evidence", "ineligible", "..."]
+}
+```
+
+When you change a format:
+
+- **Add a field or an enum value**: update the schema in the same change. The
+  writer test fails until you do, because schemas forbid unknown fields.
+  Readers of the old version notice, so bump the version (a new file beside
+  the old one) when a reader would.
+- **Add a new format**: ship `src/ter/data/schemas/<name>/<version>.json` and
+  add its writer to `test_writers.py` and its reader to `test_readers.py`. A
+  new `ter.<name>/<version>` id without a schema fails `test_catalogue.py`.
+- **Ship a pending format's schema**: remove it from `PENDING` in
+  `test_catalogue.py`; the test fails if you forget.
+
+Load a schema from code with
+`ter.adapters.driven.json_schemas.schema("ter.control-limits/1")`. TER itself
+never validates at runtime, so `jsonschema` is a dev dependency only.
 
 ## Equivalence tests
 

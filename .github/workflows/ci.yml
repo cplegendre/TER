@@ -113,3 +113,4 @@ jobs:
           /tmp/ter-wheel-test/bin/python -c "import ter_calculator; assert ter_calculator.__version__ == '3.0.0'"
           /tmp/ter-wheel-test/bin/python -c "import ter, ter.domain, ter.ports; assert ter.EVENT_SCHEMA_VERSION == 'ter.event/0.5'"
           /tmp/ter-wheel-test/bin/python -c "import importlib.resources as r; assert r.files('ter').joinpath('py.typed').is_file()"
+          /tmp/ter-wheel-test/bin/python -c "from ter.adapters.driven.json_schemas import published_schemas, schema; assert 'ter.event/0.5' in published_schemas() and all(schema(s) for s in published_schemas())"
