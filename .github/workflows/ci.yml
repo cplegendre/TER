@@ -122,3 +122,16 @@ jobs:
         env:
           TER_SMOKE_BIN: /tmp/ter-wheel-test/bin
         run: python -m pytest tests/smoke -q
+      - name: Write the SBOM of the built wheel
+        # Every distribution installing the wheel installs, at the version
+        # resolved today, with its package URL and licence (TER-SBM-001).
+        run: python scripts/sbom.py --wheel dist/*.whl --out dist/ter.cdx.json
+      - name: Check the SBOM
+        env:
+          TER_SBOM: dist/ter.cdx.json
+        run: python -m pytest tests/sbom -q
+      - name: Upload the SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: dist/ter.cdx.json

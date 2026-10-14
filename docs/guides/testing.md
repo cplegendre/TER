@@ -335,6 +335,28 @@ The first run found:
   events that crashed the analysis;
 - a short write was never finished.
 
+## Software bill of materials
+
+`scripts/sbom.py` installs the wheel in a fresh virtual environment, with no
+pip of its own, and writes a CycloneDX 1.6 SBOM of everything that install
+holds: each distribution's exact version, package URL, declared licence and
+what depends on it. CI's package job writes it from the wheel it built and
+publishes it as the `sbom` artifact of every run (TER-SBM-001, TER-SBM-002).
+`tests/sbom` checks it:
+
+- the root component is this release of TER, with its licence;
+- every runtime dependency in `pyproject.toml` is listed, at a version inside
+  its declared range, and nothing is listed that installing TER does not
+  bring (no pip, setuptools or test tooling);
+- every component has a `pkg:pypi` package URL and a licence. A dependency
+  whose metadata declares none is on `UNDECLARED_LICENCE` in the test, a list
+  that only shrinks, so a new one is reviewed before it ships.
+
+`python dev.py sbom` writes the same file to `dist/ter.cdx.json` from this
+checkout (it needs network access to install the dependencies). The SBOM is a
+build output, not a committed file: the dependencies are ranges, so the
+versions it names are the ones that resolved on the day it was built.
+
 ## Test order
 
 Tests run in a random order (TER-TST-012): modules are shuffled, then the
@@ -444,6 +466,7 @@ requirements; defensive fallbacks and presentation paths may sit lower.
 | | Traceability gates (3.11 only) | `ter-req trace --results req-trace.json --gate L0` (then L1, L2, L3) |
 | Package | Build and smoke-test package | `python -m build`, `twine check`, install the wheel in a clean venv, `ter --help`, the schemas ship |
 | | Smoke-test the installed wheel | `TER_SMOKE_BIN=/tmp/ter-wheel-test/bin python -m pytest tests/smoke -q` |
+| | SBOM of the built wheel | `python scripts/sbom.py --wheel dist/*.whl`, `TER_SBOM=dist/ter.cdx.json python -m pytest tests/sbom -q`, upload as the `sbom` artifact |
 
 Run the same locally before pushing with `dev.py` (the
 [contributing guide](contributing.md) lists every task):

@@ -10,7 +10,7 @@ rules that enforce it and how it is verified. Rules live in
 contributed from another source (an external capability, ADR 0005) and the
 Origin column names that source, its reference and author.
 
-**202 points** · ● done **121** · ◐ partial **48** · ○ not started **33**
+**203 points** · ● done **122** · ◐ partial **48** · ○ not started **33**
 
 `████████████████████████▓▓▓▓▓▓▓▓▓░░░░░░░`
 
@@ -20,7 +20,7 @@ Legend: `█` done · `▓` partial · `░` not started
 
 | Level | Progress | Done | Partial | Not started | Total |
 |---|---|---:|---:|---:|---:|
-| L0 Measured | `█████████████████▓▓▓` | 10 | 2 | 0 | 12 |
+| L0 Measured | `█████████████████▓▓▓` | 11 | 2 | 0 | 13 |
 | L1 Observed | `███████████████████▓` | 15 | 1 | 0 | 16 |
 | L2 Explained | `██████████████████▓▓` | 50 | 5 | 0 | 55 |
 | L3 Grounded | `██████████▓▓▓▓▓▓▓▓▓▓` | 25 | 23 | 0 | 48 |
@@ -28,9 +28,9 @@ Legend: `█` done · `▓` partial · `░` not started
 | L5 Corrective | `█▓▓▓▓▓░░░░░░░░░░░░░░` | 1 | 5 | 15 | 21 |
 | L6 Learning | `█▓▓▓▓░░░░░░░░░░░░░░░` | 1 | 4 | 14 | 19 |
 
-Kinds: capability 138 · principle 37 · research 27
+Kinds: capability 139 · principle 37 · research 27
 
-Origins: Leigh's vision 200 · TER project 2
+Origins: Leigh's vision 200 · TER project 3
 
 Real session data: **47 points** need it (3 verified) and cannot be done on synthetic tests alone. Tracked in [#34](https://github.com/lgriffin/TER/issues/34), [#35](https://github.com/lgriffin/TER/issues/35), [#36](https://github.com/lgriffin/TER/issues/36), [#37](https://github.com/lgriffin/TER/issues/37), [#38](https://github.com/lgriffin/TER/issues/38), [#39](https://github.com/lgriffin/TER/issues/39), [#40](https://github.com/lgriffin/TER/issues/40), [#41](https://github.com/lgriffin/TER/issues/41), [#42](https://github.com/lgriffin/TER/issues/42), [#43](https://github.com/lgriffin/TER/issues/43), [#44](https://github.com/lgriffin/TER/issues/44), [#45](https://github.com/lgriffin/TER/issues/45), [#46](https://github.com/lgriffin/TER/issues/46), [#55](https://github.com/lgriffin/TER/issues/55).
 
@@ -49,7 +49,7 @@ P121 ● ● ● ● ◐ ○ ○ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ◐ ●
 P141 ● ● ● ● ● ◐ ◐ ● ◐ ◐ ● ● ◐ ● ◐ ◐ ● ● ● ●
 P161 ● ● ● ● ● ● ◐ ◐ ◐ ◐ ● ● ● ● ● ● ● ● ◐ ◐
 P181 ◐ ◐ ○ ○ ◐ ○ ○ ○ ○ ○ ○ ○ ○ ○ ● ● ● ◐ ○ ○
-P201 ◐ ◐
+P201 ◐ ◐ ●
 ```
 
 ## Points
@@ -258,3 +258,4 @@ P201 ◐ ◐
 | P200 | Ultimately answer one question: can we make agentic software development measurably… | vision | L6 | ○ not started | [#45](https://github.com/lgriffin/TER/issues/45) | • The experiments answer, with effect sizes, whether waste detection with real-time intervention improves delivery without harming useful reasoning. | `TER-RSH-003` ·<br>`TER-ANL-032` · | planned: passing tests tagged req for TER-RSH-003, TER-ANL-032<br>planned: real-data verification in issue #45 |
 | P201 | Chart each session measure on a Lean control chart with natural process limits a… | **TER project** Control charts thread, 10 Oct 2026, after the PC corpus run (Leigh Griffin) | L2 | ◐ partial |  | • XmR natural limits, the four detection rules and tunable action limits are computed and checked by tests, and every signal cites its sessions.<br>• Limits are computed from the owner's real corpus and the signals on it are reviewed.<br>• The A3 places a session against the limits (TER-SPC-011). | `TER-SPC-001` ✓<br>`TER-SPC-002` ✓<br>`TER-SPC-003` ✓<br>`TER-SPC-004` ✓<br>`TER-SPC-005` ✓<br>`TER-SPC-006` ✓<br>`TER-SPC-007` ✓<br>`TER-SPC-008` ✓<br>`TER-SPC-009` ✓<br>`TER-SPC-010` ✓<br>`TER-SPC-011` ✓<br>`TER-SPC-012` ✓<br>`TER-SPC-013` ✓<br>`TER-SPC-014` ✓<br>`TER-SPC-020` ✓ | test: tests/unit/test_ter4_control.py<br>test: tests/contract/test_control_limits.py<br>test: tests/golden/test_control_snapshots.py<br>branch: data/control-baseline at 1fd3938, the owner's corpus of 61 top-level sessions measured with detectors bb27bd9b9f83 on 10 Oct 2026; average-method limits give 44 firing signals, beyond-limits ones on 18 sessions<br>branch: data/control-baseline at 1fd3938, the owner reviewed the A3 of the session furthest outside its limits (s-732ac23e71c6) on 10 Oct 2026: 7 measures outside, 5 firing; the links matched the findings and left out its 2 risks; size and WIP signals are real, the waste signals are inflated by 132 uncertain intent_drift findings on files the session created<br>test: tests/unit/test_ter4_lean_intent.py::TestDriftInCreatedFiles<br>branch: data/control-baseline at 5a40481, re-measured on 10 Oct 2026 with detectors 0b4cbdb22068 (TER-ITN-007, PR #77): 56 signals, 38 would fire; s-732ac23e71c6 went from 7 measures outside a limit to 5 and from 136 intent_drift findings to 59<br>branch: data/control-baseline at 6d662ab, re-measured on 10 Oct 2026 with detectors 3fa548c8ac26 (PR #78): 56 signals, 38 would fire; the owner confirmed a judged sample of s-732ac23e71c6's 55 uncertain intent_drift findings, all added-words edits in files the session created: 6 waste, 46 not waste, 3 unsure<br>branch: data/control-baseline at d0a6aa4, re-measured on 10 Oct 2026 with detectors f8fa44bdc8e3 (PR #80): 52 signals, 41 would fire; s-732ac23e71c6 is still 5 measures outside a limit and 3 firing (confident findings, uncertain findings, WIP peak), with 22 intent_drift findings (was 136) and 18 uncertain waste findings (was 132), all added-words edits of files that do not count as created (first touch not a write, or its result reported an existing file)<br>test: tests/unit/test_ter4_control_signals.py |
 | P202 | Give TER a production-grade test harness, so the system can evolve safely: schema… | **TER project** Testing harness thread, 14 Oct 2026 (Leigh Griffin) | L0 | ◐ partial |  | • Every versioned document format ships a JSON Schema that its writers and readers are held to, and a format without one fails CI unless it is on the pending list.<br>• Every CLI command runs end to end from the built wheel in CI, and session inputs, hook payloads and failing ports are fuzzed or injected without an unhandled exception.<br>• A mutation score over the pure domain never drops below its committed baseline in CI, and TER 4 requirements have BDD scenarios that cite their ids and count in the trace gate. | `TER-TST-001` ✓<br>`TER-TST-002` ✓<br>`TER-TST-003` ✓<br>`TER-TST-004` ✓<br>`TER-TST-005` ✓<br>`TER-TST-006` ✓<br>`TER-TST-007` ✓<br>`TER-TST-008` ✓<br>`TER-TST-009` ✓<br>`TER-TST-010` ✓<br>`TER-TST-011` ✓<br>`TER-TST-012` ✓<br>`TER-TST-013` ✓<br>`TER-TST-014` ✓ | test: tests/schema/test_catalogue.py<br>test: tests/schema/test_writers.py<br>test: tests/schema/test_readers.py<br>test: tests/smoke/test_install.py<br>test: tests/smoke/test_ter4_hooks.py<br>ci: Smoke-test the installed wheel<br>test: tests/resilience/test_fuzz_sources.py<br>test: tests/resilience/test_faults.py<br>planned: mutation score ratchet, BDD scenarios from EARS requirements |
+| P203 | Publish a software bill of materials for TER, so anyone can inspect what installing it… | **TER project** Testing harness thread, 14 Oct 2026 (Leigh Griffin) | L0 | ● done |  | • Every CI run writes a CycloneDX SBOM of the wheel it built, listing each installed distribution with its exact version, package URL and licence, and publishes it as the run's sbom artifact.<br>• Tests fail when a runtime dependency is missing, outside its declared range or without a licence that is not on the reviewed list. | `TER-SBM-001` ✓<br>`TER-SBM-002` ✓ | test: tests/sbom/test_sbom.py<br>ci: Check the SBOM |

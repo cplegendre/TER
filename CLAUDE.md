@@ -19,6 +19,7 @@ tests/contract/        # One suite per port; real adapters and fakes must both p
 tests/schema/          # JSON Schema contracts: writers conform, readers accept what the schema allows
 tests/smoke/           # Every CLI subcommand end to end in fresh processes (TER_SMOKE_BIN=<venv>/bin runs an install)
 tests/resilience/      # Fuzzers (mutated real documents) and fault injection for every reader and append-only file
+tests/sbom/            # The CycloneDX SBOM of the built wheel (TER_SBOM=<file> checks CI's; scripts/sbom.py writes it)
 tests/architecture/    # Import-contract fitness tests
 tests/requirements/    # EARS catalogue lint, trace and ter-req tooling tests
 tests/docs/            # Doc checks: relative links, command examples, points index
@@ -39,6 +40,7 @@ python dev.py check                       # The CI lint and test jobs (lint, cov
 python dev.py fast                        # Quick loop: -x, last failures first, no embedding model
 python dev.py smoke                       # Every command end to end (CI also runs it against the built wheel)
 python dev.py fuzz                        # The resilience fuzzers at 20x their CI examples
+python dev.py sbom                        # CycloneDX SBOM of the built wheel to dist/ter.cdx.json (CI uploads it as the sbom artifact)
 pytest --test-order-seed=N                # Tests run shuffled; the header names the seed to rerun an order
 pytest                                    # Run all tests
 pytest tests/unit/test_fragment_store.py  # Run specific module tests
