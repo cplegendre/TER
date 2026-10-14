@@ -55,6 +55,10 @@ class ContentBlock:
     source_lines: list[int] = field(default_factory=list)
     content_fingerprint: str | None = None
     block_index: int | None = None
+    #: The uuid of the transcript line the block was read from. Claude Code
+    #: writes one line per block of a response, each with its own uuid, and
+    #: the loader merges them into one message under the first line's uuid.
+    source_uuid: str | None = None
 
 
 @dataclass

@@ -14,7 +14,9 @@ another left behind fails instead of passing by luck. Modules are shuffled,
 then the classes in a module, then the tests in a class, so module and class
 fixtures are still set up once. The header names the seed; rerun a failing
 order with ``--test-order-seed=N`` (or ``TER_TEST_ORDER_SEED=N``), and run
-in file order with ``--test-order=declared``.
+in file order with ``--test-order=declared``. ``--ff`` and ``--nf`` choose
+their own order (``python dev.py fast`` runs last failures first), so with
+either of them nothing is shuffled.
 
 ``--fuzz-scale=N`` runs the fuzzers in ``tests/resilience`` with N times
 their examples (``python dev.py fuzz`` uses 20).
@@ -72,9 +74,20 @@ def pytest_configure(config: pytest.Config) -> None:
     config.stash[_ORDER_SEED] = seed
 
 
+def _cache_orders(config: pytest.Config) -> str | None:
+    """The cache option that orders the run, when one is given."""
+    for flag, dest in (("--ff", "failedfirst"), ("--nf", "newfirst")):
+        if getattr(config.option, dest, False):
+            return flag
+    return None
+
+
 def pytest_report_header(config: pytest.Config) -> str:
     if config.getoption("--test-order") == "declared":
         return "test order: declared"
+    flag = _cache_orders(config)
+    if flag is not None:
+        return f"test order: as {flag} orders it (not shuffled)"
     seed = config.stash[_ORDER_SEED]
     return f"test order: random, seed {seed} (rerun with --test-order-seed={seed})"
 
@@ -114,7 +127,7 @@ def shuffled(items: list[pytest.Item], seed: int) -> list[pytest.Item]:
 def pytest_collection_modifyitems(
     config: pytest.Config, items: list[pytest.Item]
 ) -> None:
-    if config.getoption("--test-order") == "random":
+    if config.getoption("--test-order") == "random" and not _cache_orders(config):
         items[:] = shuffled(items, config.stash[_ORDER_SEED])
     _skip_embeddings_without_the_extra(items)
 

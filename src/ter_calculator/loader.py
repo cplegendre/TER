@@ -356,6 +356,7 @@ def _deduplicate_entries_with_warnings(
                 annotated_dict["_source_line"] = source_line
                 annotated_dict["_source_lines"] = [source_line]
                 annotated_dict["_source_block_index"] = block_index
+                annotated_dict["_source_uuid"] = entry.get("uuid")
                 annotated_dict["_content_fingerprint"] = content_block_fingerprint(
                     role, block
                 )
@@ -465,6 +466,7 @@ def _parse_content_blocks(
         )
         source_line = item.get("_source_line")
         source_lines = item.get("_source_lines", [])
+        source_uuid = item.get("_source_uuid")
         blocks.append(
             ContentBlock(
                 block_type=block_type,
@@ -476,6 +478,7 @@ def _parse_content_blocks(
                 source_lines=[line for line in source_lines if isinstance(line, int)],
                 content_fingerprint=str(fingerprint),
                 block_index=item.get("_source_block_index"),
+                source_uuid=source_uuid if isinstance(source_uuid, str) else None,
             )
         )
 

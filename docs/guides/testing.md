@@ -348,7 +348,9 @@ test order: random, seed 903883 (rerun with --test-order-seed=903883)
 A test that passes in file order but fails shuffled leans on state another
 test left behind. Rerun the failing order with `--test-order-seed=N` (or
 `TER_TEST_ORDER_SEED=N`), and use `--test-order=declared` to compare with
-file order. The ordering lives in the root `conftest.py`, with no plugin to
+file order. `--ff` and `--nf` keep their own order, so `python dev.py fast`
+still runs the last failures first; the header then says the run is not
+shuffled. The ordering lives in the root `conftest.py`, with no plugin to
 install.
 
 ## Equivalence tests

@@ -119,12 +119,25 @@ def _ledger_records() -> list[Any]:
     return lines
 
 
+def _with_sentinel(data: st.DataObject, records: list[Any]) -> tuple[list[str], str]:
+    """Damaged lines with one intact record of the first record's session among
+    them, and its id: a reader that drops everything fails, though it never
+    raises."""
+    lines = data.draw(jsonl_lines(records))
+    session = records[0]["session_id"]
+    sentinel = data.draw(
+        st.sampled_from([r for r in records if r["session_id"] == session])
+    )
+    lines.insert(data.draw(st.integers(0, len(lines))), json.dumps(sentinel))
+    return lines, str(sentinel["id"])
+
+
 @pytest.mark.req("TER-TST-013")
 @FUZZ
 @given(data=st.data())
 def test_a_damaged_event_log_is_read_and_analysed(data: st.DataObject) -> None:
     records = _event_records()
-    lines = data.draw(jsonl_lines(records))
+    lines, sentinel = _with_sentinel(data, records)
     session = records[0]["session_id"]
     with tempfile.TemporaryDirectory() as folder:
         log = JsonlEventLog(folder)
@@ -132,6 +145,7 @@ def test_a_damaged_event_log_is_read_and_analysed(data: st.DataObject) -> None:
         log.path_for(session).write_text("\n".join(lines) + "\n", encoding="utf-8")
         events = log.events(session)
     event(f"skipped some: {log.skipped > 0}")
+    assert sentinel in {e.id for e in events}, "a valid line among damage is lost"
     analyse_batch(events, RegexTokenizer())
     explain_batch(events, RegexTokenizer())
 
@@ -141,7 +155,7 @@ def test_a_damaged_event_log_is_read_and_analysed(data: st.DataObject) -> None:
 @given(data=st.data())
 def test_a_damaged_ledger_is_read(data: st.DataObject) -> None:
     records = _ledger_records()
-    lines = data.draw(jsonl_lines(records))
+    lines, sentinel = _with_sentinel(data, records)
     session = records[0]["session_id"]
     with tempfile.TemporaryDirectory() as folder:
         ledger = JsonlInterventionLedger(folder)
@@ -151,3 +165,4 @@ def test_a_damaged_ledger_is_read(data: st.DataObject) -> None:
         entries = ledger.entries(session)
         ledger.sessions()
     assert all(e.session_id == session for e in entries)
+    assert sentinel in {e.id for e in entries}, "a valid line among damage is lost"

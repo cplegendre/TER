@@ -11,6 +11,7 @@ import pytest
 
 from ter.adapters.driven.claude_code import ClaudeCodeJsonlSource
 from ter.adapters.driven.event_log import JsonlEventLog, event_to_record
+from ter.adapters.driven.gare import GareRunSource
 from ter.domain import EventKind
 
 PROMPT = {
@@ -58,6 +59,54 @@ def test_a_record_repeated_with_its_uuid_gives_its_events_once(tmp_path: Path) -
         EventKind.PROMPT,
         EventKind.TOOL_REQUESTED,
     ]
+
+
+RESULT = {
+    "type": "user",
+    "uuid": "u2",
+    "sessionId": "s1",
+    "timestamp": "2026-01-15T10:00:02.000Z",
+    "message": {
+        "role": "user",
+        "content": [{"type": "tool_result", "tool_use_id": "t1", "content": "ok"}],
+    },
+}
+
+
+def _texts(*texts: str, uuid: str = "a1") -> list[dict[str, Any]]:
+    """One response written as Claude Code writes it: a line per block."""
+    return [
+        CALL
+        | {"uuid": f"{uuid}-{i}" if i else uuid}
+        | {"message": CALL["message"] | {"content": [{"type": "text", "text": t}]}}
+        for i, t in enumerate(texts)
+    ]
+
+
+@pytest.mark.req("TER-TST-009")
+def test_a_repeated_tool_result_completes_the_tool_once(tmp_path: Path) -> None:
+    trace = _read(tmp_path, PROMPT, CALL, RESULT, RESULT)
+    kinds = [e.kind for e in trace.events]
+    assert kinds.count(EventKind.TOOL_COMPLETED) == 1
+
+
+@pytest.mark.req("TER-TST-009")
+def test_sibling_lines_of_one_response_keep_every_block(tmp_path: Path) -> None:
+    trace = _read(tmp_path, PROMPT, *_texts("First", "Second"))
+    texts = [e.text for e in trace.events if e.kind is not EventKind.PROMPT]
+    assert texts == ["First", "Second"]
+    assert len({e.id for e in trace.events}) == len(trace.events)
+    assert [e.provenance.record_id for e in trace.events[1:]] == ["a1", "a1-1"]
+
+
+@pytest.mark.req("TER-TST-009")
+def test_different_records_reusing_a_uuid_keep_their_own_events(
+    tmp_path: Path,
+) -> None:
+    second = _with(PROMPT, content=[{"type": "text", "text": "And the tests"}])
+    trace = _read(tmp_path, PROMPT, second)
+    assert [e.text for e in trace.events] == ["Fix it", "And the tests"]
+    assert len({e.id for e in trace.events}) == 2
 
 
 @pytest.mark.req("TER-TST-009")
@@ -132,3 +181,24 @@ def test_an_event_record_of_the_wrong_type_is_skipped(
     reader = JsonlEventLog(tmp_path / "log")
     assert reader.events(good.session_id) == (good,)
     assert reader.skipped == 1
+
+
+GARE_RUN = Path(__file__).resolve().parents[1] / "fixtures" / "gare" / "failover-run"
+
+
+@pytest.mark.req("TER-TST-009")
+@pytest.mark.parametrize("field", ["candidates", "errors"])
+def test_a_gare_list_of_the_wrong_type_is_read_around(
+    tmp_path: Path, field: str
+) -> None:
+    explain = json.loads((GARE_RUN / "explain.json").read_text(encoding="utf-8"))
+    if field == "errors":
+        explain["errors"] = 7
+    else:
+        for row in explain["events"]:
+            if isinstance(row.get("detail"), dict) and "candidates" in row["detail"]:
+                row["detail"]["candidates"] = 7
+    (tmp_path / "explain.json").write_text(json.dumps(explain), encoding="utf-8")
+    usage = (GARE_RUN / "gare-ter-usage.jsonl").read_text(encoding="utf-8")
+    (tmp_path / "gare-ter-usage.jsonl").write_text(usage, encoding="utf-8")
+    assert GareRunSource().read(tmp_path).events

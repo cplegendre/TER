@@ -416,7 +416,7 @@ def _route_text(
     route ranked above that one which the run never called (an unavailable
     provider GARE skipped) is named as not called rather than as selected.
     When the run called none of the candidates, the top one stands."""
-    candidates = [c for c in detail.get("candidates") or [] if isinstance(c, Mapping)]
+    candidates = [c for c in _list(detail.get("candidates")) if isinstance(c, Mapping)]
     if not candidates:
         return f"{task}: no route"
     routes = [(str(c.get("provider")), str(c.get("model"))) for c in candidates]
@@ -535,7 +535,7 @@ def _errors(explain: Mapping[str, Any] | None) -> dict[tuple[str, str, str], str
     found: dict[tuple[str, str, str], str] = {}
     if explain is None:
         return found
-    for error in explain.get("errors") or []:
+    for error in _list(explain.get("errors")):
         if not isinstance(error, Mapping):
             continue
         detail = error.get("detail") or error.get("detail_json") or {}
@@ -556,6 +556,11 @@ def _errors(explain: Mapping[str, Any] | None) -> dict[tuple[str, str, str], str
 
 
 # -- values -------------------------------------------------------------------
+
+
+def _list(value: object) -> list[Any]:
+    """``value`` when it is a list, else nothing (TER-TST-009)."""
+    return value if isinstance(value, list) else []
 
 
 def _time(value: object) -> datetime | None:

@@ -120,20 +120,29 @@ class ClaudeCodeJsonlSource:
         events: list[Event] = []
         requests: dict[str, ToolCall] = {}
         keyed: set[EventId] = set()
-        # A record repeated with the same uuid is the same record: its events
-        # are given once, so ids stay unique (TER-TST-009).
-        given: set[EventId] = set()
+        # Records by uuid (TER-TST-009): an exact copy of a record already read
+        # adds nothing and is skipped; a different record reusing a uuid keeps
+        # its events under ids of their own.
+        copies: dict[str, list[object]] = {}
         previous: EventId | None = None
+
+        def occurrence(uuid: str, content: object) -> str | None:
+            """The uuid to derive ids from, or ``None`` for an exact copy."""
+            seen = copies.setdefault(uuid, [])
+            if content in seen:
+                return None
+            seen.append(content)
+            return uuid if len(seen) == 1 else f"{uuid}~{len(seen) - 1}"
 
         def flush_queued(before: int | None) -> None:
             # Queued prompts take their place in file order among the messages.
             nonlocal previous
             while queued and (before is None or queued[0].line < before):
                 prompt = queued.pop(0)
-                event_id = prompt_event_id(session.session_id, prompt.uuid)
-                if event_id in given:
+                uuid = occurrence(prompt.uuid, ("queued", prompt.text))
+                if uuid is None:
                     continue
-                given.add(event_id)
+                event_id = prompt_event_id(session.session_id, uuid)
                 events.append(
                     Event(
                         id=event_id,
@@ -156,6 +165,15 @@ class ClaudeCodeJsonlSource:
 
         for message in session.messages:
             flush_queued(min(message.source_lines, default=None))
+            record_uuid = occurrence(
+                message.uuid,
+                (
+                    message.role,
+                    *(b.content_fingerprint for b in message.content_blocks),
+                ),
+            )
+            if record_uuid is None:
+                continue
             usage = _usage(message.usage, _meta(message, usage_meta))
             for index, block in enumerate(message.content_blocks):
                 kind, actor = _classify(message.role, block.block_type)
@@ -171,12 +189,14 @@ class ClaudeCodeJsonlSource:
                     and tool.call_id
                 ):
                     requests[tool.call_id] = tool
+                # Sibling lines of one response merge into one message, but
+                # each block keeps the uuid of its own line, so two blocks at
+                # index 0 of different lines never share an id.
+                line_uuid = block.source_uuid or message.uuid
+                block_uuid = record_uuid if line_uuid == message.uuid else line_uuid
                 event_id = _event_id(
-                    session.session_id, message.uuid, block_index, kind, tool, keyed
+                    session.session_id, block_uuid, block_index, kind, tool, keyed
                 )
-                if event_id in given:
-                    continue
-                given.add(event_id)
                 events.append(
                     Event(
                         id=event_id,
@@ -187,7 +207,7 @@ class ClaudeCodeJsonlSource:
                         text=_text(block),
                         provenance=Provenance(
                             source=source,
-                            record_id=message.uuid,
+                            record_id=line_uuid,
                             lines=_lines(message, block),
                             block_index=block_index,
                             fingerprint=block.content_fingerprint,
@@ -237,7 +257,17 @@ def _event_id(
         if event_id not in keyed:
             keyed.add(event_id)
             return event_id
-    return record_event_id(session_id, record_uuid, block_index, kind)
+    event_id = record_event_id(session_id, record_uuid, block_index, kind)
+    repeat = 0
+    while event_id in keyed:
+        # Two lines that reuse a uuid can merge into one message with the
+        # same block index twice (TER-TST-009); the later block gets its own.
+        repeat += 1
+        event_id = record_event_id(
+            session_id, f"{record_uuid}~{repeat}", block_index, kind
+        )
+    keyed.add(event_id)
+    return event_id
 
 
 #: Usage facts the TER 3 loader drops, by source line: the model named on the

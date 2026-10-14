@@ -73,3 +73,19 @@ def test_the_seed_can_come_from_the_environment(
     from_env, header = _order(suite)
     assert "seed 7" in header
     assert from_env == _order(suite, "--test-order-seed=7")[0]
+
+
+@pytest.mark.req("TER-TST-012")
+def test_failed_first_runs_the_last_failures_first(pytester: pytest.Pytester) -> None:
+    pytester.makeconftest(ROOT_CONFTEST.read_text(encoding="utf-8"))
+    body = "\n".join(f"def test_{n}(): pass" for n in range(8))
+    pytester.makepyfile(
+        test_a=body, test_z="import os\n\ndef test_last(): assert os.environ.get('OK')"
+    )
+    pytester.runpytest("--test-order-seed=1").assert_outcomes(passed=8, failed=1)
+    result = pytester.runpytest("-v", "--ff", "--test-order-seed=1")
+    result.assert_outcomes(passed=8, failed=1)
+    text = result.stdout.str()
+    assert "test order: as --ff orders it (not shuffled)" in text
+    ran = re.findall(r"^(\S+::\S+) (?:PASSED|FAILED)", text, re.MULTILINE)
+    assert ran[0] == "test_z.py::test_last"

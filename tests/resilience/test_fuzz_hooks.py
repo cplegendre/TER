@@ -55,10 +55,39 @@ def test_a_payload_is_recorded_or_refused_with_a_reason(payload: Any) -> None:
         assert not CAUGHT.match(result.reason), result.reason
 
 
+#: Stop is the event advice is given on; drawn often so advice is exercised.
+STOP = json.loads((HOOKS / "stop.json").read_text(encoding="utf-8"))
+raws = st.one_of(
+    payloads.map(json.dumps),
+    st.just(STOP)
+    .flatmap(lambda p: st.one_of(st.just(p), mutated(p, 1)))
+    .map(json.dumps),
+    st.text(max_size=80),
+)
+advice = st.one_of(
+    st.lists(st.text(min_size=1, max_size=200), max_size=3).map(tuple),
+    st.just(None),  # the advice step itself fails
+)
+
+
 @pytest.mark.req("TER-TST-010", "TER-TST-008")
 @FUZZ
-@given(raw=st.one_of(payloads.map(json.dumps), st.text(max_size=80)))
-def test_the_hook_always_answers_with_a_json_object(raw: str) -> None:
+@given(raw=raws, drawn=advice)
+def test_the_hook_always_answers_with_a_json_object(
+    raw: str, drawn: tuple[str, ...] | None
+) -> None:
+    def advise(result: Any) -> tuple[str, ...]:
+        if drawn is None:
+            raise RuntimeError("advice failed")
+        return drawn
+
     out = io.StringIO()
-    run_hook(io.StringIO(raw), out, _recorder, advise=lambda result: ())
-    assert isinstance(json.loads(out.getvalue()), dict)
+    result = run_hook(io.StringIO(raw), out, _recorder, advise=advise)
+    answer = json.loads(out.getvalue())
+    event(f"advice shown: {bool(result.advice)}")
+    if result.advice:
+        assert list(answer) == ["systemMessage"]
+        assert isinstance(answer["systemMessage"], str)
+        assert answer["systemMessage"].startswith(result.advice[0])
+    else:
+        assert answer == {}
