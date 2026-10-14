@@ -653,13 +653,20 @@ def _signal_to_dict(signal) -> dict:
     return implementation(signal)
 
 
+#: The command module's own printer while ``_cmd_watch`` has routed its
+#: printing through ``_print_signal`` below; the wrapper then calls it, not
+#: itself.
+_WATCH_ORIGINALS: dict[str, Callable[..., Any]] = {}
+
+
 def _print_signal(signal, fmt, log_fh=None):
     global _last_was_live
     from .commands import watch as command
 
+    printer = _WATCH_ORIGINALS.get("_print_signal") or command._print_signal
     command._last_was_live = _last_was_live
     try:
-        return command._print_signal(signal, fmt, log_fh)
+        return printer(signal, fmt, log_fh)
     finally:
         _last_was_live = command._last_was_live
 
@@ -669,9 +676,11 @@ def _cmd_watch(args) -> int:
 
     original_print = command._print_signal
     command._print_signal = globals()["_print_signal"]
+    _WATCH_ORIGINALS["_print_signal"] = original_print
     try:
         return command._cmd_watch(args)
     finally:
+        _WATCH_ORIGINALS.clear()
         command._print_signal = original_print
 
 

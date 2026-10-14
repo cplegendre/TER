@@ -250,3 +250,19 @@ def test_context_dispatch_reaches_the_real_command(monkeypatch):
     assert cli._cmd_context(args) == 0
     assert seen == [args]
     assert command._cmd_context_store is not cli._cmd_context_store
+
+
+def test_watch_prints_through_the_real_printer(monkeypatch):
+    # Watch routes printing through cli._print_signal so it can be patched;
+    # the unpatched wrapper must reach the printer, not call itself forever.
+    from ter_calculator.commands import watch as command
+
+    printed = []
+    monkeypatch.setattr(
+        command, "_print_signal", lambda sig, fmt, log_fh=None: printed.append(sig)
+    )
+    monkeypatch.setattr(
+        command, "_cmd_watch", lambda args: command._print_signal("sig", "json") or 0
+    )
+    assert cli._cmd_watch(ns()) == 0
+    assert printed == ["sig"]
