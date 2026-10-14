@@ -344,3 +344,43 @@ requirements:
       Hooks fail open: a broken payload or a full disk must never stop the
       agent the developer is working with.
     status: verified
+
+  - id: TER-TST-010
+    pattern: unwanted
+    text: >-
+      If the hook adapter receives a payload of an unexpected shape, then
+      the hook adapter shall refuse the payload with a stated reason, not
+      with an exception it caught.
+    level: L1
+    source_points: [202]
+    rationale: >-
+      The hook fails open, so a bug in translating payloads would never
+      show as a crash; fuzzing the payloads makes it show.
+    status: verified
+
+  - id: TER-TST-013
+    pattern: unwanted
+    text: >-
+      If a line of the event log or the intervention ledger is cut short or
+      damaged, then its reader shall skip and count that line, and keep
+      every other line.
+    level: L1
+    source_points: [202]
+    rationale: >-
+      Hook processes are killed mid-write and disks fill up; one torn line
+      must not lose the session's other records or crash the analysis of
+      what was read.
+    status: verified
+
+  - id: TER-TST-014
+    pattern: unwanted
+    text: >-
+      If the event log or the intervention ledger cannot be written, then
+      the hook adapter shall answer Claude Code with an empty hook
+      response and give no advice that the ledger did not record.
+    level: L1
+    source_points: [202]
+    rationale: >-
+      A full disk must neither stop the agent nor show advice twice: advice
+      is shown at most once, and only once it is in the ledger.
+    status: verified

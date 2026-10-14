@@ -101,6 +101,10 @@ def _smoke(extra: list[str]) -> list[Command]:
     return [py("pytest", "tests/smoke", "-q", *extra)]
 
 
+def _fuzz(extra: list[str]) -> list[Command]:
+    return [py("pytest", "tests/resilience", "-q", "--fuzz-scale=20", *extra)]
+
+
 def _golden(extra: list[str]) -> list[Command]:
     return [py("pytest", "tests/golden", "-q", *extra)]
 
@@ -130,6 +134,10 @@ TASKS: dict[str, Task] = {
     "smoke": Task(
         "every command end to end in fresh processes (TER_SMOKE_BIN: an install)",
         _smoke,
+    ),
+    "fuzz": Task(
+        "the resilience fuzzers with 20x their CI examples (run before changing a reader)",
+        _fuzz,
     ),
     "golden": Task(
         "golden snapshots; TER_UPDATE_GOLDEN=1 rewrites them on purpose", _golden

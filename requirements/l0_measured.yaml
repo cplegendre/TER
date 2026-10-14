@@ -432,3 +432,41 @@ requirements:
       A traceback tells a developer nothing about their file; the reason
       and the exit status are what scripts and people act on.
     status: verified
+
+  - id: TER-TST-009
+    pattern: unwanted
+    text: >-
+      If a session source is given a file that is not a session of its
+      format, then the session source shall raise a session format error
+      and no other exception.
+    level: L0
+    source_points: [202]
+    rationale: >-
+      Property tests feed each source real sessions with fields removed,
+      retyped or replaced, and arbitrary bytes; a crash on a record of the
+      wrong shape would reach the developer as a traceback.
+    status: verified
+
+  - id: TER-TST-011
+    pattern: unwanted
+    text: >-
+      If a policy, limits or measures file is malformed, then its reader
+      shall refuse the file with the error of that format.
+    level: L0
+    source_points: [202]
+    rationale: >-
+      People edit these files by hand; the CLI turns the format's own
+      error into a reason, and any other exception into a traceback.
+    status: verified
+
+  - id: TER-TST-012
+    pattern: ubiquitous
+    text: >-
+      The test suite shall run its tests in a random order drawn from a
+      seed that the run reports.
+    level: L0
+    source_points: [202]
+    rationale: >-
+      A test that passes only after another one has run hides shared
+      state; the reported seed reproduces the failing order.
+    status: verified

@@ -120,6 +120,9 @@ class ClaudeCodeJsonlSource:
         events: list[Event] = []
         requests: dict[str, ToolCall] = {}
         keyed: set[EventId] = set()
+        # A record repeated with the same uuid is the same record: its events
+        # are given once, so ids stay unique (TER-TST-009).
+        given: set[EventId] = set()
         previous: EventId | None = None
 
         def flush_queued(before: int | None) -> None:
@@ -128,6 +131,9 @@ class ClaudeCodeJsonlSource:
             while queued and (before is None or queued[0].line < before):
                 prompt = queued.pop(0)
                 event_id = prompt_event_id(session.session_id, prompt.uuid)
+                if event_id in given:
+                    continue
+                given.add(event_id)
                 events.append(
                     Event(
                         id=event_id,
@@ -168,6 +174,9 @@ class ClaudeCodeJsonlSource:
                 event_id = _event_id(
                     session.session_id, message.uuid, block_index, kind, tool, keyed
                 )
+                if event_id in given:
+                    continue
+                given.add(event_id)
                 events.append(
                     Event(
                         id=event_id,

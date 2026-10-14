@@ -38,8 +38,8 @@ def load_session(path: str | Path) -> Session:
             if not line:
                 continue
             try:
-                entry = json.loads(line)
-                if isinstance(entry, dict):
+                entry = _well_shaped(json.loads(line), line_num)
+                if entry is not None:
                     entry["_source_line"] = line_num
                     raw_entries.append(entry)
             except json.JSONDecodeError as e:
@@ -112,6 +112,76 @@ def load_session(path: str | Path) -> Session:
         user_prompts=user_prompts,
         merge_warnings=merge_warnings,
     )
+
+
+#: Record fields the loader reads as text: any other type is dropped.
+_TEXT_FIELDS = ("type", "sessionId", "requestId", "parentUuid", "timestamp")
+#: Content block fields read as text.
+_BLOCK_TEXT_FIELDS = ("type", "text", "thinking", "name", "id", "tool_use_id")
+_USAGE_FIELDS = (
+    "input_tokens",
+    "output_tokens",
+    "cache_creation_input_tokens",
+    "cache_read_input_tokens",
+)
+
+
+def _well_shaped(entry: object, line_num: int) -> dict | None:
+    """``entry`` with every field the loader reads in the type it expects.
+
+    Claude Code writes these shapes; a record that breaks them (hand-edited,
+    torn and rejoined, from another tool) must not crash the reader. A field
+    of the wrong type is dropped, as if absent; a record whose ``message`` is
+    not an object cannot be read and is skipped. A record without a text
+    ``uuid`` is named by its line, so distinct records stay distinct. Keys
+    starting with ``_`` are the loader's own bookkeeping and never read from
+    the file.
+    """
+    if not isinstance(entry, dict):
+        return None
+    entry = {k: v for k, v in entry.items() if not str(k).startswith("_")}
+    for field in _TEXT_FIELDS:
+        if field in entry and not isinstance(entry[field], str):
+            del entry[field]
+    if not isinstance(entry.get("uuid"), str) or not entry["uuid"]:
+        entry["uuid"] = f"line-{line_num}"
+    if "message" not in entry:
+        return entry
+    message = entry["message"]
+    if not isinstance(message, dict):
+        return None
+    message = dict(message)
+    for field in ("role", "stop_reason"):
+        if field in message and not isinstance(message[field], str):
+            del message[field]
+    content = message.get("content", [])
+    if isinstance(content, list):
+        message["content"] = [_block(b) for b in content if isinstance(b, (dict, str))]
+    elif not isinstance(content, str):
+        message["content"] = []
+    usage = message.get("usage")
+    if isinstance(usage, dict):
+        message["usage"] = {
+            f: usage[f]
+            for f in _USAGE_FIELDS
+            if isinstance(usage.get(f), int) and not isinstance(usage[f], bool)
+        }
+    elif "usage" in message:
+        del message["usage"]
+    entry["message"] = message
+    return entry
+
+
+def _block(block: dict | str) -> dict | str:
+    if isinstance(block, str):
+        return block
+    block = {k: v for k, v in block.items() if not str(k).startswith("_")}
+    for field in _BLOCK_TEXT_FIELDS:
+        if field in block and not isinstance(block[field], str):
+            del block[field]
+    if "input" in block and not isinstance(block["input"], dict):
+        del block["input"]  # a tool's arguments are an object
+    return block
 
 
 def segment_spans(

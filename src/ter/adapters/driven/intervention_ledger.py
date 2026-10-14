@@ -21,6 +21,7 @@ owner (0700) and each file 0600 on POSIX systems.
 
 from __future__ import annotations
 
+import errno
 import hashlib
 import json
 import os
@@ -147,7 +148,7 @@ class JsonlInterventionLedger:
             if size and _last_byte(fd, size) != b"\n":
                 # The last line was cut short: start this one on its own line.
                 data = b"\n" + data
-            os.write(fd, data)
+            _write_all(fd, data)
         finally:
             os.close(fd)
 
@@ -166,6 +167,17 @@ def _restrict(fd: int, mode: int) -> None:
     info = os.fstat(fd)
     if info.st_uid == os.getuid() and stat.S_IMODE(info.st_mode) & 0o077:
         os.fchmod(fd, mode)
+
+
+def _write_all(fd: int, data: bytes) -> None:
+    # os.write may write less than asked (a disk filling up mid-write); the
+    # rest follows, or the next call raises and the cut line is skipped.
+    view = memoryview(data)
+    while view:
+        written = os.write(fd, view)
+        if not written:
+            raise OSError(errno.ENOSPC, "no bytes written")
+        view = view[written:]
 
 
 def _last_byte(fd: int, size: int) -> bytes:

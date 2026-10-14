@@ -3289,6 +3289,12 @@ points:
       - TER-TST-006
       - TER-TST-007
       - TER-TST-008
+      - TER-TST-009
+      - TER-TST-010
+      - TER-TST-011
+      - TER-TST-012
+      - TER-TST-013
+      - TER-TST-014
     verification:
       - 'test: tests/schema/test_catalogue.py'
       - 'test: tests/schema/test_writers.py'
@@ -3296,4 +3302,6 @@ points:
       - 'test: tests/smoke/test_install.py'
       - 'test: tests/smoke/test_ter4_hooks.py'
       - 'ci: Smoke-test the installed wheel'
-      - 'planned: fuzzing and fault injection, mutation score ratchet, BDD scenarios from EARS requirements'
+      - 'test: tests/resilience/test_fuzz_sources.py'
+      - 'test: tests/resilience/test_faults.py'
+      - 'planned: mutation score ratchet, BDD scenarios from EARS requirements'
