@@ -237,3 +237,32 @@ def test_watch_import_and_init_errors(monkeypatch, tmp_path):
         lambda *a, **k: (_ for _ in ()).throw(RuntimeError("init")),
     )
     assert cli._cmd_watch(ns(project_path=str(f))) == 1
+
+
+def test_context_dispatch_reaches_the_real_command(monkeypatch):
+    # The dispatcher routes through the cli wrappers so they can be patched;
+    # an unpatched wrapper must reach the command, not call itself forever.
+    from ter_calculator.commands import context as command
+
+    seen = []
+    monkeypatch.setattr(command, "_cmd_context_store", lambda a: seen.append(a) or 0)
+    args = ns(context_command="store")
+    assert cli._cmd_context(args) == 0
+    assert seen == [args]
+    assert command._cmd_context_store is not cli._cmd_context_store
+
+
+def test_watch_prints_through_the_real_printer(monkeypatch):
+    # Watch routes printing through cli._print_signal so it can be patched;
+    # the unpatched wrapper must reach the printer, not call itself forever.
+    from ter_calculator.commands import watch as command
+
+    printed = []
+    monkeypatch.setattr(
+        command, "_print_signal", lambda sig, fmt, log_fh=None: printed.append(sig)
+    )
+    monkeypatch.setattr(
+        command, "_cmd_watch", lambda args: command._print_signal("sig", "json") or 0
+    )
+    assert cli._cmd_watch(ns()) == 0
+    assert printed == ["sig"]

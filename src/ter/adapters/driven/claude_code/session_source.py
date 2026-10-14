@@ -26,6 +26,7 @@ from ....domain.events import (
     EventKind,
     MetadataRecord,
     Provenance,
+    SessionFormatError,
     SessionTrace,
     TokenUsage,
     ToolCall,
@@ -107,7 +108,10 @@ class ClaudeCodeJsonlSource:
 
     def read(self, ref: str | Path) -> SessionTrace:
         path = Path(ref)
-        session = load_session(path)
+        try:
+            session = load_session(path)
+        except ValueError as exc:  # also UnicodeDecodeError
+            raise SessionFormatError(str(exc)) from exc
         scan = _scan(path)
         usage_meta = scan.usage
         queued = list(scan.prompts)

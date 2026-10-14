@@ -16,10 +16,11 @@ flowchart TB
     EQ["Equivalence<br/>tests/equivalence"]
     C["Contract suites<br/>tests/contract"]
     S["Schema contracts<br/>tests/schema"]
+    SM["Smoke<br/>tests/smoke, from the wheel"]
     I["Integration and BDD<br/>tests/integration · tests/features"]
     P["Property tests<br/>hypothesis, in tests/unit"]
     U["Unit tests<br/>tests/unit · tests/requirements · tests/docs"]
-    G --- A --- GO --- EQ --- C --- S --- I --- P --- U
+    G --- SM --- A --- GO --- EQ --- C --- S --- I --- P --- U
 ```
 
 | Layer | Where | Roughly how many | What it proves |
@@ -30,6 +31,7 @@ flowchart TB
 | Integration | `tests/integration/test_cli.py` | 12 | The `ter` CLI end to end on real files |
 | Contract | `tests/contract/` | 100 | Every adapter of a port, real and fake, meets the same obligations |
 | Schema | `tests/schema/` | 50 | Every versioned document format has a JSON Schema; writers conform, readers accept what it allows |
+| Smoke | `tests/smoke/` | 90 | Every `ter` and `python -m ter` subcommand runs end to end in a fresh process; bad input is refused without a traceback; CI runs it against the built wheel |
 | Equivalence | `tests/equivalence/test_live_static.py` | 24 | Live, event-by-event analysis equals batch analysis |
 | Golden | `tests/golden/` | 110 | TER 3 scores, event streams, reports, Lean findings and A3s are frozen |
 | Architecture | `tests/architecture/` | 2 | The import-linter contracts hold |
@@ -258,6 +260,40 @@ Load a schema from code with
 `ter.adapters.driven.json_schemas.schema("ter.control-limits/1")`. TER itself
 never validates at runtime, so `jsonschema` is a dev dependency only.
 
+## Smoke tests
+
+Unit tests call functions; people run commands. `tests/smoke` starts the real
+console scripts (`ter`, `python -m ter`, `ter-req`) in fresh processes, in an
+empty working directory, the way a developer or Claude Code does, and checks
+exit codes, the files written and, where a format has a JSON Schema, that
+they conform. Each journey chains commands as a user would: measure, limits
+and chart; check, approve, shadow and effectiveness; hook payloads on stdin
+into the event log, then `observe` and `hooks check`.
+
+```bash
+python dev.py smoke                                     # this checkout
+TER_SMOKE_BIN=/tmp/ter-wheel-test/bin python -m pytest tests/smoke -q   # an install
+```
+
+With `TER_SMOKE_BIN` the suite runs that environment's scripts with no
+`PYTHONPATH`; CI's package job points it at a clean venv holding only the
+built wheel, so a file left out of the package fails there. Without it, the
+scripts beside the current interpreter run with `src` first.
+
+| Module | Requirement | What it proves |
+|---|---|---|
+| `test_install.py` | TER-TST-006 | the scripts start and report versions, the right package is the one running, every subcommand has `--help`, and every subcommand appears in `TER4_COMMANDS` or `TER3_COMMANDS` with the journey that covers it (a new subcommand fails until it has one) |
+| `test_ter4_analysis.py` | TER-TST-006, TER-TST-007 | `explain`, `a3`, `route`, `context`, `corpus import`; missing and malformed sessions are refused with a reason |
+| `test_ter4_control_and_policy.py` | TER-TST-006, TER-TST-007 | control charts and the L4 policy lifecycle; every measures, limits, policy and ledger file conforms to its schema; an edited policy file is refused until approved again |
+| `test_ter4_hooks.py` | TER-TST-006, TER-TST-008 | hook payloads become schema-valid events; advice on Stop is only a `systemMessage`; a broken payload or an unwritable log still exits 0 with `{}` |
+| `test_ter3.py` | TER-TST-006, TER-TST-007 | TER 3's `ter`: commands that need the embedding model work when the extra is installed and otherwise refuse with the install command |
+
+The first run of this suite found two bugs no unit test had: a file that was
+not a session crashed `observe`, `explain`, `a3` and `route` with a
+traceback, and `ter context store|graph|delta|check` recursed until Python
+gave up (the unit tests called the handlers directly, never through the
+dispatcher).
+
 ## Equivalence tests
 
 `tests/equivalence/test_live_static.py` replays every corpus session one event
@@ -347,7 +383,8 @@ requirements; defensive fallbacks and presentation paths may sit lower.
 | Python 3.11, 3.12, 3.13 | L0 gate | `python -m pytest tests/golden tests/contract tests/architecture -q` |
 | | Tests with branch coverage | `python -m pytest --cov=ter_calculator --cov=ter --cov-branch --cov-report=term-missing --cov-report=xml --req-trace=req-trace.json` |
 | | Traceability gates (3.11 only) | `ter-req trace --results req-trace.json --gate L0` (then L1, L2, L3) |
-| Package | Build and smoke test | `python -m build`, `twine check`, install the wheel, `ter --help` |
+| Package | Build and smoke-test package | `python -m build`, `twine check`, install the wheel in a clean venv, `ter --help`, the schemas ship |
+| | Smoke-test the installed wheel | `TER_SMOKE_BIN=/tmp/ter-wheel-test/bin python -m pytest tests/smoke -q` |
 
 Run the same locally before pushing with `dev.py` (the
 [contributing guide](contributing.md) lists every task):
@@ -356,6 +393,7 @@ Run the same locally before pushing with `dev.py` (the
 python dev.py lint       # the lint job
 python dev.py gates      # the suite with --req-trace, then the L0-L4 gates
 python dev.py check      # both
+python dev.py smoke      # the smoke suite, against this checkout
 ```
 
 `tests/docs/test_dev_tasks.py` fails if `dev.py` runs a command CI does not.

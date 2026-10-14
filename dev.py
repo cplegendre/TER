@@ -97,6 +97,10 @@ def _check(extra: list[str]) -> list[Command]:
     return [*_lint(extra), *_gates(extra)]
 
 
+def _smoke(extra: list[str]) -> list[Command]:
+    return [py("pytest", "tests/smoke", "-q", *extra)]
+
+
 def _golden(extra: list[str]) -> list[Command]:
     return [py("pytest", "tests/golden", "-q", *extra)]
 
@@ -122,6 +126,10 @@ TASKS: dict[str, Task] = {
     ),
     "check": Task(
         "lint, then gates: the CI lint and test jobs (not the package build)", _check
+    ),
+    "smoke": Task(
+        "every command end to end in fresh processes (TER_SMOKE_BIN: an install)",
+        _smoke,
     ),
     "golden": Task(
         "golden snapshots; TER_UPDATE_GOLDEN=1 rewrites them on purpose", _golden

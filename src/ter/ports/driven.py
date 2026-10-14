@@ -41,7 +41,9 @@ class SessionSource(Protocol):
 
     * the same input yields an identical trace on every call;
     * event ids are unique within a trace and sequences run 0..n-1;
-    * records the adapter cannot map are counted, never silently dropped.
+    * records the adapter cannot map are counted, never silently dropped;
+    * input that is not a session of its format raises
+      :class:`ter.domain.events.SessionFormatError`.
     """
 
     format_name: str

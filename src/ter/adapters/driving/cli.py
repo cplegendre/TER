@@ -41,7 +41,12 @@ from typing import IO, TYPE_CHECKING, Protocol
 from ...application.explain import ExplainedSession
 from ...application.route import RoutedSession
 from ...domain.capabilities import Capability, CapabilityError, CapabilityProblem
-from ...domain.events import EVENT_SCHEMA_VERSION, TEXT_LIMITS, describe_limit
+from ...domain.events import (
+    EVENT_SCHEMA_VERSION,
+    TEXT_LIMITS,
+    SessionFormatError,
+    describe_limit,
+)
 from ...domain.lean import LeanAnalysis, SoftwareValueEfficiency
 from ...domain.lean.control import ControlLimits, ControlLimitsError, SessionControl
 from ...domain.lean.surface import EditPlacement
@@ -306,6 +311,10 @@ def _explain(
     except (RepositoryEvidenceError, CapabilityError) as exc:
         err.write(f"Cannot read repository {repo}: {exc}\n")
         return 2
+    except SessionFormatError as exc:
+        # The session source's own refusal: not JSONL, not a GARE run.
+        err.write(f"Cannot read session {args.path}: {exc}\n")
+        return 2
     grounding = explained.grounding
     if grounding is not None and grounding.contract_problem is not None:
         err.write(f"Architecture contracts not checked: {grounding.contract_problem}\n")
@@ -394,6 +403,9 @@ def _route(
         return 2
     except (RepositoryEvidenceError, CapabilityError) as exc:
         err.write(f"Cannot read repository {repo}: {exc}\n")
+        return 2
+    except SessionFormatError as exc:
+        err.write(f"Cannot read session {args.path}: {exc}\n")
         return 2
     if args.json:
         out.write(_json(routed.plan.as_dict()))
@@ -583,7 +595,11 @@ def _observe(
         if not args.path.exists():
             err.write(f"No such session file: {args.path}\n")
             return 2
-        report = services.analyse_transcript(args.path, args.tokenizer)
+        try:
+            report = services.analyse_transcript(args.path, args.tokenizer)
+        except SessionFormatError as exc:
+            err.write(f"Cannot read session {args.path}: {exc}\n")
+            return 2
     else:
         err.write("observe needs a session file or --event-log DIR\n")
         return 2

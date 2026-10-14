@@ -56,6 +56,7 @@ from ....domain.events import (
     Event,
     EventKind,
     Provenance,
+    SessionFormatError,
     SessionTrace,
     TokenUsage,
     UnrecognisedRecord,
@@ -172,7 +173,9 @@ class GareRunSource:
         explain = _load_json(explain_path) if explain_path else None
         if explain_path is not None and not _explain_shape(explain):
             # A broken explanation must not pass as a usage-only run.
-            raise ValueError(f"{explain_path} is not `gare explain --json` output")
+            raise SessionFormatError(
+                f"{explain_path} is not `gare explain --json` output"
+            )
 
         unrecognised: list[UnrecognisedRecord] = []
         rows: list[tuple[str, int, dict[str, Any]]] = []
@@ -244,7 +247,7 @@ def _files(path: Path) -> tuple[Path | None, list[Path]]:
         explain = path / EXPLAIN_FILE
         usage = [p for p in sorted(path.glob("*.jsonl")) if _is_usage_file(p)]
         if not explain.is_file() and not usage:
-            raise ValueError(
+            raise SessionFormatError(
                 f"{path} holds neither {EXPLAIN_FILE} nor a {GARE_USAGE_SCHEMA} file"
             )
         return (explain if explain.is_file() else None), usage
@@ -309,14 +312,14 @@ def _run_id(
     if explain is not None:
         run_id = str(explain["run"].get("id") or "")
         if not run_id:
-            raise ValueError(f"{path}: the explanation names no run id")
+            raise SessionFormatError(f"{path}: the explanation names no run id")
         return run_id
     runs = sorted({str(r[2].get("run_id")) for r in rows})
     if len(runs) == 1:
         return runs[0]
     if not runs:
-        raise ValueError(f"{path} holds no {GARE_USAGE_SCHEMA} rows")
-    raise ValueError(
+        raise SessionFormatError(f"{path} holds no {GARE_USAGE_SCHEMA} rows")
+    raise SessionFormatError(
         f"{path} holds {len(runs)} runs ({', '.join(runs)}); export one with "
         "`gare export-ter --run RUN`"
     )
