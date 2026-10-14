@@ -46,6 +46,12 @@ DEFAULT_CATALOGUE = Path("requirements")
 DEFAULT_INDEX = Path("docs/ter4/points.md")
 MARKER = re.compile(r"mark\.req\(\s*((?:[\"'][^\"']*[\"']\s*,?\s*)+)\)")
 MARKER_ID = re.compile(r"[\"']([^\"']*)[\"']")
+#: A BDD scenario's citation: ``@req:TER-ANL-001`` (see ``pytest_req``).
+FEATURE_TAG = re.compile(r"(?<!\S)@req:(\S*)")
+#: How an ``@req:`` tag without an id is reported, so the lint names it.
+EMPTY_TAG = "@req: (no id)"
+#: Gherkin docstring fences; text between them is step input, not tags.
+DOCSTRING_FENCES = ('"""', "```")
 
 Results = dict[str, list[TestOutcome]]
 
@@ -55,7 +61,8 @@ class InputError(ValueError):
 
 
 def scan_citations(root: Path) -> dict[str, list[str]]:
-    """Find ``mark.req("...")`` citations in Python files under ``root``.
+    """Find ``mark.req("...")`` citations in Python files under ``root``,
+    and ``@req:...`` tags in its ``.feature`` files.
 
     Returns id -> ["path:line", ...].
     """
@@ -66,7 +73,34 @@ def scan_citations(root: Path) -> dict[str, list[str]]:
             line = text.count("\n", 0, match.start()) + 1
             for rid in MARKER_ID.findall(match.group(1)):
                 found.setdefault(rid, []).append(f"{path.as_posix()}:{line}")
-    return found
+    for path in sorted(root.rglob("*.feature")):
+        for number, rid in feature_tags(path.read_text(encoding="utf-8")):
+            found.setdefault(rid or EMPTY_TAG, []).append(f"{path.as_posix()}:{number}")
+    return sorted_found(found)
+
+
+def feature_tags(text: str) -> list[tuple[int, str]]:
+    """``(line, id)`` for each ``@req:`` tag on a Gherkin tag line of
+    ``text``; descriptions, steps, comments and docstrings cite nothing."""
+    tags: list[tuple[int, str]] = []
+    fence: str | None = None
+    for number, line in enumerate(text.splitlines(), start=1):
+        stripped = line.strip()
+        if fence is not None:
+            if stripped.startswith(fence):
+                fence = None
+            continue
+        opening = next((f for f in DOCSTRING_FENCES if stripped.startswith(f)), None)
+        if opening is not None:
+            fence = opening
+            continue
+        if stripped.startswith("@"):
+            tags.extend((number, rid) for rid in FEATURE_TAG.findall(stripped))
+    return tags
+
+
+def sorted_found(found: dict[str, list[str]]) -> dict[str, list[str]]:
+    return {rid: found[rid] for rid in sorted(found)}
 
 
 def load_results(path: Path) -> Results:
